@@ -522,7 +522,7 @@ Codex should actively advise on branch hygiene:
 Recommended branch examples:
 
 ```text
-codex/project-scaffold
+codex/review-guardrails
 codex/audio-upload-slice
 codex/basic-metrics-api
 codex/waveform-view
