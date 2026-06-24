@@ -4,6 +4,7 @@
   align-items: center;
   justify-content: center;
   padding: 2rem;
+  cursor: pointer;
 
   &__content {
     max-width: 480px;
@@ -47,5 +48,19 @@
     font-size: 0.875rem;
     color: var(--muted-foreground);
     opacity: 0.8;
+  }
+
+  &__metadata {
+    margin-top: 1.5rem;
+    padding: 1rem;
+    border-radius: var(--radius-md);
+    background: var(--muted);
+    text-align: left;
+
+    p {
+      margin: 0.25rem 0;
+      font-size: 0.875rem;
+      color: var(--foreground);
+    }
   }
 }
