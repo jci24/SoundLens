@@ -38,6 +38,8 @@ frontend/            React frontend workspace
 docs/backend/        Backend architecture and conventions
 docs/frontend/       Frontend architecture, UX, and design-system conventions
 docs/adr/            Architectural decision records
+docs/review-guardrails.md
+                     Branch, PR, CI, and AI review workflow
 PROJECT_CONTEXT.md   Product, process, and collaboration context
 ```
 
@@ -72,18 +74,14 @@ npm run dev
 
 ## Current Slice
 
-Current branch: `codex/project-scaffold`
+Current branch: `codex/review-guardrails`
 
 Scope:
 
-- Project documentation skeleton
-- Backend and frontend folder placeholders
-- Initial architectural decision records
-- .NET 10 solution with FastEndpoints API project
-- .NET test project
-- Vite React TypeScript frontend
-- Tailwind 4 and shadcn/ui with Radix primitives
-- CI build/test/lint pipeline
+- Repository-level Copilot review instructions
+- Pull request template
+- Human review guardrails and GitHub ruleset checklist
+- README status refresh
 
 Out of scope:
 
@@ -97,6 +95,8 @@ Out of scope:
 Main should remain stable. New work should happen in focused branches named `codex/<short-task-name>`.
 
 Each task should be small enough to review in one sitting. If a task starts mixing unrelated backend, frontend, product, and infrastructure concerns, split it before continuing.
+
+Use [Review Guardrails](docs/review-guardrails.md) for PR size targets, required checks, GitHub ruleset setup, and AI review workflow.
 
 ## Documentation
 
