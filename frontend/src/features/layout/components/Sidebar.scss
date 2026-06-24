@@ -1,0 +1,59 @@
+.sidebar {
+  width: 280px;
+  flex-shrink: 0;
+  border-right: 1px solid var(--border);
+  background: var(--sidebar);
+  display: flex;
+  flex-direction: column;
+
+  &__header {
+    padding: 1.5rem;
+    border-bottom: 1px solid var(--sidebar-border);
+  }
+
+  &__logo {
+    margin: 0;
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: var(--sidebar-foreground);
+    font-family: 'Geist Variable', sans-serif;
+  }
+
+  &__nav {
+    flex: 1;
+    padding: 1.5rem 1rem;
+    overflow-y: auto;
+  }
+
+  &__nav-item {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    width: 100%;
+    padding: 0.625rem 0.75rem;
+    border: none;
+    border-radius: var(--radius-md);
+    background: transparent;
+    color: var(--sidebar-foreground);
+    font-size: 0.875rem;
+    font-weight: 500;
+    text-align: left;
+    cursor: pointer;
+    transition: all 0.15s ease;
+
+    &:hover {
+      background: var(--sidebar-accent);
+      color: var(--sidebar-accent-foreground);
+    }
+
+    &--active {
+      background: var(--sidebar-accent);
+      color: var(--sidebar-accent-foreground);
+      font-weight: 600;
+    }
+
+    span {
+      flex: 1;
+    }
+  }
+}
