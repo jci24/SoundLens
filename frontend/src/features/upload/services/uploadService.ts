@@ -1,4 +1,4 @@
-import type { IUploadResponse } from '../types/upload.types'
+import { IUploadResponseSchema, type IUploadResponse } from '../../../common/api/upload.schema'
 
 const API_BASE_URL = 'http://localhost:5000/api'
 
@@ -16,5 +16,6 @@ export const uploadFile = async (file: File): Promise<IUploadResponse> => {
     throw new Error(errorText || 'Upload failed')
   }
 
-  return response.json()
+  const data = await response.json()
+  return IUploadResponseSchema.parse(data)
 }
