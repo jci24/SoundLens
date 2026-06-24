@@ -4,7 +4,7 @@ using System;
 
 namespace SoundLens.Api.Endpoints.Files.validators;
 
-public sealed class UploadValidator : Validator<UploadCommand>
+public sealed class UploadValidator : AbstractValidator<UploadCommand>
 {
     private const long MaxFileSizeBytes = 50 * 1024 * 1024; // 50MB
 
@@ -33,7 +33,7 @@ public sealed class UploadValidator : Validator<UploadCommand>
             .WithMessage("Only WAV files are currently supported");
     }
 
-    public static async Task<bool> ValidateFileContentAsync(IFormFile file, CancellationToken ct)
+    public async Task<bool> ValidateFileContentAsync(IFormFile file, CancellationToken ct)
     {
         const int headerSize = 12; // RIFF header size
         var buffer = new byte[headerSize];

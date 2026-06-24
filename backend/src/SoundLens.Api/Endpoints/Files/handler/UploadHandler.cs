@@ -3,9 +3,9 @@ using SoundLens.Api.Endpoints.Files.responses;
 
 namespace SoundLens.Api.Endpoints.Files.handler;
 
-public static class UploadHandler
+public sealed class UploadHandler
 {
-    public static UploadResponse Handle(UploadCommand command)
+    public UploadResponse Handle(UploadCommand command)
     {
         // For now, return a mock response with a temporary FileId
         // The FileId is a random GUID and has no meaning since the file is not persisted

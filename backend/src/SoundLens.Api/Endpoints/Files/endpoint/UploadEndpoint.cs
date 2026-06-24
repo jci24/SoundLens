@@ -8,10 +8,15 @@ namespace SoundLens.Api.Endpoints.Files.endpoint;
 
 public sealed class UploadEndpoint : Endpoint<UploadCommand, UploadResponse>
 {
+    public required UploadValidator Validator { get; set; }
+    public required UploadHandler Handler { get; set; }
+
     public override void Configure()
     {
         Post("/api/files");
         AllowAnonymous();
+        AllowFileUploads();
+        MaxRequestBodySize(50 * 1024 * 1024); // 50MB
         Summary(s => 
         {
             s.Summary = "Upload audio files for analysis";
@@ -22,14 +27,14 @@ public sealed class UploadEndpoint : Endpoint<UploadCommand, UploadResponse>
     public override async Task HandleAsync(UploadCommand request, CancellationToken ct)
     {
         // Validate file content (WAV magic number check) - this is business logic validation
-        var isValidWav = await UploadValidator.ValidateFileContentAsync(request.File, ct);
+        var isValidWav = await Validator.ValidateFileContentAsync(request.File, ct);
         if (!isValidWav)
         {
             AddError(x => x.File, "File does not have a valid WAV format");
             ThrowIfAnyErrors();
         }
 
-        var response = UploadHandler.Handle(request);
+        var response = Handler.Handle(request);
         await Send.OkAsync(response, ct);
     }
 }
