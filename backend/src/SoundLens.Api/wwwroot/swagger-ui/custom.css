@@ -1,0 +1,14 @@
+/* Hide the schemas section */
+.swagger-ui .models {
+    display: none !important;
+}
+
+/* Hide the "Schemas" heading */
+.swagger-ui .opblock-tag-section h4 {
+    display: none !important;
+}
+
+/* Make the UI more compact */
+.swagger-ui .topbar {
+    display: none !important;
+}

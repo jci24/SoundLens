@@ -12,7 +12,7 @@ Use this skill to keep SoundLens work aligned with the project rules the user es
 1. Read `PROJECT_CONTEXT.md` before meaningful product, architecture, UX, backend, frontend, agent, or process work.
 2. Read `README.md`, `docs/backend/README.md`, `docs/frontend/README.md`, or relevant `docs/adr/*.md` when the task touches their scope.
 3. State the branch boundary before implementation. Tell the user when to push or when to split work into smaller branches.
-4. Keep changes in thin vertical slices. Do not mix unrelated product, backend, frontend, CI, docs, and research work in one branch unless the slice explicitly requires it.
+4. Keep changes in thin vertical slices. In SoundLens, "thin slice" means backend-to-frontend by default unless the user explicitly narrows the scope; do not deliver only backend plumbing or only frontend UI when a product behavior is requested. Do not mix unrelated product, backend, frontend, CI, docs, and research work in one branch unless the slice explicitly requires it.
 5. Before coding, explain enough context for the user to keep ownership: what is being built, why it matters, how it works, and how it will be validated.
 
 ## Product Direction

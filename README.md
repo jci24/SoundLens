@@ -74,21 +74,18 @@ npm run dev
 
 ## Current Slice
 
-Current branch: `codex/review-guardrails`
+Current branch: `codex/wav-upload-thin-slice`
 
 Scope:
 
-- Repository-level Copilot review instructions
-- Pull request template
-- Human review guardrails and GitHub ruleset checklist
-- README status refresh
+- Remove the current upload implementation from backend and frontend
+- Return to a minimal workspace shell before rebuilding the import slice
 
 Out of scope:
 
-- Audio upload implementation
+- New audio import behavior
 - DSP implementation
 - OpenAI API integration
-- UI implementation
 
 ## Branch Workflow
 

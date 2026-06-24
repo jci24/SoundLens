@@ -8,6 +8,7 @@ public sealed class HealthEndpoint : EndpointWithoutRequest<HealthResponse>
     {
         Get("/api/health");
         AllowAnonymous();
+        Tags("Health");
         Summary(s => s.Summary = "Reports whether the SoundLens API is running.");
     }
 

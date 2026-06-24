@@ -37,6 +37,10 @@ The current goal is not funding yet. The current goal is validation readiness:
 
 Funding preparation comes after customer signal, not before it.
 
+## Collaboration Process
+
+When a task is described as a thin slice, treat it as a narrow vertical product slice from backend to frontend unless the scope explicitly says otherwise. A thin slice may still be split into stacked branches, but each branch should preserve a reviewable end-to-end user behavior instead of implementing only backend plumbing or only frontend UI.
+
 ## Product Positioning
 
 SoundLens should be positioned as:

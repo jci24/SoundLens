@@ -1,6 +1,6 @@
 import { Sidebar } from './features/layout/components/Sidebar'
 import { MainContent } from './features/layout/components/MainContent'
-import { Upload } from './features/upload/components/Upload'
+import { ImportWorkspace } from './features/import/components/ImportWorkspace'
 import './App.scss'
 
 const App = () => {
@@ -8,7 +8,7 @@ const App = () => {
     <div className="app">
       <Sidebar activeItem="files" />
       <MainContent>
-        <Upload />
+        <ImportWorkspace />
       </MainContent>
     </div>
   )
