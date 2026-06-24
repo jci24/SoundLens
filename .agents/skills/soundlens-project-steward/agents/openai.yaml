@@ -1,0 +1,7 @@
+interface:
+  display_name: "SoundLens Steward"
+  short_description: "SoundLens project rules and guardrails"
+  default_prompt: "Use $soundlens-project-steward to keep this SoundLens task aligned with project rules."
+
+policy:
+  allow_implicit_invocation: true
