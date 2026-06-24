@@ -348,6 +348,56 @@ Binary transport principle:
 - Use it where payload size, speed, or typed binary arrays matter.
 - Keep API contracts debuggable during early development.
 
+## Documentation Architecture
+
+Use a small documentation hierarchy with clear ownership.
+
+Recommended files:
+
+```text
+README.md
+PROJECT_CONTEXT.md
+docs/backend/README.md
+docs/frontend/README.md
+docs/adr/
+```
+
+File responsibilities:
+
+- `README.md`: project entry point, setup instructions, commands, repository structure, and current status for a new developer.
+- `PROJECT_CONTEXT.md`: product vision, validation strategy, operating principles, branching process, collaboration rules, and current strategic decisions.
+- `docs/backend/README.md`: backend architecture, API conventions, DSP module boundaries, data contracts, validation strategy, storage, privacy, and server-side OpenAI integration.
+- `docs/frontend/README.md`: frontend architecture, design system, UX principles, state management, routing, component conventions, visualization rules, and accessibility expectations.
+- `docs/adr/`: short architectural decision records for decisions that should not be repeatedly relitigated.
+
+Do not duplicate long sections across files. Cross-link instead.
+
+Update rules:
+
+- Update `README.md` when setup, commands, repository structure, deployment, or onboarding changes.
+- Update `PROJECT_CONTEXT.md` when product direction, validation strategy, target user, workflow, branch process, or collaboration rules change.
+- Update `docs/backend/README.md` when backend architecture, API contracts, DSP assumptions, data formats, OpenAI server integration, privacy, or validation rules change.
+- Update `docs/frontend/README.md` when UI system, layout principles, design tokens, state management, routing, visualization components, or accessibility rules change.
+- Add or update an ADR when choosing a major technology, changing a major boundary, accepting a tradeoff, or making a decision likely to be questioned later.
+
+Codex responsibility:
+
+- Before and after each task, identify which documentation files need updates.
+- Do not update all docs mechanically.
+- Keep docs close to the code and decision they describe.
+- Tell the user when a documentation change is important enough to push the branch.
+- If backend and frontend changes happen in one slice, update both context files only when both sides gain durable decisions or conventions.
+
+ADR examples:
+
+```text
+docs/adr/0001-use-dotnet-fastendpoints.md
+docs/adr/0002-use-shadcn-radix-for-ui.md
+docs/adr/0003-hybrid-cloud-local-privacy-model.md
+docs/adr/0004-openai-agent-uses-structured-evidence.md
+docs/adr/0005-messagepack-for-large-analysis-payloads.md
+```
+
 ## Audio Format Direction
 
 Initial support target:
