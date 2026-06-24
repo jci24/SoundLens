@@ -655,7 +655,7 @@ These need decisions before implementation goes far:
 ### Slice 1: Upload And Metadata
 - [x] PR 1: Basic app layout with upload placeholder
 - [x] PR 2: Backend upload contract and health check
-- [ ] PR 3: WAV parsing implementation
+- [x] PR 3: WAV parsing implementation
 - [ ] PR 4: Frontend upload integration
 
 ### Slice 2: Single-File Analysis
