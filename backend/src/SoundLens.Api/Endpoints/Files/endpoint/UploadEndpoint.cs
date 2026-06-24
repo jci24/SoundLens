@@ -34,7 +34,7 @@ public sealed class UploadEndpoint : Endpoint<UploadCommand, UploadResponse>
             ThrowIfAnyErrors();
         }
 
-        var response = Handler.Handle(request);
+        var response = await Handler.HandleAsync(request, ct);
         await Send.OkAsync(response, ct);
     }
 }
