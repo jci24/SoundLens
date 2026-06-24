@@ -105,54 +105,6 @@
     font-size: 0.9rem;
   }
 
-  &__error {
-    margin: 0;
-    color: var(--destructive);
-    font-size: 0.875rem;
-  }
-
-  &__result {
-    width: 100%;
-    padding: 1.25rem;
-    border: 1px solid var(--border);
-    border-radius: var(--radius-lg);
-    background: var(--card);
-  }
-
-  &__result-heading {
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-    color: var(--foreground);
-
-    h1 {
-      margin: 0;
-      font-size: 1rem;
-      font-weight: 650;
-      letter-spacing: 0;
-    }
-  }
-
-  &__file-list {
-    display: grid;
-    gap: 0.5rem;
-    margin: 1rem 0 0;
-    padding: 0;
-    list-style: none;
-
-    li {
-      display: flex;
-      align-items: center;
-      gap: 0.5rem;
-      min-width: 0;
-      color: var(--muted-foreground);
-      font-size: 0.9rem;
-    }
-
-    span {
-      overflow-wrap: anywhere;
-    }
-  }
 }
 
 @keyframes import-workspace-spin {

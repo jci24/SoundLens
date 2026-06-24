@@ -661,6 +661,7 @@ These need decisions before implementation goes far:
 - [x] PR 2: Backend upload contract and health check
 - [x] PR 3: WAV parsing implementation
 - [x] PR 4: Frontend upload integration
+- [x] Upload notification via Sonner toasts (success/error, top-right, app palette)
 
 ### Slice 2: Single-File Analysis
 - [ ] PR 5: Time-domain visualization
