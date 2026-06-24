@@ -656,7 +656,7 @@ These need decisions before implementation goes far:
 - [x] PR 1: Basic app layout with upload placeholder
 - [x] PR 2: Backend upload contract and health check
 - [x] PR 3: WAV parsing implementation
-- [ ] PR 4: Frontend upload integration
+- [x] PR 4: Frontend upload integration
 
 ### Slice 2: Single-File Analysis
 - [ ] PR 5: Time-domain visualization
