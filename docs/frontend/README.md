@@ -28,6 +28,8 @@ frontend/
   src/
     App.tsx
     components/ui/
+    common/api/
+    features/
     lib/utils.ts
 ```
 
@@ -84,12 +86,53 @@ frontend/
   src/
     App.tsx
     App.scss
+    index.css
+    main.tsx
+    common/
+      api/
+        config.ts
     components/
       ui/
+        alert.tsx
+        button.tsx
+        button.scss
+        sonner.tsx
+    features/
+      import/
+        components/
+          ImportWorkspace.tsx
+          ImportWorkspace.scss
+          TextBasedImporter/
+            TextBasedImporter.tsx
+            TextBasedImporter.scss
+        hooks/
+          useImportFiles.ts
+        services/
+          importFiles.ts
+        utils/
+          webview.ts
+        types.ts
+      layout/
+        components/
+          Sidebar.tsx
+          Sidebar.scss
+          MainContent.tsx
+          MainContent.scss
     lib/
+      utils.ts
 ```
 
-Do not add `features/`, routing, state stores, or API clients until the first product slice needs them.
+The `features/` folder uses vertical slice architecture: each feature has `components/`, `hooks/`, `services/`, `utils/`, and `types.ts`.
+
+## Notification Convention
+
+User-facing notifications use Sonner toasts via the shadcn `Toaster` component:
+
+- `Toaster` is mounted once in `App.tsx` with `position="top-right"` and `closeButton`
+- Toast styling uses the app's CSS variables (`--primary` for success, `--destructive` for error) — not Sonner's `richColors` scheme
+- `toast.success()` for successful operations (e.g., files imported)
+- `toast.error()` for failures (e.g., import errors, failed files)
+- Toasts are fired from hooks, not components, keeping TSX files as pure renderers
 
 ## Commands
 
