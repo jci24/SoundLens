@@ -48,6 +48,8 @@ The current demo slice is now centered on browser-first import plus waveform and
 - Users can also inspect frequency spectra in the same workspace with backend-computed FFT bins, hover readout, and visible filtered-range state.
 - Waveform bins and axis source-of-truth values are computed by the backend; the frontend only requests resolution and renders the returned evidence.
 - Spectrum values, hover values, and viewport-filtered evidence are also computed and owned by the backend/frontend contract rather than recomputed in the browser.
+- Backend analysis services now cache decoded recordings and per-signal analysis results so repeated overlay selection does not recompute the full waveform or spectrum set each time.
+- Waveform transport has been tightened to a compact min/max envelope contract so the frontend receives the rendered waveform shape instead of verbose per-point objects.
 - The app shell now supports a collapsible sidebar so the workspace can prioritize evidence when screen width is limited.
 - The analysis workspace has been refactored into smaller frontend components and hooks so rendering, interaction state, and formatting are easier to maintain without changing product behavior.
 - Backend deterministic tests now cover waveform, spectrum, import/CORS, selected-signal behavior, and oversized-spectrum-file failure reporting.

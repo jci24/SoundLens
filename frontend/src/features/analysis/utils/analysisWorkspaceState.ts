@@ -17,6 +17,14 @@ const spectrumFftSizeValues = [
 const defaultSpectrumFftSize = 44100
 const defaultSpectrumRangeEndHz = 22050
 
+const getWaveformRequestedBinCount = (chartWidth: number) => {
+  if (chartWidth <= 0) {
+    return 0
+  }
+
+  return Math.min(4000, Math.max(64, Math.ceil(chartWidth)))
+}
+
 const formatSpectrumFftSizeOption = (fftSize: number) => `FFT size: ${fftSize.toLocaleString()}`
 const getOneSidedLineCount = (fftSize: number) => Math.floor(fftSize / 2) + 1
 
@@ -95,5 +103,6 @@ export {
   getNextSpectrumRangeEnd,
   getNextSpectrumRangeStart,
   getOneSidedLineCount,
+  getWaveformRequestedBinCount,
   spectrumFftSizeSelectOptions,
 }

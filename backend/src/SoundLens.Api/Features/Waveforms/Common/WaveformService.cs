@@ -1,11 +1,14 @@
 using SoundLens.Api.Features.Import.Common;
 using System.Security.Cryptography;
 using System.Text;
+using System.Collections.Concurrent;
 
 namespace SoundLens.Api.Features.Waveforms.Common;
 
 public sealed class WaveformService : IWaveformService
 {
+    private readonly ConcurrentDictionary<string, DecodedRecording> _recordingCache = new(StringComparer.Ordinal);
+
     public TimeWaveformResponse BuildTimeWaveforms(
         IReadOnlyList<ImportedFileSummary> files,
         int requestedBinCount,
@@ -25,7 +28,7 @@ public sealed class WaveformService : IWaveformService
 
             try
             {
-                recordings.Add(ReadWavFile(file, binCount, cancellationToken));
+                recordings.Add(GetOrReadRecording(file, binCount, cancellationToken));
             }
             catch (OperationCanceledException)
             {
@@ -72,7 +75,7 @@ public sealed class WaveformService : IWaveformService
                 selectedChannel.ChannelIndex,
                 "FS",
                 false,
-                selectedChannel.Points))
+                selectedChannel.Bins))
             .ToList();
 
         return new TimeWaveformResponse(
@@ -81,6 +84,22 @@ public sealed class WaveformService : IWaveformService
             selectedSignals,
             BuildYAxis(selectedSignals),
             failedFiles);
+    }
+
+    private DecodedRecording GetOrReadRecording(
+        ImportedFileSummary file,
+        int binCount,
+        CancellationToken cancellationToken)
+    {
+        var cacheKey = BuildWaveformCacheKey(file, binCount);
+        if (_recordingCache.TryGetValue(cacheKey, out var cachedRecording))
+        {
+            return cachedRecording;
+        }
+
+        var recording = ReadWavFile(file, binCount, cancellationToken);
+        _recordingCache.TryAdd(cacheKey, recording);
+        return recording;
     }
 
     private static DecodedRecording ReadWavFile(
@@ -244,7 +263,7 @@ public sealed class WaveformService : IWaveformService
             for (var channel = 0; channel < format.Channels; channel++)
             {
                 var sample = Math.Clamp(ReadSample(reader, format), -1.0, 1.0);
-                binsByChannel[channel][binIndex].Include(frame, sample);
+                binsByChannel[channel][binIndex].Include(sample);
             }
         }
 
@@ -252,7 +271,7 @@ public sealed class WaveformService : IWaveformService
             .Select(index => new ProcessedChannel(
                 index,
                 $"Channel {index + 1}",
-                BuildPointsFromBins(binsByChannel[index], format.SampleRate)))
+                BuildBinsFromAccumulators(binsByChannel[index])))
             .ToList();
     }
 
@@ -286,11 +305,10 @@ public sealed class WaveformService : IWaveformService
             .ToArray();
     }
 
-    private static IReadOnlyList<TimeWaveformPoint> BuildPointsFromBins(
-        IReadOnlyList<BinAccumulator> bins,
-        int sampleRate)
+    private static IReadOnlyList<double[]> BuildBinsFromAccumulators(
+        IReadOnlyList<BinAccumulator> bins)
     {
-        var points = new List<TimeWaveformPoint>(bins.Count);
+        var compactBins = new List<double[]>(bins.Count);
 
         foreach (var bin in bins)
         {
@@ -299,20 +317,17 @@ public sealed class WaveformService : IWaveformService
                 continue;
             }
 
-            points.Add(new TimeWaveformPoint(
-                bin.FirstFrameIndex / (double)sampleRate,
-                bin.MinAmplitude,
-                bin.MaxAmplitude));
+            compactBins.Add([bin.MinAmplitude, bin.MaxAmplitude]);
         }
 
-        return points;
+        return compactBins;
     }
 
     private static TimeWaveformAxis BuildYAxis(IReadOnlyList<TimeWaveformSignal> signals)
     {
         var amplitudes = signals
-            .SelectMany(signal => signal.Points)
-            .SelectMany(point => new[] { point.MinAmplitude, point.MaxAmplitude })
+            .SelectMany(signal => signal.Bins)
+            .SelectMany(bin => bin)
             .ToList();
 
         if (amplitudes.Count == 0)
@@ -367,7 +382,7 @@ public sealed class WaveformService : IWaveformService
                     BuildSignalId(RecordingId, channel.ChannelIndex),
                     channel.ChannelIndex,
                     channel.DisplayName,
-                    channel.Points,
+                    channel.Bins,
                     this))
                 .ToList();
 
@@ -392,27 +407,25 @@ public sealed class WaveformService : IWaveformService
         string SignalId,
         int ChannelIndex,
         string DisplayName,
-        IReadOnlyList<TimeWaveformPoint> Points,
+        IReadOnlyList<double[]> Bins,
         DecodedRecording Recording);
 
     private sealed record ProcessedChannel(
         int ChannelIndex,
         string DisplayName,
-        IReadOnlyList<TimeWaveformPoint> Points);
+        IReadOnlyList<double[]> Bins);
 
     private sealed class BinAccumulator
     {
         public bool HasValue { get; private set; }
-        public int FirstFrameIndex { get; private set; }
         public double MinAmplitude { get; private set; }
         public double MaxAmplitude { get; private set; }
 
-        public void Include(int frameIndex, double amplitude)
+        public void Include(double amplitude)
         {
             if (!HasValue)
             {
                 HasValue = true;
-                FirstFrameIndex = frameIndex;
                 MinAmplitude = amplitude;
                 MaxAmplitude = amplitude;
                 return;
@@ -428,6 +441,9 @@ public sealed class WaveformService : IWaveformService
         var payload = $"{file.FileName}|{file.SizeBytes}|{file.ContentType}|{file.FilePath}";
         return Convert.ToHexStringLower(SHA256.HashData(Encoding.UTF8.GetBytes(payload)))[..24];
     }
+
+    private static string BuildWaveformCacheKey(ImportedFileSummary file, int binCount) =>
+        $"{BuildRecordingId(file)}|waveform|{binCount}";
 
     private static string BuildSignalId(string recordingId, int channelIndex) => $"{recordingId}:ch:{channelIndex}";
 }

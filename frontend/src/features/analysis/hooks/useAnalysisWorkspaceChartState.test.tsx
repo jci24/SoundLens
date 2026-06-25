@@ -17,7 +17,7 @@ const waveformResponse: ITimeWaveformResponse = {
       channelIndex: 0,
       amplitudeUnit: 'FS',
       isCalibrated: false,
-      points: [],
+      bins: [],
     },
   ],
   yAxis: {

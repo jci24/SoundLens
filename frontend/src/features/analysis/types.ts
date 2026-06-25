@@ -1,8 +1,4 @@
-export interface ITimeWaveformPoint {
-  timeSeconds: number
-  minAmplitude: number
-  maxAmplitude: number
-}
+export type TTimeWaveformBin = [number, number]
 
 export interface ITimeWaveformSignalSummary {
   signalId: string
@@ -31,7 +27,7 @@ export interface ITimeWaveformSignal {
   channelIndex: number
   amplitudeUnit: string
   isCalibrated: boolean
-  points: ITimeWaveformPoint[]
+  bins: TTimeWaveformBin[]
 }
 
 export interface ITimeWaveformAxis {

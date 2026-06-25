@@ -24,6 +24,9 @@ const getWaveformChartModel = (
     plotWidth,
     xTicks: buildTimeTicks(maxDuration),
     yTicks: yAxis.ticks,
+    xForBinIndex: (binIndex: number, binCount: number) =>
+      chartPadding.left +
+      (binCount <= 1 ? 0 : (binIndex / (binCount - 1)) * plotWidth),
     xForTime: (timeSeconds: number) =>
       chartPadding.left + (timeSeconds / maxDuration) * plotWidth,
     yForAmplitude: (amplitude: number) =>

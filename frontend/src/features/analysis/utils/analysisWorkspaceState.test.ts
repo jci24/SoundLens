@@ -6,6 +6,7 @@ import {
   getNextRequestedSignalIds,
   getNextSpectrumRangeEnd,
   getNextSpectrumRangeStart,
+  getWaveformRequestedBinCount,
 } from './analysisWorkspaceState'
 
 describe('analysisWorkspaceState', () => {
@@ -48,5 +49,12 @@ describe('analysisWorkspaceState', () => {
       startHz: 1_000,
       endHz: 1_001,
     })
+  })
+
+  it('requests one waveform bin per visible pixel without retina doubling', () => {
+    expect(getWaveformRequestedBinCount(0)).toBe(0)
+    expect(getWaveformRequestedBinCount(40)).toBe(64)
+    expect(getWaveformRequestedBinCount(912.2)).toBe(913)
+    expect(getWaveformRequestedBinCount(5000)).toBe(4000)
   })
 })

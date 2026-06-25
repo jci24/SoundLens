@@ -27,6 +27,7 @@ import {
   getNextSpectrumRangeEnd,
   getNextSpectrumRangeStart,
   getOneSidedLineCount,
+  getWaveformRequestedBinCount,
   spectrumFftSizeSelectOptions,
   type ISpectrumRange,
 } from '../utils/analysisWorkspaceState'
@@ -80,12 +81,7 @@ const useTimeWaveformWorkspace = (
     endHz: defaultSpectrumRangeEndHz,
   })
 
-  const binCount = useMemo(() => {
-    if (chartWidth <= 0) return 0
-
-    const deviceScale = Math.max(2, window.devicePixelRatio || 1)
-    return Math.min(4000, Math.max(64, Math.ceil(chartWidth * deviceScale)))
-  }, [chartWidth])
+  const binCount = useMemo(() => getWaveformRequestedBinCount(chartWidth), [chartWidth])
 
   useEffect(() => {
     if (binCount <= 0 || importedFiles.length === 0) return
