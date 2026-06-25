@@ -50,6 +50,8 @@ The current demo slice is now centered on browser-first import plus waveform and
 - Spectrum values, hover values, and viewport-filtered evidence are also computed and owned by the backend/frontend contract rather than recomputed in the browser.
 - The app shell now supports a collapsible sidebar so the workspace can prioritize evidence when screen width is limited.
 - The analysis workspace has been refactored into smaller frontend components and hooks so rendering, interaction state, and formatting are easier to maintain without changing product behavior.
+- Backend deterministic tests now cover waveform, spectrum, import/CORS, selected-signal behavior, and oversized-spectrum-file failure reporting.
+- Frontend unit-test infrastructure is now established with Vitest and React Testing Library, with initial coverage around analysis formatting and popover interaction hooks.
 
 Immediate next step after this slice:
 

@@ -103,6 +103,77 @@ public sealed class FrequencySpectrumTests : IClassFixture<WebApplicationFactory
         Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
     }
 
+    [Fact]
+    public async Task POST_FrequencySpectra_ReturnsRequestedStereoSignal()
+    {
+        var tempPath = Path.Combine(Path.GetTempPath(), $"soundlens_spectrum_stereo_{Guid.NewGuid():N}.wav");
+        await File.WriteAllBytesAsync(tempPath, CreateStereo16BitWav(
+            sampleRate: 1024,
+            leftSamples: CreateSineSamples(1024, 64, 2.0),
+            rightSamples: CreateSineSamples(1024, 128, 2.0)));
+
+        try
+        {
+            var client = _factory.CreateClient();
+            var importResponse = await client.PostAsJsonAsync("/api/import", new { filePaths = new[] { tempPath } });
+            importResponse.EnsureSuccessStatusCode();
+
+            var baselineResponse = await client.PostAsJsonAsync("/api/spectra/frequency", new { binCount = 513 });
+            baselineResponse.EnsureSuccessStatusCode();
+            var baseline = await baselineResponse.Content.ReadFromJsonAsync<FrequencySpectrumResponse>();
+
+            Assert.NotNull(baseline);
+            var recording = Assert.Single(baseline!.Recordings);
+            var selectedSignal = recording.Signals.Single(signalSummary => signalSummary.ChannelIndex == 1);
+            var selectedSignalId = selectedSignal.SignalId;
+
+            var filteredResponse = await client.PostAsJsonAsync("/api/spectra/frequency", new
+            {
+                binCount = 513,
+                signalIds = new[] { selectedSignalId }
+            });
+
+            filteredResponse.EnsureSuccessStatusCode();
+            var filtered = await filteredResponse.Content.ReadFromJsonAsync<FrequencySpectrumResponse>();
+
+            Assert.NotNull(filtered);
+            var signal = Assert.Single(filtered!.SelectedSignals);
+            var peak = signal.Points.MaxBy(point => point.Value);
+
+            Assert.Equal(selectedSignalId, signal.SignalId);
+            Assert.Equal(1, signal.ChannelIndex);
+            Assert.NotNull(peak);
+            Assert.InRange(peak!.FrequencyHz, 127.0, 129.0);
+        }
+        finally
+        {
+            File.Delete(tempPath);
+        }
+    }
+
+    [Fact]
+    public async Task SpectrumService_ReportsFilesExceedingMaximumFrameLimitAsFailures()
+    {
+        var tempPath = Path.Combine(Path.GetTempPath(), $"soundlens_large_header_{Guid.NewGuid():N}.wav");
+        await File.WriteAllBytesAsync(tempPath, CreateHeaderOnlyMono16BitWav(sampleRate: 48000, declaredFrameCount: 10_000_001));
+
+        try
+        {
+            var importedFile = new ImportedFileSummary("too-large.wav", new FileInfo(tempPath).Length, tempPath, "audio/wav");
+            var spectrumService = new SpectrumService();
+
+            var result = spectrumService.BuildFrequencySpectra([importedFile], requestedBinCount: 256, selectedSignalIds: null, CancellationToken.None);
+
+            Assert.Empty(result.Recordings);
+            Assert.Empty(result.SelectedSignals);
+            Assert.Equal(["too-large.wav"], result.FailedFiles);
+        }
+        finally
+        {
+            File.Delete(tempPath);
+        }
+    }
+
     private static List<(double frequencyHz, double value)> BuildReferenceLineSpectrumDb(
         IReadOnlyList<double> samples,
         int sampleRate,
@@ -196,6 +267,68 @@ public sealed class FrequencySpectrumTests : IClassFixture<WebApplicationFactory
         {
             writer.Write(sample);
         }
+
+        return stream.ToArray();
+    }
+
+    private static byte[] CreateStereo16BitWav(
+        int sampleRate,
+        IReadOnlyList<short> leftSamples,
+        IReadOnlyList<short> rightSamples)
+    {
+        if (leftSamples.Count != rightSamples.Count)
+        {
+            throw new ArgumentException("Stereo channels must have the same sample count.");
+        }
+
+        using var stream = new MemoryStream();
+        using var writer = new BinaryWriter(stream);
+        var dataLength = leftSamples.Count * sizeof(short) * 2;
+
+        writer.Write("RIFF"u8.ToArray());
+        writer.Write(36 + dataLength);
+        writer.Write("WAVE"u8.ToArray());
+        writer.Write("fmt "u8.ToArray());
+        writer.Write(16);
+        writer.Write((short)1);
+        writer.Write((short)2);
+        writer.Write(sampleRate);
+        writer.Write(sampleRate * sizeof(short) * 2);
+        writer.Write((short)(sizeof(short) * 2));
+        writer.Write((short)16);
+        writer.Write("data"u8.ToArray());
+        writer.Write(dataLength);
+
+        for (var index = 0; index < leftSamples.Count; index++)
+        {
+            writer.Write(leftSamples[index]);
+            writer.Write(rightSamples[index]);
+        }
+
+        return stream.ToArray();
+    }
+
+    private static byte[] CreateHeaderOnlyMono16BitWav(int sampleRate, int declaredFrameCount)
+    {
+        using var stream = new MemoryStream();
+        using var writer = new BinaryWriter(stream);
+        // Intentionally declare more data than is present so the decoder hits
+        // the oversized-frame guardrail through its normal file-read path.
+        var declaredDataLength = declaredFrameCount * sizeof(short);
+
+        writer.Write("RIFF"u8.ToArray());
+        writer.Write(36 + declaredDataLength);
+        writer.Write("WAVE"u8.ToArray());
+        writer.Write("fmt "u8.ToArray());
+        writer.Write(16);
+        writer.Write((short)1);
+        writer.Write((short)1);
+        writer.Write(sampleRate);
+        writer.Write(sampleRate * sizeof(short));
+        writer.Write((short)sizeof(short));
+        writer.Write((short)16);
+        writer.Write("data"u8.ToArray());
+        writer.Write(declaredDataLength);
 
         return stream.ToArray();
     }
