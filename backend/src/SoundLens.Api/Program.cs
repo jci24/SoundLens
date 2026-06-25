@@ -7,10 +7,15 @@ using Microsoft.OpenApi.Models;
 using Serilog;
 using SoundLens.Api.Configuration;
 
+const string LocalFrontendCorsPolicy = "LocalFrontend";
+
 try
 {
     var builder = WebApplication.CreateBuilder(args);
     var uploadLimitsSection = builder.Configuration.GetSection("UploadLimits");
+    var allowedCorsOrigins =
+        builder.Configuration.GetSection("Cors:AllowedOrigins").Get<string[]>() ??
+        ["http://localhost:5173", "http://127.0.0.1:5173"];
     var maxRequestBodySizeBytes =
         uploadLimitsSection.GetValue<long?>("MaxRequestBodySizeBytes") ??
         500L * 1024L * 1024L;
@@ -51,8 +56,9 @@ try
         });
     }
 
-    builder.Services.AddCors(options => options.AddDefaultPolicy(
-        policy => policy.WithOrigins("http://localhost:5173", "http://127.0.0.1:5173")
+    builder.Services.AddCors(options => options.AddPolicy(
+        LocalFrontendCorsPolicy,
+        policy => policy.WithOrigins(allowedCorsOrigins)
             .AllowAnyHeader()
             .AllowAnyMethod()));
 
@@ -91,7 +97,7 @@ try
         Log.Debug("Swagger enabled (development only).");
     }
 
-    app.UseCors();
+    app.UseCors(LocalFrontendCorsPolicy);
     if (!app.Environment.IsDevelopment())
     {
         app.UseHttpsRedirection();
@@ -99,7 +105,7 @@ try
 
     app.UseSerilogRequestLogging();
 
-    app.MapGroup("/api").MapFastEndpoints();
+    app.MapGroup("/api").RequireCors(LocalFrontendCorsPolicy).MapFastEndpoints();
     app.MapHealthChecks("/api/health");
 
     app.Run();

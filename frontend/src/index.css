@@ -58,6 +58,16 @@
     oklch(0.269 0 0);
   --radius:
     0.625rem;
+  --font-xs:
+    0.6875rem;
+  --font-sm:
+    0.75rem;
+  --font-md:
+    0.8125rem;
+  --font-lg:
+    0.9375rem;
+  --font-xl:
+    1.125rem;
   --sidebar:
     oklch(0.985 0 0);
   --sidebar-foreground:
@@ -78,6 +88,7 @@
 
 body {
   margin: 0;
+  font-size: var(--font-md);
 }
 
 @theme inline {

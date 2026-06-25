@@ -22,7 +22,7 @@
   &__eyebrow {
     margin: 0 0 0.18rem;
     color: var(--muted-foreground);
-    font-size: 0.72rem;
+    font-size: var(--font-xs);
     font-weight: 700;
     letter-spacing: 0.08em;
     text-transform: uppercase;
@@ -30,7 +30,7 @@
 
   &__title {
     margin: 0;
-    font-size: 1.1rem;
+    font-size: var(--font-lg);
     font-weight: 650;
     line-height: 1.1;
   }
@@ -40,8 +40,181 @@
     align-items: center;
     gap: 0.75rem;
     color: var(--muted-foreground);
-    font-size: 0.78rem;
+    font-size: var(--font-sm);
     white-space: nowrap;
+  }
+
+  &__surface-bar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    padding: 0.8rem 1.25rem;
+    border-bottom: 1px solid var(--border);
+    background: color-mix(in srgb, var(--card) 84%, white 16%);
+  }
+
+  &__surface-tabs {
+    display: inline-flex;
+  }
+
+  &__surface-controls {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.75rem;
+  }
+
+  &__range-badge {
+    display: inline-flex;
+    align-items: center;
+    height: 2rem;
+    padding: 0 0.7rem;
+    border: 1px solid color-mix(in srgb, oklch(0.47 0.11 188) 32%, var(--border));
+    border-radius: 999px;
+    background: color-mix(in srgb, oklch(0.92 0.02 188) 46%, white 54%);
+    color: var(--foreground);
+    font-size: var(--font-xs);
+    font-weight: 600;
+    font-variant-numeric: tabular-nums;
+    cursor: pointer;
+    transition:
+      border-color 140ms ease,
+      background-color 140ms ease;
+  }
+
+  &__range-badge:hover {
+    border-color: color-mix(in srgb, oklch(0.47 0.11 188) 46%, var(--border));
+    background: color-mix(in srgb, oklch(0.92 0.02 188) 58%, white 42%);
+  }
+
+  &__controls-popover {
+    position: relative;
+  }
+
+  &__controls-trigger {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 2rem;
+    height: 2rem;
+    border: 1px solid color-mix(in srgb, var(--border) 86%, transparent);
+    border-radius: 999px;
+    background: color-mix(in srgb, var(--card) 90%, white 10%);
+    color: var(--muted-foreground);
+    box-shadow:
+      inset 0 1px 0 color-mix(in srgb, white 74%, transparent),
+      0 10px 22px -20px color-mix(in srgb, black 28%, transparent);
+    cursor: pointer;
+    transition:
+      border-color 140ms ease,
+      color 140ms ease,
+      background-color 140ms ease;
+  }
+
+  &__controls-trigger:hover,
+  &__controls-trigger--open {
+    border-color: color-mix(in srgb, oklch(0.47 0.11 188) 36%, var(--border));
+    color: var(--foreground);
+    background: color-mix(in srgb, var(--muted) 58%, white 4%);
+  }
+
+  &__controls-panel {
+    position: absolute;
+    top: calc(100% + 0.55rem);
+    right: 0;
+    z-index: 25;
+    display: none;
+    min-width: 21rem;
+    padding: 0.75rem;
+    border: 1px solid color-mix(in srgb, var(--border) 84%, transparent);
+    border-radius: 1rem;
+    background: color-mix(in srgb, var(--card) 92%, white 8%);
+    box-shadow:
+      inset 0 1px 0 color-mix(in srgb, white 76%, transparent),
+      0 24px 40px -28px color-mix(in srgb, black 30%, transparent),
+      0 8px 18px color-mix(in srgb, black 6%, transparent);
+    backdrop-filter: blur(12px);
+  }
+
+  &__controls-panel--open {
+    display: grid;
+    gap: 0.75rem;
+  }
+
+  &__controls-group {
+    display: grid;
+    gap: 0.4rem;
+  }
+
+  &__controls-caption {
+    color: var(--muted-foreground);
+    font-size: var(--font-xs);
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+  }
+
+  &__parameter-combobox {
+    min-width: 13rem;
+  }
+
+  &__zoom-panel {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.55rem;
+    flex-wrap: wrap;
+  }
+
+  &__zoom-input-group {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    color: var(--muted-foreground);
+    font-size: var(--font-xs);
+  }
+
+  &__zoom-input {
+    width: 5rem;
+    height: 1.9rem;
+    padding: 0 0.45rem;
+    border: 1px solid color-mix(in srgb, var(--border) 88%, transparent);
+    border-radius: 0.65rem;
+    background: color-mix(in srgb, white 74%, var(--card) 26%);
+    color: var(--foreground);
+    font-size: var(--font-sm);
+    font-variant-numeric: tabular-nums;
+    text-align: right;
+    outline: none;
+    transition:
+      border-color 140ms ease,
+      box-shadow 140ms ease;
+  }
+
+  &__zoom-input:focus {
+    border-color: color-mix(in srgb, oklch(0.47 0.11 188) 50%, var(--border));
+    box-shadow: 0 0 0 3px color-mix(in srgb, oklch(0.92 0.02 188) 58%, transparent);
+  }
+
+  &__zoom-reset {
+    display: inline-flex;
+    align-items: center;
+    height: 1.9rem;
+    padding: 0 0.7rem;
+    border: 1px solid color-mix(in srgb, var(--border) 88%, transparent);
+    border-radius: 999px;
+    background: color-mix(in srgb, var(--muted) 54%, transparent);
+    color: var(--foreground);
+    font-size: var(--font-xs);
+    font-weight: 600;
+    cursor: pointer;
+    transition:
+      border-color 140ms ease,
+      background-color 140ms ease;
+  }
+
+  &__zoom-reset:hover {
+    border-color: color-mix(in srgb, oklch(0.47 0.11 188) 30%, var(--border));
+    background: color-mix(in srgb, var(--muted) 72%, white 4%);
   }
 
   &__body {
@@ -58,7 +231,7 @@
     flex-direction: column;
     gap: 0.875rem;
     min-width: 0;
-    padding: 0.85rem;
+    padding: 0.7rem;
     border: 1px solid color-mix(in srgb, var(--border) 82%, transparent);
     border-radius: 1.4rem;
     background:
@@ -78,7 +251,7 @@
 
   &__recording-group {
     display: grid;
-    gap: 0.55rem;
+    gap: 0.45rem;
     padding: 0.15rem 0;
   }
 
@@ -86,7 +259,7 @@
     display: flex;
     align-items: center;
     width: 100%;
-    padding: 0.75rem 0.85rem;
+    padding: 0.62rem 0.78rem;
     border: 1px solid color-mix(in srgb, var(--border) 82%, transparent);
     border-radius: 1rem;
     background:
@@ -123,7 +296,7 @@
     gap: 0.35rem;
     min-width: 0;
     color: var(--foreground);
-    font-size: 0.82rem;
+    font-size: var(--font-md);
     font-weight: 650;
   }
 
@@ -154,7 +327,7 @@
     align-items: center;
     gap: 0.55rem;
     width: 100%;
-    padding: 0.6rem 0.7rem;
+    padding: 0.5rem 0.65rem;
     border: 1px solid color-mix(in srgb, var(--border) 85%, transparent);
     border-radius: calc(var(--radius-md) + 2px);
     background: color-mix(in srgb, var(--muted) 44%, transparent);
@@ -164,7 +337,6 @@
       border-color 160ms ease,
       background-color 160ms ease,
       transform 160ms ease;
-    cursor: pointer;
   }
 
   &__signal-row:hover {
@@ -178,16 +350,21 @@
     transform: translateX(2px);
   }
 
+  &__signal-checkbox {
+    margin-top: 0.1rem;
+  }
+
   &__signal-label {
-    display: inline-flex;
-    align-items: center;
-    gap: 0.45rem;
-    min-width: 0;
+    display: block;
+    min-width: 0 !important;
+    flex: 1 1 auto;
     overflow: hidden;
-    font-size: 0.79rem;
+    font-size: var(--font-md);
     font-weight: 600;
+    line-height: 1.2;
     text-overflow: ellipsis;
     white-space: nowrap;
+    cursor: pointer;
   }
 
   &__chart-shell {
@@ -219,7 +396,7 @@
     justify-content: center;
     gap: 0.6rem;
     color: var(--muted-foreground);
-    font-size: 0.86rem;
+    font-size: var(--font-md);
   }
 
   &__loading-pill {
@@ -238,7 +415,7 @@
       inset 0 1px 0 color-mix(in srgb, white 75%, transparent),
       0 10px 24px -20px color-mix(in srgb, black 30%, transparent);
     color: var(--muted-foreground);
-    font-size: 0.72rem;
+    font-size: var(--font-xs);
     backdrop-filter: blur(10px);
   }
 
@@ -259,6 +436,93 @@
 
   &__plot-background {
     fill: color-mix(in srgb, var(--muted) 30%, transparent);
+  }
+
+  &__spectrum-line {
+    fill: none;
+    stroke-width: 2;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+  }
+
+  &__spectrum-line--0 {
+    stroke: oklch(0.56 0.13 205);
+  }
+
+  &__spectrum-line--1 {
+    stroke: oklch(0.64 0.13 165);
+  }
+
+  &__spectrum-line--2 {
+    stroke: oklch(0.68 0.16 80);
+  }
+
+  &__spectrum-line--3 {
+    stroke: oklch(0.57 0.17 22);
+  }
+
+  &__hover-target {
+    fill: transparent;
+    pointer-events: all;
+  }
+
+  &__hover-guide {
+    stroke: color-mix(in srgb, var(--foreground) 26%, transparent);
+    stroke-width: 1;
+    stroke-dasharray: 4 4;
+  }
+
+  &__hover-marker {
+    stroke: color-mix(in srgb, white 90%, transparent);
+    stroke-width: 1.5;
+  }
+
+  &__hover-marker--0,
+  &__hover-tooltip-swatch--0 {
+    fill: oklch(0.56 0.13 205);
+  }
+
+  &__hover-marker--1,
+  &__hover-tooltip-swatch--1 {
+    fill: oklch(0.64 0.13 165);
+  }
+
+  &__hover-marker--2,
+  &__hover-tooltip-swatch--2 {
+    fill: oklch(0.68 0.16 80);
+  }
+
+  &__hover-marker--3,
+  &__hover-tooltip-swatch--3 {
+    fill: oklch(0.57 0.17 22);
+  }
+
+  &__hover-tooltip {
+    fill: color-mix(in srgb, var(--card) 90%, white 10%);
+    stroke: color-mix(in srgb, var(--border) 88%, transparent);
+    stroke-width: 1;
+    box-shadow:
+      inset 0 1px 0 color-mix(in srgb, white 75%, transparent),
+      0 12px 28px -20px color-mix(in srgb, black 36%, transparent);
+  }
+
+  &__hover-tooltip-title,
+  &__hover-tooltip-label,
+  &__hover-tooltip-value {
+    fill: var(--foreground);
+    font-size: 0.66rem;
+  }
+
+  &__hover-tooltip-title {
+    font-weight: 600;
+  }
+
+  &__hover-tooltip-label {
+    fill: var(--muted-foreground);
+  }
+
+  &__hover-tooltip-value {
+    font-variant-numeric: tabular-nums;
   }
 
   &__grid-line {

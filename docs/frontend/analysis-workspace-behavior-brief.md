@@ -198,7 +198,7 @@ The next slice should still be frequency-spectrum comparison, but built under th
 The detailed recommendations for the first frequency-domain slice remain valid:
 
 - backend-owned spectral truth
-- conservative Welch-style defaults
+- backend-computed line-spectrum defaults for the first demo slice
 - overlay comparison inside one spectrum chart
 - explicit unit and calibration handling
 

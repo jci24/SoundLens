@@ -2,6 +2,8 @@ using System.Net;
 using System.Net.Http.Json;
 using System.Net.Http.Headers;
 using Microsoft.AspNetCore.Mvc.Testing;
+using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
 using SoundLens.Api.Features.Import.Commands;
 using SoundLens.Api.Features.Import.Common;
 
@@ -10,10 +12,17 @@ namespace SoundLens.Tests;
 public sealed class ImportFilesHandlerTests : IClassFixture<WebApplicationFactory<Program>>
 {
     private readonly WebApplicationFactory<Program> _factory;
+    private readonly string _localFrontendOrigin;
 
     public ImportFilesHandlerTests(WebApplicationFactory<Program> factory)
     {
         _factory = factory;
+        _localFrontendOrigin = _factory.Services
+            .GetRequiredService<IConfiguration>()
+            .GetSection("Cors:AllowedOrigins")
+            .Get<string[]>()?
+            .FirstOrDefault()
+            ?? "http://localhost:5173";
     }
 
     [Fact]
@@ -92,6 +101,45 @@ public sealed class ImportFilesHandlerTests : IClassFixture<WebApplicationFactor
         Assert.Empty(result.FailedFiles);
         Assert.Equal(["alpha.wav", "beta.mp3"], result.SucceededFiles.Select(f => f.FileName));
         Assert.All(result.SucceededFiles, file => Assert.True(File.Exists(file.FilePath)));
+    }
+
+    [Fact]
+    public async Task POST_ImportUpload_IncludesCorsHeaderForLocalFrontend()
+    {
+        var client = _factory.CreateClient();
+        using var form = new MultipartFormDataContent();
+        using var file = new ByteArrayContent([1, 2, 3, 4]);
+        using var request = new HttpRequestMessage(HttpMethod.Post, "/api/import/upload")
+        {
+            Content = form
+        };
+
+        file.Headers.ContentType = new MediaTypeHeaderValue("audio/wav");
+        form.Add(file, "files", "cors.wav");
+        request.Headers.Add("Origin", _localFrontendOrigin);
+
+        var response = await client.SendAsync(request);
+
+        response.EnsureSuccessStatusCode();
+        Assert.True(response.Headers.TryGetValues("Access-Control-Allow-Origin", out var origins));
+        Assert.Equal(_localFrontendOrigin, Assert.Single(origins));
+    }
+
+    [Fact]
+    public async Task OPTIONS_ImportUpload_AllowsLocalFrontendPreflight()
+    {
+        var client = _factory.CreateClient();
+        using var request = new HttpRequestMessage(HttpMethod.Options, "/api/import/upload");
+
+        request.Headers.Add("Origin", _localFrontendOrigin);
+        request.Headers.Add("Access-Control-Request-Method", "POST");
+        request.Headers.Add("Access-Control-Request-Headers", "content-type");
+
+        var response = await client.SendAsync(request);
+
+        Assert.Equal(HttpStatusCode.NoContent, response.StatusCode);
+        Assert.True(response.Headers.TryGetValues("Access-Control-Allow-Origin", out var origins));
+        Assert.Equal(_localFrontendOrigin, Assert.Single(origins));
     }
 
     [Fact]

@@ -64,3 +64,50 @@ export interface ITimeWaveformResponse {
   yAxis: ITimeWaveformAxis
   failedFiles: string[]
 }
+
+export interface IFrequencySpectrumPoint {
+  frequencyHz: number
+  value: number
+}
+
+export interface IFrequencySpectrumSignal {
+  signalId: string
+  recordingId: string
+  recordingFileName: string
+  displayName: string
+  durationSeconds: number
+  sampleRate: number
+  channelIndex: number
+  amplitudeUnit: string
+  isCalibrated: boolean
+  points: IFrequencySpectrumPoint[]
+}
+
+export interface IFrequencySpectrumAxis {
+  unit: string
+  minimum: number
+  maximum: number
+  ticks: number[]
+}
+
+export interface IFrequencySpectrumAnalysis {
+  method: string
+  window: string
+  overlapPercent: number
+  fftLength: number
+  frequencyResolutionHz: number
+  averagingMode: string
+  spectrumType: string
+  amplitudeUnit: string
+  isCalibrated: boolean
+}
+
+export interface IFrequencySpectrumResponse {
+  requestedBinCount: number
+  recordings: ITimeWaveformRecording[]
+  selectedSignals: IFrequencySpectrumSignal[]
+  xAxis: IFrequencySpectrumAxis
+  yAxis: IFrequencySpectrumAxis
+  analysis: IFrequencySpectrumAnalysis
+  failedFiles: string[]
+}
