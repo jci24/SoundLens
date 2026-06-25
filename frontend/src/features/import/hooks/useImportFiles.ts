@@ -1,23 +1,21 @@
 import { useState } from 'react'
 import { toast } from 'sonner'
-import { importFiles } from '../services/importFiles'
-import type { IImportRequest } from '../types'
+import { importFilesByPath, uploadFiles } from '../services/importFiles'
 
 export interface IUseImportFiles {
-  handleImportFiles: (request: IImportRequest) => Promise<void>
+  handleImportPaths: (filePaths: string[]) => Promise<void>
+  handleUploadFiles: (files: File[]) => Promise<void>
   isImporting: boolean
 }
 
 export const useImportFiles = (): IUseImportFiles => {
   const [isImporting, setIsImporting] = useState(false)
 
-  const handleImportFiles = async (request: IImportRequest): Promise<void> => {
-    if (request.filePaths.length === 0) return
-
+  const handleImport = async (runImport: () => Promise<Awaited<ReturnType<typeof importFilesByPath>>>) => {
     setIsImporting(true)
 
     try {
-      const response = await importFiles(request)
+      const response = await runImport()
       const importedCount = response.succeededFiles.length
       const failedCount = response.failedFiles.length
 
@@ -39,8 +37,21 @@ export const useImportFiles = (): IUseImportFiles => {
     }
   }
 
+  const handleImportPaths = async (filePaths: string[]): Promise<void> => {
+    if (filePaths.length === 0) return
+
+    await handleImport(() => importFilesByPath({ filePaths }))
+  }
+
+  const handleUploadFiles = async (files: File[]): Promise<void> => {
+    if (files.length === 0) return
+
+    await handleImport(() => uploadFiles(files))
+  }
+
   return {
-    handleImportFiles,
+    handleImportPaths,
+    handleUploadFiles,
     isImporting,
   }
 }

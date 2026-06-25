@@ -31,7 +31,10 @@ const TextBasedImporter = ({ onImport, disabled }: ITextBasedImporterProps) => {
         </div>
         <div className="text-importer__copy">
           <p className="text-importer__title">Import audio files by path</p>
-          <p className="text-importer__subtitle">Paste file paths below — WAV, MP3, AIFF, FLAC, etc.</p>
+          <p className="text-importer__subtitle">
+            Debug mode for local development. Paste absolute file paths for WAV, MP3, AIFF,
+            FLAC, or OGG files.
+          </p>
         </div>
         <textarea
           className="text-importer__textarea"
@@ -49,7 +52,7 @@ const TextBasedImporter = ({ onImport, disabled }: ITextBasedImporterProps) => {
           disabled={disabled || input.trim().length === 0}
         >
           <FileAudio2 size={18} aria-hidden="true" />
-          Import files
+          Import from paths
         </button>
       </div>
     </div>

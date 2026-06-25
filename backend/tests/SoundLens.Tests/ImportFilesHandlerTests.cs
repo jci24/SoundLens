@@ -1,5 +1,6 @@
 using System.Net;
 using System.Net.Http.Json;
+using System.Net.Http.Headers;
 using Microsoft.AspNetCore.Mvc.Testing;
 using SoundLens.Api.Features.Import.Commands;
 using SoundLens.Api.Features.Import.Common;
@@ -63,6 +64,47 @@ public sealed class ImportFilesHandlerTests : IClassFixture<WebApplicationFactor
         var client = _factory.CreateClient();
         var response = await client.PostAsJsonAsync("/api/import",
             new { filePaths = Array.Empty<string>() });
+
+        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+    }
+
+    [Fact]
+    public async Task POST_ImportUpload_StoresUploadedFilesInMemory()
+    {
+        var client = _factory.CreateClient();
+        using var form = new MultipartFormDataContent();
+        using var firstFile = new ByteArrayContent([1, 2, 3, 4]);
+        using var secondFile = new ByteArrayContent([5, 6, 7, 8, 9]);
+
+        firstFile.Headers.ContentType = new MediaTypeHeaderValue("audio/wav");
+        secondFile.Headers.ContentType = new MediaTypeHeaderValue("audio/mpeg");
+
+        form.Add(firstFile, "files", "alpha.wav");
+        form.Add(secondFile, "files", "beta.mp3");
+
+        var response = await client.PostAsync("/api/import/upload", form);
+
+        response.EnsureSuccessStatusCode();
+        var result = await response.Content.ReadFromJsonAsync<ImportFilesResponse>();
+
+        Assert.NotNull(result);
+        Assert.Equal(2, result!.SucceededFiles.Count);
+        Assert.Empty(result.FailedFiles);
+        Assert.Equal(["alpha.wav", "beta.mp3"], result.SucceededFiles.Select(f => f.FileName));
+        Assert.All(result.SucceededFiles, file => Assert.True(File.Exists(file.FilePath)));
+    }
+
+    [Fact]
+    public async Task POST_ImportUpload_RejectsZeroByteFiles()
+    {
+        var client = _factory.CreateClient();
+        using var form = new MultipartFormDataContent();
+        using var emptyFile = new ByteArrayContent([]);
+
+        emptyFile.Headers.ContentType = new MediaTypeHeaderValue("audio/wav");
+        form.Add(emptyFile, "files", "empty.wav");
+
+        var response = await client.PostAsync("/api/import/upload", form);
 
         Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
     }

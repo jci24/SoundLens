@@ -1,4 +1,4 @@
-export interface IImportRequest {
+export interface IImportFilesByPathRequest {
   filePaths: string[]
 }
 

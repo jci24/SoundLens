@@ -1,15 +1,13 @@
 import { Loader2 } from 'lucide-react'
 import { useImportFiles } from '../hooks/useImportFiles'
-import { isInWebView } from '../utils/webview'
-import { TextBasedImporter } from './TextBasedImporter/TextBasedImporter'
+import { FilePickerImporter } from './FilePickerImporter/FilePickerImporter'
 import './ImportWorkspace.scss'
 
 const ImportWorkspace = () => {
-  const { handleImportFiles, isImporting } = useImportFiles()
-  const inWebView = isInWebView()
+  const { handleUploadFiles, isImporting } = useImportFiles()
 
-  const handlePaths = (paths: string[]) => {
-    void handleImportFiles({ filePaths: paths })
+  const handleFiles = (files: File[]) => {
+    void handleUploadFiles(files)
   }
 
   if (isImporting) {
@@ -25,15 +23,7 @@ const ImportWorkspace = () => {
 
   return (
     <section className="import-workspace" aria-label="Import audio files">
-      {inWebView ? (
-        <div className="import-workspace__webview-mode">
-          <p className="import-workspace__webview-placeholder">
-            Native file picker will be available when running inside the desktop webview.
-          </p>
-        </div>
-      ) : (
-        <TextBasedImporter onImport={handlePaths} disabled={isImporting} />
-      )}
+      <FilePickerImporter onImport={handleFiles} disabled={isImporting} />
     </section>
   )
 }

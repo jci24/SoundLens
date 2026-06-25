@@ -124,6 +124,12 @@ frontend/
 
 The `features/` folder uses vertical slice architecture: each feature has `components/`, `hooks/`, `services/`, `utils/`, and `types.ts`.
 
+Current import workflow guidance:
+
+- Prefer browser-based file picking as the primary demo flow.
+- Keep path-based import available as a secondary development/debug fallback while the backend still supports direct local-path ingestion.
+- Preserve the same imported-file session behavior regardless of whether files arrived by browser upload or pasted paths.
+
 ## Notification Convention
 
 User-facing notifications use Sonner toasts via the shadcn `Toaster` component:

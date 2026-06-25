@@ -43,6 +43,13 @@ The backend should own:
 
 The backend should not rely on the frontend or the LLM for numerical truth.
 
+Current import guidance:
+
+- Keep the path-based JSON import endpoint for local debugging and controlled desktop flows.
+- Support a browser-friendly multipart upload path for demo readiness and self-serve trials.
+- Normalize both import modes to the same imported-file session contract so downstream DSP and evidence code can stay transport-agnostic.
+- Set explicit bounded upload limits for Kestrel request bodies and multipart form parsing; do not rely on defaults for audio import flows.
+
 ## DSP Principles
 
 - Prefer standard or validated algorithms where practical.

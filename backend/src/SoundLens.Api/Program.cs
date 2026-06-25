@@ -2,6 +2,7 @@ using System.Reflection;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using FastEndpoints;
+using Microsoft.AspNetCore.Http.Features;
 using Microsoft.OpenApi.Models;
 using Serilog;
 using SoundLens.Api.Configuration;
@@ -9,9 +10,25 @@ using SoundLens.Api.Configuration;
 try
 {
     var builder = WebApplication.CreateBuilder(args);
+    var uploadLimitsSection = builder.Configuration.GetSection("UploadLimits");
+    var maxRequestBodySizeBytes =
+        uploadLimitsSection.GetValue<long?>("MaxRequestBodySizeBytes") ??
+        500L * 1024L * 1024L;
+    var multipartBodyLengthLimitBytes =
+        uploadLimitsSection.GetValue<long?>("MultipartBodyLengthLimitBytes") ??
+        maxRequestBodySizeBytes;
+
+    builder.WebHost.ConfigureKestrel(options =>
+    {
+        options.Limits.MaxRequestBodySize = maxRequestBodySizeBytes;
+    });
 
     builder.Services.AddSerilog(options => options.ReadFrom.Configuration(builder.Configuration));
     builder.Services.AddFastEndpoints();
+    builder.Services.Configure<FormOptions>(options =>
+    {
+        options.MultipartBodyLengthLimit = multipartBodyLengthLimitBytes;
+    });
 
     if (builder.Environment.IsDevelopment())
     {
