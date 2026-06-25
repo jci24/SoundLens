@@ -266,6 +266,55 @@ public sealed class FrequencySpectrumTests : IClassFixture<WebApplicationFactory
         }
     }
 
+    [Fact]
+    public async Task SpectrumService_ReusesCachedSpectrumAfterSourceFileIsDeleted()
+    {
+        var sampleRate = 1024;
+        var samples = CreateSineSamples(sampleRate, frequencyHz: 128, durationSeconds: 2.0);
+        var tempPath = Path.Combine(Path.GetTempPath(), $"soundlens_spectrum_cache_{Guid.NewGuid():N}.wav");
+        await File.WriteAllBytesAsync(tempPath, CreateMono16BitWav(sampleRate, samples));
+
+        var importedFile = new ImportedFileSummary("cached-spectrum.wav", new FileInfo(tempPath).Length, tempPath, "audio/wav");
+        var spectrumService = new SpectrumService();
+
+        try
+        {
+            var firstResult = spectrumService.BuildFrequencySpectra([importedFile], requestedBinCount: 513, selectedSignalIds: null, CancellationToken.None);
+            File.Delete(tempPath);
+
+            var secondResult = spectrumService.BuildFrequencySpectra([importedFile], requestedBinCount: 513, selectedSignalIds: null, CancellationToken.None);
+            Assert.Equal(firstResult.Analysis, secondResult.Analysis);
+            Assert.Equal(firstResult.Recordings.Count, secondResult.Recordings.Count);
+            Assert.Equal(firstResult.SelectedSignals.Count, secondResult.SelectedSignals.Count);
+            Assert.Equal(firstResult.XAxis.Unit, secondResult.XAxis.Unit);
+            Assert.Equal(firstResult.XAxis.Minimum, secondResult.XAxis.Minimum, 6);
+            Assert.Equal(firstResult.XAxis.Maximum, secondResult.XAxis.Maximum, 6);
+            Assert.Equal(firstResult.XAxis.Ticks, secondResult.XAxis.Ticks);
+            Assert.Equal(firstResult.YAxis.Unit, secondResult.YAxis.Unit);
+            Assert.Equal(firstResult.YAxis.Minimum, secondResult.YAxis.Minimum, 6);
+            Assert.Equal(firstResult.YAxis.Maximum, secondResult.YAxis.Maximum, 6);
+            Assert.Equal(firstResult.YAxis.Ticks, secondResult.YAxis.Ticks);
+
+            var firstRecording = Assert.Single(firstResult.Recordings);
+            var secondRecording = Assert.Single(secondResult.Recordings);
+            Assert.Equal(firstRecording.RecordingId, secondRecording.RecordingId);
+            Assert.Equal(firstRecording.FileName, secondRecording.FileName);
+            Assert.Equal(firstRecording.DurationSeconds, secondRecording.DurationSeconds, 6);
+            Assert.Equal(firstRecording.Signals.Count, secondRecording.Signals.Count);
+
+            var firstSignal = Assert.Single(firstResult.SelectedSignals);
+            var secondSignal = Assert.Single(secondResult.SelectedSignals);
+            Assert.Equal(firstSignal.SignalId, secondSignal.SignalId);
+            Assert.Equal(firstSignal.Points.Count, secondSignal.Points.Count);
+            Assert.Equal(firstSignal.Points[0], secondSignal.Points[0]);
+            Assert.Equal(firstSignal.Points[^1], secondSignal.Points[^1]);
+        }
+        finally
+        {
+            File.Delete(tempPath);
+        }
+    }
+
     private static List<(double frequencyHz, double value)> BuildReferenceLineSpectrumDb(
         IReadOnlyList<double> samples,
         int sampleRate,

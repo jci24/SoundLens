@@ -10,4 +10,4 @@ public sealed record TimeWaveformSignal(
     int ChannelIndex,
     string AmplitudeUnit,
     bool IsCalibrated,
-    IReadOnlyList<TimeWaveformPoint> Points);
+    IReadOnlyList<double[]> Bins);

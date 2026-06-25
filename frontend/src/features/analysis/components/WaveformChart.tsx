@@ -19,6 +19,7 @@ const WaveformChart = ({ signals, width, yAxis }: IWaveformChartProps) => {
     chartPadding,
     plotHeight,
     plotWidth,
+    xForBinIndex,
     xForTime,
     xTicks,
     yForAmplitude,
@@ -71,16 +72,16 @@ const WaveformChart = ({ signals, width, yAxis }: IWaveformChartProps) => {
       {signals.map((signal, signalIndex) => (
         <g className="time-waveform-workspace__series" key={signal.signalId}>
           <title>{`${signal.recordingFileName}, ${signal.displayName}, ${signal.durationSeconds.toFixed(2)} seconds, ${signal.sampleRate} Hz`}</title>
-          {signal.points.map((point, pointIndex) => {
-            const x = xForTime(point.timeSeconds)
+          {signal.bins.map((bin, binIndex) => {
+            const x = xForBinIndex(binIndex, signal.bins.length)
             return (
               <line
                 className={`time-waveform-workspace__waveform-line time-waveform-workspace__waveform-line--${signalIndex % 4}`}
-                key={`${signal.signalId}-${pointIndex}`}
+                key={`${signal.signalId}-${binIndex}`}
                 x1={x}
                 x2={x}
-                y1={yForAmplitude(point.minAmplitude)}
-                y2={yForAmplitude(point.maxAmplitude)}
+                y1={yForAmplitude(bin[0])}
+                y2={yForAmplitude(bin[1])}
               />
             )
           })}

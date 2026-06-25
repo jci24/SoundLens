@@ -1,6 +1,7 @@
 using System.Net;
 using System.Net.Http.Json;
 using Microsoft.AspNetCore.Mvc.Testing;
+using SoundLens.Api.Features.Import.Common;
 using SoundLens.Api.Features.Waveforms.Common;
 
 namespace SoundLens.Tests;
@@ -39,12 +40,11 @@ public sealed class TimeWaveformTests : IClassFixture<WebApplicationFactory<Prog
             var recording = Assert.Single(result!.Recordings);
             var signal = Assert.Single(result.SelectedSignals);
             Assert.Equal(1, recording.Channels);
-            Assert.Equal(4, signal.Points.Count);
+            Assert.Equal(4, signal.Bins.Count);
             Assert.Equal(4, signal.SampleRate);
             Assert.Equal(1.0, signal.DurationSeconds);
-            Assert.Equal(-1.0, signal.Points[0].MinAmplitude, precision: 4);
-            Assert.Equal(32767 / 32768.0, signal.Points[1].MaxAmplitude, precision: 4);
-            Assert.Equal(0.5, signal.Points[2].TimeSeconds, precision: 4);
+            Assert.Equal(-1.0, signal.Bins[0][0], precision: 4);
+            Assert.Equal(32767 / 32768.0, signal.Bins[1][1], precision: 4);
         }
         finally
         {
@@ -136,7 +136,51 @@ public sealed class TimeWaveformTests : IClassFixture<WebApplicationFactory<Prog
             var signal = Assert.Single(filtered!.SelectedSignals);
             Assert.Equal(selectedSignalId, signal.SignalId);
             Assert.Equal(1, signal.ChannelIndex);
-            Assert.Equal(32767 / 32768.0, signal.Points[0].MaxAmplitude, precision: 4);
+            Assert.Equal(32767 / 32768.0, signal.Bins[0][1], precision: 4);
+        }
+        finally
+        {
+            File.Delete(tempPath);
+        }
+    }
+
+    [Fact]
+    public async Task WaveformService_ReusesCachedWaveformAfterSourceFileIsDeleted()
+    {
+        var sampleRate = 1024;
+        var samples = CreateSineSamples(sampleRate, frequencyHz: 128, durationSeconds: 2.0);
+        var tempPath = Path.Combine(Path.GetTempPath(), $"soundlens_waveform_cache_{Guid.NewGuid():N}.wav");
+        await File.WriteAllBytesAsync(tempPath, CreateMono16BitWav(sampleRate, samples));
+
+        var importedFile = new ImportedFileSummary("cached-waveform.wav", new FileInfo(tempPath).Length, tempPath, "audio/wav");
+        var waveformService = new WaveformService();
+
+        try
+        {
+            var firstResult = waveformService.BuildTimeWaveforms([importedFile], requestedBinCount: 256, selectedSignalIds: null, CancellationToken.None);
+            File.Delete(tempPath);
+
+            var secondResult = waveformService.BuildTimeWaveforms([importedFile], requestedBinCount: 256, selectedSignalIds: null, CancellationToken.None);
+            Assert.Equal(firstResult.Recordings.Count, secondResult.Recordings.Count);
+            Assert.Equal(firstResult.SelectedSignals.Count, secondResult.SelectedSignals.Count);
+            Assert.Equal(firstResult.YAxis.Unit, secondResult.YAxis.Unit);
+            Assert.Equal(firstResult.YAxis.Minimum, secondResult.YAxis.Minimum, 6);
+            Assert.Equal(firstResult.YAxis.Maximum, secondResult.YAxis.Maximum, 6);
+            Assert.Equal(firstResult.YAxis.Ticks, secondResult.YAxis.Ticks);
+
+            var firstRecording = Assert.Single(firstResult.Recordings);
+            var secondRecording = Assert.Single(secondResult.Recordings);
+            Assert.Equal(firstRecording.RecordingId, secondRecording.RecordingId);
+            Assert.Equal(firstRecording.FileName, secondRecording.FileName);
+            Assert.Equal(firstRecording.DurationSeconds, secondRecording.DurationSeconds, 6);
+            Assert.Equal(firstRecording.Signals.Count, secondRecording.Signals.Count);
+
+            var firstSignal = Assert.Single(firstResult.SelectedSignals);
+            var secondSignal = Assert.Single(secondResult.SelectedSignals);
+            Assert.Equal(firstSignal.SignalId, secondSignal.SignalId);
+            Assert.Equal(firstSignal.Bins.Count, secondSignal.Bins.Count);
+            Assert.Equal(firstSignal.Bins[0], secondSignal.Bins[0]);
+            Assert.Equal(firstSignal.Bins[^1], secondSignal.Bins[^1]);
         }
         finally
         {
@@ -170,6 +214,20 @@ public sealed class TimeWaveformTests : IClassFixture<WebApplicationFactory<Prog
         }
 
         return stream.ToArray();
+    }
+
+    private static short[] CreateSineSamples(int sampleRate, int frequencyHz, double durationSeconds)
+    {
+        var sampleCount = (int)(sampleRate * durationSeconds);
+        var samples = new short[sampleCount];
+
+        for (var index = 0; index < sampleCount; index++)
+        {
+            var value = Math.Sin((2 * Math.PI * frequencyHz * index) / sampleRate) * 0.8;
+            samples[index] = (short)Math.Round(value * short.MaxValue);
+        }
+
+        return samples;
     }
 
     private static byte[] CreateStereo16BitWav(

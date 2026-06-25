@@ -1,6 +1,7 @@
 using System.Numerics;
 using System.Security.Cryptography;
 using System.Text;
+using System.Collections.Concurrent;
 using SoundLens.Api.Features.Import.Common;
 using SoundLens.Api.Features.Waveforms.Common;
 
@@ -9,6 +10,8 @@ namespace SoundLens.Api.Features.Spectra.Common;
 public sealed class SpectrumService : ISpectrumService
 {
     private const int MaximumFramesPerChannel = 10_000_000;
+    private readonly ConcurrentDictionary<string, DecodedSpectrumRecording> _recordingCache = new(StringComparer.Ordinal);
+    private readonly ConcurrentDictionary<string, IReadOnlyList<FrequencySpectrumPoint>> _signalSpectrumCache = new(StringComparer.Ordinal);
 
     public FrequencySpectrumResponse BuildFrequencySpectra(
         IReadOnlyList<ImportedFileSummary> files,
@@ -29,7 +32,7 @@ public sealed class SpectrumService : ISpectrumService
 
             try
             {
-                recordings.Add(ReadWavFile(file, cancellationToken));
+                recordings.Add(GetOrReadRecording(file, cancellationToken));
             }
             catch (OperationCanceledException)
             {
@@ -89,7 +92,7 @@ public sealed class SpectrumService : ISpectrumService
                 channel.ChannelIndex,
                 "dB rel.",
                 false,
-                BuildSpectrumPoints(channel.Samples, channel.Recording.SampleRate, analysisState, cancellationToken)))
+                GetOrBuildSpectrumPoints(channel, analysisState, cancellationToken)))
             .ToList();
 
         return new FrequencySpectrumResponse(
@@ -109,6 +112,37 @@ public sealed class SpectrumService : ISpectrumService
                 "dB rel.",
                 false),
             failedFiles);
+    }
+
+    private DecodedSpectrumRecording GetOrReadRecording(
+        ImportedFileSummary file,
+        CancellationToken cancellationToken)
+    {
+        var cacheKey = BuildSpectrumRecordingCacheKey(file);
+        if (_recordingCache.TryGetValue(cacheKey, out var cachedRecording))
+        {
+            return cachedRecording;
+        }
+
+        var recording = ReadWavFile(file, cancellationToken);
+        _recordingCache.TryAdd(cacheKey, recording);
+        return recording;
+    }
+
+    private IReadOnlyList<FrequencySpectrumPoint> GetOrBuildSpectrumPoints(
+        DecodedSpectrumChannelSignal channel,
+        AnalysisState analysisState,
+        CancellationToken cancellationToken)
+    {
+        var cacheKey = $"{channel.SignalId}|spectrum|fft:{analysisState.FftLength}";
+        if (_signalSpectrumCache.TryGetValue(cacheKey, out var cachedPoints))
+        {
+            return cachedPoints;
+        }
+
+        var points = BuildSpectrumPoints(channel.Samples, channel.Recording.SampleRate, analysisState, cancellationToken);
+        _signalSpectrumCache.TryAdd(cacheKey, points);
+        return points;
     }
 
     private static AnalysisState BuildAnalysisState(
@@ -571,6 +605,9 @@ public sealed class SpectrumService : ISpectrumService
         var payload = $"{file.FileName}|{file.SizeBytes}|{file.ContentType}|{file.FilePath}";
         return Convert.ToHexStringLower(SHA256.HashData(Encoding.UTF8.GetBytes(payload)))[..24];
     }
+
+    private static string BuildSpectrumRecordingCacheKey(ImportedFileSummary file) =>
+        $"{BuildRecordingId(file)}|spectrum";
 
     private static string BuildSignalId(string recordingId, int channelIndex) => $"{recordingId}:ch:{channelIndex}";
 
