@@ -175,6 +175,14 @@ Responsibilities:
 - support markers, hover, and evidence inspection
 - preserve consistent scales or clearly state when scales differ
 
+Behavior rule:
+
+- selecting files or channels sets investigation context
+- choosing waveform, spectrum, spectrogram, CPB, or another analysis surface is a separate user action
+- the product should not automatically render every available analysis surface for the current selection
+- the initial workspace should show one primary surface at a time
+- concurrent multi-view layouts should be introduced later as an explicit advanced workspace mode
+
 The canvas should not be reduced to a decorative chart panel. It is the primary investigation surface.
 
 ## Right Insight Panel
@@ -244,6 +252,16 @@ The right panel should support the time view by explaining:
 - what stands out
 - whether peaks or clipping are notable
 - what to check next in spectrum or findings
+
+## Analysis Surface Progression
+
+The recommended progression is:
+
+1. One active surface in the main canvas
+2. Explicit user-selected split views
+3. Pinned panels and saved layouts for advanced workflows
+
+This preserves clarity for demos and early validation while still leaving room for expert acoustic workflows later.
 
 ## Early Implementation Order
 

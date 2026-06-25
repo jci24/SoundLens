@@ -139,6 +139,11 @@ Current time visualization guidance:
 - The left rail should browse `recording -> channel`, while the main canvas renders the currently selected signal rather than overlaying every imported file by default.
 - The frontend renders axes, labels, and waveform ranges, but does not compute audio samples or waveform bins.
 
+Current spectrum planning guidance:
+
+- The next evidence slice should stay inside the same workspace shell and reuse the current `recording -> channel -> selected signal` model.
+- The broader workspace behavior decision for future analysis surfaces lives in [analysis-workspace-behavior-brief.md](./analysis-workspace-behavior-brief.md).
+
 ## Notification Convention
 
 User-facing notifications use Sonner toasts via the shadcn `Toaster` component:

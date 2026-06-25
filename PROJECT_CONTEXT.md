@@ -679,7 +679,7 @@ These need decisions before implementation goes far:
 - [x] Upload notification via Sonner toasts (success/error, top-right, app palette)
 
 ### Slice 2: Single-File Analysis
-- [ ] PR 5: Time-domain visualization
+- [x] PR 5: Time-domain visualization
 - [ ] PR 6: Frequency-domain visualization
 - [ ] PR 7: Basic metrics calculation
 
