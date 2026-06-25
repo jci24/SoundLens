@@ -1,0 +1,35 @@
+name: Epic
+description: Capture a larger SoundLens outcome that should be split into thin tasks.
+title: "[Epic] "
+labels:
+  - type:epic
+body:
+  - type: input
+    id: goal
+    attributes:
+      label: Goal
+      placeholder: What larger product outcome does this epic achieve?
+    validations:
+      required: true
+  - type: textarea
+    id: value
+    attributes:
+      label: User value
+      description: Why does this matter for validation, demos, or technical credibility?
+    validations:
+      required: true
+  - type: textarea
+    id: scope
+    attributes:
+      label: Scope boundaries
+      description: What belongs in this epic and what should stay outside it?
+    validations:
+      required: true
+  - type: textarea
+    id: slices
+    attributes:
+      label: Candidate thin tasks
+      description: Draft the first small tasks that would implement this epic safely.
+      placeholder: 1. ... 2. ... 3. ...
+    validations:
+      required: true

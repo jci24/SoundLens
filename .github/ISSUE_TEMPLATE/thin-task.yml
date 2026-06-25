@@ -1,0 +1,80 @@
+name: Thin task
+description: Create a small, reviewable SoundLens task.
+title: "[Task] "
+labels:
+  - type:task
+body:
+  - type: dropdown
+    id: epic
+    attributes:
+      label: Epic
+      options:
+        - A Workspace
+        - B DSP
+        - C Comparison
+        - D Testing
+        - E Agent
+        - F Reports
+    validations:
+      required: true
+  - type: dropdown
+    id: area
+    attributes:
+      label: Area
+      options:
+        - Product
+        - Backend
+        - Frontend
+        - DSP
+        - Testing
+        - Docs
+    validations:
+      required: true
+  - type: dropdown
+    id: slice_size
+    attributes:
+      label: Slice size
+      description: Keep it reviewable. Prefer XS or S.
+      options:
+        - XS
+        - S
+        - M
+    validations:
+      required: true
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem
+      description: What concrete user or engineering problem does this solve?
+      placeholder: The current workflow...
+    validations:
+      required: true
+  - type: textarea
+    id: outcome
+    attributes:
+      label: Expected outcome
+      description: Describe the end-to-end behavior that should exist when this task is done.
+      placeholder: After this task...
+    validations:
+      required: true
+  - type: textarea
+    id: scope
+    attributes:
+      label: Scope
+      description: List what is in scope and explicitly what is not.
+      placeholder: In scope... Out of scope...
+    validations:
+      required: true
+  - type: textarea
+    id: validation
+    attributes:
+      label: Validation
+      description: What checks prove the task works?
+      placeholder: dotnet test..., npm run build..., manual check...
+    validations:
+      required: true
+  - type: input
+    id: branch
+    attributes:
+      label: Suggested branch
+      placeholder: codex/short-task-name

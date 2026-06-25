@@ -52,6 +52,7 @@ The current demo slice is now centered on browser-first import plus waveform and
 - The analysis workspace has been refactored into smaller frontend components and hooks so rendering, interaction state, and formatting are easier to maintain without changing product behavior.
 - Backend deterministic tests now cover waveform, spectrum, import/CORS, selected-signal behavior, and oversized-spectrum-file failure reporting.
 - Frontend unit-test infrastructure is now established with Vitest and React Testing Library, with initial coverage around analysis formatting and popover interaction hooks.
+- Repo-side backlog tracking now lives in `BACKLOG.md`, with GitHub Projects recommended as the live execution board for epics and thin tasks.
 
 Immediate next step after this slice:
 
@@ -60,6 +61,12 @@ Immediate next step after this slice:
 ## Collaboration Process
 
 When a task is described as a thin slice, treat it as a narrow vertical product slice from backend to frontend unless the scope explicitly says otherwise. A thin slice may still be split into stacked branches, but each branch should preserve a reviewable end-to-end user behavior instead of implementing only backend plumbing or only frontend UI.
+
+Backlog process:
+
+- Use `BACKLOG.md` to keep the current epic structure, next thin tasks, and recommended implementation order visible inside the repo.
+- Use GitHub Projects as the live status board when issues and pull requests are created.
+- Prefer splitting work into backend and frontend tasks when that improves reviewability without losing the user story.
 
 ## Product Positioning
 

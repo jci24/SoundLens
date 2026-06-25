@@ -35,11 +35,15 @@ The AI agent must explain measured evidence. It must not invent measurements, ca
 backend/             .NET backend workspace
 frontend/            React frontend workspace
 .github/workflows/   CI pipeline
+.github/ISSUE_TEMPLATE/
+                    Thin-task and epic issue templates
 docs/backend/        Backend architecture and conventions
 docs/frontend/       Frontend architecture, UX, and design-system conventions
+docs/process/        Backlog and GitHub Projects operating model
 docs/adr/            Architectural decision records
 docs/review-guardrails.md
                      Branch, PR, CI, and AI review workflow
+BACKLOG.md           Repo-side epic and thin-task backlog
 PROJECT_CONTEXT.md   Product, process, and collaboration context
 ```
 
@@ -72,20 +76,18 @@ npm run build
 npm run dev
 ```
 
-## Current Slice
+## Current Product State
 
-Current branch: `codex/wav-upload-thin-slice`
+The current demo path covers:
 
-Scope:
+- Browser-first audio import
+- Recording and channel browsing in the main workspace
+- Backend-computed waveform evidence
+- Backend-computed spectrum evidence
+- A collapsible workspace shell designed for customer demos
+- Initial backend and frontend test coverage for the analysis slice
 
-- Remove the current upload implementation from backend and frontend
-- Return to a minimal workspace shell before rebuilding the import slice
-
-Out of scope:
-
-- New audio import behavior
-- DSP implementation
-- OpenAI API integration
+The next implementation focus should come from [BACKLOG.md](BACKLOG.md), with product direction anchored in [PROJECT_CONTEXT.md](PROJECT_CONTEXT.md).
 
 ## Branch Workflow
 
@@ -103,4 +105,6 @@ Use the focused docs when making durable technical decisions:
 
 - [Backend context](docs/backend/README.md)
 - [Frontend context](docs/frontend/README.md)
+- [Backlog](BACKLOG.md)
+- [GitHub Projects setup](docs/process/github-projects-setup.md)
 - [Architecture decisions](docs/adr/)
