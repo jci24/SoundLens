@@ -1,8 +1,7 @@
-import { AlertCircle, Loader2 } from 'lucide-react'
+import { AnalysisWorkspaceChart } from './AnalysisWorkspaceChart'
 import { AnalysisWorkspaceHeader } from './AnalysisWorkspaceHeader'
 import { RecordingRail } from './RecordingRail'
-import { SpectrumChart } from './SpectrumChart'
-import { WaveformChart } from './WaveformChart'
+import { useAnalysisWorkspaceChartState } from '../hooks/useAnalysisWorkspaceChartState'
 import { useTimeWaveformWorkspace } from '../hooks/useTimeWaveformWorkspace'
 import type { IImportedFileSummary } from '../../../common/contracts/import'
 import './TimeWaveformWorkspace.scss'
@@ -41,13 +40,21 @@ const TimeWaveformWorkspace = ({ importedFiles }: ITimeWaveformWorkspaceProps) =
     onSpectrumRangeStartChange,
     onSurfaceChange,
   } = useTimeWaveformWorkspace(importedFiles)
-
-  const waveformYAxis = waveforms?.yAxis ?? null
-  const spectrumYAxis = spectrum?.yAxis ?? null
-  const hasActiveChart =
-    activeSurface === 'waveform'
-      ? waveformSignals.length > 0 && waveformYAxis !== null && chartWidth > 0
-      : spectrumSignals.length > 0 && spectrumXAxis !== null && spectrumYAxis !== null && chartWidth > 0
+  const {
+    hasActiveChart,
+    loadingLabel,
+    refreshingLabel,
+    spectrumYAxis,
+    waveformYAxis,
+  } = useAnalysisWorkspaceChartState({
+    activeSurface,
+    chartWidth,
+    spectrum,
+    spectrumSignals,
+    spectrumXAxis,
+    waveforms,
+    waveformSignals,
+  })
 
   return (
     <section
@@ -77,53 +84,21 @@ const TimeWaveformWorkspace = ({ importedFiles }: ITimeWaveformWorkspaceProps) =
           recordings={recordings}
           selectedSignalIds={selectedSignalIds}
         />
-
-        <div className="time-waveform-workspace__chart-shell" ref={chartRef}>
-          {isInitialLoading && (
-            <div className="time-waveform-workspace__state">
-              <Loader2 className="time-waveform-workspace__spinner" size={20} />
-              <span>{activeSurface === 'waveform' ? 'Generating waveform bins' : 'Generating spectrum bins'}</span>
-            </div>
-          )}
-
-          {isRefreshing && !isInitialLoading && (
-            <div className="time-waveform-workspace__loading-pill" aria-live="polite">
-              <Loader2 className="time-waveform-workspace__spinner" size={14} />
-              <span>{activeSurface === 'waveform' ? 'Updating overlay' : 'Updating spectrum'}</span>
-            </div>
-          )}
-
-          {error && (
-            <div className="time-waveform-workspace__state time-waveform-workspace__state--error">
-              <AlertCircle size={20} />
-              <span>{error}</span>
-            </div>
-          )}
-
-          {!error && activeSurface === 'waveform' && waveformYAxis && chartWidth > 0 && waveformSignals.length > 0 && (
-            <WaveformChart
-              signals={waveformSignals}
-              width={chartWidth}
-              yAxis={waveformYAxis}
-            />
-          )}
-
-          {!error &&
-            activeSurface === 'spectrum' &&
-            spectrumXAxis &&
-            spectrumYAxis &&
-            Array.isArray(spectrumXAxis.ticks) &&
-            Array.isArray(spectrumYAxis.ticks) &&
-            chartWidth > 0 &&
-            spectrumSignals.length > 0 && (
-              <SpectrumChart
-                signals={spectrumSignals}
-                width={chartWidth}
-                xAxis={spectrumXAxis}
-                yAxis={spectrumYAxis}
-              />
-            )}
-        </div>
+        <AnalysisWorkspaceChart
+          activeSurface={activeSurface}
+          chartRef={chartRef}
+          chartWidth={chartWidth}
+          error={error}
+          isInitialLoading={isInitialLoading}
+          isRefreshing={isRefreshing}
+          loadingLabel={loadingLabel}
+          refreshingLabel={refreshingLabel}
+          spectrumSignals={spectrumSignals}
+          spectrumXAxis={spectrumXAxis}
+          spectrumYAxis={spectrumYAxis}
+          waveformSignals={waveformSignals}
+          waveformYAxis={waveformYAxis}
+        />
       </div>
     </section>
   )

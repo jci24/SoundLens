@@ -15,6 +15,21 @@ import type {
   ITimeWaveformSignal,
   ITimeWaveformResponse,
 } from '../types'
+import { useMeasuredChartWidth } from './useMeasuredChartWidth'
+import {
+  areSignalIdsEqual,
+  clampSpectrumRange,
+  defaultSpectrumFftSize,
+  defaultSpectrumRangeEndHz,
+  formatSpectrumFftSizeOption,
+  getNextExpandedRecordings,
+  getNextRequestedSignalIds,
+  getNextSpectrumRangeEnd,
+  getNextSpectrumRangeStart,
+  getOneSidedLineCount,
+  spectrumFftSizeSelectOptions,
+  type ISpectrumRange,
+} from '../utils/analysisWorkspaceState'
 
 export type TAnalysisSurface = 'waveform' | 'spectrum'
 
@@ -53,28 +68,17 @@ const useTimeWaveformWorkspace = (
 ): IUseTimeWaveformWorkspaceResult => {
   const chartRef = useRef<HTMLDivElement | null>(null)
   const [activeSurface, setActiveSurface] = useState<TAnalysisSurface>('waveform')
-  const [chartWidth, setChartWidth] = useState(0)
+  const chartWidth = useMeasuredChartWidth(chartRef)
   const [waveforms, setWaveforms] = useState<ITimeWaveformResponse | null>(null)
   const [spectrum, setSpectrum] = useState<IFrequencySpectrumResponse | null>(null)
   const [error, setError] = useState<string | null>(null)
   const [requestedSignalIds, setRequestedSignalIds] = useState<string[]>([])
   const [expandedRecordings, setExpandedRecordings] = useState<string[]>([])
   const [selectedSpectrumFftSize, setSelectedSpectrumFftSize] = useState(defaultSpectrumFftSize)
-  const [spectrumRange, setSpectrumRange] = useState({
+  const [spectrumRange, setSpectrumRange] = useState<ISpectrumRange>({
     startHz: 0,
     endHz: defaultSpectrumRangeEndHz,
   })
-
-  useEffect(() => {
-    if (!chartRef.current) return
-
-    const observer = new ResizeObserver(([entry]) => {
-      setChartWidth(Math.floor(entry.contentRect.width))
-    })
-
-    observer.observe(chartRef.current)
-    return () => observer.disconnect()
-  }, [])
 
   const binCount = useMemo(() => {
     if (chartWidth <= 0) return 0
@@ -160,11 +164,12 @@ const useTimeWaveformWorkspace = (
   const fullSpectrumSignals = useMemo(() => spectrum?.selectedSignals ?? [], [spectrum])
   const fullSpectrumXAxis = spectrum?.xAxis ?? null
   const spectrumMaximumHz = fullSpectrumXAxis?.maximum ?? defaultSpectrumRangeEndHz
-  const clampedSpectrumRangeStartHz = Math.min(Math.max(spectrumRange.startHz, 0), spectrumMaximumHz - 1)
-  const clampedSpectrumRangeEndHz = Math.max(
-    clampedSpectrumRangeStartHz + 1,
-    Math.min(spectrumRange.endHz, spectrumMaximumHz)
+  const clampedSpectrumRange = useMemo(
+    () => clampSpectrumRange(spectrumRange, spectrumMaximumHz),
+    [spectrumMaximumHz, spectrumRange]
   )
+  const clampedSpectrumRangeStartHz = clampedSpectrumRange.startHz
+  const clampedSpectrumRangeEndHz = clampedSpectrumRange.endHz
   const spectrumViewport = useMemo(
     () =>
       fullSpectrumXAxis
@@ -192,27 +197,11 @@ const useTimeWaveformWorkspace = (
       : activeResponseSignalIds
 
   const onRecordingToggle = (recordingId: string) => {
-    setExpandedRecordings((currentExpanded) =>
-      currentExpanded.includes(recordingId)
-        ? currentExpanded.filter((expandedPath) => expandedPath !== recordingId)
-        : [...currentExpanded, recordingId]
-    )
+    setExpandedRecordings((currentExpanded) => getNextExpandedRecordings(currentExpanded, recordingId))
   }
 
   const onSignalSelection = (signalId: string) => {
-    setRequestedSignalIds((currentSignalIds) => {
-      if (currentSignalIds.length === 0) {
-        return [signalId]
-      }
-
-      if (currentSignalIds.includes(signalId)) {
-        return currentSignalIds.length === 1
-          ? currentSignalIds
-          : currentSignalIds.filter((currentSignalId) => currentSignalId !== signalId)
-      }
-
-      return [...currentSignalIds, signalId]
-    })
+    setRequestedSignalIds((currentSignalIds) => getNextRequestedSignalIds(currentSignalIds, signalId))
   }
 
   const onSpectrumPresetChange = (preset: string) => {
@@ -228,14 +217,7 @@ const useTimeWaveformWorkspace = (
       return
     }
 
-    setSpectrumRange((currentRange) => {
-      const nextEndHz = Math.max(1, Math.min(currentRange.endHz, spectrumMaximumHz))
-
-      return {
-        ...currentRange,
-        startHz: Math.min(Math.max(parsedValue, 0), nextEndHz - 1),
-      }
-    })
+    setSpectrumRange((currentRange) => getNextSpectrumRangeStart(parsedValue, currentRange, spectrumMaximumHz))
   }
 
   const onSpectrumRangeEndChange = (value: string) => {
@@ -244,14 +226,7 @@ const useTimeWaveformWorkspace = (
       return
     }
 
-    setSpectrumRange((currentRange) => {
-      const nextStartHz = Math.min(Math.max(currentRange.startHz, 0), spectrumMaximumHz - 1)
-
-      return {
-        ...currentRange,
-        endHz: Math.max(nextStartHz + 1, Math.min(parsedValue, spectrumMaximumHz)),
-      }
-    })
+    setSpectrumRange((currentRange) => getNextSpectrumRangeEnd(parsedValue, currentRange, spectrumMaximumHz))
   }
 
   const onSpectrumRangeReset = () => {
@@ -291,30 +266,5 @@ const useTimeWaveformWorkspace = (
     onSurfaceChange: setActiveSurface,
   }
 }
-
-const spectrumFftSizeValues = [
-  512,
-  1024,
-  2048,
-  4096,
-  8192,
-  16384,
-  32768,
-  44100,
-] as const
-const defaultSpectrumFftSize = 44100
-const defaultSpectrumRangeEndHz = 22050
-
-const formatSpectrumFftSizeOption = (fftSize: number) => `FFT size: ${fftSize.toLocaleString()}`
-const getOneSidedLineCount = (fftSize: number) => Math.floor(fftSize / 2) + 1
-
-const spectrumFftSizeSelectOptions = spectrumFftSizeValues.map((value) => ({
-  label: formatSpectrumFftSizeOption(value),
-  value,
-}))
-
-// Selection order drives overlay order, so this intentionally compares sequences, not sets.
-const areSignalIdsEqual = (left: string[], right: string[]) =>
-  left.length === right.length && left.every((signalId, index) => signalId === right[index])
 
 export { useTimeWaveformWorkspace }
