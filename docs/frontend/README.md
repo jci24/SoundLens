@@ -4,6 +4,8 @@ This file owns durable frontend architecture, UX, and design-system conventions.
 
 The root [PROJECT_CONTEXT.md](../../PROJECT_CONTEXT.md) owns product direction, validation strategy, and collaboration process. Do not duplicate that context here.
 
+Focused workspace guidance for upcoming shell and evidence-surface work lives in [workspace-information-architecture.md](workspace-information-architecture.md).
+
 ## Frontend Direction
 
 Preferred stack:
