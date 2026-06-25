@@ -1,13 +1,22 @@
 import { Loader2 } from 'lucide-react'
 import { useImportFiles } from '../hooks/useImportFiles'
+import type { IImportedFileSummary } from '../types'
 import { FilePickerImporter } from './FilePickerImporter/FilePickerImporter'
 import './ImportWorkspace.scss'
 
-const ImportWorkspace = () => {
+interface IImportWorkspaceProps {
+  onImportedFiles: (files: IImportedFileSummary[]) => void
+}
+
+const ImportWorkspace = ({ onImportedFiles }: IImportWorkspaceProps) => {
   const { handleUploadFiles, isImporting } = useImportFiles()
 
   const handleFiles = (files: File[]) => {
-    void handleUploadFiles(files)
+    void handleUploadFiles(files).then((response) => {
+      if (response && response.succeededFiles.length > 0) {
+        onImportedFiles(response.succeededFiles)
+      }
+    })
   }
 
   if (isImporting) {

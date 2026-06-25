@@ -132,6 +132,13 @@ Current import workflow guidance:
 - Keep path-based import available as a secondary development/debug fallback while the backend still supports direct local-path ingestion.
 - Preserve the same imported-file session behavior regardless of whether files arrived by browser upload or pasted paths.
 
+Current time visualization guidance:
+
+- The frontend requests backend-computed min/max waveform bins based on the measured chart width and device pixel ratio.
+- The waveform workspace should treat imported files as recordings that can expose multiple channels/signals.
+- The left rail should browse `recording -> channel`, while the main canvas renders the currently selected signal rather than overlaying every imported file by default.
+- The frontend renders axes, labels, and waveform ranges, but does not compute audio samples or waveform bins.
+
 ## Notification Convention
 
 User-facing notifications use Sonner toasts via the shadcn `Toaster` component:

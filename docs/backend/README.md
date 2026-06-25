@@ -50,6 +50,12 @@ Current import guidance:
 - Normalize both import modes to the same imported-file session contract so downstream DSP and evidence code can stay transport-agnostic.
 - Set explicit bounded upload limits for Kestrel request bodies and multipart form parsing; do not rely on defaults for audio import flows.
 
+Current waveform guidance:
+
+- The first time-domain evidence endpoint accepts a requested bin count and an optional selected `signalId`, then returns a recording/channel catalog plus backend-computed min/max amplitude points for the selected signal.
+- The initial decoder supports WAV PCM and 32-bit float WAV files only; MP3, FLAC, OGG, and AIFF need a later decoder slice.
+- Amplitudes are normalized digital sample values and are not calibrated SPL.
+
 ## DSP Principles
 
 - Prefer standard or validated algorithms where practical.

@@ -1,17 +1,20 @@
 import { useState } from 'react'
 import { toast } from 'sonner'
 import { importFilesByPath, uploadFiles } from '../services/importFiles'
+import type { IImportFilesResponse } from '../types'
 
 export interface IUseImportFiles {
-  handleImportPaths: (filePaths: string[]) => Promise<void>
-  handleUploadFiles: (files: File[]) => Promise<void>
+  handleImportPaths: (filePaths: string[]) => Promise<IImportFilesResponse | undefined>
+  handleUploadFiles: (files: File[]) => Promise<IImportFilesResponse | undefined>
   isImporting: boolean
 }
 
 export const useImportFiles = (): IUseImportFiles => {
   const [isImporting, setIsImporting] = useState(false)
 
-  const handleImport = async (runImport: () => Promise<Awaited<ReturnType<typeof importFilesByPath>>>) => {
+  const handleImport = async (
+    runImport: () => Promise<IImportFilesResponse>
+  ): Promise<IImportFilesResponse | undefined> => {
     setIsImporting(true)
 
     try {
@@ -30,23 +33,26 @@ export const useImportFiles = (): IUseImportFiles => {
           `${failedCount} file${failedCount === 1 ? '' : 's'} failed to import`
         )
       }
+
+      return response
     } catch (caughtError) {
       toast.error(caughtError instanceof Error ? caughtError.message : 'Import failed.')
+      return undefined
     } finally {
       setIsImporting(false)
     }
   }
 
-  const handleImportPaths = async (filePaths: string[]): Promise<void> => {
-    if (filePaths.length === 0) return
+  const handleImportPaths = async (filePaths: string[]): Promise<IImportFilesResponse | undefined> => {
+    if (filePaths.length === 0) return undefined
 
-    await handleImport(() => importFilesByPath({ filePaths }))
+    return handleImport(() => importFilesByPath({ filePaths }))
   }
 
-  const handleUploadFiles = async (files: File[]): Promise<void> => {
-    if (files.length === 0) return
+  const handleUploadFiles = async (files: File[]): Promise<IImportFilesResponse | undefined> => {
+    if (files.length === 0) return undefined
 
-    await handleImport(() => uploadFiles(files))
+    return handleImport(() => uploadFiles(files))
   }
 
   return {

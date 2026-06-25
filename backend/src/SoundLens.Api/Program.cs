@@ -21,6 +21,14 @@ try
     builder.WebHost.ConfigureKestrel(options =>
     {
         options.Limits.MaxRequestBodySize = maxRequestBodySizeBytes;
+
+        if (builder.Environment.IsDevelopment())
+        {
+            // Local demo uploads can arrive in uneven bursts from the browser.
+            // Disable the minimum body data-rate guard in development to avoid
+            // aborting valid uploads and surfacing them as misleading CORS errors.
+            options.Limits.MinRequestBodyDataRate = null;
+        }
     });
 
     builder.Services.AddSerilog(options => options.ReadFrom.Configuration(builder.Configuration));

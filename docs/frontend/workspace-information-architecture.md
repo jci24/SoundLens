@@ -221,9 +221,10 @@ The next implementation slice is time-data visualization. It should be treated a
 
 The first serious version should support:
 
-- multi-file waveform viewing
-- overlay mode
-- stacked mode
+- recording and channel selection from the left rail
+- one clearly selected signal in the main canvas by default
+- overlay mode later
+- stacked mode later
 - visible units
 - explicit calibration state or caveat
 - zoom and region selection later

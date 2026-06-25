@@ -1,6 +1,7 @@
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using SoundLens.Api.Features.Import.Common;
+using SoundLens.Api.Features.Waveforms.Common;
 
 namespace SoundLens.Api.Configuration;
 
@@ -10,6 +11,7 @@ public static class DependencyInjection
     {
         // Add application services and configurations here
         services.AddSingleton<IImportedFileStore, InMemoryImportedFileStore>();
+        services.AddSingleton<IWaveformService, WaveformService>();
 
         return services;
     }

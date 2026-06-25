@@ -1,6 +1,6 @@
 # SoundLens Project Context
 
-Last updated: 2026-06-24
+Last updated: 2026-06-25
 
 ## Purpose
 
@@ -36,6 +36,21 @@ The current goal is not funding yet. The current goal is validation readiness:
 4. Use validation evidence to decide the product and funding path.
 
 Funding preparation comes after customer signal, not before it.
+
+## Current Product State
+
+The current demo slice is now centered on browser-first import and waveform review:
+
+- Browser file picking is the primary import flow for demos and customer validation.
+- Uploaded files are persisted into a temporary local workspace on the backend and tracked in the in-memory import session.
+- The main analysis workspace now treats files as recordings with expandable channels/signals.
+- Users can select one or multiple signals and compare them in a shared time-domain waveform view.
+- Waveform bins and axis source-of-truth values are computed by the backend; the frontend only requests resolution and renders the returned evidence.
+- The app shell now supports a collapsible sidebar so the workspace can prioritize evidence when screen width is limited.
+
+Immediate next step after this slice:
+
+- Extend the evidence workspace beyond waveform overview into the next comparison and interpretation surfaces without breaking the current import-to-analysis demo path.
 
 ## Collaboration Process
 

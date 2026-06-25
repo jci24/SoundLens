@@ -1,4 +1,5 @@
 using FastEndpoints;
+using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using SoundLens.Api.Features.Import.Common;
 
@@ -12,6 +13,10 @@ public sealed class ImportUploadedFiles : EndpointWithoutRequest<ImportFilesResp
         Group<ImportGroup>();
         AllowAnonymous();
         AllowFileUploads();
+        // Browser-driven multipart uploads in this demo app do not submit antiforgery tokens.
+        // Keep the endpoint anonymous for local evaluation, and revisit the protection model
+        // when authentication/session boundaries are introduced.
+        Description(builder => builder.DisableAntiforgery());
         Summary(s =>
         {
             s.Summary = "Import one or more uploaded audio files.";
