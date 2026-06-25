@@ -174,6 +174,98 @@ public sealed class FrequencySpectrumTests : IClassFixture<WebApplicationFactory
         }
     }
 
+    [Fact]
+    public async Task SpectrumService_ReturnsStableNoiseFloorForSilence()
+    {
+        var sampleRate = 1024;
+        var samples = new short[sampleRate * 2];
+        var tempPath = Path.Combine(Path.GetTempPath(), $"soundlens_silence_{Guid.NewGuid():N}.wav");
+        await File.WriteAllBytesAsync(tempPath, CreateMono16BitWav(sampleRate, samples));
+
+        try
+        {
+            var importedFile = new ImportedFileSummary("silence.wav", new FileInfo(tempPath).Length, tempPath, "audio/wav");
+            var spectrumService = new SpectrumService();
+
+            var result = spectrumService.BuildFrequencySpectra([importedFile], requestedBinCount: 513, selectedSignalIds: null, CancellationToken.None);
+
+            var signal = Assert.Single(result.SelectedSignals);
+
+            Assert.All(signal.Points, point => Assert.Equal(-240, point.Value, 6));
+            Assert.Equal(-240, result.YAxis.Minimum, 6);
+            Assert.Equal(-237, result.YAxis.Maximum, 6);
+        }
+        finally
+        {
+            File.Delete(tempPath);
+        }
+    }
+
+    [Fact]
+    public async Task SpectrumService_ReturnsTwoDominantPeaksForDualToneSignal()
+    {
+        var sampleRate = 1024;
+        var samples = CreateDualToneSamples(sampleRate, firstFrequencyHz: 128, secondFrequencyHz: 256, durationSeconds: 2.0);
+        var tempPath = Path.Combine(Path.GetTempPath(), $"soundlens_dualtone_{Guid.NewGuid():N}.wav");
+        await File.WriteAllBytesAsync(tempPath, CreateMono16BitWav(sampleRate, samples));
+
+        try
+        {
+            var importedFile = new ImportedFileSummary("dual-tone.wav", new FileInfo(tempPath).Length, tempPath, "audio/wav");
+            var spectrumService = new SpectrumService();
+
+            var result = spectrumService.BuildFrequencySpectra([importedFile], requestedBinCount: 513, selectedSignalIds: null, CancellationToken.None);
+
+            var signal = Assert.Single(result.SelectedSignals);
+            var topPeaks = signal.Points
+                .OrderByDescending(point => point.Value)
+                .Take(2)
+                .Select(point => point.FrequencyHz)
+                .Order()
+                .ToArray();
+
+            Assert.Equal([128d, 256d], topPeaks);
+        }
+        finally
+        {
+            File.Delete(tempPath);
+        }
+    }
+
+    [Fact]
+    public async Task SpectrumService_ShowsOddHarmonicsForHardClippedSine()
+    {
+        var sampleRate = 1024;
+        var fundamentalFrequencyHz = 64;
+        var samples = CreateHardClippedSineSamples(sampleRate, fundamentalFrequencyHz, durationSeconds: 2.0);
+        var tempPath = Path.Combine(Path.GetTempPath(), $"soundlens_clipped_{Guid.NewGuid():N}.wav");
+        await File.WriteAllBytesAsync(tempPath, CreateMono16BitWav(sampleRate, samples));
+
+        try
+        {
+            var importedFile = new ImportedFileSummary("clipped.wav", new FileInfo(tempPath).Length, tempPath, "audio/wav");
+            var spectrumService = new SpectrumService();
+
+            var result = spectrumService.BuildFrequencySpectra([importedFile], requestedBinCount: 513, selectedSignalIds: null, CancellationToken.None);
+
+            var signal = Assert.Single(result.SelectedSignals);
+            var fundamental = signal.Points.Single(point => point.FrequencyHz == fundamentalFrequencyHz);
+            var thirdHarmonic = signal.Points.Single(point => point.FrequencyHz == fundamentalFrequencyHz * 3);
+            var fifthHarmonic = signal.Points.Single(point => point.FrequencyHz == fundamentalFrequencyHz * 5);
+            var adjacentThirdLower = signal.Points.Single(point => point.FrequencyHz == (fundamentalFrequencyHz * 3) - 1);
+            var adjacentThirdUpper = signal.Points.Single(point => point.FrequencyHz == (fundamentalFrequencyHz * 3) + 1);
+
+            Assert.True(fundamental.Value > thirdHarmonic.Value);
+            Assert.True(thirdHarmonic.Value > fifthHarmonic.Value);
+            Assert.True(thirdHarmonic.Value - adjacentThirdLower.Value > 40);
+            Assert.True(thirdHarmonic.Value - adjacentThirdUpper.Value > 40);
+        }
+        finally
+        {
+            File.Delete(tempPath);
+        }
+    }
+
     private static List<(double frequencyHz, double value)> BuildReferenceLineSpectrumDb(
         IReadOnlyList<double> samples,
         int sampleRate,
@@ -238,6 +330,36 @@ public sealed class FrequencySpectrumTests : IClassFixture<WebApplicationFactory
         {
             var value = Math.Sin((2 * Math.PI * frequencyHz * index) / sampleRate) * 0.8;
             samples[index] = (short)Math.Round(value * short.MaxValue);
+        }
+
+        return samples;
+    }
+
+    private static short[] CreateDualToneSamples(int sampleRate, int firstFrequencyHz, int secondFrequencyHz, double durationSeconds)
+    {
+        var sampleCount = (int)(sampleRate * durationSeconds);
+        var samples = new short[sampleCount];
+
+        for (var index = 0; index < sampleCount; index++)
+        {
+            var firstTone = Math.Sin((2 * Math.PI * firstFrequencyHz * index) / sampleRate) * 0.4;
+            var secondTone = Math.Sin((2 * Math.PI * secondFrequencyHz * index) / sampleRate) * 0.4;
+            samples[index] = (short)Math.Round((firstTone + secondTone) * short.MaxValue);
+        }
+
+        return samples;
+    }
+
+    private static short[] CreateHardClippedSineSamples(int sampleRate, int frequencyHz, double durationSeconds)
+    {
+        var sampleCount = (int)(sampleRate * durationSeconds);
+        var samples = new short[sampleCount];
+
+        for (var index = 0; index < sampleCount; index++)
+        {
+            var rawValue = Math.Sin((2 * Math.PI * frequencyHz * index) / sampleRate) * 1.3;
+            var clippedValue = Math.Clamp(rawValue, -0.55, 0.55);
+            samples[index] = (short)Math.Round(clippedValue * short.MaxValue);
         }
 
         return samples;
