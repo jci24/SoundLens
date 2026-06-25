@@ -4,6 +4,7 @@ obj/
 TestResults/
 *.user
 *.suo
+backend/src/SoundLens.Api/Logs/
 
 # Frontend
 node_modules/
@@ -21,4 +22,3 @@ appsettings.Development.local.json
 .DS_Store
 .idea/
 .vscode/
-
