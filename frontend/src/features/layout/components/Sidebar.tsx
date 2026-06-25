@@ -13,7 +13,7 @@ const Sidebar = ({ activeItem = 'files', isCollapsed, onToggleCollapse }: ISideb
   return (
     <aside className={`sidebar${isCollapsed ? ' sidebar--collapsed' : ''}`}>
       <div className="sidebar__header">
-        {!isCollapsed && <h1 className="sidebar__logo">SoundLens</h1>}
+        <h1 className={`sidebar__logo${isCollapsed ? ' sidebar__logo--collapsed' : ''}`}>SoundLens</h1>
         <button
           aria-label={isCollapsed ? 'Expand sidebar' : 'Collapse sidebar'}
           className="sidebar__collapse-button"
@@ -31,7 +31,7 @@ const Sidebar = ({ activeItem = 'files', isCollapsed, onToggleCollapse }: ISideb
           title={isCollapsed ? 'Files' : undefined}
         >
           <FileAudio size={18} />
-          {!isCollapsed && <span>Files</span>}
+          <span className={`sidebar__nav-label${isCollapsed ? ' sidebar__nav-label--collapsed' : ''}`}>Files</span>
         </button>
       </nav>
     </aside>

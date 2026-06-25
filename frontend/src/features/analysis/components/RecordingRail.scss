@@ -22,6 +22,28 @@
     transform: translateY(14px);
   }
 
+  &__recording-list {
+    display: grid;
+    gap: 0.875rem;
+    min-height: 0;
+  }
+
+  &__selection-footprint {
+    display: flex;
+    justify-content: flex-end;
+    padding-top: 0.15rem;
+    border-top: 1px solid color-mix(in srgb, var(--border) 68%, transparent);
+  }
+
+  &__selection-footprint-label {
+    color: color-mix(in srgb, var(--muted-foreground) 86%, var(--foreground));
+    font-size: var(--font-xs);
+    font-weight: 600;
+    letter-spacing: 0.01em;
+    font-variant-numeric: tabular-nums;
+    opacity: 0.9;
+  }
+
   &__recording-group {
     display: grid;
     gap: 0.45rem;
