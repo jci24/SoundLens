@@ -1,4 +1,4 @@
-import type { ITimeWaveformAxis, ITimeWaveformSignal } from '../../import/types'
+import type { ITimeWaveformAxis, ITimeWaveformSignal } from '../types'
 
 const chartHeight = 360
 const chartPadding = {

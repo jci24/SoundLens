@@ -1,5 +1,5 @@
 import { API_BASE_URL } from '../../../common/api/config'
-import type { IImportFilesByPathRequest, IImportFilesResponse } from '../types'
+import type { IImportFilesByPathRequest, IImportFilesResponse } from '../../../common/contracts/import'
 
 export const importFilesByPath = async (
   request: IImportFilesByPathRequest

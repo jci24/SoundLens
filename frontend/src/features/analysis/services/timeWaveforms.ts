@@ -1,5 +1,5 @@
 import { API_BASE_URL } from '../../../common/api/config'
-import type { ITimeWaveformResponse } from '../../import/types'
+import type { ITimeWaveformResponse } from '../types'
 
 export const getTimeWaveforms = async (
   binCount: number,

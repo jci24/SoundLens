@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { toast } from 'sonner'
 import { importFilesByPath, uploadFiles } from '../services/importFiles'
-import type { IImportFilesResponse } from '../types'
+import type { IImportFilesResponse } from '../../../common/contracts/import'
 
 export interface IUseImportFiles {
   handleImportPaths: (filePaths: string[]) => Promise<IImportFilesResponse | undefined>

@@ -2,7 +2,7 @@ import type {
   IFrequencySpectrumPoint,
   IFrequencySpectrumAxis,
   IFrequencySpectrumSignal,
-} from '../../import/types'
+} from '../types'
 
 const chartHeight = 360
 const chartPadding = {

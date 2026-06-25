@@ -1,0 +1,151 @@
+.time-waveform-workspace {
+  &__recording-rail {
+    display: flex;
+    flex-direction: column;
+    gap: 0.875rem;
+    min-width: 0;
+    padding: 0.7rem;
+    border: 1px solid color-mix(in srgb, var(--border) 82%, transparent);
+    border-radius: 1.4rem;
+    background:
+      linear-gradient(
+        180deg,
+        color-mix(in srgb, var(--card) 95%, white 5%),
+        color-mix(in srgb, var(--card) 99%, var(--muted) 1%)
+      );
+    box-shadow:
+      inset 0 1px 0 color-mix(in srgb, white 76%, transparent),
+      0 16px 30px -26px color-mix(in srgb, black 14%, transparent),
+      0 2px 8px color-mix(in srgb, black 4%, transparent);
+    overflow: auto;
+    opacity: 0;
+    transform: translateY(14px);
+  }
+
+  &__recording-group {
+    display: grid;
+    gap: 0.45rem;
+    padding: 0.15rem 0;
+  }
+
+  &__recording-toggle {
+    display: flex;
+    align-items: center;
+    width: 100%;
+    padding: 0.62rem 0.78rem;
+    border: 1px solid color-mix(in srgb, var(--border) 82%, transparent);
+    border-radius: 1rem;
+    background:
+      linear-gradient(
+        180deg,
+        color-mix(in srgb, var(--card) 92%, white 8%),
+        color-mix(in srgb, var(--card) 98%, var(--muted) 2%)
+      );
+    box-shadow:
+      inset 0 1px 0 color-mix(in srgb, white 76%, transparent),
+      0 12px 24px -22px color-mix(in srgb, black 24%, transparent);
+    color: inherit;
+    text-align: left;
+    cursor: pointer;
+    transition:
+      border-color 160ms ease,
+      background-color 160ms ease,
+      transform 160ms ease;
+  }
+
+  &__recording-toggle:hover {
+    border-color: color-mix(in srgb, oklch(0.47 0.11 188) 30%, var(--border));
+    background:
+      linear-gradient(
+        180deg,
+        color-mix(in srgb, var(--card) 88%, white 12%),
+        color-mix(in srgb, var(--muted) 14%, var(--card) 86%)
+      );
+  }
+
+  &__recording-heading {
+    display: flex;
+    align-items: center;
+    gap: 0.35rem;
+    min-width: 0;
+    color: var(--foreground);
+    font-size: var(--font-md);
+    font-weight: 650;
+  }
+
+  &__recording-chevron {
+    color: var(--muted-foreground);
+    transition: transform 160ms ease;
+  }
+
+  &__recording-chevron--open {
+    transform: rotate(90deg);
+  }
+
+  &__recording-name {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  &__signal-list {
+    display: grid;
+    gap: 0.35rem;
+    padding-left: 1.1rem;
+    padding-top: 0.25rem;
+  }
+
+  &__signal-row {
+    display: flex;
+    align-items: center;
+    gap: 0.55rem;
+    width: 100%;
+    padding: 0.5rem 0.65rem;
+    border: 1px solid color-mix(in srgb, var(--border) 85%, transparent);
+    border-radius: calc(var(--radius-md) + 2px);
+    background: color-mix(in srgb, var(--muted) 44%, transparent);
+    color: inherit;
+    text-align: left;
+    transition:
+      border-color 160ms ease,
+      background-color 160ms ease,
+      transform 160ms ease;
+  }
+
+  &__signal-row:hover {
+    border-color: color-mix(in srgb, oklch(0.47 0.11 188) 35%, var(--border));
+    background: color-mix(in srgb, var(--muted) 58%, white 3%);
+  }
+
+  &__signal-row--selected {
+    border-color: color-mix(in srgb, oklch(0.47 0.11 188) 56%, var(--border));
+    background: color-mix(in srgb, oklch(0.92 0.02 188) 50%, white 50%);
+    transform: translateX(2px);
+  }
+
+  &__signal-checkbox {
+    margin-top: 0.1rem;
+  }
+
+  &__signal-label {
+    display: block;
+    min-width: 0 !important;
+    flex: 1 1 auto;
+    overflow: hidden;
+    font-size: var(--font-md);
+    font-weight: 600;
+    line-height: 1.2;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    cursor: pointer;
+  }
+}
+
+@media (max-width: 900px) {
+  .time-waveform-workspace {
+    &__recording-rail {
+      max-height: 8rem;
+      padding: 0.75rem;
+    }
+  }
+}

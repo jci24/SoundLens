@@ -7,14 +7,14 @@ import {
   getVisibleSpectrumXAxis,
   type ISpectrumViewport,
 } from '../utils/spectrumChart'
+import type { IImportedFileSummary } from '../../../common/contracts/import'
 import type {
   IFrequencySpectrumAxis,
   IFrequencySpectrumResponse,
   IFrequencySpectrumSignal,
-  IImportedFileSummary,
   ITimeWaveformSignal,
   ITimeWaveformResponse,
-} from '../../import/types'
+} from '../types'
 
 export type TAnalysisSurface = 'waveform' | 'spectrum'
 

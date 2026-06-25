@@ -39,18 +39,21 @@ Funding preparation comes after customer signal, not before it.
 
 ## Current Product State
 
-The current demo slice is now centered on browser-first import and waveform review:
+The current demo slice is now centered on browser-first import plus waveform and spectrum review:
 
 - Browser file picking is the primary import flow for demos and customer validation.
 - Uploaded files are persisted into a temporary local workspace on the backend and tracked in the in-memory import session.
 - The main analysis workspace now treats files as recordings with expandable channels/signals.
 - Users can select one or multiple signals and compare them in a shared time-domain waveform view.
+- Users can also inspect frequency spectra in the same workspace with backend-computed FFT bins, hover readout, and visible filtered-range state.
 - Waveform bins and axis source-of-truth values are computed by the backend; the frontend only requests resolution and renders the returned evidence.
+- Spectrum values, hover values, and viewport-filtered evidence are also computed and owned by the backend/frontend contract rather than recomputed in the browser.
 - The app shell now supports a collapsible sidebar so the workspace can prioritize evidence when screen width is limited.
+- The analysis workspace has been refactored into smaller frontend components and hooks so rendering, interaction state, and formatting are easier to maintain without changing product behavior.
 
 Immediate next step after this slice:
 
-- Extend the evidence workspace beyond waveform overview into the next comparison and interpretation surfaces without breaking the current import-to-analysis demo path.
+- Extend the evidence workspace beyond waveform and spectrum overview into the next comparison and interpretation surfaces without breaking the current import-to-analysis demo path.
 
 ## Collaboration Process
 
@@ -207,6 +210,13 @@ The UI stack should be selected before implementation begins. Current recommenda
 - Zustand for small cross-view UI state, or Redux Toolkit only if global app state becomes complex enough to justify it.
 - shadcn/ui plus Radix primitives for the main component system, unless early prototyping proves Mantine materially faster.
 - Custom canvas or WebGL rendering for heavy acoustic visualizations where needed.
+
+Frontend architecture rule:
+
+- Do not create direct feature-to-feature imports for runtime behavior or contracts.
+- Shared contracts should live in a neutral app/common layer.
+- Feature-specific types, hooks, services, utils, and components should stay inside their own feature folder.
+- If shared state becomes necessary across features, prefer a neutral store/selectors layer and only introduce Redux Toolkit when the cross-feature state complexity justifies it.
 
 UI recommendation:
 

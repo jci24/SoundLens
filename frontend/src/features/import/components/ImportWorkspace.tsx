@@ -1,6 +1,6 @@
 import { Loader2 } from 'lucide-react'
 import { useImportFiles } from '../hooks/useImportFiles'
-import type { IImportedFileSummary } from '../types'
+import type { IImportedFileSummary } from '../../../common/contracts/import'
 import { FilePickerImporter } from './FilePickerImporter/FilePickerImporter'
 import './ImportWorkspace.scss'
 

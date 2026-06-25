@@ -1,0 +1,124 @@
+.time-waveform-workspace {
+  &__chart {
+    display: block;
+    width: 100%;
+    height: 100%;
+    min-height: 24rem;
+  }
+
+  &__plot-background {
+    fill: color-mix(in srgb, var(--muted) 30%, transparent);
+  }
+
+  &__grid-line {
+    stroke: color-mix(in srgb, var(--border) 80%, transparent);
+    stroke-width: 1;
+  }
+
+  &__tick-line {
+    stroke: color-mix(in srgb, var(--border) 55%, transparent);
+    stroke-width: 1;
+  }
+
+  &__axis-line {
+    stroke: var(--border);
+    stroke-width: 1.25;
+  }
+
+  &__axis-label,
+  &__axis-title {
+    fill: var(--muted-foreground);
+    font-size: 0.7rem;
+  }
+
+  &__axis-title {
+    font-weight: 600;
+  }
+
+  &__spectrum-line {
+    fill: none;
+    stroke-width: 2;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+  }
+
+  &__spectrum-line--0 {
+    stroke: oklch(0.56 0.13 205);
+  }
+
+  &__spectrum-line--1 {
+    stroke: oklch(0.64 0.13 165);
+  }
+
+  &__spectrum-line--2 {
+    stroke: oklch(0.68 0.16 80);
+  }
+
+  &__spectrum-line--3 {
+    stroke: oklch(0.57 0.17 22);
+  }
+
+  &__hover-target {
+    fill: transparent;
+    pointer-events: all;
+  }
+
+  &__hover-guide {
+    stroke: color-mix(in srgb, var(--foreground) 26%, transparent);
+    stroke-width: 1;
+    stroke-dasharray: 4 4;
+  }
+
+  &__hover-marker {
+    stroke: color-mix(in srgb, white 90%, transparent);
+    stroke-width: 1.5;
+  }
+
+  &__hover-marker--0,
+  &__hover-tooltip-swatch--0 {
+    fill: oklch(0.56 0.13 205);
+  }
+
+  &__hover-marker--1,
+  &__hover-tooltip-swatch--1 {
+    fill: oklch(0.64 0.13 165);
+  }
+
+  &__hover-marker--2,
+  &__hover-tooltip-swatch--2 {
+    fill: oklch(0.68 0.16 80);
+  }
+
+  &__hover-marker--3,
+  &__hover-tooltip-swatch--3 {
+    fill: oklch(0.57 0.17 22);
+  }
+
+  &__hover-tooltip {
+    fill: color-mix(in srgb, var(--card) 90%, white 10%);
+    stroke: color-mix(in srgb, var(--border) 88%, transparent);
+    stroke-width: 1;
+    box-shadow:
+      inset 0 1px 0 color-mix(in srgb, white 75%, transparent),
+      0 12px 28px -20px color-mix(in srgb, black 36%, transparent);
+  }
+
+  &__hover-tooltip-title,
+  &__hover-tooltip-label,
+  &__hover-tooltip-value {
+    fill: var(--foreground);
+    font-size: 0.66rem;
+  }
+
+  &__hover-tooltip-title {
+    font-weight: 600;
+  }
+
+  &__hover-tooltip-label {
+    fill: var(--muted-foreground);
+  }
+
+  &__hover-tooltip-value {
+    font-variant-numeric: tabular-nums;
+  }
+}

@@ -1,5 +1,5 @@
 import { useMemo, useRef, useState, type PointerEvent, type RefObject } from 'react'
-import type { IFrequencySpectrumAxis, IFrequencySpectrumSignal } from '../../import/types'
+import type { IFrequencySpectrumAxis, IFrequencySpectrumSignal } from '../types'
 import { getNearestSpectrumPoint, getSpectrumChartModel } from '../utils/spectrumChart'
 
 interface ISpectrumHoverSeries {

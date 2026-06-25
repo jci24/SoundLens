@@ -1,5 +1,5 @@
 import { API_BASE_URL } from '../../../common/api/config'
-import type { IFrequencySpectrumResponse } from '../../import/types'
+import type { IFrequencySpectrumResponse } from '../types'
 
 export const getFrequencySpectra = async (
   binCount: number,

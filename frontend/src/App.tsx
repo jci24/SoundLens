@@ -4,7 +4,7 @@ import { Sidebar } from './features/layout/components/Sidebar'
 import { MainContent } from './features/layout/components/MainContent'
 import { ImportWorkspace } from './features/import/components/ImportWorkspace'
 import { TimeWaveformWorkspace } from './features/analysis/components/TimeWaveformWorkspace'
-import type { IImportedFileSummary } from './features/import/types'
+import type { IImportedFileSummary } from './common/contracts/import'
 import './App.scss'
 
 const App = () => {
