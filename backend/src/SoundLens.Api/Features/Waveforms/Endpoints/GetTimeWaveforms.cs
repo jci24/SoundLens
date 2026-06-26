@@ -1,5 +1,6 @@
 using FastEndpoints;
 using FluentValidation;
+using SoundLens.Api.Common;
 using SoundLens.Api.Features.Waveforms.Commands;
 using SoundLens.Api.Features.Waveforms.Common;
 
@@ -32,6 +33,13 @@ public sealed class GetTimeWaveforms : Endpoint<GetTimeWaveformsCommand, TimeWav
     public override async Task HandleAsync(GetTimeWaveformsCommand req, CancellationToken ct)
     {
         var result = await req.ExecuteAsync(ct);
+
+        if (NegotiatedBinaryResponse.ShouldUseMessagePack(HttpContext.Request))
+        {
+            await NegotiatedBinaryResponse.SendMessagePackAsync(HttpContext.Response, result, ct);
+            return;
+        }
+
         await Send.OkAsync(result, ct);
     }
 }

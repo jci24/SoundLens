@@ -1,4 +1,5 @@
 import { API_BASE_URL } from '../../../common/api/config'
+import { isMessagePackResponse, readMessagePack } from '../../../common/api/messagePack'
 import type { ITimeWaveformResponse } from '../types'
 
 export const getTimeWaveforms = async (
@@ -7,12 +8,19 @@ export const getTimeWaveforms = async (
 ): Promise<ITimeWaveformResponse> => {
   const response = await fetch(`${API_BASE_URL}/api/waveforms/time`, {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
+    headers: {
+      Accept: 'application/x-msgpack, application/json',
+      'Content-Type': 'application/json',
+    },
     body: JSON.stringify({ binCount, signalIds: signalIds ?? [] }),
   })
 
   if (!response.ok) {
     throw new Error(await readWaveformError(response))
+  }
+
+  if (isMessagePackResponse(response)) {
+    return readMessagePack<ITimeWaveformResponse>(response)
   }
 
   return response.json() as Promise<ITimeWaveformResponse>

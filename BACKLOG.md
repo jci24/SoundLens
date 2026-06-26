@@ -101,6 +101,7 @@ Completed:
 - `B1` Waveform binning on the backend
 - `B2` Spectrum binning and parameter contract
 - `B3` Oversized input guardrails
+- `B7` Negotiated MessagePack transport for waveform and spectrum payloads
 
 Open stories:
 
@@ -141,23 +142,6 @@ Frontend
 
 Validation
 - Add tests for region bounds, empty regions, and response consistency.
-
-#### B7 `Next` `Backend + Frontend`
-
-As a user, I would like dense waveform and spectrum payloads to load efficiently, so that the analysis workspace stays fast as evidence density grows.
-
-Backend
-- Add MessagePack transport for waveform and spectrum analysis payloads, either through negotiated responses or dedicated endpoints.
-- Keep the existing numerical contract stable while changing the wire format.
-- Make the transport extensible so future dense evidence payloads can reuse the same pattern.
-
-Frontend
-- Decode MessagePack responses in the waveform and spectrum services without pushing DSP logic into the browser.
-- Preserve the existing rendering behavior and error handling across both transport formats during rollout.
-
-Validation
-- Add transport tests for contract compatibility and regression safety.
-- Measure payload-size improvement on representative waveform and spectrum responses.
 
 ### Epic C: Comparison And Interpretation Workflow
 
@@ -220,15 +204,15 @@ Frontend
 
 If we continue immediately after this branch, the best next options are:
 
-1. `B7` MessagePack analysis transport
-2. `A5` Shared selection state hardening
-3. `B4` Synthetic signal verification pack expansion
-4. `D4` More DSP fixture tests
+1. `A5` Shared selection state hardening
+2. `B4` Synthetic signal verification pack expansion
+3. `D4` More DSP fixture tests
+4. `B5` Analysis parameter contract hardening
 
 Recommended order:
 
 1. Harden the workspace layout and shared selection model before adding more evidence surfaces.
-2. Expand deterministic fixtures as new DSP or comparison features are introduced.
+2. Expand deterministic fixtures and parameter-contract coverage as new DSP behaviors are introduced.
 3. Build findings and interpretation on top of the now-richer evidence surface.
 
 ## GitHub Projects Mapping

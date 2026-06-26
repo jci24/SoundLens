@@ -148,6 +148,7 @@ Current time visualization guidance:
 - The waveform workspace should treat imported files as recordings that can expose multiple channels/signals.
 - The left rail should browse `recording -> channel`, while the main canvas renders the currently selected signal rather than overlaying every imported file by default.
 - The frontend renders axes, labels, and waveform ranges, but does not compute audio samples or waveform bins.
+- Dense waveform and spectrum responses may arrive as negotiated MessagePack payloads; decoding belongs in `common/api` or feature services, never inside render components.
 
 Current spectrum planning guidance:
 

@@ -1,4 +1,5 @@
 import { API_BASE_URL } from '../../../common/api/config'
+import { isMessagePackResponse, readMessagePack } from '../../../common/api/messagePack'
 import type { IFrequencySpectrumResponse } from '../types'
 
 export const getFrequencySpectra = async (
@@ -7,12 +8,19 @@ export const getFrequencySpectra = async (
 ): Promise<IFrequencySpectrumResponse> => {
   const response = await fetch(`${API_BASE_URL}/api/spectra/frequency`, {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
+    headers: {
+      Accept: 'application/x-msgpack, application/json',
+      'Content-Type': 'application/json',
+    },
     body: JSON.stringify({ binCount, signalIds: signalIds ?? [] }),
   })
 
   if (!response.ok) {
     throw new Error(await readSpectrumError(response))
+  }
+
+  if (isMessagePackResponse(response)) {
+    return readMessagePack<IFrequencySpectrumResponse>(response)
   }
 
   return response.json() as Promise<IFrequencySpectrumResponse>

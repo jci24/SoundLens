@@ -1,5 +1,7 @@
 using System.Net;
 using System.Net.Http.Json;
+using MessagePack;
+using MessagePack.Resolvers;
 using Microsoft.AspNetCore.Mvc.Testing;
 using SoundLens.Api.Features.Import.Common;
 using SoundLens.Api.Features.Waveforms.Common;
@@ -8,6 +10,9 @@ namespace SoundLens.Tests;
 
 public sealed class TimeWaveformTests : IClassFixture<WebApplicationFactory<Program>>
 {
+    private const string MessagePackContentType = "application/x-msgpack";
+    private static readonly MessagePackSerializerOptions MessagePackOptions =
+        MessagePackSerializerOptions.Standard.WithResolver(ContractlessStandardResolver.Instance);
     private readonly WebApplicationFactory<Program> _factory;
 
     public TimeWaveformTests(WebApplicationFactory<Program> factory)
@@ -50,6 +55,44 @@ public sealed class TimeWaveformTests : IClassFixture<WebApplicationFactory<Prog
             Assert.InRange(signal.Metrics.CrestFactor, 1.25, 1.27);
             Assert.Equal(2, signal.Metrics.ClippingSampleCount);
             Assert.True(signal.Metrics.HasClipping);
+        }
+        finally
+        {
+            File.Delete(tempPath);
+        }
+    }
+
+    [Fact]
+    public async Task POST_TimeWaveforms_ReturnsMessagePackWhenRequested()
+    {
+        var tempPath = Path.Combine(Path.GetTempPath(), $"soundlens_waveform_msgpack_{Guid.NewGuid():N}.wav");
+        await File.WriteAllBytesAsync(tempPath, CreateMono16BitWav(
+            sampleRate: 4,
+            samples: [-32768, 32767, -16384, 16384]));
+
+        try
+        {
+            var client = _factory.CreateClient();
+            var importResponse = await client.PostAsJsonAsync("/api/import", new { filePaths = new[] { tempPath } });
+            importResponse.EnsureSuccessStatusCode();
+
+            using var request = new HttpRequestMessage(HttpMethod.Post, "/api/waveforms/time")
+            {
+                Content = JsonContent.Create(new { binCount = 64 })
+            };
+            request.Headers.Accept.ParseAdd(MessagePackContentType);
+
+            var response = await client.SendAsync(request);
+
+            response.EnsureSuccessStatusCode();
+            Assert.Equal(MessagePackContentType, response.Content.Headers.ContentType?.MediaType);
+
+            var payload = await response.Content.ReadAsByteArrayAsync();
+            var result = MessagePackSerializer.Deserialize<TimeWaveformResponse>(payload, MessagePackOptions);
+
+            var signal = Assert.Single(result.SelectedSignals);
+            Assert.Equal(4, signal.Bins.Count);
+            Assert.Equal(1.0, signal.Metrics.PeakAmplitude, precision: 4);
         }
         finally
         {

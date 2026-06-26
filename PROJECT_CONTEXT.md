@@ -51,6 +51,7 @@ The current demo slice is now centered on browser-first import plus waveform and
 - Spectrum values, hover values, and viewport-filtered evidence are also computed and owned by the backend/frontend contract rather than recomputed in the browser.
 - Backend analysis services now cache decoded recordings and per-signal analysis results so repeated overlay selection does not recompute the full waveform or spectrum set each time.
 - Waveform transport has been tightened to a compact min/max envelope contract so the frontend receives the rendered waveform shape instead of verbose per-point objects.
+- Waveform and spectrum endpoints now support negotiated MessagePack responses for dense analysis payloads while preserving JSON fallback for Swagger, debugging, and compatibility.
 - Derived metrics are backend-owned and attached to the analysis signal contracts, while the frontend renders a compact metrics rail that stays visually connected to the chart surface.
 - The app shell now supports a collapsible sidebar so the workspace can prioritize evidence when screen width is limited.
 - The analysis workspace now reflows more gracefully across browser zoom levels and narrower desktop widths, reducing chart overflow and preserving a usable demo layout across common screen setups.
@@ -62,7 +63,7 @@ The current demo slice is now centered on browser-first import plus waveform and
 
 Immediate next step after this slice:
 
-- Introduce MessagePack transport for waveform and spectrum evidence so dense analysis payloads can scale without changing the frontend investigation model.
+- Harden shared signal selection and request composition across analysis surfaces so future evidence views can reuse the same compare context without coupling.
 
 ## Collaboration Process
 

@@ -1,5 +1,6 @@
 using FastEndpoints;
 using FluentValidation;
+using SoundLens.Api.Common;
 using SoundLens.Api.Features.Spectra.Commands;
 using SoundLens.Api.Features.Spectra.Common;
 
@@ -32,6 +33,13 @@ public sealed class GetFrequencySpectra : Endpoint<GetFrequencySpectraCommand, F
     public override async Task HandleAsync(GetFrequencySpectraCommand req, CancellationToken ct)
     {
         var result = await req.ExecuteAsync(ct);
+
+        if (NegotiatedBinaryResponse.ShouldUseMessagePack(HttpContext.Request))
+        {
+            await NegotiatedBinaryResponse.SendMessagePackAsync(HttpContext.Response, result, ct);
+            return;
+        }
+
         await Send.OkAsync(result, ct);
     }
 }

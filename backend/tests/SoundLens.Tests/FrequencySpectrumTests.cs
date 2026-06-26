@@ -1,5 +1,7 @@
 using System.Net;
 using System.Net.Http.Json;
+using MessagePack;
+using MessagePack.Resolvers;
 using Microsoft.AspNetCore.Mvc.Testing;
 using SoundLens.Api.Features.Import.Common;
 using SoundLens.Api.Features.Spectra.Common;
@@ -8,6 +10,9 @@ namespace SoundLens.Tests;
 
 public sealed class FrequencySpectrumTests : IClassFixture<WebApplicationFactory<Program>>
 {
+    private const string MessagePackContentType = "application/x-msgpack";
+    private static readonly MessagePackSerializerOptions MessagePackOptions =
+        MessagePackSerializerOptions.Standard.WithResolver(ContractlessStandardResolver.Instance);
     private readonly WebApplicationFactory<Program> _factory;
 
     public FrequencySpectrumTests(WebApplicationFactory<Program> factory)
@@ -56,6 +61,48 @@ public sealed class FrequencySpectrumTests : IClassFixture<WebApplicationFactory
             Assert.InRange(signal.Metrics.CrestFactor, 1.41, 1.42);
             Assert.Equal(0, signal.Metrics.ClippingSampleCount);
             Assert.False(signal.Metrics.HasClipping);
+        }
+        finally
+        {
+            File.Delete(tempPath);
+        }
+    }
+
+    [Fact]
+    public async Task POST_FrequencySpectra_ReturnsMessagePackWhenRequested()
+    {
+        var sampleRate = 1024;
+        var toneFrequencyHz = 128;
+        var samples = CreateSineSamples(sampleRate, toneFrequencyHz, 2.0);
+        var tempPath = Path.Combine(Path.GetTempPath(), $"soundlens_spectrum_msgpack_{Guid.NewGuid():N}.wav");
+        await File.WriteAllBytesAsync(tempPath, CreateMono16BitWav(sampleRate, samples));
+
+        try
+        {
+            var client = _factory.CreateClient();
+            var importResponse = await client.PostAsJsonAsync("/api/import", new { filePaths = new[] { tempPath } });
+            importResponse.EnsureSuccessStatusCode();
+
+            using var request = new HttpRequestMessage(HttpMethod.Post, "/api/spectra/frequency")
+            {
+                Content = JsonContent.Create(new { binCount = 513 })
+            };
+            request.Headers.Accept.ParseAdd(MessagePackContentType);
+
+            var response = await client.SendAsync(request);
+
+            response.EnsureSuccessStatusCode();
+            Assert.Equal(MessagePackContentType, response.Content.Headers.ContentType?.MediaType);
+
+            var payload = await response.Content.ReadAsByteArrayAsync();
+            var result = MessagePackSerializer.Deserialize<FrequencySpectrumResponse>(payload, MessagePackOptions);
+
+            var signal = Assert.Single(result.SelectedSignals);
+            var peak = signal.Points.MaxBy(point => point.Value);
+
+            Assert.NotNull(peak);
+            Assert.InRange(peak!.FrequencyHz, toneFrequencyHz - 1.0, toneFrequencyHz + 1.0);
+            Assert.Equal("Line spectrum", result.Analysis.Method);
         }
         finally
         {
