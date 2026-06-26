@@ -9,5 +9,27 @@ export const isMessagePackResponse = (response: Response) => {
 
 export const readMessagePack = async <T>(response: Response): Promise<T> => {
   const arrayBuffer = await response.arrayBuffer()
-  return decode(new Uint8Array(arrayBuffer)) as T
+  return normalizeMessagePackValue(decode(new Uint8Array(arrayBuffer))) as T
+}
+
+const normalizeMessagePackValue = (value: unknown): unknown => {
+  if (Array.isArray(value)) {
+    return value.map(normalizeMessagePackValue)
+  }
+
+  if (!value || typeof value !== 'object') {
+    return value
+  }
+
+  return Object.fromEntries(
+    Object.entries(value).map(([key, nestedValue]) => [toCamelCase(key), normalizeMessagePackValue(nestedValue)])
+  )
+}
+
+const toCamelCase = (value: string) => {
+  if (value.length === 0) {
+    return value
+  }
+
+  return `${value[0]!.toLowerCase()}${value.slice(1)}`
 }
