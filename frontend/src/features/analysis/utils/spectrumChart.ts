@@ -4,12 +4,40 @@ import type {
   IFrequencySpectrumSignal,
 } from '../types'
 
-const chartHeight = 360
-const chartPadding = {
-  top: 22,
-  right: 18,
-  bottom: 38,
-  left: 72,
+const getSpectrumChartDimensions = (width: number) => {
+  if (width <= 720) {
+    return {
+      chartHeight: 264,
+      chartPadding: {
+        top: 18,
+        right: 14,
+        bottom: 34,
+        left: 54,
+      },
+    }
+  }
+
+  if (width <= 1080) {
+    return {
+      chartHeight: 312,
+      chartPadding: {
+        top: 20,
+        right: 16,
+        bottom: 36,
+        left: 64,
+      },
+    }
+  }
+
+  return {
+    chartHeight: 360,
+    chartPadding: {
+      top: 22,
+      right: 18,
+      bottom: 38,
+      left: 72,
+    },
+  }
 }
 
 const getSpectrumChartModel = (
@@ -17,6 +45,7 @@ const getSpectrumChartModel = (
   yAxis: IFrequencySpectrumAxis,
   width: number
 ) => {
+  const { chartHeight, chartPadding } = getSpectrumChartDimensions(width)
   const plotWidth = Math.max(1, width - chartPadding.left - chartPadding.right)
   const plotHeight = chartHeight - chartPadding.top - chartPadding.bottom
   const minFrequency = xAxis.minimum

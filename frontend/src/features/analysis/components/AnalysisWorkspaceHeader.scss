@@ -32,6 +32,7 @@
     display: flex;
     align-items: center;
     justify-content: space-between;
+    flex-wrap: wrap;
     gap: 1rem;
     padding: 0.8rem 1.25rem;
     border-bottom: 1px solid var(--border);
@@ -207,6 +208,10 @@
     &__header {
       align-items: flex-start;
       flex-direction: column;
+    }
+
+    &__surface-bar {
+      align-items: flex-start;
     }
   }
 }
