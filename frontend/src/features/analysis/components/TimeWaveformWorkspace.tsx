@@ -1,8 +1,8 @@
 import { AnalysisWorkspaceChart } from './AnalysisWorkspaceChart'
 import { AnalysisWorkspaceHeader } from './AnalysisWorkspaceHeader'
 import { RecordingRail } from './RecordingRail'
-import { useAnalysisWorkspaceChartState } from '../hooks/useAnalysisWorkspaceChartState'
 import { useAnalysisWorkspaceMetrics } from '../hooks/useAnalysisWorkspaceMetrics'
+import { useAnalysisWorkspacePanels } from '../hooks/useAnalysisWorkspacePanels'
 import { useTimeWaveformWorkspace } from '../hooks/useTimeWaveformWorkspace'
 import type { IImportedFileSummary } from '../../../common/contracts/import'
 import './TimeWaveformWorkspace.scss'
@@ -16,10 +16,12 @@ const TimeWaveformWorkspace = ({ importedFiles }: ITimeWaveformWorkspaceProps) =
     activeSurface,
     chartRef,
     chartWidth,
-    error,
     expandedRecordings,
-    isInitialLoading,
-    isRefreshing,
+    isSpectrumInitialLoading,
+    isSpectrumRefreshing,
+    isWaveformInitialLoading,
+    isWaveformRefreshing,
+    layoutMode,
     spectrumFftSizeOptions,
     spectrumMaximumHz,
     spectrumRangeEndHz,
@@ -30,34 +32,46 @@ const TimeWaveformWorkspace = ({ importedFiles }: ITimeWaveformWorkspaceProps) =
     spectrumXAxis,
     spectrumSignals,
     waveformSignals,
+    waveformError,
     recordings,
     selectedSignalIds,
+    signalChartMode,
+    showSpectrumPanel,
+    showWaveformPanel,
+    spectrumError,
     waveforms,
+    onLayoutModeChange,
     onRecordingToggle,
     onSignalSelection,
+    onSignalChartModeChange,
     onSpectrumPresetChange,
     onSpectrumRangeEndChange,
     onSpectrumRangeReset,
     onSpectrumRangeStartChange,
     onSurfaceChange,
   } = useTimeWaveformWorkspace(importedFiles)
+  const waveformYAxis = waveforms?.yAxis ?? null
+  const spectrumYAxis = spectrum?.yAxis ?? null
   const {
     hasActiveChart,
-    loadingLabel,
-    refreshingLabel,
-    spectrumYAxis,
-    waveformYAxis,
-  } = useAnalysisWorkspaceChartState({
-    activeSurface,
+    panels,
+  } = useAnalysisWorkspacePanels({
     chartWidth,
-    spectrum,
+    isSpectrumInitialLoading,
+    isSpectrumRefreshing,
+    isWaveformInitialLoading,
+    isWaveformRefreshing,
+    showSpectrumPanel,
+    showWaveformPanel,
+    spectrumError,
     spectrumSignals,
     spectrumXAxis,
-    waveforms,
+    spectrumYAxis,
+    waveformError,
     waveformSignals,
+    waveformYAxis,
   })
   const { hasMetricsPending, metricSignals } = useAnalysisWorkspaceMetrics({
-    activeSurface,
     spectrumSignals,
     waveformSignals,
   })
@@ -69,12 +83,18 @@ const TimeWaveformWorkspace = ({ importedFiles }: ITimeWaveformWorkspaceProps) =
     >
       <AnalysisWorkspaceHeader
         activeSurface={activeSurface}
+        layoutMode={layoutMode}
+        onLayoutModeChange={onLayoutModeChange}
+        onSignalChartModeChange={onSignalChartModeChange}
         onSpectrumPresetChange={onSpectrumPresetChange}
         onSpectrumRangeEndChange={onSpectrumRangeEndChange}
         onSpectrumRangeReset={onSpectrumRangeReset}
         onSpectrumRangeStartChange={onSpectrumRangeStartChange}
         onSurfaceChange={onSurfaceChange}
         selectedSpectrumPreset={selectedSpectrumPreset}
+        selectedSignalCount={selectedSignalIds.length}
+        signalChartMode={signalChartMode}
+        showSpectrumPanel={showSpectrumPanel}
         spectrumFftSizeOptions={spectrumFftSizeOptions}
         spectrumMaximumHz={spectrumMaximumHz}
         spectrumRangeEndHz={spectrumRangeEndHz}
@@ -92,16 +112,13 @@ const TimeWaveformWorkspace = ({ importedFiles }: ITimeWaveformWorkspaceProps) =
         />
         <div className="time-waveform-workspace__main-pane">
           <AnalysisWorkspaceChart
-            activeSurface={activeSurface}
             chartRef={chartRef}
             chartWidth={chartWidth}
-            error={error}
             hasMetricsPending={hasMetricsPending}
-            isInitialLoading={isInitialLoading}
-            isRefreshing={isRefreshing}
-            loadingLabel={loadingLabel}
+            isCompareMode={layoutMode === 'compare'}
             metricSignals={metricSignals}
-            refreshingLabel={refreshingLabel}
+            panels={panels}
+            signalChartMode={signalChartMode}
             spectrumSignals={spectrumSignals}
             spectrumXAxis={spectrumXAxis}
             spectrumYAxis={spectrumYAxis}

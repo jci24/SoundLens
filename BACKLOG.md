@@ -142,6 +142,23 @@ Frontend
 Validation
 - Add tests for region bounds, empty regions, and response consistency.
 
+#### B7 `Next` `Backend + Frontend`
+
+As a user, I would like dense waveform and spectrum payloads to load efficiently, so that the analysis workspace stays fast as evidence density grows.
+
+Backend
+- Add MessagePack transport for waveform and spectrum analysis payloads, either through negotiated responses or dedicated endpoints.
+- Keep the existing numerical contract stable while changing the wire format.
+- Make the transport extensible so future dense evidence payloads can reuse the same pattern.
+
+Frontend
+- Decode MessagePack responses in the waveform and spectrum services without pushing DSP logic into the browser.
+- Preserve the existing rendering behavior and error handling across both transport formats during rollout.
+
+Validation
+- Add transport tests for contract compatibility and regression safety.
+- Measure payload-size improvement on representative waveform and spectrum responses.
+
 ### Epic C: Comparison And Interpretation Workflow
 
 Goal:
@@ -152,6 +169,7 @@ Completed:
 - `C1` Visible compare model
 - `C2` Multi-surface workspace tab model
 - `C3` Derived metrics strip
+- `C5` Flexible multi-panel workspace layout
 
 Open stories:
 
@@ -167,18 +185,6 @@ Frontend
 
 Validation
 - Add evidence-contract tests and UI rendering coverage.
-
-#### C5 `Next` `Frontend`
-
-As a user, I would like waveform and spectrum to live in more flexible workspace panels, so that I can compare evidence views without forcing everything into one chart area.
-
-Frontend
-- Refactor the current single-chart workspace into a more flexible multi-panel layout model.
-- Let waveform and spectrum be shown in separate chart areas without cluttering the workspace.
-- Keep the metrics rail and signal selection model compatible with that future layout.
-
-Validation
-- Add tests for panel state, active surface layout, and shared selection behavior.
 
 ### Epic D: Testing Foundation
 
@@ -214,7 +220,7 @@ Frontend
 
 If we continue immediately after this branch, the best next options are:
 
-1. `C5` Flexible multi-panel workspace layout
+1. `B7` MessagePack analysis transport
 2. `A5` Shared selection state hardening
 3. `B4` Synthetic signal verification pack expansion
 4. `D4` More DSP fixture tests
