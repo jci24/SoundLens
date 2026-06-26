@@ -1,6 +1,6 @@
 # SoundLens Backlog
 
-Last updated: 2026-06-25
+Last updated: 2026-06-26
 
 This file is the repo-side backlog for SoundLens.
 
@@ -13,6 +13,25 @@ Use it to keep the product direction, implementation queue, and branch sizing al
 - Default to one branch per task: `codex/<short-task-name>`.
 - Update this file and `PROJECT_CONTEXT.md` when the current product state or near-term implementation order changes.
 - Treat large PRs as a smell. If one task turns into many concepts, split it before merge.
+- New GitHub issues should be written as user stories starting with: `As a user, I would like to ...`
+- Under each user story, list the implementation breakdown explicitly as flat `Backend`, `Frontend`, and `Validation` tasks when applicable.
+
+## GitHub Story Template
+
+Use this format for new GitHub Project items and issues:
+
+```text
+As a user, I would like to <goal>, so that <outcome>.
+
+Backend
+- ...
+
+Frontend
+- ...
+
+Validation
+- ...
+```
 
 ## Status Legend
 
@@ -37,76 +56,174 @@ Deliver a credible analysis workspace that lets a prospective customer:
 Goal:
 Turn the current import-to-analysis flow into a reliable demo surface for engineering conversations.
 
-Thin tasks:
+Completed:
 
-| ID | Status | Area | Task | Outcome |
-| --- | --- | --- | --- | --- |
-| A1 | Done | Backend + Frontend | Browser-first import flow | User can pick local files and open them in the workspace |
-| A2 | Done | Backend + Frontend | Time waveform workspace | User can inspect selected signals with backend-owned waveform bins |
-| A3 | Done | Backend + Frontend | Spectrum workspace | User can inspect backend-owned spectra with hover readout and range filtering |
-| A4 | Now | Frontend | Workspace decomposition follow-through | Keep components render-only and continue reducing oversized files |
-| A5 | Next | Backend + Frontend | Shared selection state hardening | Make multi-view signal selection more durable as more evidence surfaces are added |
-| A6 | Later | Frontend | Analysis tool shelf / second-level navigation | Let users switch between evidence surfaces without clutter |
+- `A1` Browser-first import flow
+- `A2` Time waveform workspace
+- `A3` Spectrum workspace
+- `A4` Workspace decomposition follow-through
+
+Open stories:
+
+#### A5 `Next` `Backend + Frontend`
+
+As a user, I would like my signal selection to stay consistent across analysis surfaces, so that I can move between waveform, spectrum, and future tools without losing comparison context.
+
+Backend
+- Keep selected-signal requests stable as additional evidence endpoints are added.
+- Reuse the current per-signal cache strategy where it reduces repeat fetch cost.
+
+Frontend
+- Move selection state to a durable workspace-level model that future surfaces can consume without feature-to-feature coupling.
+- Keep the current compare workflow visible and predictable as more surfaces are added.
+
+Validation
+- Add tests for signal selection persistence and surface switching behavior.
+
+#### A6 `Later` `Frontend`
+
+As a user, I would like a clean tool shelf for analysis surfaces, so that I can access more views without cluttering the main workspace.
+
+Frontend
+- Design a second-level navigation model for waveform, spectrum, and future evidence surfaces.
+- Preserve the calm professional layout already established in the analysis shell.
+
+Validation
+- Add rendering tests for navigation state and active-surface behavior.
 
 ### Epic B: Trustworthy DSP And Evidence Contracts
 
 Goal:
 Make every displayed value traceable, testable, and safe to explain later through AI.
 
-Thin tasks:
+Completed:
 
-| ID | Status | Area | Task | Outcome |
-| --- | --- | --- | --- | --- |
-| B1 | Done | Backend | Waveform binning on the backend | Frontend renders returned min/max pairs only |
-| B2 | Done | Backend | Spectrum binning and parameter contract | Frontend consumes backend-generated FFT evidence |
-| B3 | Done | Backend | Oversized input guardrails | Large-spectrum requests fail predictably |
-| B4 | Next | Backend | Synthetic signal verification pack | Compare FFT and waveform behavior against known fixtures |
-| B5 | Next | Backend | Spectrum parameter model hardening | Formalize FFT size, overlap, windowing, and future averaging options |
-| B6 | Later | Backend | Region-of-interest evidence requests | Let the user ask for evidence on selected time regions only |
+- `B1` Waveform binning on the backend
+- `B2` Spectrum binning and parameter contract
+- `B3` Oversized input guardrails
+
+Open stories:
+
+#### B4 `Next` `Backend`
+
+As a user, I would like waveform and spectrum results to stay trustworthy for known input signals, so that I can trust the demo evidence when comparing files.
+
+Backend
+- Expand the deterministic fixture pack for known tones, silence, clipping, and other synthetic checks.
+- Verify both waveform-envelope behavior and FFT behavior against expected outcomes.
+
+Validation
+- Add focused regression tests for each synthetic fixture.
+
+#### B5 `Next` `Backend`
+
+As a user, I would like analysis parameters to be explicit and stable, so that I understand what the spectrum view is showing and can trust repeatability.
+
+Backend
+- Formalize FFT size, overlap, windowing, and future averaging options in the backend contract.
+- Keep the backend as the source of truth for analysis parameter defaults.
+
+Frontend
+- Render returned parameter state without recomputing DSP decisions in the browser.
+
+Validation
+- Add contract tests for supported parameter combinations.
+
+#### B6 `Later` `Backend + Frontend`
+
+As a user, I would like to request evidence for a selected time region, so that I can investigate a specific event instead of the full recording.
+
+Backend
+- Add region-of-interest waveform and spectrum requests.
+
+Frontend
+- Provide a region selection interaction that stays compatible with future surfaces.
+
+Validation
+- Add tests for region bounds, empty regions, and response consistency.
 
 ### Epic C: Comparison And Interpretation Workflow
 
 Goal:
 Move from isolated charts toward a comparison workflow that is useful in a customer demo.
 
-Thin tasks:
+Completed:
 
-| ID | Status | Area | Task | Outcome |
-| --- | --- | --- | --- | --- |
-| C1 | Next | Frontend | Visible compare model | Comparison does not depend on hidden Cmd/Ctrl interactions |
-| C2 | Next | Frontend | Multi-surface workspace tab model | Waveform, spectrum, and future views share one consistent shell |
-| C3 | Later | Backend + Frontend | Derived metrics strip | Show duration, sample rate, peak, RMS, crest factor, clipping in the same workspace |
-| C4 | Later | Backend + Frontend | Findings summary panel | Surface first-pass engineering observations beside evidence |
+- `C1` Visible compare model
+- `C2` Multi-surface workspace tab model
+- `C3` Derived metrics strip
+
+Open stories:
+
+#### C4 `Later` `Backend + Frontend`
+
+As a user, I would like a first-pass findings summary, so that SoundLens can point me toward the most likely issues before I inspect every chart manually.
+
+Backend
+- Build a structured findings contract from deterministic evidence.
+
+Frontend
+- Surface findings beside the evidence views with limitations visible.
+
+Validation
+- Add evidence-contract tests and UI rendering coverage.
+
+#### C5 `Next` `Frontend`
+
+As a user, I would like waveform and spectrum to live in more flexible workspace panels, so that I can compare evidence views without forcing everything into one chart area.
+
+Frontend
+- Refactor the current single-chart workspace into a more flexible multi-panel layout model.
+- Let waveform and spectrum be shown in separate chart areas without cluttering the workspace.
+- Keep the metrics rail and signal selection model compatible with that future layout.
+
+Validation
+- Add tests for panel state, active surface layout, and shared selection behavior.
 
 ### Epic D: Testing Foundation
 
 Goal:
 Grow confidence without waiting for full E2E coverage.
 
-Thin tasks:
+Completed:
 
-| ID | Status | Area | Task | Outcome |
-| --- | --- | --- | --- | --- |
-| D1 | Done | Backend | Deterministic backend tests | Import, waveform, spectrum, CORS, and failure paths covered |
-| D2 | Done | Frontend | Vitest + RTL setup | Frontend unit tests can grow with the workspace |
-| D3 | Now | Frontend | Hook and utility coverage expansion | Workspace logic can be refactored safely |
-| D4 | Next | Backend | More DSP fixture tests | Known signals catch regressions early |
-| D5 | Later | Frontend | Component rendering tests for key workspace surfaces | Regression coverage for tabs, rails, and controls |
+- `D1` Deterministic backend tests
+- `D2` Vitest + RTL setup
+- `D3` Hook and utility coverage expansion
+
+Open stories:
+
+#### D4 `Next` `Backend`
+
+As a user, I would like regressions in DSP behavior to be caught early, so that the demo stays trustworthy as new analysis features are added.
+
+Backend
+- Add more known-signal fixture tests where new DSP or metrics are introduced.
+
+Validation
+- Keep fixture coverage close to the backend analysis code it protects.
+
+#### D5 `Later` `Frontend`
+
+As a user, I would like the main analysis surfaces to behave consistently after refactors, so that the workspace stays demo-ready as it grows.
+
+Frontend
+- Add component rendering tests for tabs, recording rail, controls, and future metrics surfaces.
 
 ## Suggested Next Thin Tasks
 
 If we continue immediately after this branch, the best next options are:
 
-1. `A4` Workspace decomposition follow-through
-2. `D3` Hook and utility coverage expansion
-3. `B4` Synthetic signal verification pack
-4. `C1` Visible compare model
+1. `C5` Flexible multi-panel workspace layout
+2. `A5` Shared selection state hardening
+3. `B4` Synthetic signal verification pack expansion
+4. `D4` More DSP fixture tests
 
 Recommended order:
 
-1. Finish decomposition and tests around the current workspace.
-2. Strengthen DSP verification against known fixtures.
-3. Improve comparison discoverability before adding more analysis surfaces.
+1. Harden the workspace layout and shared selection model before adding more evidence surfaces.
+2. Expand deterministic fixtures as new DSP or comparison features are introduced.
+3. Build findings and interpretation on top of the now-richer evidence surface.
 
 ## GitHub Projects Mapping
 
