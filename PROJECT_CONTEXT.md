@@ -54,6 +54,7 @@ The current demo slice is now centered on browser-first import plus waveform and
 - Derived metrics are backend-owned and attached to the analysis signal contracts, while the frontend renders a compact metrics rail that stays visually connected to the chart surface.
 - The app shell now supports a collapsible sidebar so the workspace can prioritize evidence when screen width is limited.
 - The analysis workspace now reflows more gracefully across browser zoom levels and narrower desktop widths, reducing chart overflow and preserving a usable demo layout across common screen setups.
+- The analysis workspace can now switch between a focused single-surface view and a screenfit compare layout that keeps waveform and spectrum visible together, while focused mode can also split selected signals into separate charts for detailed inspection.
 - The analysis workspace has been refactored into smaller frontend components and hooks so rendering, interaction state, and formatting are easier to maintain without changing product behavior.
 - Backend deterministic tests now cover waveform, spectrum, import/CORS, selected-signal behavior, and oversized-spectrum-file failure reporting.
 - Frontend unit-test infrastructure is now established with Vitest and React Testing Library, with initial coverage around analysis formatting and popover interaction hooks.
@@ -61,7 +62,7 @@ The current demo slice is now centered on browser-first import plus waveform and
 
 Immediate next step after this slice:
 
-- Harden shared selection and workspace layout for future multi-chart or multi-surface evidence views without breaking the current import-to-analysis demo path.
+- Introduce MessagePack transport for waveform and spectrum evidence so dense analysis payloads can scale without changing the frontend investigation model.
 
 ## Collaboration Process
 
@@ -213,6 +214,14 @@ Design quality bar:
 - Prioritize comparison workflows over isolated panels.
 - Avoid clutter by making the investigation path obvious: files, evidence, findings, comparison, report.
 - Follow mature design-system principles from established product companies, but adapt them to acoustic engineering rather than copying a generic dashboard.
+
+Workspace layout rules:
+
+- Prefer `screenfit` primary analysis layouts over overflow-first layouts. Core evidence views should stay inside the viewport at common desktop sizes and browser zoom levels wherever practical.
+- Treat charts as the dominant content surface. Summary metrics should support interpretation, not replace or visually outweigh the evidence.
+- Place filter and focus controls near the evidence they affect, with parameter state visible enough that users can trust what they are seeing.
+- Allow limited personalization where it improves investigation flow, such as focused versus compare layouts or overlay versus split chart display, without turning the app into a fully freeform dashboard builder.
+- Keep meta-information visible: units, calibration/relative state, loading state, and important limitations should remain part of the layout rather than hidden behind secondary menus.
 
 ## UI System Direction
 

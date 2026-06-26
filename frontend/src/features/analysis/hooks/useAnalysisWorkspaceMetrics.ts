@@ -1,6 +1,5 @@
 import { useMemo } from 'react'
 import type { IFrequencySpectrumSignal, ITimeWaveformSignal } from '../types'
-import type { TAnalysisSurface } from './useTimeWaveformWorkspace'
 
 interface IMetricSignalItem {
   signalId: string
@@ -16,7 +15,6 @@ interface IMetricSignalItem {
 }
 
 interface IUseAnalysisWorkspaceMetricsOptions {
-  activeSurface: TAnalysisSurface
   spectrumSignals: IFrequencySpectrumSignal[]
   waveformSignals: ITimeWaveformSignal[]
 }
@@ -35,12 +33,11 @@ const defaultMetrics = {
 }
 
 const useAnalysisWorkspaceMetrics = ({
-  activeSurface,
   spectrumSignals,
   waveformSignals,
 }: IUseAnalysisWorkspaceMetricsOptions): IUseAnalysisWorkspaceMetricsResult =>
   useMemo(() => {
-    const sourceSignals = activeSurface === 'waveform' ? waveformSignals : spectrumSignals
+    const sourceSignals = waveformSignals.length > 0 ? waveformSignals : spectrumSignals
 
     return {
       hasMetricsPending: sourceSignals.some((signal) => signal.metrics === undefined),
@@ -58,7 +55,7 @@ const useAnalysisWorkspaceMetrics = ({
         hasClipping: signal.metrics?.hasClipping ?? defaultMetrics.hasClipping,
       })),
     }
-  }, [activeSurface, spectrumSignals, waveformSignals])
+  }, [spectrumSignals, waveformSignals])
 
 export { useAnalysisWorkspaceMetrics }
 export type { IMetricSignalItem }

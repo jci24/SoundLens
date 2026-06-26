@@ -64,6 +64,16 @@ The first screen should be the working application, not a landing page.
 - Prefer semantic class names in TSX and keep component-specific layout/presentation rules in SCSS.
 - Keep Tailwind utility classes restrained and intentional. Use design tokens and SCSS for durable component styling.
 
+## Workspace Layout Principles
+
+For the main analysis workspace, follow these layout rules:
+
+- Prefer screenfit evidence layouts for primary desktop investigation views. Do not rely on vertical page scrolling as the default way to compare core waveform and spectrum evidence.
+- Let charts dominate the workspace. Metrics, badges, and summary strips should remain supporting context.
+- Keep filter and focus controls close to the surfaces they affect, and keep active parameter state understandable at a glance.
+- Support small, explicit personalization controls when they improve analysis flow, such as focused versus compare layouts or overlay versus split signal display.
+- Do not drift into generic business-dashboard composition. SoundLens is an engineering investigation workspace, not a KPI wall.
+
 ## Visualization Principles
 
 Acoustic charts are evidence surfaces, not decoration.

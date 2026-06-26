@@ -1,0 +1,149 @@
+import { useRef } from 'react'
+import { AlertCircle, Loader2 } from 'lucide-react'
+import { SpectrumChart } from './SpectrumChart'
+import { WaveformChart } from './WaveformChart'
+import { useMeasuredChartWidth } from '../hooks/useMeasuredChartWidth'
+import { useAnalysisWorkspacePanelCharts } from '../hooks/useAnalysisWorkspacePanelCharts'
+import type { IAnalysisWorkspacePanel } from '../hooks/useAnalysisWorkspacePanels'
+import type { TSignalChartMode } from '../hooks/useTimeWaveformWorkspace'
+import type { IFrequencySpectrumAxis, IFrequencySpectrumSignal, ITimeWaveformSignal, ITimeWaveformResponse } from '../types'
+import './AnalysisWorkspacePanel.scss'
+
+interface IAnalysisWorkspacePanelProps {
+  chartWidth: number
+  isCompareMode: boolean
+  panel: IAnalysisWorkspacePanel
+  signalChartMode: TSignalChartMode
+  spectrumSignals: IFrequencySpectrumSignal[]
+  spectrumXAxis: IFrequencySpectrumAxis | null
+  spectrumYAxis: IFrequencySpectrumAxis | null
+  waveformSignals: ITimeWaveformSignal[]
+  waveformYAxis: ITimeWaveformResponse['yAxis'] | null
+}
+
+interface IAnalysisWorkspacePanelChartFrameProps {
+  chartWidth: number
+  chartItem: ReturnType<typeof useAnalysisWorkspacePanelCharts>[number]
+  panelSurface: IAnalysisWorkspacePanel['surface']
+  spectrumXAxis: IFrequencySpectrumAxis | null
+  spectrumYAxis: IFrequencySpectrumAxis | null
+  waveformYAxis: ITimeWaveformResponse['yAxis'] | null
+}
+
+const AnalysisWorkspacePanelChartFrame = ({
+  chartWidth,
+  chartItem,
+  panelSurface,
+  spectrumXAxis,
+  spectrumYAxis,
+  waveformYAxis,
+}: IAnalysisWorkspacePanelChartFrameProps) => {
+  const frameRef = useRef<HTMLDivElement | null>(null)
+  const frameWidth = useMeasuredChartWidth(frameRef)
+  const renderedChartWidth = frameWidth > 0 ? frameWidth : chartWidth
+
+  return (
+    <div className="time-waveform-workspace__panel-chart-frame" ref={frameRef}>
+      {panelSurface === 'waveform' &&
+        waveformYAxis &&
+        renderedChartWidth > 0 &&
+        chartItem.waveformSignals.length > 0 && (
+          <WaveformChart
+            signals={chartItem.waveformSignals}
+            width={renderedChartWidth}
+            yAxis={waveformYAxis}
+          />
+        )}
+
+      {panelSurface === 'spectrum' &&
+        spectrumXAxis &&
+        spectrumYAxis &&
+        Array.isArray(spectrumXAxis.ticks) &&
+        Array.isArray(spectrumYAxis.ticks) &&
+        renderedChartWidth > 0 &&
+        chartItem.spectrumSignals.length > 0 && (
+          <SpectrumChart
+            signals={chartItem.spectrumSignals}
+            width={renderedChartWidth}
+            xAxis={spectrumXAxis}
+            yAxis={spectrumYAxis}
+          />
+        )}
+    </div>
+  )
+}
+
+const AnalysisWorkspacePanel = ({
+  chartWidth,
+  isCompareMode,
+  panel,
+  signalChartMode,
+  spectrumSignals,
+  spectrumXAxis,
+  spectrumYAxis,
+  waveformSignals,
+  waveformYAxis,
+}: IAnalysisWorkspacePanelProps) => {
+  const chartItems = useAnalysisWorkspacePanelCharts({
+    panel,
+    signalChartMode,
+    spectrumSignals,
+    waveformSignals,
+  })
+
+  return (
+    <section className="time-waveform-workspace__panel-shell" aria-label={`${panel.title} panel`}>
+      <header className="time-waveform-workspace__panel-header">
+        <h3 className="time-waveform-workspace__panel-title">{panel.title}</h3>
+
+        {panel.isRefreshing && !panel.isInitialLoading && (
+          <div className="time-waveform-workspace__loading-pill" aria-live="polite">
+            <Loader2 className="time-waveform-workspace__spinner" size={14} />
+            <span>{panel.refreshingLabel}</span>
+          </div>
+        )}
+      </header>
+
+      {panel.isInitialLoading && (
+        <div className="time-waveform-workspace__panel-state">
+          <Loader2 className="time-waveform-workspace__spinner" size={20} />
+          <span>{panel.loadingLabel}</span>
+        </div>
+      )}
+
+      {panel.error && (
+        <div className="time-waveform-workspace__panel-state time-waveform-workspace__panel-state--error">
+          <AlertCircle size={20} />
+          <span>{panel.error}</span>
+        </div>
+      )}
+
+      {!panel.error && (
+        <div
+          className={`time-waveform-workspace__panel-chart-grid${signalChartMode === 'split' && chartItems.length > 1 ? ' time-waveform-workspace__panel-chart-grid--split' : ''}${isCompareMode ? ' time-waveform-workspace__panel-chart-grid--compare' : ''}`}
+        >
+          {chartItems.map((chartItem) => (
+            <article className="time-waveform-workspace__panel-chart-card" key={chartItem.chartKey}>
+              {chartItem.title && (
+                <header className="time-waveform-workspace__panel-chart-card-header">
+                  <span className="time-waveform-workspace__panel-chart-card-title">{chartItem.title}</span>
+                </header>
+              )}
+
+              <AnalysisWorkspacePanelChartFrame
+                chartItem={chartItem}
+                chartWidth={chartWidth}
+                panelSurface={panel.surface}
+                spectrumXAxis={spectrumXAxis}
+                spectrumYAxis={spectrumYAxis}
+                waveformYAxis={waveformYAxis}
+              />
+            </article>
+          ))}
+        </div>
+      )}
+    </section>
+  )
+}
+
+export { AnalysisWorkspacePanel }

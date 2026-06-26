@@ -3,10 +3,9 @@ import { describe, expect, it } from 'vitest'
 import { useAnalysisWorkspaceMetrics } from './useAnalysisWorkspaceMetrics'
 
 describe('useAnalysisWorkspaceMetrics', () => {
-  it('maps waveform metrics when the waveform surface is active', () => {
+  it('prefers waveform metrics when waveform signals are available', () => {
     const { result } = renderHook(() =>
       useAnalysisWorkspaceMetrics({
-        activeSurface: 'waveform',
         spectrumSignals: [],
         waveformSignals: [
           {
@@ -52,7 +51,6 @@ describe('useAnalysisWorkspaceMetrics', () => {
   it('maps spectrum metrics when the spectrum surface is active', () => {
     const { result } = renderHook(() =>
       useAnalysisWorkspaceMetrics({
-        activeSurface: 'spectrum',
         spectrumSignals: [
           {
             signalId: 'spec-1',
@@ -87,7 +85,6 @@ describe('useAnalysisWorkspaceMetrics', () => {
   it('falls back safely when a signal does not yet include derived metrics', () => {
     const { result } = renderHook(() =>
       useAnalysisWorkspaceMetrics({
-        activeSurface: 'waveform',
         spectrumSignals: [],
         waveformSignals: [
           {
