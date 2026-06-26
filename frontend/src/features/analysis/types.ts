@@ -1,5 +1,13 @@
 export type TTimeWaveformBin = [number, number]
 
+export interface ISignalDerivedMetrics {
+  peakAmplitude: number
+  rmsAmplitude: number
+  crestFactor: number
+  clippingSampleCount: number
+  hasClipping: boolean
+}
+
 export interface ITimeWaveformSignalSummary {
   signalId: string
   channelIndex: number
@@ -27,6 +35,7 @@ export interface ITimeWaveformSignal {
   channelIndex: number
   amplitudeUnit: string
   isCalibrated: boolean
+  metrics?: ISignalDerivedMetrics
   bins: TTimeWaveformBin[]
 }
 
@@ -60,6 +69,7 @@ export interface IFrequencySpectrumSignal {
   channelIndex: number
   amplitudeUnit: string
   isCalibrated: boolean
+  metrics?: ISignalDerivedMetrics
   points: IFrequencySpectrumPoint[]
 }
 

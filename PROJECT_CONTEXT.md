@@ -1,6 +1,6 @@
 # SoundLens Project Context
 
-Last updated: 2026-06-25
+Last updated: 2026-06-26
 
 ## Purpose
 
@@ -46,10 +46,12 @@ The current demo slice is now centered on browser-first import plus waveform and
 - The main analysis workspace now treats files as recordings with expandable channels/signals.
 - Users can select one or multiple signals and compare them in a shared time-domain waveform view.
 - Users can also inspect frequency spectra in the same workspace with backend-computed FFT bins, hover readout, and visible filtered-range state.
+- Users can now compare compact derived signal metrics in the same workspace, including peak, RMS, crest factor, clipping state, sample rate, and duration, directly above the active chart.
 - Waveform bins and axis source-of-truth values are computed by the backend; the frontend only requests resolution and renders the returned evidence.
 - Spectrum values, hover values, and viewport-filtered evidence are also computed and owned by the backend/frontend contract rather than recomputed in the browser.
 - Backend analysis services now cache decoded recordings and per-signal analysis results so repeated overlay selection does not recompute the full waveform or spectrum set each time.
 - Waveform transport has been tightened to a compact min/max envelope contract so the frontend receives the rendered waveform shape instead of verbose per-point objects.
+- Derived metrics are backend-owned and attached to the analysis signal contracts, while the frontend renders a compact metrics rail that stays visually connected to the chart surface.
 - The app shell now supports a collapsible sidebar so the workspace can prioritize evidence when screen width is limited.
 - The analysis workspace has been refactored into smaller frontend components and hooks so rendering, interaction state, and formatting are easier to maintain without changing product behavior.
 - Backend deterministic tests now cover waveform, spectrum, import/CORS, selected-signal behavior, and oversized-spectrum-file failure reporting.
@@ -58,7 +60,7 @@ The current demo slice is now centered on browser-first import plus waveform and
 
 Immediate next step after this slice:
 
-- Extend the evidence workspace beyond waveform and spectrum overview into the next comparison and interpretation surfaces without breaking the current import-to-analysis demo path.
+- Harden shared selection and workspace layout for future multi-chart or multi-surface evidence views without breaking the current import-to-analysis demo path.
 
 ## Collaboration Process
 

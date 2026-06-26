@@ -15,6 +15,14 @@
     gap: 1rem;
   }
 
+  &__main-pane {
+    display: grid;
+    grid-template-rows: minmax(0, 1fr);
+    min-width: 0;
+    min-height: 0;
+    gap: 0.5rem;
+  }
+
   &__chart-shell {
     position: relative;
     min-width: 0;
@@ -86,6 +94,13 @@
 
     .time-waveform-workspace__chart-shell {
       animation: time-waveform-chart-enter 560ms cubic-bezier(0.16, 1, 0.3, 1) 110ms forwards;
+    }
+
+    .time-waveform-workspace__metrics-rail {
+      animation: time-waveform-chart-enter 520ms cubic-bezier(0.16, 1, 0.3, 1) 80ms forwards;
+      opacity: 0;
+      transform: translateY(18px);
+      animation-fill-mode: forwards;
     }
   }
 }

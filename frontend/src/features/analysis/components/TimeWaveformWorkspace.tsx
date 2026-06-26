@@ -2,6 +2,7 @@ import { AnalysisWorkspaceChart } from './AnalysisWorkspaceChart'
 import { AnalysisWorkspaceHeader } from './AnalysisWorkspaceHeader'
 import { RecordingRail } from './RecordingRail'
 import { useAnalysisWorkspaceChartState } from '../hooks/useAnalysisWorkspaceChartState'
+import { useAnalysisWorkspaceMetrics } from '../hooks/useAnalysisWorkspaceMetrics'
 import { useTimeWaveformWorkspace } from '../hooks/useTimeWaveformWorkspace'
 import type { IImportedFileSummary } from '../../../common/contracts/import'
 import './TimeWaveformWorkspace.scss'
@@ -55,6 +56,11 @@ const TimeWaveformWorkspace = ({ importedFiles }: ITimeWaveformWorkspaceProps) =
     waveforms,
     waveformSignals,
   })
+  const { hasMetricsPending, metricSignals } = useAnalysisWorkspaceMetrics({
+    activeSurface,
+    spectrumSignals,
+    waveformSignals,
+  })
 
   return (
     <section
@@ -84,21 +90,25 @@ const TimeWaveformWorkspace = ({ importedFiles }: ITimeWaveformWorkspaceProps) =
           recordings={recordings}
           selectedSignalIds={selectedSignalIds}
         />
-        <AnalysisWorkspaceChart
-          activeSurface={activeSurface}
-          chartRef={chartRef}
-          chartWidth={chartWidth}
-          error={error}
-          isInitialLoading={isInitialLoading}
-          isRefreshing={isRefreshing}
-          loadingLabel={loadingLabel}
-          refreshingLabel={refreshingLabel}
-          spectrumSignals={spectrumSignals}
-          spectrumXAxis={spectrumXAxis}
-          spectrumYAxis={spectrumYAxis}
-          waveformSignals={waveformSignals}
-          waveformYAxis={waveformYAxis}
-        />
+        <div className="time-waveform-workspace__main-pane">
+          <AnalysisWorkspaceChart
+            activeSurface={activeSurface}
+            chartRef={chartRef}
+            chartWidth={chartWidth}
+            error={error}
+            hasMetricsPending={hasMetricsPending}
+            isInitialLoading={isInitialLoading}
+            isRefreshing={isRefreshing}
+            loadingLabel={loadingLabel}
+            metricSignals={metricSignals}
+            refreshingLabel={refreshingLabel}
+            spectrumSignals={spectrumSignals}
+            spectrumXAxis={spectrumXAxis}
+            spectrumYAxis={spectrumYAxis}
+            waveformSignals={waveformSignals}
+            waveformYAxis={waveformYAxis}
+          />
+        </div>
       </div>
     </section>
   )

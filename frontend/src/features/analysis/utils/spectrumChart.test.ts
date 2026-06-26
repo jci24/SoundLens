@@ -25,6 +25,13 @@ const signals: IFrequencySpectrumSignal[] = [
     channelIndex: 0,
     amplitudeUnit: 'dB rel.',
     isCalibrated: false,
+    metrics: {
+      peakAmplitude: 0.8,
+      rmsAmplitude: 0.56,
+      crestFactor: 1.41,
+      clippingSampleCount: 0,
+      hasClipping: false,
+    },
     points: [
       { frequencyHz: 0, value: -80 },
       { frequencyHz: 1_000, value: -20 },

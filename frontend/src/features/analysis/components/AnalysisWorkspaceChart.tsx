@@ -1,7 +1,9 @@
 import type { RefObject } from 'react'
 import { AlertCircle, Loader2 } from 'lucide-react'
+import { AnalysisWorkspaceMetricsRail } from './AnalysisWorkspaceMetricsRail'
 import { SpectrumChart } from './SpectrumChart'
 import { WaveformChart } from './WaveformChart'
+import type { IMetricSignalItem } from '../hooks/useAnalysisWorkspaceMetrics'
 import type { IFrequencySpectrumAxis, IFrequencySpectrumSignal, ITimeWaveformSignal, ITimeWaveformResponse } from '../types'
 import type { TAnalysisSurface } from '../hooks/useTimeWaveformWorkspace'
 
@@ -11,8 +13,10 @@ interface IAnalysisWorkspaceChartProps {
   chartWidth: number
   error: string | null
   isInitialLoading: boolean
+  hasMetricsPending: boolean
   isRefreshing: boolean
   loadingLabel: string
+  metricSignals: IMetricSignalItem[]
   refreshingLabel: string
   spectrumSignals: IFrequencySpectrumSignal[]
   spectrumXAxis: IFrequencySpectrumAxis | null
@@ -27,8 +31,10 @@ const AnalysisWorkspaceChart = ({
   chartWidth,
   error,
   isInitialLoading,
+  hasMetricsPending,
   isRefreshing,
   loadingLabel,
+  metricSignals,
   refreshingLabel,
   spectrumSignals,
   spectrumXAxis,
@@ -37,6 +43,13 @@ const AnalysisWorkspaceChart = ({
   waveformYAxis,
 }: IAnalysisWorkspaceChartProps) => (
   <div className="time-waveform-workspace__chart-shell" ref={chartRef}>
+    {!error && metricSignals.length > 0 && (
+      <AnalysisWorkspaceMetricsRail
+        hasMetricsPending={hasMetricsPending}
+        signals={metricSignals}
+      />
+    )}
+
     {isInitialLoading && (
       <div className="time-waveform-workspace__state">
         <Loader2 className="time-waveform-workspace__spinner" size={20} />

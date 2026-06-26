@@ -45,6 +45,11 @@ public sealed class TimeWaveformTests : IClassFixture<WebApplicationFactory<Prog
             Assert.Equal(1.0, signal.DurationSeconds);
             Assert.Equal(-1.0, signal.Bins[0][0], precision: 4);
             Assert.Equal(32767 / 32768.0, signal.Bins[1][1], precision: 4);
+            Assert.Equal(1.0, signal.Metrics.PeakAmplitude, precision: 4);
+            Assert.InRange(signal.Metrics.RmsAmplitude, 0.79, 0.80);
+            Assert.InRange(signal.Metrics.CrestFactor, 1.25, 1.27);
+            Assert.Equal(2, signal.Metrics.ClippingSampleCount);
+            Assert.True(signal.Metrics.HasClipping);
         }
         finally
         {
@@ -137,6 +142,7 @@ public sealed class TimeWaveformTests : IClassFixture<WebApplicationFactory<Prog
             Assert.Equal(selectedSignalId, signal.SignalId);
             Assert.Equal(1, signal.ChannelIndex);
             Assert.Equal(32767 / 32768.0, signal.Bins[0][1], precision: 4);
+            Assert.Equal(32767 / 32768.0, signal.Metrics.PeakAmplitude, precision: 4);
         }
         finally
         {
@@ -181,6 +187,39 @@ public sealed class TimeWaveformTests : IClassFixture<WebApplicationFactory<Prog
             Assert.Equal(firstSignal.Bins.Count, secondSignal.Bins.Count);
             Assert.Equal(firstSignal.Bins[0], secondSignal.Bins[0]);
             Assert.Equal(firstSignal.Bins[^1], secondSignal.Bins[^1]);
+            Assert.Equal(firstSignal.Metrics, secondSignal.Metrics);
+        }
+        finally
+        {
+            File.Delete(tempPath);
+        }
+    }
+
+    [Fact]
+    public async Task POST_TimeWaveforms_ReportsExpectedMetricsForSilenceAndClippedSignal()
+    {
+        var tempPath = Path.Combine(Path.GetTempPath(), $"soundlens_waveform_metrics_{Guid.NewGuid():N}.wav");
+        await File.WriteAllBytesAsync(tempPath, CreateMono16BitWav(
+            sampleRate: 1024,
+            samples: CreateHardClippedSineSamples(1024, frequencyHz: 64, durationSeconds: 2.0)));
+
+        try
+        {
+            var client = _factory.CreateClient();
+            var importResponse = await client.PostAsJsonAsync("/api/import", new { filePaths = new[] { tempPath } });
+            importResponse.EnsureSuccessStatusCode();
+
+            var response = await client.PostAsJsonAsync("/api/waveforms/time", new { binCount = 256 });
+            response.EnsureSuccessStatusCode();
+            var result = await response.Content.ReadFromJsonAsync<TimeWaveformResponse>();
+
+            var signal = Assert.Single(result!.SelectedSignals);
+
+            Assert.True(signal.Metrics.PeakAmplitude > 0.54);
+            Assert.True(signal.Metrics.RmsAmplitude > 0.44);
+            Assert.True(signal.Metrics.CrestFactor < 1.3);
+            Assert.True(signal.Metrics.ClippingSampleCount > 0);
+            Assert.True(signal.Metrics.HasClipping);
         }
         finally
         {
@@ -225,6 +264,21 @@ public sealed class TimeWaveformTests : IClassFixture<WebApplicationFactory<Prog
         {
             var value = Math.Sin((2 * Math.PI * frequencyHz * index) / sampleRate) * 0.8;
             samples[index] = (short)Math.Round(value * short.MaxValue);
+        }
+
+        return samples;
+    }
+
+    private static short[] CreateHardClippedSineSamples(int sampleRate, int frequencyHz, double durationSeconds)
+    {
+        var sampleCount = (int)(sampleRate * durationSeconds);
+        var samples = new short[sampleCount];
+
+        for (var index = 0; index < sampleCount; index++)
+        {
+            var rawValue = Math.Sin((2 * Math.PI * frequencyHz * index) / sampleRate) * 1.3;
+            var clippedValue = Math.Clamp(rawValue, -1.0, 1.0);
+            samples[index] = (short)Math.Round(clippedValue * short.MaxValue);
         }
 
         return samples;

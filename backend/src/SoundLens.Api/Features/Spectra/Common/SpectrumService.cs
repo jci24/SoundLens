@@ -2,6 +2,7 @@ using System.Numerics;
 using System.Security.Cryptography;
 using System.Text;
 using System.Collections.Concurrent;
+using SoundLens.Api.Common;
 using SoundLens.Api.Features.Import.Common;
 using SoundLens.Api.Features.Waveforms.Common;
 
@@ -92,6 +93,7 @@ public sealed class SpectrumService : ISpectrumService
                 channel.ChannelIndex,
                 "dB rel.",
                 false,
+                channel.Metrics,
                 GetOrBuildSpectrumPoints(channel, analysisState, cancellationToken)))
             .ToList();
 
@@ -503,7 +505,11 @@ public sealed class SpectrumService : ISpectrumService
 
         var frameCount = ValidateFrameCount((long)dataChunkSize / bytesPerFrame);
         var channels = Enumerable.Range(0, format.Channels)
-            .Select(index => new DecodedSpectrumChannel(index, $"Channel {index + 1}", new double[frameCount]))
+            .Select(index => new DecodedSpectrumChannel(
+                index,
+                $"Channel {index + 1}",
+                new SignalMetricsAccumulator(GetPositiveFullScaleThreshold(format)),
+                new double[frameCount]))
             .ToArray();
         stream.Position = dataChunkPosition;
 
@@ -513,7 +519,10 @@ public sealed class SpectrumService : ISpectrumService
 
             for (var channel = 0; channel < format.Channels; channel++)
             {
-                channels[channel].Samples[frame] = Math.Clamp(ReadSample(reader, format), -1.0, 1.0);
+                var sample = ReadSample(reader, format);
+                var normalizedSample = Math.Clamp(sample, -1.0, 1.0);
+                channels[channel].MetricsAccumulator.Include(sample);
+                channels[channel].Samples[frame] = normalizedSample;
             }
         }
 
@@ -571,6 +580,23 @@ public sealed class SpectrumService : ISpectrumService
             24 => ReadInt24(reader) / 8388608.0,
             32 => reader.ReadInt32() / 2147483648.0,
             _ => throw new NotSupportedException("Unsupported PCM bit depth."),
+        };
+    }
+
+    private static double GetPositiveFullScaleThreshold(SpectrumWavFormat format)
+    {
+        if (format.AudioFormat == 3)
+        {
+            return 1.0;
+        }
+
+        return format.BitsPerSample switch
+        {
+            8 => 127 / 128.0,
+            16 => short.MaxValue / 32768.0,
+            24 => 8388607 / 8388608.0,
+            32 => int.MaxValue / 2147483648.0,
+            _ => 1.0,
         };
     }
 
@@ -638,6 +664,7 @@ public sealed class SpectrumService : ISpectrumService
                     BuildSignalId(RecordingId, channel.ChannelIndex),
                     channel.ChannelIndex,
                     channel.DisplayName,
+                    channel.MetricsAccumulator.Build(),
                     channel.Samples,
                     this))
                 .ToList();
@@ -662,12 +689,14 @@ public sealed class SpectrumService : ISpectrumService
     private sealed record DecodedSpectrumChannel(
         int ChannelIndex,
         string DisplayName,
+        SignalMetricsAccumulator MetricsAccumulator,
         double[] Samples);
 
     private sealed record DecodedSpectrumChannelSignal(
         string SignalId,
         int ChannelIndex,
         string DisplayName,
+        SignalDerivedMetrics Metrics,
         IReadOnlyList<double> Samples,
         DecodedSpectrumRecording Recording);
 }
