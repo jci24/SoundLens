@@ -53,6 +53,7 @@ The current demo slice is now centered on browser-first import plus waveform and
 - Waveform transport has been tightened to a compact min/max envelope contract so the frontend receives the rendered waveform shape instead of verbose per-point objects.
 - Derived metrics are backend-owned and attached to the analysis signal contracts, while the frontend renders a compact metrics rail that stays visually connected to the chart surface.
 - The app shell now supports a collapsible sidebar so the workspace can prioritize evidence when screen width is limited.
+- The analysis workspace now reflows more gracefully across browser zoom levels and narrower desktop widths, reducing chart overflow and preserving a usable demo layout across common screen setups.
 - The analysis workspace has been refactored into smaller frontend components and hooks so rendering, interaction state, and formatting are easier to maintain without changing product behavior.
 - Backend deterministic tests now cover waveform, spectrum, import/CORS, selected-signal behavior, and oversized-spectrum-file failure reporting.
 - Frontend unit-test infrastructure is now established with Vitest and React Testing Library, with initial coverage around analysis formatting and popover interaction hooks.

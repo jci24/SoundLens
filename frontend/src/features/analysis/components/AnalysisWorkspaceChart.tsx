@@ -71,29 +71,31 @@ const AnalysisWorkspaceChart = ({
       </div>
     )}
 
-    {!error && activeSurface === 'waveform' && waveformYAxis && chartWidth > 0 && waveformSignals.length > 0 && (
-      <WaveformChart
-        signals={waveformSignals}
-        width={chartWidth}
-        yAxis={waveformYAxis}
-      />
-    )}
-
-    {!error &&
-      activeSurface === 'spectrum' &&
-      spectrumXAxis &&
-      spectrumYAxis &&
-      Array.isArray(spectrumXAxis.ticks) &&
-      Array.isArray(spectrumYAxis.ticks) &&
-      chartWidth > 0 &&
-      spectrumSignals.length > 0 && (
-        <SpectrumChart
-          signals={spectrumSignals}
+    <div className="time-waveform-workspace__plot-stage">
+      {!error && activeSurface === 'waveform' && waveformYAxis && chartWidth > 0 && waveformSignals.length > 0 && (
+        <WaveformChart
+          signals={waveformSignals}
           width={chartWidth}
-          xAxis={spectrumXAxis}
-          yAxis={spectrumYAxis}
+          yAxis={waveformYAxis}
         />
       )}
+
+      {!error &&
+        activeSurface === 'spectrum' &&
+        spectrumXAxis &&
+        spectrumYAxis &&
+        Array.isArray(spectrumXAxis.ticks) &&
+        Array.isArray(spectrumYAxis.ticks) &&
+        chartWidth > 0 &&
+        spectrumSignals.length > 0 && (
+          <SpectrumChart
+            signals={spectrumSignals}
+            width={chartWidth}
+            xAxis={spectrumXAxis}
+            yAxis={spectrumYAxis}
+          />
+        )}
+    </div>
   </div>
 )
 

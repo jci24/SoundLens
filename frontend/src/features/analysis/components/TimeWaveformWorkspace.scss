@@ -2,22 +2,25 @@
   display: flex;
   flex: 1;
   flex-direction: column;
+  min-height: 0;
   min-width: 0;
   padding: 0;
   gap: 0;
 
   &__body {
     display: grid;
-    grid-template-columns: minmax(16rem, 19rem) minmax(0, 1fr);
+    grid-template-columns: minmax(14rem, 18rem) minmax(0, 1fr);
+    align-items: start;
     min-height: 0;
+    min-width: 0;
     flex: 1;
     padding: 1.5rem;
     gap: 1rem;
   }
 
   &__main-pane {
-    display: grid;
-    grid-template-rows: minmax(0, 1fr);
+    display: flex;
+    flex-direction: column;
     min-width: 0;
     min-height: 0;
     gap: 0.5rem;
@@ -25,8 +28,12 @@
 
   &__chart-shell {
     position: relative;
+    display: flex;
+    flex-direction: column;
+    align-self: flex-start;
+    width: 100%;
     min-width: 0;
-    min-height: 24rem;
+    min-height: clamp(16rem, 28vh, 22rem);
     border: 1px solid color-mix(in srgb, var(--border) 82%, transparent);
     border-radius: 1.55rem;
     background:
@@ -42,6 +49,27 @@
     overflow: hidden;
     opacity: 0;
     transform: translateY(24px);
+  }
+
+  &__plot-stage {
+    display: flex;
+    min-width: 0;
+    min-height: 0;
+  }
+
+  &__plot-stage > .time-waveform-workspace__chart {
+    flex: 0 0 auto;
+    width: 100%;
+  }
+
+  &__recording-rail,
+  &__chart-shell {
+    scroll-margin-top: 1rem;
+  }
+
+  &__recording-rail {
+    min-width: 0;
+    min-height: 0;
   }
 
   &__state {
@@ -151,12 +179,28 @@
   }
 }
 
+@media (max-width: 1280px) {
+  .time-waveform-workspace {
+    &__body {
+      grid-template-columns: 1fr;
+    }
+
+    &__recording-rail {
+      max-height: 15rem;
+    }
+  }
+}
+
 @media (max-width: 900px) {
   .time-waveform-workspace {
     padding: 1rem;
 
     &__body {
-      grid-template-columns: 1fr;
+      padding: 1rem;
+    }
+
+    &__chart-shell {
+      min-height: 14rem;
     }
   }
 }

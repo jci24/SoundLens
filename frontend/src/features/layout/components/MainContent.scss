@@ -2,7 +2,8 @@
   flex: 1;
   display: flex;
   flex-direction: column;
-  overflow: hidden;
+  min-width: 0;
+  overflow: auto;
   border: 1px solid color-mix(in srgb, var(--border) 82%, transparent);
   border-radius: 0 1.75rem 1.75rem 0;
   background:
