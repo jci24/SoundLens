@@ -1,4 +1,5 @@
 using SoundLens.Api.Features.Import.Common;
+using SoundLens.Api.Common;
 using System.Security.Cryptography;
 using System.Text;
 using System.Collections.Concurrent;
@@ -75,6 +76,7 @@ public sealed class WaveformService : IWaveformService
                 selectedChannel.ChannelIndex,
                 "FS",
                 false,
+                selectedChannel.Metrics,
                 selectedChannel.Bins))
             .ToList();
 
@@ -244,13 +246,20 @@ public sealed class WaveformService : IWaveformService
         if (frameCount == 0)
         {
             return Enumerable.Range(0, format.Channels)
-                .Select(index => new ProcessedChannel(index, $"Channel {index + 1}", []))
+                .Select(index => new ProcessedChannel(
+                    index,
+                    $"Channel {index + 1}",
+                    new SignalDerivedMetrics(0, 0, 0, 0, false),
+                    []))
                 .ToList();
         }
 
         var actualBinCount = Math.Min(binCount, frameCount);
         var binsByChannel = Enumerable.Range(0, format.Channels)
             .Select(_ => CreateBins(actualBinCount))
+            .ToArray();
+        var metricsByChannel = Enumerable.Range(0, format.Channels)
+            .Select(_ => new SignalMetricsAccumulator(GetPositiveFullScaleThreshold(format)))
             .ToArray();
 
         stream.Position = dataChunkPosition;
@@ -262,8 +271,10 @@ public sealed class WaveformService : IWaveformService
 
             for (var channel = 0; channel < format.Channels; channel++)
             {
-                var sample = Math.Clamp(ReadSample(reader, format), -1.0, 1.0);
-                binsByChannel[channel][binIndex].Include(sample);
+                var sample = ReadSample(reader, format);
+                var normalizedSample = Math.Clamp(sample, -1.0, 1.0);
+                binsByChannel[channel][binIndex].Include(normalizedSample);
+                metricsByChannel[channel].Include(sample);
             }
         }
 
@@ -271,6 +282,7 @@ public sealed class WaveformService : IWaveformService
             .Select(index => new ProcessedChannel(
                 index,
                 $"Channel {index + 1}",
+                metricsByChannel[index].Build(),
                 BuildBinsFromAccumulators(binsByChannel[index])))
             .ToList();
     }
@@ -359,6 +371,23 @@ public sealed class WaveformService : IWaveformService
         return System.Text.Encoding.ASCII.GetString(reader.ReadBytes(count));
     }
 
+    private static double GetPositiveFullScaleThreshold(WavFormat format)
+    {
+        if (format.AudioFormat == 3)
+        {
+            return 1.0;
+        }
+
+        return format.BitsPerSample switch
+        {
+            8 => 127 / 128.0,
+            16 => short.MaxValue / 32768.0,
+            24 => 8388607 / 8388608.0,
+            32 => int.MaxValue / 2147483648.0,
+            _ => 1.0,
+        };
+    }
+
     private sealed record WavFormat(
         ushort AudioFormat,
         ushort Channels,
@@ -382,6 +411,7 @@ public sealed class WaveformService : IWaveformService
                     BuildSignalId(RecordingId, channel.ChannelIndex),
                     channel.ChannelIndex,
                     channel.DisplayName,
+                    channel.Metrics,
                     channel.Bins,
                     this))
                 .ToList();
@@ -407,12 +437,14 @@ public sealed class WaveformService : IWaveformService
         string SignalId,
         int ChannelIndex,
         string DisplayName,
+        SignalDerivedMetrics Metrics,
         IReadOnlyList<double[]> Bins,
         DecodedRecording Recording);
 
     private sealed record ProcessedChannel(
         int ChannelIndex,
         string DisplayName,
+        SignalDerivedMetrics Metrics,
         IReadOnlyList<double[]> Bins);
 
     private sealed class BinAccumulator

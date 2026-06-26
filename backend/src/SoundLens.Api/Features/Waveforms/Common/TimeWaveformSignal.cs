@@ -1,3 +1,5 @@
+using SoundLens.Api.Common;
+
 namespace SoundLens.Api.Features.Waveforms.Common;
 
 public sealed record TimeWaveformSignal(
@@ -10,4 +12,5 @@ public sealed record TimeWaveformSignal(
     int ChannelIndex,
     string AmplitudeUnit,
     bool IsCalibrated,
+    SignalDerivedMetrics Metrics,
     IReadOnlyList<double[]> Bins);

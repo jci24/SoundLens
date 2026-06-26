@@ -1,3 +1,5 @@
+using SoundLens.Api.Common;
+
 namespace SoundLens.Api.Features.Spectra.Common;
 
 public sealed record FrequencySpectrumSignal(
@@ -10,4 +12,5 @@ public sealed record FrequencySpectrumSignal(
     int ChannelIndex,
     string AmplitudeUnit,
     bool IsCalibrated,
+    SignalDerivedMetrics Metrics,
     IReadOnlyList<FrequencySpectrumPoint> Points);

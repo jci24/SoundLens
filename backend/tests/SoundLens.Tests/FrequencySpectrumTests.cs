@@ -51,6 +51,11 @@ public sealed class FrequencySpectrumTests : IClassFixture<WebApplicationFactory
             Assert.True(peak.Value - lowerAdjacent.Value > 80);
             Assert.True(peak.Value - upperAdjacent.Value > 80);
             Assert.InRange(result.XAxis.Maximum, sampleRate / 2.0 - 0.1, sampleRate / 2.0 + 0.1);
+            Assert.InRange(signal.Metrics.PeakAmplitude, 0.79, 0.81);
+            Assert.InRange(signal.Metrics.RmsAmplitude, 0.56, 0.57);
+            Assert.InRange(signal.Metrics.CrestFactor, 1.41, 1.42);
+            Assert.Equal(0, signal.Metrics.ClippingSampleCount);
+            Assert.False(signal.Metrics.HasClipping);
         }
         finally
         {
@@ -144,6 +149,7 @@ public sealed class FrequencySpectrumTests : IClassFixture<WebApplicationFactory
             Assert.Equal(1, signal.ChannelIndex);
             Assert.NotNull(peak);
             Assert.InRange(peak!.FrequencyHz, 127.0, 129.0);
+            Assert.InRange(signal.Metrics.PeakAmplitude, 0.79, 0.81);
         }
         finally
         {
@@ -194,6 +200,11 @@ public sealed class FrequencySpectrumTests : IClassFixture<WebApplicationFactory
             Assert.All(signal.Points, point => Assert.Equal(-240, point.Value, 6));
             Assert.Equal(-240, result.YAxis.Minimum, 6);
             Assert.Equal(-237, result.YAxis.Maximum, 6);
+            Assert.Equal(0, signal.Metrics.PeakAmplitude, 6);
+            Assert.Equal(0, signal.Metrics.RmsAmplitude, 6);
+            Assert.Equal(0, signal.Metrics.CrestFactor, 6);
+            Assert.Equal(0, signal.Metrics.ClippingSampleCount);
+            Assert.False(signal.Metrics.HasClipping);
         }
         finally
         {
@@ -259,6 +270,11 @@ public sealed class FrequencySpectrumTests : IClassFixture<WebApplicationFactory
             Assert.True(thirdHarmonic.Value > fifthHarmonic.Value);
             Assert.True(thirdHarmonic.Value - adjacentThirdLower.Value > 40);
             Assert.True(thirdHarmonic.Value - adjacentThirdUpper.Value > 40);
+            Assert.True(signal.Metrics.PeakAmplitude > 0.54);
+            Assert.True(signal.Metrics.RmsAmplitude > 0.44);
+            Assert.True(signal.Metrics.CrestFactor < 1.3);
+            Assert.True(signal.Metrics.ClippingSampleCount > 0);
+            Assert.True(signal.Metrics.HasClipping);
         }
         finally
         {
@@ -305,6 +321,7 @@ public sealed class FrequencySpectrumTests : IClassFixture<WebApplicationFactory
             var firstSignal = Assert.Single(firstResult.SelectedSignals);
             var secondSignal = Assert.Single(secondResult.SelectedSignals);
             Assert.Equal(firstSignal.SignalId, secondSignal.SignalId);
+            Assert.Equal(firstSignal.Metrics, secondSignal.Metrics);
             Assert.Equal(firstSignal.Points.Count, secondSignal.Points.Count);
             Assert.Equal(firstSignal.Points[0], secondSignal.Points[0]);
             Assert.Equal(firstSignal.Points[^1], secondSignal.Points[^1]);
@@ -407,7 +424,7 @@ public sealed class FrequencySpectrumTests : IClassFixture<WebApplicationFactory
         for (var index = 0; index < sampleCount; index++)
         {
             var rawValue = Math.Sin((2 * Math.PI * frequencyHz * index) / sampleRate) * 1.3;
-            var clippedValue = Math.Clamp(rawValue, -0.55, 0.55);
+            var clippedValue = Math.Clamp(rawValue, -1.0, 1.0);
             samples[index] = (short)Math.Round(clippedValue * short.MaxValue);
         }
 
