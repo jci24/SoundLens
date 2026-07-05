@@ -77,6 +77,7 @@ public sealed class WaveformService : IWaveformService
                 "FS",
                 false,
                 selectedChannel.Metrics,
+                FindingsService.BuildFindings(selectedChannel.Metrics),
                 selectedChannel.Bins))
             .ToList();
 

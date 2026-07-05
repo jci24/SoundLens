@@ -33,50 +33,37 @@ const AnalysisWorkspaceMetricsRail = ({
       </div>
 
       <div className="time-waveform-workspace__metrics-scroll">
-        {signals.map((signal) => (
-          <article
-            className="time-waveform-workspace__metrics-signal"
-            key={signal.signalId}
-          >
-            <header className="time-waveform-workspace__metrics-signal-header">
-              <span className="time-waveform-workspace__metrics-recording">
-                {signal.recordingFileName}
-              </span>
-              <span className="time-waveform-workspace__metrics-channel">
-                {signal.displayName}
-              </span>
-            </header>
-
-            <dl className="time-waveform-workspace__metrics-grid">
-              <div className="time-waveform-workspace__metrics-item">
-                <dt>Peak</dt>
-                <dd>{formatAmplitude(signal.peakAmplitude)}</dd>
-              </div>
-              <div className="time-waveform-workspace__metrics-item">
-                <dt>RMS</dt>
-                <dd>{formatAmplitude(signal.rmsAmplitude)}</dd>
-              </div>
-              <div className="time-waveform-workspace__metrics-item">
-                <dt>Crest</dt>
-                <dd>{formatCrestFactor(signal.crestFactor)}</dd>
-              </div>
-              <div className="time-waveform-workspace__metrics-item">
-                <dt>Clip</dt>
-                <dd className={signal.hasClipping ? 'time-waveform-workspace__metrics-value--warning' : ''}>
+        <table className="time-waveform-workspace__metrics-table" aria-label="Signal metrics table">
+          <thead>
+            <tr>
+              <th scope="col">Signal</th>
+              <th scope="col">Peak</th>
+              <th scope="col">RMS</th>
+              <th scope="col">Crest</th>
+              <th scope="col">Clip</th>
+              <th scope="col">Fs</th>
+              <th scope="col">Dur</th>
+            </tr>
+          </thead>
+          <tbody>
+            {signals.map((signal) => (
+              <tr key={signal.signalId}>
+                <td className="time-waveform-workspace__metrics-signal-cell">
+                  <span className="time-waveform-workspace__metrics-recording">{signal.recordingFileName}</span>
+                  <span className="time-waveform-workspace__metrics-channel">{signal.displayName}</span>
+                </td>
+                <td>{formatAmplitude(signal.peakAmplitude)}</td>
+                <td>{formatAmplitude(signal.rmsAmplitude)}</td>
+                <td>{formatCrestFactor(signal.crestFactor)}</td>
+                <td className={signal.hasClipping ? 'time-waveform-workspace__metrics-value--warning' : ''}>
                   {formatClippingState(signal.clippingSampleCount)}
-                </dd>
-              </div>
-              <div className="time-waveform-workspace__metrics-item">
-                <dt>Fs</dt>
-                <dd>{formatCompactSampleRate(signal.sampleRate)}</dd>
-              </div>
-              <div className="time-waveform-workspace__metrics-item">
-                <dt>Dur</dt>
-                <dd>{formatCompactDuration(signal.durationSeconds)}</dd>
-              </div>
-            </dl>
-          </article>
-        ))}
+                </td>
+                <td>{formatCompactSampleRate(signal.sampleRate)}</td>
+                <td>{formatCompactDuration(signal.durationSeconds)}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
       </div>
     </section>
   )

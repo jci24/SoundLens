@@ -32,6 +32,7 @@ const signals: IFrequencySpectrumSignal[] = [
       clippingSampleCount: 0,
       hasClipping: false,
     },
+    findings: [],
     points: [
       { frequencyHz: 0, value: -80 },
       { frequencyHz: 1_000, value: -20 },

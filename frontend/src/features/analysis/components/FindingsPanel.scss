@@ -1,0 +1,61 @@
+.findings-panel {
+  border-top: 1px solid color-mix(in srgb, var(--border) 72%, transparent);
+
+  &__header {
+    display: flex;
+    align-items: baseline;
+    gap: 0.5rem;
+    padding: 0.5rem 0.9rem 0.3rem;
+  }
+
+  &__title {
+    font-size: var(--font-xs);
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--muted-foreground);
+  }
+
+  &__subtitle {
+    font-size: var(--font-xs);
+    color: color-mix(in srgb, var(--muted-foreground) 55%, transparent);
+    font-style: italic;
+  }
+
+  &__body {
+    display: flex;
+    flex-direction: column;
+  }
+
+  &__signal-group {
+    padding-bottom: 0.25rem;
+
+    & + & {
+      border-top: 1px solid color-mix(in srgb, var(--border) 48%, transparent);
+      padding-top: 0.25rem;
+    }
+  }
+
+  &__signal-label {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    padding: 0 0.9rem 0.15rem;
+    margin: 0;
+  }
+
+  &__signal-filename {
+    font-size: var(--font-xs);
+    color: var(--muted-foreground);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    max-width: 12rem;
+  }
+
+  &__signal-channel {
+    font-size: var(--font-xs);
+    color: color-mix(in srgb, var(--muted-foreground) 60%, transparent);
+    flex-shrink: 0;
+  }
+}

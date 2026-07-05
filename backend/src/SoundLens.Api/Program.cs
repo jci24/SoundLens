@@ -15,7 +15,7 @@ try
     var uploadLimitsSection = builder.Configuration.GetSection("UploadLimits");
     var allowedCorsOrigins =
         builder.Configuration.GetSection("Cors:AllowedOrigins").Get<string[]>() ??
-        ["http://localhost:5173", "http://127.0.0.1:5173"];
+        ["http://localhost:5173", "http://127.0.0.1:5173", "http://localhost:5174", "http://127.0.0.1:5174"];
     var maxRequestBodySizeBytes =
         uploadLimitsSection.GetValue<long?>("MaxRequestBodySizeBytes") ??
         500L * 1024L * 1024L;

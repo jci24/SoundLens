@@ -1,7 +1,7 @@
 .app {
   --workspace-header-height: 4.9rem;
   display: flex;
-  min-height: 100svh;
+  height: 100svh;
   padding: 0.85rem;
   background:
     radial-gradient(circle at top left, color-mix(in srgb, var(--muted) 55%, white 45%), transparent 32%),
@@ -13,7 +13,7 @@
     flex: 1;
     min-height: 0;
     min-width: 0;
-    overflow: auto;
+    overflow: hidden;
   }
 
   &__workspace-stage--entering {
