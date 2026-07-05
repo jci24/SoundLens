@@ -1,5 +1,5 @@
 import { useMemo } from 'react'
-import type { TAnalysisLayoutMode, TAnalysisSurface } from './useTimeWaveformWorkspace'
+import type { TAnalysisLayoutMode, TAnalysisSurface } from '../types'
 import type { ISpectrumViewport } from '../utils/spectrumChart'
 import { formatFrequencyRange } from '../utils/analysisWorkspaceFormatting'
 
