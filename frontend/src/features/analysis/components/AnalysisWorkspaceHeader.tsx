@@ -76,19 +76,23 @@ const AnalysisWorkspaceHeader = ({
         </div>
       </header>
 
-      <div className="time-waveform-workspace__surface-bar">
-        <div className="time-waveform-workspace__surface-nav">
-          <Tabs
-            className="time-waveform-workspace__surface-tabs"
-            onValueChange={(value) => onSurfaceChange(value as TAnalysisSurface)}
-            value={activeSurface}
-          >
-            <TabsList>
-              <TabsTrigger value="waveform">Waveform</TabsTrigger>
-              <TabsTrigger value="spectrum">Spectrum</TabsTrigger>
-            </TabsList>
-          </Tabs>
+      {/* Primary surface shelf — pick which analysis surface to view */}
+      <div className="time-waveform-workspace__surface-shelf">
+        <Tabs
+          className="time-waveform-workspace__surface-tabs"
+          onValueChange={(value) => onSurfaceChange(value as TAnalysisSurface)}
+          value={activeSurface}
+        >
+          <TabsList>
+            <TabsTrigger value="waveform">Waveform</TabsTrigger>
+            <TabsTrigger value="spectrum">Spectrum</TabsTrigger>
+          </TabsList>
+        </Tabs>
+      </div>
 
+      {/* Secondary view controls bar — layout and display options for the active surface */}
+      <div className="time-waveform-workspace__view-controls-bar">
+        <div className="time-waveform-workspace__view-controls-nav">
           <Tabs
             className="time-waveform-workspace__layout-tabs"
             onValueChange={(value) => onLayoutModeChange(value as TAnalysisLayoutMode)}
