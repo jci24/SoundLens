@@ -1,6 +1,6 @@
 # SoundLens Project Context
 
-Last updated: 2026-06-26
+Last updated: 2026-07-05
 
 ## Purpose
 
@@ -57,13 +57,15 @@ The current demo slice is now centered on browser-first import plus waveform and
 - The analysis workspace now reflows more gracefully across browser zoom levels and narrower desktop widths, reducing chart overflow and preserving a usable demo layout across common screen setups.
 - The analysis workspace can now switch between a focused single-surface view and a screenfit compare layout that keeps waveform and spectrum visible together, while focused mode can also split selected signals into separate charts for detailed inspection.
 - The analysis workspace has been refactored into smaller frontend components and hooks so rendering, interaction state, and formatting are easier to maintain without changing product behavior.
-- Backend deterministic tests now cover waveform, spectrum, import/CORS, selected-signal behavior, and oversized-spectrum-file failure reporting.
+- Backend deterministic tests now cover waveform, spectrum, import/CORS, selected-signal behavior, oversized-spectrum-file failure reporting, and synthetic signal fixtures for bit-depth paths, DC signals, bin envelope, clipping boundary, Nyquist presence, and short-signal degradation (38 tests passing).
 - Frontend unit-test infrastructure is now established with Vitest and React Testing Library, with initial coverage around analysis formatting and popover interaction hooks.
+- Signal selection state is now managed by a shared workspace-level store so analysis surfaces consume the same compare context without feature-to-feature coupling.
+- The spectrum endpoint now accepts an explicit FFT size parameter (`fftSize`) validated against a canonical `AllowedFftSizes` set. The backend is the single source of truth for which sizes are valid and returns the actual `fftLength` used in the `Analysis` contract so the frontend can verify what was computed rather than recomputing it locally.
 - Repo-side backlog tracking now lives in `BACKLOG.md`, with GitHub Projects recommended as the live execution board for epics and thin tasks.
 
 Immediate next step after this slice:
 
-- Harden shared signal selection and request composition across analysis surfaces so future evidence views can reuse the same compare context without coupling.
+- Build the tool shelf navigation model so future evidence surfaces have a predictable home before more analysis views are added.
 
 ## Collaboration Process
 

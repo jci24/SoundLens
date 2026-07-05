@@ -1,6 +1,6 @@
 # SoundLens Backlog
 
-Last updated: 2026-06-26
+Last updated: 2026-07-05
 
 This file is the repo-side backlog for SoundLens.
 
@@ -62,23 +62,9 @@ Completed:
 - `A2` Time waveform workspace
 - `A3` Spectrum workspace
 - `A4` Workspace decomposition follow-through
+- `A5` Shared workspace state store for signal selection and navigation
 
 Open stories:
-
-#### A5 `Next` `Backend + Frontend`
-
-As a user, I would like my signal selection to stay consistent across analysis surfaces, so that I can move between waveform, spectrum, and future tools without losing comparison context.
-
-Backend
-- Keep selected-signal requests stable as additional evidence endpoints are added.
-- Reuse the current per-signal cache strategy where it reduces repeat fetch cost.
-
-Frontend
-- Move selection state to a durable workspace-level model that future surfaces can consume without feature-to-feature coupling.
-- Keep the current compare workflow visible and predictable as more surfaces are added.
-
-Validation
-- Add tests for signal selection persistence and surface switching behavior.
 
 #### A6 `Later` `Frontend`
 
@@ -102,33 +88,10 @@ Completed:
 - `B2` Spectrum binning and parameter contract
 - `B3` Oversized input guardrails
 - `B7` Negotiated MessagePack transport for waveform and spectrum payloads
+- `B4` Synthetic signal fixture expansion: bit-depth paths, DC, bin envelope, clipping boundary, Nyquist, short-signal degradation
+- `B5` Analysis parameter contract: explicit FFT size, AllowedFftSizes validation, analysis round-trip tests
 
 Open stories:
-
-#### B4 `Next` `Backend`
-
-As a user, I would like waveform and spectrum results to stay trustworthy for known input signals, so that I can trust the demo evidence when comparing files.
-
-Backend
-- Expand the deterministic fixture pack for known tones, silence, clipping, and other synthetic checks.
-- Verify both waveform-envelope behavior and FFT behavior against expected outcomes.
-
-Validation
-- Add focused regression tests for each synthetic fixture.
-
-#### B5 `Next` `Backend`
-
-As a user, I would like analysis parameters to be explicit and stable, so that I understand what the spectrum view is showing and can trust repeatability.
-
-Backend
-- Formalize FFT size, overlap, windowing, and future averaging options in the backend contract.
-- Keep the backend as the source of truth for analysis parameter defaults.
-
-Frontend
-- Render returned parameter state without recomputing DSP decisions in the browser.
-
-Validation
-- Add contract tests for supported parameter combinations.
 
 #### B6 `Later` `Backend + Frontend`
 
@@ -180,18 +143,9 @@ Completed:
 - `D1` Deterministic backend tests
 - `D2` Vitest + RTL setup
 - `D3` Hook and utility coverage expansion
+- `D4` DSP fixture regression coverage expansion (38 tests passing)
 
 Open stories:
-
-#### D4 `Next` `Backend`
-
-As a user, I would like regressions in DSP behavior to be caught early, so that the demo stays trustworthy as new analysis features are added.
-
-Backend
-- Add more known-signal fixture tests where new DSP or metrics are introduced.
-
-Validation
-- Keep fixture coverage close to the backend analysis code it protects.
 
 #### D5 `Later` `Frontend`
 
@@ -204,16 +158,17 @@ Frontend
 
 If we continue immediately after this branch, the best next options are:
 
-1. `A5` Shared selection state hardening
-2. `B4` Synthetic signal verification pack expansion
-3. `D4` More DSP fixture tests
-4. `B5` Analysis parameter contract hardening
+1. `A6` Tool shelf / second-level navigation model for analysis surfaces
+2. `B6` Region-of-interest waveform and spectrum requests
+3. `C4` First-pass findings summary from deterministic evidence
+4. `D5` Component rendering tests for analysis surfaces
 
 Recommended order:
 
-1. Harden the workspace layout and shared selection model before adding more evidence surfaces.
-2. Expand deterministic fixtures and parameter-contract coverage as new DSP behaviors are introduced.
-3. Build findings and interpretation on top of the now-richer evidence surface.
+1. Build the tool shelf navigation so future evidence surfaces have a home before adding more.
+2. Add region-of-interest support to deepen the investigation workflow.
+3. Build findings and interpretation on top of the now-richer evidence and parameter contract surface.
+4. Expand frontend rendering tests to keep the workspace demo-ready as it grows.
 
 ## GitHub Projects Mapping
 
