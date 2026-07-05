@@ -3,8 +3,7 @@ import { AnalysisWorkspaceMetricsRail } from './AnalysisWorkspaceMetricsRail'
 import { AnalysisWorkspacePanel } from './AnalysisWorkspacePanel'
 import type { IMetricSignalItem } from '../hooks/useAnalysisWorkspaceMetrics'
 import type { IAnalysisWorkspacePanel } from '../hooks/useAnalysisWorkspacePanels'
-import type { TSignalChartMode } from '../hooks/useTimeWaveformWorkspace'
-import type { IFrequencySpectrumAxis, IFrequencySpectrumSignal, ITimeWaveformSignal, ITimeWaveformResponse } from '../types'
+import type { TSignalChartMode, IFrequencySpectrumAxis, IFrequencySpectrumSignal, ITimeWaveformSignal, ITimeWaveformResponse } from '../types'
 
 interface IAnalysisWorkspaceChartProps {
   chartRef: RefObject<HTMLDivElement | null>

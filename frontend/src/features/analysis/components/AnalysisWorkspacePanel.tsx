@@ -5,8 +5,7 @@ import { WaveformChart } from './WaveformChart'
 import { useMeasuredChartWidth } from '../hooks/useMeasuredChartWidth'
 import { useAnalysisWorkspacePanelCharts } from '../hooks/useAnalysisWorkspacePanelCharts'
 import type { IAnalysisWorkspacePanel } from '../hooks/useAnalysisWorkspacePanels'
-import type { TSignalChartMode } from '../hooks/useTimeWaveformWorkspace'
-import type { IFrequencySpectrumAxis, IFrequencySpectrumSignal, ITimeWaveformSignal, ITimeWaveformResponse } from '../types'
+import type { TSignalChartMode, IFrequencySpectrumAxis, IFrequencySpectrumSignal, ITimeWaveformSignal, ITimeWaveformResponse } from '../types'
 import './AnalysisWorkspacePanel.scss'
 
 interface IAnalysisWorkspacePanelProps {

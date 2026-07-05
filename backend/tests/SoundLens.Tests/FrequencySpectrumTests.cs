@@ -379,6 +379,112 @@ public sealed class FrequencySpectrumTests : IClassFixture<WebApplicationFactory
         }
     }
 
+    [Fact]
+    public async Task SpectrumService_DCSignalConcentratesEnergyAtZeroHz()
+    {
+        // A pure DC signal (all samples equal, non-zero) should produce a spectrum
+        // where the 0 Hz bin has the highest value and all other bins are far below it.
+        // This is distinct from silence: DC has measurable energy, just all at 0 Hz.
+        const short dcSampleValue = 16384; // 0.5 FS
+        var samples = Enumerable.Repeat(dcSampleValue, 2048).ToArray();
+        var tempPath = Path.Combine(Path.GetTempPath(), $"soundlens_dc_spectrum_{Guid.NewGuid():N}.wav");
+        await File.WriteAllBytesAsync(tempPath, CreateMono16BitWav(sampleRate: 2048, samples: samples));
+
+        try
+        {
+            var importedFile = new ImportedFileSummary("dc.wav", new FileInfo(tempPath).Length, tempPath, "audio/wav");
+            var spectrumService = new SpectrumService();
+
+            var result = spectrumService.BuildFrequencySpectra([importedFile], requestedBinCount: 1025, selectedSignalIds: null, CancellationToken.None);
+
+            var signal = Assert.Single(result.SelectedSignals);
+            var dcBin = signal.Points.Single(point => point.FrequencyHz == 0);
+            var dcValue = dcBin.Value;
+
+            // The DC bin should be substantially higher than any AC bin
+            var maxAcValue = signal.Points
+                .Where(point => point.FrequencyHz > 0)
+                .Max(point => point.Value);
+
+            Assert.True(dcValue > maxAcValue + 60,
+                $"Expected DC bin ({dcValue:F1} dB) to dominate AC bins (max {maxAcValue:F1} dB) by at least 60 dB");
+        }
+        finally
+        {
+            File.Delete(tempPath);
+        }
+    }
+
+    [Fact]
+    public async Task SpectrumService_NyquistBinIsPresentAtHalfSampleRate()
+    {
+        // The one-sided spectrum should include a point at exactly sampleRate / 2 Hz (Nyquist).
+        // This verifies that the upper edge bin is always present in the output.
+        var sampleRate = 1024;
+        var samples = CreateSineSamples(sampleRate, frequencyHz: 64, durationSeconds: 2.0);
+        var tempPath = Path.Combine(Path.GetTempPath(), $"soundlens_nyquist_{Guid.NewGuid():N}.wav");
+        await File.WriteAllBytesAsync(tempPath, CreateMono16BitWav(sampleRate, samples));
+
+        try
+        {
+            var importedFile = new ImportedFileSummary("nyquist.wav", new FileInfo(tempPath).Length, tempPath, "audio/wav");
+            var spectrumService = new SpectrumService();
+
+            var result = spectrumService.BuildFrequencySpectra([importedFile], requestedBinCount: 513, selectedSignalIds: null, CancellationToken.None);
+
+            var signal = Assert.Single(result.SelectedSignals);
+            var nyquistHz = sampleRate / 2.0;
+
+            // The spectrum must contain a point at the Nyquist frequency
+            var nyquistBin = signal.Points.SingleOrDefault(point => Math.Abs(point.FrequencyHz - nyquistHz) < 0.01);
+            Assert.NotNull(nyquistBin);
+
+            // The x-axis maximum should equal the Nyquist frequency
+            Assert.InRange(result.XAxis.Maximum, nyquistHz - 0.1, nyquistHz + 0.1);
+        }
+        finally
+        {
+            File.Delete(tempPath);
+        }
+    }
+
+    [Fact]
+    public async Task SpectrumService_SignalShorterThanRequestedFftLengthGraceFullyDegrades()
+    {
+        // When a file has fewer samples than the requested FFT length, the service clamps
+        // fftLength to the actual sample count rather than failing. This means a signal
+        // with N samples still produces a spectrum using an N-point FFT.
+        // This test verifies the graceful degradation: the result must be a valid signal
+        // with spectrum points, and the frequency resolution reflects the clamped FFT size.
+        var sampleRate = 1024;
+        var shortSamples = new short[] { 1000, -1000, 500, -500 }; // 4 samples; fftLength will be clamped to 4
+        var tempPath = Path.Combine(Path.GetTempPath(), $"soundlens_short_signal_{Guid.NewGuid():N}.wav");
+        await File.WriteAllBytesAsync(tempPath, CreateMono16BitWav(sampleRate, shortSamples));
+
+        try
+        {
+            var importedFile = new ImportedFileSummary("short.wav", new FileInfo(tempPath).Length, tempPath, "audio/wav");
+            var spectrumService = new SpectrumService();
+
+            // binCount = 513 implies requestedFftLength = 1024; sample count (4) < 1024
+            // so fftLength is clamped to 4, giving a 3-point one-sided spectrum (4/2 + 1)
+            var result = spectrumService.BuildFrequencySpectra([importedFile], requestedBinCount: 513, selectedSignalIds: null, CancellationToken.None);
+
+            Assert.Empty(result.FailedFiles);
+            var signal = Assert.Single(result.SelectedSignals);
+
+            // A 4-point FFT produces 3 one-sided bins (0 Hz, Nyquist/2, Nyquist)
+            Assert.Equal(3, signal.Points.Count);
+
+            // Frequency resolution = sampleRate / fftLength = 1024 / 4 = 256 Hz
+            Assert.Equal(256.0, result.Analysis.FrequencyResolutionHz, precision: 6);
+        }
+        finally
+        {
+            File.Delete(tempPath);
+        }
+    }
+
     private static List<(double frequencyHz, double value)> BuildReferenceLineSpectrumDb(
         IReadOnlyList<double> samples,
         int sampleRate,
