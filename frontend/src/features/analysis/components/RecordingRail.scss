@@ -4,19 +4,7 @@
     flex-direction: column;
     gap: 0.875rem;
     min-width: 0;
-    padding: 0.7rem;
-    border: 1px solid color-mix(in srgb, var(--border) 82%, transparent);
-    border-radius: 1.4rem;
-    background:
-      linear-gradient(
-        180deg,
-        color-mix(in srgb, var(--card) 95%, white 5%),
-        color-mix(in srgb, var(--card) 99%, var(--muted) 1%)
-      );
-    box-shadow:
-      inset 0 1px 0 color-mix(in srgb, white 76%, transparent),
-      0 16px 30px -26px color-mix(in srgb, black 14%, transparent),
-      0 2px 8px color-mix(in srgb, black 4%, transparent);
+    padding: 0.25rem 0;
     overflow: auto;
     opacity: 0;
     transform: translateY(14px);
