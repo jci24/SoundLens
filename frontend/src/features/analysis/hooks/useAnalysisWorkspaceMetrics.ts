@@ -1,5 +1,5 @@
 import { useMemo } from 'react'
-import type { IFrequencySpectrumSignal, ITimeWaveformSignal } from '../types'
+import type { IFrequencySpectrumSignal, ISignalFinding, ITimeWaveformSignal } from '../types'
 
 interface IMetricSignalItem {
   signalId: string
@@ -12,6 +12,7 @@ interface IMetricSignalItem {
   crestFactor: number
   clippingSampleCount: number
   hasClipping: boolean
+  findings: ISignalFinding[]
 }
 
 interface IUseAnalysisWorkspaceMetricsOptions {
@@ -53,6 +54,7 @@ const useAnalysisWorkspaceMetrics = ({
         crestFactor: signal.metrics?.crestFactor ?? defaultMetrics.crestFactor,
         clippingSampleCount: signal.metrics?.clippingSampleCount ?? defaultMetrics.clippingSampleCount,
         hasClipping: signal.metrics?.hasClipping ?? defaultMetrics.hasClipping,
+        findings: signal.findings ?? [],
       })),
     }
   }, [spectrumSignals, waveformSignals])

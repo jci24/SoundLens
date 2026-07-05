@@ -13,4 +13,5 @@ public sealed record FrequencySpectrumSignal(
     string AmplitudeUnit,
     bool IsCalibrated,
     SignalDerivedMetrics Metrics,
+    IReadOnlyList<SignalFinding> Findings,
     IReadOnlyList<FrequencySpectrumPoint> Points);

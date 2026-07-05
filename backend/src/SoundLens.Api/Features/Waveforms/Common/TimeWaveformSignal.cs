@@ -13,4 +13,5 @@ public sealed record TimeWaveformSignal(
     string AmplitudeUnit,
     bool IsCalibrated,
     SignalDerivedMetrics Metrics,
+    IReadOnlyList<SignalFinding> Findings,
     IReadOnlyList<double[]> Bins);

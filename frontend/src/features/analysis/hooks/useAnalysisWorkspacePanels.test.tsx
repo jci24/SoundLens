@@ -36,6 +36,7 @@ const waveformSignals: ITimeWaveformSignal[] = [
     amplitudeUnit: 'FS',
     isCalibrated: false,
     metrics: undefined,
+    findings: [],
     bins: [],
   },
 ]
@@ -52,6 +53,7 @@ const spectrumSignals: IFrequencySpectrumSignal[] = [
     amplitudeUnit: 'dB rel.',
     isCalibrated: false,
     metrics: undefined,
+    findings: [],
     points: [],
   },
 ]

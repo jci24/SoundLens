@@ -25,6 +25,7 @@ describe('useAnalysisWorkspaceMetrics', () => {
               clippingSampleCount: 2,
               hasClipping: true,
             },
+            findings: [],
             bins: [],
           },
         ],
@@ -43,6 +44,7 @@ describe('useAnalysisWorkspaceMetrics', () => {
         crestFactor: 1.43,
         clippingSampleCount: 2,
         hasClipping: true,
+        findings: [],
       },
     ])
     expect(result.current.hasMetricsPending).toBe(false)
@@ -69,6 +71,7 @@ describe('useAnalysisWorkspaceMetrics', () => {
               clippingSampleCount: 0,
               hasClipping: false,
             },
+            findings: [],
             points: [],
           },
         ],
@@ -97,6 +100,7 @@ describe('useAnalysisWorkspaceMetrics', () => {
             channelIndex: 0,
             amplitudeUnit: 'FS',
             isCalibrated: false,
+            findings: [],
             bins: [],
           },
         ],

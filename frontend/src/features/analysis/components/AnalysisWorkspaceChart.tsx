@@ -1,6 +1,7 @@
 import type { RefObject } from 'react'
 import { AnalysisWorkspaceMetricsRail } from './AnalysisWorkspaceMetricsRail'
 import { AnalysisWorkspacePanel } from './AnalysisWorkspacePanel'
+import { FindingsPanel } from './FindingsPanel'
 import type { IMetricSignalItem } from '../hooks/useAnalysisWorkspaceMetrics'
 import type { IAnalysisWorkspacePanel } from '../hooks/useAnalysisWorkspacePanels'
 import type { TSignalChartMode, IFrequencySpectrumAxis, IFrequencySpectrumSignal, ITimeWaveformSignal, ITimeWaveformResponse } from '../types'
@@ -41,6 +42,7 @@ const AnalysisWorkspaceChart = ({
         signals={metricSignals}
       />
     )}
+    <FindingsPanel signals={metricSignals} />
 
     <div
       className={`time-waveform-workspace__panel-grid${isCompareMode ? ' time-waveform-workspace__panel-grid--compare' : ''}`}

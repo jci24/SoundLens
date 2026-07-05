@@ -95,6 +95,7 @@ public sealed class SpectrumService : ISpectrumService
                 "dB rel.",
                 false,
                 channel.Metrics,
+                FindingsService.BuildFindings(channel.Metrics),
                 GetOrBuildSpectrumPoints(channel, analysisState, cancellationToken)))
             .ToList();
 

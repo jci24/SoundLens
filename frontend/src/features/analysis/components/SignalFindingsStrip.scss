@@ -1,0 +1,66 @@
+.signal-findings-strip {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  padding: 0.25rem 0.9rem 0.4rem;
+
+  &__badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    padding: 0.22rem 0.6rem 0.22rem 0.45rem;
+    border-radius: 999px;
+    font-size: var(--font-xs);
+    font-weight: 600;
+    line-height: 1.2;
+  }
+
+  &__badge--alert {
+    background: color-mix(in srgb, var(--destructive) 12%, transparent);
+    color: color-mix(in srgb, var(--destructive) 85%, var(--foreground) 15%);
+
+    .signal-findings-strip__dot {
+      background: var(--destructive);
+    }
+  }
+
+  &__badge--warning {
+    background: color-mix(in srgb, oklch(0.72 0.14 60) 14%, transparent);
+    color: color-mix(in srgb, oklch(0.52 0.14 60) 90%, var(--foreground) 10%);
+
+    .signal-findings-strip__dot {
+      background: oklch(0.62 0.14 60);
+    }
+  }
+
+  &__badge--info {
+    background: color-mix(in srgb, var(--muted) 60%, transparent);
+    color: var(--muted-foreground);
+
+    .signal-findings-strip__dot {
+      background: color-mix(in srgb, var(--muted-foreground) 60%, transparent);
+    }
+  }
+
+  &__dot {
+    display: inline-block;
+    width: 0.42rem;
+    height: 0.42rem;
+    border-radius: 50%;
+    flex-shrink: 0;
+  }
+
+  &__label {
+    flex-shrink: 0;
+  }
+
+  &__detail {
+    opacity: 0.78;
+    font-weight: 500;
+
+    &::before {
+      content: '·';
+      margin-right: 0.3rem;
+    }
+  }
+}

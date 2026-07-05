@@ -1,4 +1,12 @@
 export type TAnalysisSurface = 'waveform' | 'spectrum'
+
+export interface ISignalFinding {
+  category: string
+  severity: 'Info' | 'Warning' | 'Alert'
+  label: string
+  detail?: string
+}
+
 export type TAnalysisLayoutMode = 'focused' | 'compare'
 export type TSignalChartMode = 'overlay' | 'split'
 
@@ -40,6 +48,7 @@ export interface ITimeWaveformSignal {
   amplitudeUnit: string
   isCalibrated: boolean
   metrics?: ISignalDerivedMetrics
+  findings: ISignalFinding[]
   bins: TTimeWaveformBin[]
 }
 
@@ -74,6 +83,7 @@ export interface IFrequencySpectrumSignal {
   amplitudeUnit: string
   isCalibrated: boolean
   metrics?: ISignalDerivedMetrics
+  findings: ISignalFinding[]
   points: IFrequencySpectrumPoint[]
 }
 

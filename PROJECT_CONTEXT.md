@@ -61,13 +61,14 @@ The current demo slice is now centered on browser-first import plus waveform and
 - Frontend unit-test infrastructure is now established with Vitest and React Testing Library, with initial coverage around analysis formatting and popover interaction hooks.
 - Signal selection state is now managed by a shared workspace-level store so analysis surfaces consume the same compare context without feature-to-feature coupling.
 - The spectrum endpoint now accepts an explicit FFT size parameter (`fftSize`) validated against a canonical `AllowedFftSizes` set. The backend is the single source of truth for which sizes are valid and returns the actual `fftLength` used in the `Analysis` contract so the frontend can verify what was computed rather than recomputing it locally.
+- Both waveform and spectrum signal responses now carry a structured `findings` list. The `FindingsService` produces deterministic `SignalFinding` items (Clipping/Alert, HighCrestFactor/Warning, LowLevel/Info) from `SignalDerivedMetrics` without any model or AI involvement. The frontend renders these as severity-coded badges beneath the metrics grid, giving users a first-pass interpretation before they inspect the charts.
 - The workspace header is now split into a primary surface shelf (Waveform, Spectrum, and future surfaces) and a subordinate view controls bar (layout mode, chart mode, analysis controls), giving future evidence surfaces a clear navigation home without cluttering the main workspace.
 - The analysis workspace card nesting has been flattened: the recording rail, per-signal metrics cards, and focused-mode chart inner cards no longer carry redundant borders, backgrounds, and shadows. Cards are preserved only where they provide real visual separation (compare/split chart mode).
 - Repo-side backlog tracking now lives in `BACKLOG.md`, with GitHub Projects recommended as the live execution board for epics and thin tasks.
 
 Immediate next step after this slice:
 
-- Add region-of-interest support (B6) so users can investigate specific time regions rather than the full recording.
+- Add region-of-interest support (B6) so users can investigate specific time regions rather than the full recording, and then extend findings with spectrum-derived observations (tonal peak detection) on top of that context.
 
 ## Collaboration Process
 

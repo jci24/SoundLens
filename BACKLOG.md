@@ -1,6 +1,6 @@
 # SoundLens Backlog
 
-Last updated: 2026-07-05 (3)
+Last updated: 2026-07-05 (4)
 
 This file is the repo-side backlog for SoundLens.
 
@@ -108,21 +108,9 @@ Completed:
 - `C2` Multi-surface workspace tab model
 - `C3` Derived metrics strip
 - `C5` Flexible multi-panel workspace layout
+- `C4` First-pass findings strip: deterministic `SignalFinding` contract (Clipping/Alert, HighCrestFactor/Warning, LowLevel/Info), threaded through both waveform and spectrum services, rendered as badges beneath the metrics grid
 
 Open stories:
-
-#### C4 `Later` `Backend + Frontend`
-
-As a user, I would like a first-pass findings summary, so that SoundLens can point me toward the most likely issues before I inspect every chart manually.
-
-Backend
-- Build a structured findings contract from deterministic evidence.
-
-Frontend
-- Surface findings beside the evidence views with limitations visible.
-
-Validation
-- Add evidence-contract tests and UI rendering coverage.
 
 ### Epic D: Testing Foundation
 
@@ -150,14 +138,14 @@ Frontend
 If we continue immediately after this branch, the best next options are:
 
 1. `B6` Region-of-interest waveform and spectrum requests
-2. `C4` First-pass findings summary from deterministic evidence
-3. `D5` Component rendering tests for analysis surfaces
+2. `D5` Component rendering tests for analysis surfaces
+3. `C4+` Extend findings with tonal peak detection (top spectrum peak > median + 20 dB)
 
 Recommended order:
 
-1. Add region-of-interest support to deepen the investigation workflow.
-2. Build findings and interpretation on top of the now-richer evidence and parameter contract surface.
-3. Expand frontend rendering tests to keep the workspace demo-ready as it grows.
+1. Add region-of-interest support so users can investigate specific time regions.
+2. Expand frontend rendering tests to keep the workspace demo-stable.
+3. Extend findings with spectrum-derived observations once B6 region context is in place.
 
 ## GitHub Projects Mapping
 
