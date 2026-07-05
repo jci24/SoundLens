@@ -239,6 +239,238 @@ public sealed class TimeWaveformTests : IClassFixture<WebApplicationFactory<Prog
     }
 
     [Fact]
+    public async Task WaveformService_Reads8BitPcmCorrectly()
+    {
+        // 8-bit PCM normalises as (byte - 128) / 128.0.
+        // Byte value 200 -> (200 - 128) / 128.0 = 72/128  = 0.5625  (below positive full scale)
+        // Byte value 64  -> ( 64 - 128) / 128.0 = -64/128 = -0.5    (above negative full scale)
+        // Byte value 128 -> (128 - 128) / 128.0 = 0.0
+        // Note: byte 255 equals the positive full-scale threshold (127/128) so it IS clipped.
+        //       byte 0 equals -1.0 (negative full scale) and also IS clipped.
+        //       We deliberately stay within the non-clipping range here.
+        var samples = new byte[] { 200, 64, 128, 160 };
+        var tempPath = Path.Combine(Path.GetTempPath(), $"soundlens_8bit_{Guid.NewGuid():N}.wav");
+        await File.WriteAllBytesAsync(tempPath, CreateMono8BitWav(sampleRate: 4, samples: samples));
+
+        try
+        {
+            var importedFile = new ImportedFileSummary("8bit.wav", new FileInfo(tempPath).Length, tempPath, "audio/wav");
+            var waveformService = new WaveformService();
+
+            var result = waveformService.BuildTimeWaveforms([importedFile], requestedBinCount: 256, selectedSignalIds: null, CancellationToken.None);
+
+            var signal = Assert.Single(result.SelectedSignals);
+            Assert.Equal(4, signal.Bins.Count);
+
+            // Bin 0: only sample 200 -> normalised 72/128 = 0.5625; min and max both equal that value
+            Assert.Equal(72 / 128.0, signal.Bins[0][0], precision: 6);
+            Assert.Equal(72 / 128.0, signal.Bins[0][1], precision: 6);
+
+            // Bin 1: only sample 64 -> normalised -64/128 = -0.5
+            Assert.Equal(-64 / 128.0, signal.Bins[1][0], precision: 6);
+            Assert.Equal(-64 / 128.0, signal.Bins[1][1], precision: 6);
+
+            // Bin 2: only sample 128 -> normalised 0.0
+            Assert.Equal(0.0, signal.Bins[2][0], precision: 6);
+            Assert.Equal(0.0, signal.Bins[2][1], precision: 6);
+
+            // Peak is 72/128 = 0.5625 (sample 200); well within range so no clipping
+            Assert.Equal(72 / 128.0, signal.Metrics.PeakAmplitude, precision: 6);
+            Assert.False(signal.Metrics.HasClipping);
+        }
+        finally
+        {
+            File.Delete(tempPath);
+        }
+    }
+
+    [Fact]
+    public async Task WaveformService_Reads24BitPcmCorrectly()
+    {
+        // 24-bit PCM normalises as ReadInt24(reader) / 8388608.0.
+        // Full positive: 8388607 -> 8388607 / 8388608.0 ≈ 0.999999881
+        // Full negative: -8388608 -> -8388608 / 8388608.0 = -1.0
+        // Zero: 0 -> 0.0
+        // This exercises the sign-extension branch in ReadInt24.
+        var samples = new int[] { 8388607, -8388608, 0, 4194304 };
+        var tempPath = Path.Combine(Path.GetTempPath(), $"soundlens_24bit_{Guid.NewGuid():N}.wav");
+        await File.WriteAllBytesAsync(tempPath, CreateMono24BitWav(sampleRate: 4, samples: samples));
+
+        try
+        {
+            var importedFile = new ImportedFileSummary("24bit.wav", new FileInfo(tempPath).Length, tempPath, "audio/wav");
+            var waveformService = new WaveformService();
+
+            var result = waveformService.BuildTimeWaveforms([importedFile], requestedBinCount: 256, selectedSignalIds: null, CancellationToken.None);
+
+            var signal = Assert.Single(result.SelectedSignals);
+            Assert.Equal(4, signal.Bins.Count);
+
+            // Bin 0: 8388607 / 8388608.0
+            Assert.Equal(8388607 / 8388608.0, signal.Bins[0][0], precision: 5);
+
+            // Bin 1: -8388608 / 8388608.0 = -1.0
+            Assert.Equal(-1.0, signal.Bins[1][0], precision: 6);
+
+            // Bin 2: 0.0
+            Assert.Equal(0.0, signal.Bins[2][0], precision: 6);
+
+            // Peak amplitude should reflect the positive full-scale sample
+            Assert.Equal(8388607 / 8388608.0, signal.Metrics.PeakAmplitude, precision: 5);
+        }
+        finally
+        {
+            File.Delete(tempPath);
+        }
+    }
+
+    [Fact]
+    public async Task WaveformService_Reads32BitFloatWavCorrectly()
+    {
+        // IEEE 32-bit float WAV (audioFormat = 3). Values are read directly as floats.
+        // Clipping threshold is 1.0 for float WAV.
+        var samples = new float[] { 0.5f, -0.5f, 0.0f, 1.0f };
+        var tempPath = Path.Combine(Path.GetTempPath(), $"soundlens_float32_{Guid.NewGuid():N}.wav");
+        await File.WriteAllBytesAsync(tempPath, CreateMono32BitFloatWav(sampleRate: 4, samples: samples));
+
+        try
+        {
+            var importedFile = new ImportedFileSummary("float32.wav", new FileInfo(tempPath).Length, tempPath, "audio/wav");
+            var waveformService = new WaveformService();
+
+            var result = waveformService.BuildTimeWaveforms([importedFile], requestedBinCount: 256, selectedSignalIds: null, CancellationToken.None);
+
+            var signal = Assert.Single(result.SelectedSignals);
+            Assert.Equal(4, signal.Bins.Count);
+
+            Assert.Equal(0.5, signal.Bins[0][0], precision: 5);
+            Assert.Equal(-0.5, signal.Bins[1][0], precision: 5);
+            Assert.Equal(0.0, signal.Bins[2][0], precision: 5);
+
+            // Sample 1.0 equals the full-scale threshold for float WAV so it counts as clipping
+            Assert.Equal(1, signal.Metrics.ClippingSampleCount);
+            Assert.True(signal.Metrics.HasClipping);
+            Assert.Equal(1.0, signal.Metrics.PeakAmplitude, precision: 5);
+        }
+        finally
+        {
+            File.Delete(tempPath);
+        }
+    }
+
+    [Fact]
+    public async Task WaveformService_DCSignalProducesCorrectMetrics()
+    {
+        // A pure DC signal (all samples equal) should give:
+        //   peak = RMS = constant value
+        //   crest factor = 1.0  (peak / RMS)
+        //   no clipping (value is below full scale)
+        //   all bin min == bin max (flat waveform)
+        const short dcSampleValue = 16384; // 0.5 FS
+        var samples = Enumerable.Repeat(dcSampleValue, 256).ToArray();
+        var tempPath = Path.Combine(Path.GetTempPath(), $"soundlens_dc_{Guid.NewGuid():N}.wav");
+        await File.WriteAllBytesAsync(tempPath, CreateMono16BitWav(sampleRate: 256, samples: samples));
+
+        try
+        {
+            var importedFile = new ImportedFileSummary("dc.wav", new FileInfo(tempPath).Length, tempPath, "audio/wav");
+            var waveformService = new WaveformService();
+
+            var result = waveformService.BuildTimeWaveforms([importedFile], requestedBinCount: 64, selectedSignalIds: null, CancellationToken.None);
+
+            var signal = Assert.Single(result.SelectedSignals);
+            var expectedNormalised = dcSampleValue / 32768.0;
+
+            Assert.Equal(expectedNormalised, signal.Metrics.PeakAmplitude, precision: 5);
+            Assert.Equal(expectedNormalised, signal.Metrics.RmsAmplitude, precision: 5);
+            Assert.Equal(1.0, signal.Metrics.CrestFactor, precision: 4);
+            Assert.Equal(0, signal.Metrics.ClippingSampleCount);
+            Assert.False(signal.Metrics.HasClipping);
+
+            // Every bin min and max should be equal because the waveform is flat
+            Assert.All(signal.Bins, bin => Assert.Equal(bin[0], bin[1], precision: 6));
+        }
+        finally
+        {
+            File.Delete(tempPath);
+        }
+    }
+
+    [Fact]
+    public async Task WaveformService_BinEnvelopeContainsMinAndMaxForCrossingSignal()
+    {
+        // A signal that alternates between a large positive and large negative value
+        // within the same bin should produce bin[0] (min) < 0 and bin[1] (max) > 0.
+        // This verifies the BinAccumulator tracks both extremes, not just one.
+        var samples = new short[128];
+        for (var i = 0; i < samples.Length; i++)
+        {
+            samples[i] = i % 2 == 0 ? (short)24576 : (short)-24576; // ±0.75 FS
+        }
+
+        var tempPath = Path.Combine(Path.GetTempPath(), $"soundlens_crossing_{Guid.NewGuid():N}.wav");
+        await File.WriteAllBytesAsync(tempPath, CreateMono16BitWav(sampleRate: 128, samples: samples));
+
+        try
+        {
+            var importedFile = new ImportedFileSummary("crossing.wav", new FileInfo(tempPath).Length, tempPath, "audio/wav");
+            var waveformService = new WaveformService();
+
+            // Request only 1 bin so all samples land in the same bin
+            var result = waveformService.BuildTimeWaveforms([importedFile], requestedBinCount: 64, selectedSignalIds: null, CancellationToken.None);
+
+            var signal = Assert.Single(result.SelectedSignals);
+            var firstBin = signal.Bins[0];
+
+            Assert.True(firstBin[0] < 0, $"Expected bin min < 0 but was {firstBin[0]}");
+            Assert.True(firstBin[1] > 0, $"Expected bin max > 0 but was {firstBin[1]}");
+        }
+        finally
+        {
+            File.Delete(tempPath);
+        }
+    }
+
+    [Fact]
+    public async Task WaveformService_ClippingThresholdIsPrecise()
+    {
+        // short.MaxValue (32767) equals the positive full-scale threshold for 16-bit PCM.
+        // A sample at 32767 should be counted as clipping.
+        // A sample at 32766 should NOT be counted as clipping.
+        var clippingSamples = new short[] { 32767, 0, 0, 0 };
+        var safesamples = new short[] { 32766, 0, 0, 0 };
+
+        var clippingPath = Path.Combine(Path.GetTempPath(), $"soundlens_clip_boundary_hi_{Guid.NewGuid():N}.wav");
+        var safePath = Path.Combine(Path.GetTempPath(), $"soundlens_clip_boundary_lo_{Guid.NewGuid():N}.wav");
+        await File.WriteAllBytesAsync(clippingPath, CreateMono16BitWav(sampleRate: 4, samples: clippingSamples));
+        await File.WriteAllBytesAsync(safePath, CreateMono16BitWav(sampleRate: 4, samples: safesamples));
+
+        try
+        {
+            var waveformService = new WaveformService();
+
+            var clippingFile = new ImportedFileSummary("clip.wav", new FileInfo(clippingPath).Length, clippingPath, "audio/wav");
+            var clippingResult = waveformService.BuildTimeWaveforms([clippingFile], requestedBinCount: 256, selectedSignalIds: null, CancellationToken.None);
+            var clippingSignal = Assert.Single(clippingResult.SelectedSignals);
+
+            Assert.Equal(1, clippingSignal.Metrics.ClippingSampleCount);
+            Assert.True(clippingSignal.Metrics.HasClipping);
+
+            var safeFile = new ImportedFileSummary("safe.wav", new FileInfo(safePath).Length, safePath, "audio/wav");
+            var safeResult = waveformService.BuildTimeWaveforms([safeFile], requestedBinCount: 256, selectedSignalIds: null, CancellationToken.None);
+            var safeSignal = Assert.Single(safeResult.SelectedSignals);
+
+            Assert.Equal(0, safeSignal.Metrics.ClippingSampleCount);
+            Assert.False(safeSignal.Metrics.HasClipping);
+        }
+        finally
+        {
+            File.Delete(clippingPath);
+            File.Delete(safePath);
+        }
+    }
+
+    [Fact]
     public async Task POST_TimeWaveforms_ReportsExpectedMetricsForSilenceAndClippedSignal()
     {
         var tempPath = Path.Combine(Path.GetTempPath(), $"soundlens_waveform_metrics_{Guid.NewGuid():N}.wav");
@@ -268,6 +500,94 @@ public sealed class TimeWaveformTests : IClassFixture<WebApplicationFactory<Prog
         {
             File.Delete(tempPath);
         }
+    }
+
+    private static byte[] CreateMono8BitWav(int sampleRate, IReadOnlyList<byte> samples)
+    {
+        using var stream = new MemoryStream();
+        using var writer = new BinaryWriter(stream);
+        var dataLength = samples.Count * sizeof(byte);
+
+        writer.Write("RIFF"u8.ToArray());
+        writer.Write(36 + dataLength);
+        writer.Write("WAVE"u8.ToArray());
+        writer.Write("fmt "u8.ToArray());
+        writer.Write(16);
+        writer.Write((short)1);           // PCM
+        writer.Write((short)1);           // mono
+        writer.Write(sampleRate);
+        writer.Write(sampleRate * sizeof(byte));
+        writer.Write((short)sizeof(byte));
+        writer.Write((short)8);           // 8-bit
+        writer.Write("data"u8.ToArray());
+        writer.Write(dataLength);
+
+        foreach (var sample in samples)
+        {
+            writer.Write(sample);
+        }
+
+        return stream.ToArray();
+    }
+
+    private static byte[] CreateMono24BitWav(int sampleRate, IReadOnlyList<int> samples)
+    {
+        using var stream = new MemoryStream();
+        using var writer = new BinaryWriter(stream);
+        var bytesPerSample = 3;
+        var dataLength = samples.Count * bytesPerSample;
+
+        writer.Write("RIFF"u8.ToArray());
+        writer.Write(36 + dataLength);
+        writer.Write("WAVE"u8.ToArray());
+        writer.Write("fmt "u8.ToArray());
+        writer.Write(16);
+        writer.Write((short)1);                       // PCM
+        writer.Write((short)1);                       // mono
+        writer.Write(sampleRate);
+        writer.Write(sampleRate * bytesPerSample);
+        writer.Write((short)bytesPerSample);
+        writer.Write((short)24);                      // 24-bit
+        writer.Write("data"u8.ToArray());
+        writer.Write(dataLength);
+
+        foreach (var sample in samples)
+        {
+            // Write little-endian 24-bit two's complement
+            writer.Write((byte)(sample & 0xFF));
+            writer.Write((byte)((sample >> 8) & 0xFF));
+            writer.Write((byte)((sample >> 16) & 0xFF));
+        }
+
+        return stream.ToArray();
+    }
+
+    private static byte[] CreateMono32BitFloatWav(int sampleRate, IReadOnlyList<float> samples)
+    {
+        using var stream = new MemoryStream();
+        using var writer = new BinaryWriter(stream);
+        var dataLength = samples.Count * sizeof(float);
+
+        writer.Write("RIFF"u8.ToArray());
+        writer.Write(36 + dataLength);
+        writer.Write("WAVE"u8.ToArray());
+        writer.Write("fmt "u8.ToArray());
+        writer.Write(16);
+        writer.Write((short)3);                    // IEEE float
+        writer.Write((short)1);                    // mono
+        writer.Write(sampleRate);
+        writer.Write(sampleRate * sizeof(float));
+        writer.Write((short)sizeof(float));
+        writer.Write((short)32);                   // 32-bit
+        writer.Write("data"u8.ToArray());
+        writer.Write(dataLength);
+
+        foreach (var sample in samples)
+        {
+            writer.Write(sample);
+        }
+
+        return stream.ToArray();
     }
 
     private static byte[] CreateMono16BitWav(int sampleRate, IReadOnlyList<short> samples)
