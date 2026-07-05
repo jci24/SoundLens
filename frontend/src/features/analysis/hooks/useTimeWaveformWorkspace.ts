@@ -27,7 +27,6 @@ import {
   formatSpectrumFftSizeOption,
   getNextSpectrumRangeEnd,
   getNextSpectrumRangeStart,
-  getOneSidedLineCount,
   getWaveformRequestedBinCount,
   spectrumFftSizeSelectOptions,
   type ISpectrumRange,
@@ -127,7 +126,7 @@ const useTimeWaveformWorkspace = (
     }
 
     if (showSpectrumPanel) {
-      void getFrequencySpectra(getOneSidedLineCount(selectedSpectrumFftSize), selectedSignalIds)
+      void getFrequencySpectra(selectedSpectrumFftSize, selectedSignalIds)
         .then((response) => {
           if (!isCurrent) {
             return
@@ -163,13 +162,12 @@ const useTimeWaveformWorkspace = (
       (selectedSignalIds.length > 0 &&
         !areSignalIdsEqual(selectedSignalIds, waveformResponseSignalIds)))
   const isWaveformInitialLoading = isWaveformRefreshing && waveforms === null
-  const spectrumBinCount = getOneSidedLineCount(selectedSpectrumFftSize)
   const isSpectrumRefreshing =
     showSpectrumPanel &&
     binCount > 0 &&
     !spectrumError &&
     (!spectrum ||
-      spectrum.requestedBinCount !== spectrumBinCount ||
+      spectrum.analysis.fftLength !== selectedSpectrumFftSize ||
       (selectedSignalIds.length > 0 &&
         !areSignalIdsEqual(selectedSignalIds, spectrumResponseSignalIds)))
   const isSpectrumInitialLoading = isSpectrumRefreshing && spectrum === null

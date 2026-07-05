@@ -7,6 +7,7 @@ public interface ISpectrumService
     FrequencySpectrumResponse BuildFrequencySpectra(
         IReadOnlyList<ImportedFileSummary> files,
         int requestedBinCount,
+        int? explicitFftSize,
         IReadOnlyList<string>? selectedSignalIds,
         CancellationToken cancellationToken);
 }

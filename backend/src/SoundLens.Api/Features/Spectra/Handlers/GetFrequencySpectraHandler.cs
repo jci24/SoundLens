@@ -19,7 +19,7 @@ public sealed class GetFrequencySpectraHandler(
             ThrowError("Import at least one audio file before requesting spectrum data.");
         }
 
-        var response = spectrumService.BuildFrequencySpectra(currentFiles, command.BinCount, command.SignalIds, ct);
+        var response = spectrumService.BuildFrequencySpectra(currentFiles, command.BinCount, command.FftSize, command.SignalIds, ct);
 
         if (response.Recordings.Count == 0)
         {

@@ -17,6 +17,7 @@ public sealed class SpectrumService : ISpectrumService
     public FrequencySpectrumResponse BuildFrequencySpectra(
         IReadOnlyList<ImportedFileSummary> files,
         int requestedBinCount,
+        int? explicitFftSize,
         IReadOnlyList<string>? selectedSignalIds,
         CancellationToken cancellationToken)
     {
@@ -81,7 +82,7 @@ public sealed class SpectrumService : ISpectrumService
                 failedFiles);
         }
 
-        var analysisState = BuildAnalysisState(selectedChannels, requestedBins);
+        var analysisState = BuildAnalysisState(selectedChannels, requestedBins, explicitFftSize);
         var selectedSignals = selectedChannels
             .Select(channel => new FrequencySpectrumSignal(
                 channel.SignalId,
@@ -149,11 +150,14 @@ public sealed class SpectrumService : ISpectrumService
 
     private static AnalysisState BuildAnalysisState(
         IReadOnlyList<DecodedSpectrumChannelSignal> selectedChannels,
-        int requestedBins)
+        int requestedBins,
+        int? explicitFftSize)
     {
         var referenceChannel = selectedChannels.First();
         var smallestSampleCount = selectedChannels.Min(channel => channel.Samples.Count);
-        var requestedFftLength = Math.Max(2, (requestedBins - 1) * 2);
+        var requestedFftLength = explicitFftSize.HasValue
+            ? explicitFftSize.Value
+            : Math.Max(2, (requestedBins - 1) * 2);
         var fftLength = Math.Min(requestedFftLength, smallestSampleCount);
         fftLength = Math.Max(2, fftLength);
         var frequencyResolutionHz = referenceChannel.Recording.SampleRate / (double)fftLength;
