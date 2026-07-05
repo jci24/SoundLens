@@ -1,6 +1,6 @@
 # SoundLens Backlog
 
-Last updated: 2026-07-05
+Last updated: 2026-07-05 (2)
 
 This file is the repo-side backlog for SoundLens.
 
@@ -63,6 +63,7 @@ Completed:
 - `A3` Spectrum workspace
 - `A4` Workspace decomposition follow-through
 - `A5` Shared workspace state store for signal selection and navigation
+- Frontend workspace card nesting flattened: recording rail, metrics signal cards, and focused-mode chart cards reduced to eliminate redundant border/shadow layers
 
 Open stories:
 
