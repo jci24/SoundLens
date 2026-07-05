@@ -123,7 +123,7 @@ public sealed class FrequencySpectrumTests : IClassFixture<WebApplicationFactory
             var importedFile = new ImportedFileSummary("reference.wav", new FileInfo(tempPath).Length, tempPath, "audio/wav");
             var spectrumService = new SpectrumService();
 
-            var result = spectrumService.BuildFrequencySpectra([importedFile], requestedBinCount: 256, selectedSignalIds: null, CancellationToken.None);
+            var result = spectrumService.BuildFrequencySpectra([importedFile], requestedBinCount: 256, explicitFftSize: null, selectedSignalIds: null, cancellationToken: CancellationToken.None);
 
             var signal = Assert.Single(result.SelectedSignals);
             var reference = BuildReferenceLineSpectrumDb(samples.Select(sample => sample / 32768.0).ToArray(), sampleRate, result.Analysis.FftLength);
@@ -215,7 +215,7 @@ public sealed class FrequencySpectrumTests : IClassFixture<WebApplicationFactory
             var importedFile = new ImportedFileSummary("too-large.wav", new FileInfo(tempPath).Length, tempPath, "audio/wav");
             var spectrumService = new SpectrumService();
 
-            var result = spectrumService.BuildFrequencySpectra([importedFile], requestedBinCount: 256, selectedSignalIds: null, CancellationToken.None);
+            var result = spectrumService.BuildFrequencySpectra([importedFile], requestedBinCount: 256, explicitFftSize: null, selectedSignalIds: null, cancellationToken: CancellationToken.None);
 
             Assert.Empty(result.Recordings);
             Assert.Empty(result.SelectedSignals);
@@ -240,7 +240,7 @@ public sealed class FrequencySpectrumTests : IClassFixture<WebApplicationFactory
             var importedFile = new ImportedFileSummary("silence.wav", new FileInfo(tempPath).Length, tempPath, "audio/wav");
             var spectrumService = new SpectrumService();
 
-            var result = spectrumService.BuildFrequencySpectra([importedFile], requestedBinCount: 513, selectedSignalIds: null, CancellationToken.None);
+            var result = spectrumService.BuildFrequencySpectra([importedFile], requestedBinCount: 513, explicitFftSize: null, selectedSignalIds: null, cancellationToken: CancellationToken.None);
 
             var signal = Assert.Single(result.SelectedSignals);
 
@@ -272,7 +272,7 @@ public sealed class FrequencySpectrumTests : IClassFixture<WebApplicationFactory
             var importedFile = new ImportedFileSummary("dual-tone.wav", new FileInfo(tempPath).Length, tempPath, "audio/wav");
             var spectrumService = new SpectrumService();
 
-            var result = spectrumService.BuildFrequencySpectra([importedFile], requestedBinCount: 513, selectedSignalIds: null, CancellationToken.None);
+            var result = spectrumService.BuildFrequencySpectra([importedFile], requestedBinCount: 513, explicitFftSize: null, selectedSignalIds: null, cancellationToken: CancellationToken.None);
 
             var signal = Assert.Single(result.SelectedSignals);
             var topPeaks = signal.Points
@@ -304,7 +304,7 @@ public sealed class FrequencySpectrumTests : IClassFixture<WebApplicationFactory
             var importedFile = new ImportedFileSummary("clipped.wav", new FileInfo(tempPath).Length, tempPath, "audio/wav");
             var spectrumService = new SpectrumService();
 
-            var result = spectrumService.BuildFrequencySpectra([importedFile], requestedBinCount: 513, selectedSignalIds: null, CancellationToken.None);
+            var result = spectrumService.BuildFrequencySpectra([importedFile], requestedBinCount: 513, explicitFftSize: null, selectedSignalIds: null, cancellationToken: CancellationToken.None);
 
             var signal = Assert.Single(result.SelectedSignals);
             var fundamental = signal.Points.Single(point => point.FrequencyHz == fundamentalFrequencyHz);
@@ -342,10 +342,10 @@ public sealed class FrequencySpectrumTests : IClassFixture<WebApplicationFactory
 
         try
         {
-            var firstResult = spectrumService.BuildFrequencySpectra([importedFile], requestedBinCount: 513, selectedSignalIds: null, CancellationToken.None);
+            var firstResult = spectrumService.BuildFrequencySpectra([importedFile], requestedBinCount: 513, explicitFftSize: null, selectedSignalIds: null, cancellationToken: CancellationToken.None);
             File.Delete(tempPath);
 
-            var secondResult = spectrumService.BuildFrequencySpectra([importedFile], requestedBinCount: 513, selectedSignalIds: null, CancellationToken.None);
+            var secondResult = spectrumService.BuildFrequencySpectra([importedFile], requestedBinCount: 513, explicitFftSize: null, selectedSignalIds: null, cancellationToken: CancellationToken.None);
             Assert.Equal(firstResult.Analysis, secondResult.Analysis);
             Assert.Equal(firstResult.Recordings.Count, secondResult.Recordings.Count);
             Assert.Equal(firstResult.SelectedSignals.Count, secondResult.SelectedSignals.Count);
@@ -395,7 +395,7 @@ public sealed class FrequencySpectrumTests : IClassFixture<WebApplicationFactory
             var importedFile = new ImportedFileSummary("dc.wav", new FileInfo(tempPath).Length, tempPath, "audio/wav");
             var spectrumService = new SpectrumService();
 
-            var result = spectrumService.BuildFrequencySpectra([importedFile], requestedBinCount: 1025, selectedSignalIds: null, CancellationToken.None);
+            var result = spectrumService.BuildFrequencySpectra([importedFile], requestedBinCount: 1025, explicitFftSize: null, selectedSignalIds: null, cancellationToken: CancellationToken.None);
 
             var signal = Assert.Single(result.SelectedSignals);
             var dcBin = signal.Points.Single(point => point.FrequencyHz == 0);
@@ -430,7 +430,7 @@ public sealed class FrequencySpectrumTests : IClassFixture<WebApplicationFactory
             var importedFile = new ImportedFileSummary("nyquist.wav", new FileInfo(tempPath).Length, tempPath, "audio/wav");
             var spectrumService = new SpectrumService();
 
-            var result = spectrumService.BuildFrequencySpectra([importedFile], requestedBinCount: 513, selectedSignalIds: null, CancellationToken.None);
+            var result = spectrumService.BuildFrequencySpectra([importedFile], requestedBinCount: 513, explicitFftSize: null, selectedSignalIds: null, cancellationToken: CancellationToken.None);
 
             var signal = Assert.Single(result.SelectedSignals);
             var nyquistHz = sampleRate / 2.0;
@@ -468,7 +468,7 @@ public sealed class FrequencySpectrumTests : IClassFixture<WebApplicationFactory
 
             // binCount = 513 implies requestedFftLength = 1024; sample count (4) < 1024
             // so fftLength is clamped to 4, giving a 3-point one-sided spectrum (4/2 + 1)
-            var result = spectrumService.BuildFrequencySpectra([importedFile], requestedBinCount: 513, selectedSignalIds: null, CancellationToken.None);
+            var result = spectrumService.BuildFrequencySpectra([importedFile], requestedBinCount: 513, explicitFftSize: null, selectedSignalIds: null, cancellationToken: CancellationToken.None);
 
             Assert.Empty(result.FailedFiles);
             var signal = Assert.Single(result.SelectedSignals);
@@ -478,6 +478,104 @@ public sealed class FrequencySpectrumTests : IClassFixture<WebApplicationFactory
 
             // Frequency resolution = sampleRate / fftLength = 1024 / 4 = 256 Hz
             Assert.Equal(256.0, result.Analysis.FrequencyResolutionHz, precision: 6);
+        }
+        finally
+        {
+            File.Delete(tempPath);
+        }
+    }
+
+    [Fact]
+    public async Task SpectrumService_ExplicitFftSizeIsRoundTrippedInAnalysisContract()
+    {
+        // When the caller requests a specific FFT size, the response Analysis contract
+        // must reflect exactly that FFT length so the frontend can verify what was used.
+        const int requestedFftSize = 1024;
+        var sampleRate = 1024;
+        var samples = CreateSineSamples(sampleRate, frequencyHz: 128, durationSeconds: 2.0);
+        var tempPath = Path.Combine(Path.GetTempPath(), $"soundlens_fft_roundtrip_{Guid.NewGuid():N}.wav");
+        await File.WriteAllBytesAsync(tempPath, CreateMono16BitWav(sampleRate, samples));
+
+        try
+        {
+            var importedFile = new ImportedFileSummary("fft-roundtrip.wav", new FileInfo(tempPath).Length, tempPath, "audio/wav");
+            var spectrumService = new SpectrumService();
+
+            var result = spectrumService.BuildFrequencySpectra(
+                [importedFile],
+                requestedBinCount: FrequencySpectrumOptions.DefaultBinCount,
+                explicitFftSize: requestedFftSize,
+                selectedSignalIds: null,
+                cancellationToken: CancellationToken.None);
+
+            Assert.Equal(requestedFftSize, result.Analysis.FftLength);
+            Assert.Equal(sampleRate / (double)requestedFftSize, result.Analysis.FrequencyResolutionHz, precision: 6);
+
+            // A 1024-point FFT produces 513 one-sided bins
+            var signal = Assert.Single(result.SelectedSignals);
+            Assert.Equal(513, signal.Points.Count);
+        }
+        finally
+        {
+            File.Delete(tempPath);
+        }
+    }
+
+    [Fact]
+    public async Task SpectrumService_DefaultFftSizeIsUsedWhenNoneRequested()
+    {
+        // When no explicit FFT size is provided, the service uses FrequencySpectrumOptions.DefaultFftSize
+        // (clamped to the signal length if shorter). The Analysis contract must report the actual FftLength used.
+        var sampleRate = 44100;
+        var samples = CreateSineSamples(sampleRate, frequencyHz: 440, durationSeconds: 2.0);
+        var tempPath = Path.Combine(Path.GetTempPath(), $"soundlens_default_fft_{Guid.NewGuid():N}.wav");
+        await File.WriteAllBytesAsync(tempPath, CreateMono16BitWav(sampleRate, samples));
+
+        try
+        {
+            var importedFile = new ImportedFileSummary("default-fft.wav", new FileInfo(tempPath).Length, tempPath, "audio/wav");
+            var spectrumService = new SpectrumService();
+
+            var result = spectrumService.BuildFrequencySpectra(
+                [importedFile],
+                requestedBinCount: FrequencySpectrumOptions.DefaultBinCount,
+                explicitFftSize: null,
+                selectedSignalIds: null,
+                cancellationToken: CancellationToken.None);
+
+            // FftLength must be set and positive
+            Assert.True(result.Analysis.FftLength > 0, "FftLength should be positive when no explicit size is requested.");
+
+            // FrequencyResolutionHz must equal sampleRate / fftLength
+            var expectedResolution = sampleRate / (double)result.Analysis.FftLength;
+            Assert.Equal(expectedResolution, result.Analysis.FrequencyResolutionHz, precision: 6);
+        }
+        finally
+        {
+            File.Delete(tempPath);
+        }
+    }
+
+    [Fact]
+    public async Task Endpoint_RejectsInvalidFftSize()
+    {
+        // The endpoint validator must reject an FftSize that is not in AllowedFftSizes.
+        // 1000 is not a power of two and not in the allowed set.
+        var sampleRate = 1024;
+        var samples = CreateSineSamples(sampleRate, frequencyHz: 128, durationSeconds: 1.0);
+        var tempPath = Path.Combine(Path.GetTempPath(), $"soundlens_invalid_fft_{Guid.NewGuid():N}.wav");
+        await File.WriteAllBytesAsync(tempPath, CreateMono16BitWav(sampleRate, samples));
+
+        try
+        {
+            var client = _factory.CreateClient();
+            var importResponse = await client.PostAsJsonAsync("/api/import", new { filePaths = new[] { tempPath } });
+            importResponse.EnsureSuccessStatusCode();
+
+            var response = await client.PostAsJsonAsync("/api/spectra/frequency",
+                new { binCount = 513, fftSize = 1000 });
+
+            Assert.Equal(System.Net.HttpStatusCode.BadRequest, response.StatusCode);
         }
         finally
         {

@@ -3,16 +3,17 @@ import { isMessagePackResponse, readMessagePack } from '../../../common/api/mess
 import type { IFrequencySpectrumResponse } from '../types'
 
 export const getFrequencySpectra = async (
-  binCount: number,
+  fftSize: number,
   signalIds?: string[]
 ): Promise<IFrequencySpectrumResponse> => {
+  const binCount = Math.floor(fftSize / 2) + 1
   const response = await fetch(`${API_BASE_URL}/api/spectra/frequency`, {
     method: 'POST',
     headers: {
       Accept: 'application/x-msgpack, application/json',
       'Content-Type': 'application/json',
     },
-    body: JSON.stringify({ binCount, signalIds: signalIds ?? [] }),
+    body: JSON.stringify({ binCount, fftSize, signalIds: signalIds ?? [] }),
   })
 
   if (!response.ok) {

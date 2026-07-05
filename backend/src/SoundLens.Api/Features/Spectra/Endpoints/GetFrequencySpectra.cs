@@ -27,6 +27,10 @@ public sealed class GetFrequencySpectra : Endpoint<GetFrequencySpectraCommand, F
             RuleFor(command => command.BinCount)
                 .InclusiveBetween(FrequencySpectrumOptions.MinimumBinCount, FrequencySpectrumOptions.MaximumBinCount)
                 .WithMessage($"FFT line count must be between {FrequencySpectrumOptions.MinimumBinCount} and {FrequencySpectrumOptions.MaximumBinCount}.");
+
+            RuleFor(command => command.FftSize)
+                .Must(fftSize => fftSize is null || FrequencySpectrumOptions.AllowedFftSizes.Contains(fftSize.Value))
+                .WithMessage($"FFT size must be one of: {string.Join(", ", FrequencySpectrumOptions.AllowedFftSizes.Order())}.");
         }
     }
 
