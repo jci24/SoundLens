@@ -57,11 +57,11 @@
     display: grid;
     gap: 0.75rem;
     min-width: 0;
-    padding: 0.75rem;
+    padding: 0.5rem 0.6rem 0.6rem;
   }
 
   &__panel-chart-grid--compare {
-    padding: 0.6rem;
+    padding: 0.5rem;
   }
 
   &__panel-chart-grid--split {
@@ -72,15 +72,23 @@
     display: flex;
     flex-direction: column;
     min-width: 0;
-    border: 1px solid color-mix(in srgb, var(--border) 72%, transparent);
-    border-radius: 1rem;
-    background: color-mix(in srgb, var(--card) 96%, white 4%);
     overflow: hidden;
   }
 
+  &__panel-chart-grid--compare &__panel-chart-card,
+  &__panel-chart-grid--split &__panel-chart-card {
+    border: 1px solid color-mix(in srgb, var(--border) 72%, transparent);
+    border-radius: 0.9rem;
+    background: color-mix(in srgb, var(--card) 96%, white 4%);
+  }
+
   &__panel-chart-card-header {
-    padding: 0.55rem 0.75rem 0.5rem;
-    border-bottom: 1px solid color-mix(in srgb, var(--border) 66%, transparent);
+    padding: 0.45rem 0.6rem 0.4rem;
+    border-bottom: 1px solid color-mix(in srgb, var(--border) 60%, transparent);
+  }
+
+  &__panel-chart-grid--compare &__panel-chart-card-header,
+  &__panel-chart-grid--split &__panel-chart-card-header {
     background: color-mix(in srgb, var(--card) 90%, white 10%);
   }
 
