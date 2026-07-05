@@ -1,3 +1,7 @@
+export type TAnalysisSurface = 'waveform' | 'spectrum'
+export type TAnalysisLayoutMode = 'focused' | 'compare'
+export type TSignalChartMode = 'overlay' | 'split'
+
 export type TTimeWaveformBin = [number, number]
 
 export interface ISignalDerivedMetrics {
