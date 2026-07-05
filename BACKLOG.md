@@ -1,6 +1,6 @@
 # SoundLens Backlog
 
-Last updated: 2026-07-05 (2)
+Last updated: 2026-07-05 (3)
 
 This file is the repo-side backlog for SoundLens.
 
@@ -64,19 +64,9 @@ Completed:
 - `A4` Workspace decomposition follow-through
 - `A5` Shared workspace state store for signal selection and navigation
 - Frontend workspace card nesting flattened: recording rail, metrics signal cards, and focused-mode chart cards reduced to eliminate redundant border/shadow layers
+- `A6` Tool shelf navigation: workspace header split into a primary surface shelf (Waveform/Spectrum) and a subordinate view controls bar (Focused/Compare, Overlay/Split, popover)
 
 Open stories:
-
-#### A6 `Later` `Frontend`
-
-As a user, I would like a clean tool shelf for analysis surfaces, so that I can access more views without cluttering the main workspace.
-
-Frontend
-- Design a second-level navigation model for waveform, spectrum, and future evidence surfaces.
-- Preserve the calm professional layout already established in the analysis shell.
-
-Validation
-- Add rendering tests for navigation state and active-surface behavior.
 
 ### Epic B: Trustworthy DSP And Evidence Contracts
 
@@ -159,17 +149,15 @@ Frontend
 
 If we continue immediately after this branch, the best next options are:
 
-1. `A6` Tool shelf / second-level navigation model for analysis surfaces
-2. `B6` Region-of-interest waveform and spectrum requests
-3. `C4` First-pass findings summary from deterministic evidence
-4. `D5` Component rendering tests for analysis surfaces
+1. `B6` Region-of-interest waveform and spectrum requests
+2. `C4` First-pass findings summary from deterministic evidence
+3. `D5` Component rendering tests for analysis surfaces
 
 Recommended order:
 
-1. Build the tool shelf navigation so future evidence surfaces have a home before adding more.
-2. Add region-of-interest support to deepen the investigation workflow.
-3. Build findings and interpretation on top of the now-richer evidence and parameter contract surface.
-4. Expand frontend rendering tests to keep the workspace demo-ready as it grows.
+1. Add region-of-interest support to deepen the investigation workflow.
+2. Build findings and interpretation on top of the now-richer evidence and parameter contract surface.
+3. Expand frontend rendering tests to keep the workspace demo-ready as it grows.
 
 ## GitHub Projects Mapping
 
