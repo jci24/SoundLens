@@ -14,6 +14,8 @@ public sealed class WaveformService : IWaveformService
         IReadOnlyList<ImportedFileSummary> files,
         int requestedBinCount,
         IReadOnlyList<string>? selectedSignalIds,
+        double? startTimeSeconds,
+        double? endTimeSeconds,
         CancellationToken cancellationToken)
     {
         var binCount = Math.Clamp(
@@ -29,7 +31,7 @@ public sealed class WaveformService : IWaveformService
 
             try
             {
-                recordings.Add(GetOrReadRecording(file, binCount, cancellationToken));
+                recordings.Add(GetOrReadRecording(file, cancellationToken));
             }
             catch (OperationCanceledException)
             {
@@ -51,9 +53,16 @@ public sealed class WaveformService : IWaveformService
         var requestedSignalIds = (selectedSignalIds ?? [])
             .Where(signalId => !string.IsNullOrWhiteSpace(signalId))
             .Distinct()
+            .ToList();
+        var requestedSignalIdSet = requestedSignalIds
             .ToHashSet(StringComparer.Ordinal);
+        var signalsById = allSignals.ToDictionary(signal => signal.SignalId, StringComparer.Ordinal);
         var selectedChannels = requestedSignalIds.Count > 0
-            ? allSignals.Where(signal => requestedSignalIds.Contains(signal.SignalId)).ToList()
+            ? requestedSignalIds
+                .Select(signalId => signalsById.GetValueOrDefault(signalId))
+                .Where(signal => signal is not null)
+                .Cast<DecodedChannelSignal>()
+                .ToList()
             : [];
 
         if (selectedChannels.Count == 0)
@@ -65,20 +74,10 @@ public sealed class WaveformService : IWaveformService
             }
         }
 
+        var regionOfInterest = ResolveRegionOfInterest(selectedChannels, startTimeSeconds, endTimeSeconds);
+
         var selectedSignals = selectedChannels
-            .Select(selectedChannel => new TimeWaveformSignal(
-                selectedChannel.SignalId,
-                selectedChannel.Recording.RecordingId,
-                selectedChannel.Recording.FileName,
-                selectedChannel.DisplayName,
-                selectedChannel.Recording.DurationSeconds,
-                selectedChannel.Recording.SampleRate,
-                selectedChannel.ChannelIndex,
-                "FS",
-                false,
-                selectedChannel.Metrics,
-                FindingsService.BuildFindings(selectedChannel.Metrics),
-                selectedChannel.Bins))
+            .Select(selectedChannel => BuildSelectedSignal(selectedChannel, binCount, regionOfInterest, cancellationToken))
             .ToList();
 
         return new TimeWaveformResponse(
@@ -86,28 +85,27 @@ public sealed class WaveformService : IWaveformService
             recordingSummaries,
             selectedSignals,
             BuildYAxis(selectedSignals),
+            regionOfInterest,
             failedFiles);
     }
 
     private DecodedRecording GetOrReadRecording(
         ImportedFileSummary file,
-        int binCount,
         CancellationToken cancellationToken)
     {
-        var cacheKey = BuildWaveformCacheKey(file, binCount);
+        var cacheKey = BuildWaveformCacheKey(file);
         if (_recordingCache.TryGetValue(cacheKey, out var cachedRecording))
         {
             return cachedRecording;
         }
 
-        var recording = ReadWavFile(file, binCount, cancellationToken);
+        var recording = ReadWavFile(file, cancellationToken);
         _recordingCache.TryAdd(cacheKey, recording);
         return recording;
     }
 
     private static DecodedRecording ReadWavFile(
         ImportedFileSummary file,
-        int binCount,
         CancellationToken cancellationToken)
     {
         using var stream = File.OpenRead(file.FilePath);
@@ -161,13 +159,12 @@ public sealed class WaveformService : IWaveformService
             throw new InvalidDataException("WAV file is missing required format or data chunks.");
         }
 
-        var processedChannels = BuildChannelWaveforms(
+        var processedChannels = DecodeChannelSamples(
             stream,
             reader,
             format,
             dataChunkPosition.Value,
             dataChunkSize.Value,
-            binCount,
             cancellationToken);
         var bytesPerFrame = (format.BitsPerSample / 8) * format.Channels;
         var frameCount = bytesPerFrame == 0 ? 0 : dataChunkSize.Value / bytesPerFrame;
@@ -227,13 +224,12 @@ public sealed class WaveformService : IWaveformService
         return new WavFormat(audioFormat, channels, sampleRate, bitsPerSample);
     }
 
-    private static IReadOnlyList<ProcessedChannel> BuildChannelWaveforms(
+    private static IReadOnlyList<DecodedChannel> DecodeChannelSamples(
         Stream stream,
         BinaryReader reader,
         WavFormat format,
         long dataChunkPosition,
         uint dataChunkSize,
-        int binCount,
         CancellationToken cancellationToken)
     {
         var bytesPerSample = format.BitsPerSample / 8;
@@ -247,44 +243,38 @@ public sealed class WaveformService : IWaveformService
         if (frameCount == 0)
         {
             return Enumerable.Range(0, format.Channels)
-                .Select(index => new ProcessedChannel(
+                .Select(index => new DecodedChannel(
                     index,
                     $"Channel {index + 1}",
-                    new SignalDerivedMetrics(0, 0, 0, 0, false),
+                    GetPositiveFullScaleThreshold(format),
                     []))
                 .ToList();
         }
 
-        var actualBinCount = Math.Min(binCount, frameCount);
-        var binsByChannel = Enumerable.Range(0, format.Channels)
-            .Select(_ => CreateBins(actualBinCount))
+        var samplesByChannel = Enumerable.Range(0, format.Channels)
+            .Select(_ => new double[frameCount])
             .ToArray();
-        var metricsByChannel = Enumerable.Range(0, format.Channels)
-            .Select(_ => new SignalMetricsAccumulator(GetPositiveFullScaleThreshold(format)))
-            .ToArray();
+        var positiveFullScaleThreshold = GetPositiveFullScaleThreshold(format);
 
         stream.Position = dataChunkPosition;
 
         for (var frame = 0; frame < frameCount; frame++)
         {
             cancellationToken.ThrowIfCancellationRequested();
-            var binIndex = Math.Min(actualBinCount - 1, (int)(((long)frame * actualBinCount) / frameCount));
 
             for (var channel = 0; channel < format.Channels; channel++)
             {
                 var sample = ReadSample(reader, format);
-                var normalizedSample = Math.Clamp(sample, -1.0, 1.0);
-                binsByChannel[channel][binIndex].Include(normalizedSample);
-                metricsByChannel[channel].Include(sample);
+                samplesByChannel[channel][frame] = sample;
             }
         }
 
         return Enumerable.Range(0, format.Channels)
-            .Select(index => new ProcessedChannel(
+            .Select(index => new DecodedChannel(
                 index,
                 $"Channel {index + 1}",
-                metricsByChannel[index].Build(),
-                BuildBinsFromAccumulators(binsByChannel[index])))
+                positiveFullScaleThreshold,
+                samplesByChannel[index]))
             .ToList();
     }
 
@@ -334,6 +324,140 @@ public sealed class WaveformService : IWaveformService
         }
 
         return compactBins;
+    }
+
+    private static SignalSlice BuildSignalSlice(
+        IReadOnlyList<double> samples,
+        double positiveFullScaleThreshold,
+        int requestedBinCount,
+        AnalysisRegionOfInterest? regionOfInterest,
+        int sampleRate,
+        CancellationToken cancellationToken)
+    {
+        var sampledRegion = regionOfInterest is null
+            ? samples
+            : SliceSamples(samples, regionOfInterest, sampleRate);
+
+        if (sampledRegion.Count == 0)
+        {
+            return new SignalSlice(new SignalDerivedMetrics(0, 0, 0, 0, false), []);
+        }
+
+        var actualBinCount = Math.Min(requestedBinCount, sampledRegion.Count);
+        var bins = CreateBins(actualBinCount);
+        var metricsAccumulator = new SignalMetricsAccumulator(positiveFullScaleThreshold);
+
+        for (var sampleIndex = 0; sampleIndex < sampledRegion.Count; sampleIndex++)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+            var normalizedSample = Math.Clamp(sampledRegion[sampleIndex], -1.0, 1.0);
+            var binIndex = Math.Min(actualBinCount - 1, (int)(((long)sampleIndex * actualBinCount) / sampledRegion.Count));
+            bins[binIndex].Include(normalizedSample);
+            metricsAccumulator.Include(sampledRegion[sampleIndex]);
+        }
+
+        return new SignalSlice(
+            metricsAccumulator.Build(),
+            BuildBinsFromAccumulators(bins));
+    }
+
+    private static IReadOnlyList<double> SliceSamples(
+        IReadOnlyList<double> samples,
+        AnalysisRegionOfInterest regionOfInterest,
+        int sampleRate)
+    {
+        if (samples.Count == 0 || sampleRate <= 0)
+        {
+            return [];
+        }
+
+        var startIndex = Math.Clamp((int)Math.Floor(regionOfInterest.StartTimeSeconds * sampleRate), 0, samples.Count - 1);
+        var endIndexExclusive = Math.Clamp((int)Math.Ceiling(regionOfInterest.EndTimeSeconds * sampleRate), startIndex + 1, samples.Count);
+        var sliceLength = Math.Max(0, endIndexExclusive - startIndex);
+
+        if (sliceLength == 0)
+        {
+            return [];
+        }
+
+        var slicedSamples = new double[sliceLength];
+        for (var index = 0; index < sliceLength; index++)
+        {
+            slicedSamples[index] = samples[startIndex + index];
+        }
+
+        return slicedSamples;
+    }
+
+    private static AnalysisRegionOfInterest? ResolveRegionOfInterest(
+        IReadOnlyList<DecodedChannelSignal> selectedChannels,
+        double? startTimeSeconds,
+        double? endTimeSeconds)
+    {
+        if (startTimeSeconds is null && endTimeSeconds is null)
+        {
+            return null;
+        }
+
+        if (startTimeSeconds is null || endTimeSeconds is null)
+        {
+            throw new ArgumentOutOfRangeException(nameof(startTimeSeconds), "StartTimeSeconds and EndTimeSeconds must be provided together.");
+        }
+
+        var shortestDuration = selectedChannels.Count == 0
+            ? 0
+            : selectedChannels.Min(channel => channel.Recording.DurationSeconds);
+
+        if (startTimeSeconds.Value < 0)
+        {
+            throw new ArgumentOutOfRangeException(nameof(startTimeSeconds), "StartTimeSeconds must be greater than or equal to 0.");
+        }
+
+        if (endTimeSeconds.Value <= startTimeSeconds.Value)
+        {
+            throw new ArgumentOutOfRangeException(nameof(endTimeSeconds), "EndTimeSeconds must be greater than StartTimeSeconds.");
+        }
+
+        if (endTimeSeconds.Value > shortestDuration)
+        {
+            throw new ArgumentOutOfRangeException(
+                nameof(endTimeSeconds),
+                $"EndTimeSeconds must be less than or equal to the shortest selected signal duration ({shortestDuration:0.###} s).");
+        }
+
+        return new AnalysisRegionOfInterest(
+            startTimeSeconds.Value,
+            endTimeSeconds.Value,
+            endTimeSeconds.Value - startTimeSeconds.Value);
+    }
+
+    private static TimeWaveformSignal BuildSelectedSignal(
+        DecodedChannelSignal selectedChannel,
+        int requestedBinCount,
+        AnalysisRegionOfInterest? regionOfInterest,
+        CancellationToken cancellationToken)
+    {
+        var signalSlice = BuildSignalSlice(
+            selectedChannel.Samples,
+            selectedChannel.PositiveFullScaleThreshold,
+            requestedBinCount,
+            regionOfInterest,
+            selectedChannel.Recording.SampleRate,
+            cancellationToken);
+
+        return new TimeWaveformSignal(
+            selectedChannel.SignalId,
+            selectedChannel.Recording.RecordingId,
+            selectedChannel.Recording.FileName,
+            selectedChannel.DisplayName,
+            selectedChannel.Recording.DurationSeconds,
+            selectedChannel.Recording.SampleRate,
+            selectedChannel.ChannelIndex,
+            "FS",
+            false,
+            signalSlice.Metrics,
+            FindingsService.BuildFindings(signalSlice.Metrics),
+            signalSlice.Bins);
     }
 
     private static TimeWaveformAxis BuildYAxis(IReadOnlyList<TimeWaveformSignal> signals)
@@ -404,7 +528,7 @@ public sealed class WaveformService : IWaveformService
         int SampleRate,
         int Channels,
         string ChannelMode,
-        IReadOnlyList<ProcessedChannel> ChannelsData)
+        IReadOnlyList<DecodedChannel> ChannelsData)
     {
         public IReadOnlyList<DecodedChannelSignal> ChannelSignals =>
             ChannelsData
@@ -412,8 +536,8 @@ public sealed class WaveformService : IWaveformService
                     BuildSignalId(RecordingId, channel.ChannelIndex),
                     channel.ChannelIndex,
                     channel.DisplayName,
-                    channel.Metrics,
-                    channel.Bins,
+                    channel.Samples,
+                    channel.PositiveFullScaleThreshold,
                     this))
                 .ToList();
 
@@ -438,13 +562,17 @@ public sealed class WaveformService : IWaveformService
         string SignalId,
         int ChannelIndex,
         string DisplayName,
-        SignalDerivedMetrics Metrics,
-        IReadOnlyList<double[]> Bins,
+        IReadOnlyList<double> Samples,
+        double PositiveFullScaleThreshold,
         DecodedRecording Recording);
 
-    private sealed record ProcessedChannel(
+    private sealed record DecodedChannel(
         int ChannelIndex,
         string DisplayName,
+        double PositiveFullScaleThreshold,
+        IReadOnlyList<double> Samples);
+
+    private sealed record SignalSlice(
         SignalDerivedMetrics Metrics,
         IReadOnlyList<double[]> Bins);
 
@@ -475,8 +603,8 @@ public sealed class WaveformService : IWaveformService
         return Convert.ToHexStringLower(SHA256.HashData(Encoding.UTF8.GetBytes(payload)))[..24];
     }
 
-    private static string BuildWaveformCacheKey(ImportedFileSummary file, int binCount) =>
-        $"{BuildRecordingId(file)}|waveform|{binCount}";
+    private static string BuildWaveformCacheKey(ImportedFileSummary file) =>
+        $"{BuildRecordingId(file)}|waveform";
 
     private static string BuildSignalId(string recordingId, int channelIndex) => $"{recordingId}:ch:{channelIndex}";
 }

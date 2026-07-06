@@ -1,4 +1,5 @@
 using FastEndpoints;
+using SoundLens.Api.Common;
 using SoundLens.Api.Features.Import.Common;
 using SoundLens.Api.Features.Spectra.Commands;
 using SoundLens.Api.Features.Spectra.Common;
@@ -19,7 +20,23 @@ public sealed class GetFrequencySpectraHandler(
             ThrowError("Import at least one audio file before requesting spectrum data.");
         }
 
-        var response = spectrumService.BuildFrequencySpectra(currentFiles, command.BinCount, command.FftSize, command.SignalIds, ct);
+        FrequencySpectrumResponse response;
+        try
+        {
+            response = spectrumService.BuildFrequencySpectra(
+                currentFiles,
+                command.BinCount,
+                command.FftSize,
+                command.SignalIds,
+                command.StartTimeSeconds,
+                command.EndTimeSeconds,
+                ct);
+        }
+        catch (ArgumentOutOfRangeException exception)
+        {
+            ThrowError(exception.Message);
+            throw;
+        }
 
         if (response.Recordings.Count == 0)
         {

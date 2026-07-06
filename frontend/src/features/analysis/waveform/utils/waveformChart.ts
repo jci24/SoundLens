@@ -3,11 +3,11 @@ import type { ITimeWaveformAxis, ITimeWaveformSignal } from '../../types'
 const getWaveformChartDimensions = (width: number) => {
   if (width <= 720) {
     return {
-      chartHeight: 264,
+      chartHeight: 220,
       chartPadding: {
-        top: 18,
+        top: 16,
         right: 14,
-        bottom: 34,
+        bottom: 36,
         left: 48,
       },
     }
@@ -15,22 +15,22 @@ const getWaveformChartDimensions = (width: number) => {
 
   if (width <= 1080) {
     return {
-      chartHeight: 312,
+      chartHeight: 248,
       chartPadding: {
-        top: 20,
+        top: 18,
         right: 16,
-        bottom: 36,
+        bottom: 38,
         left: 52,
       },
     }
   }
 
   return {
-    chartHeight: 360,
+    chartHeight: 276,
     chartPadding: {
-      top: 22,
+      top: 20,
       right: 18,
-      bottom: 38,
+      bottom: 40,
       left: 54,
     },
   }
@@ -58,6 +58,8 @@ const getWaveformChartModel = (
       (binCount <= 1 ? 0 : (binIndex / (binCount - 1)) * plotWidth),
     xForTime: (timeSeconds: number) =>
       chartPadding.left + (timeSeconds / maxDuration) * plotWidth,
+    timeForX: (x: number) =>
+      ((Math.min(Math.max(x, chartPadding.left), chartPadding.left + plotWidth) - chartPadding.left) / plotWidth) * maxDuration,
     yForAmplitude: (amplitude: number) =>
       chartPadding.top +
       ((yAxis.maximum - amplitude) / (yAxis.maximum - yAxis.minimum || 1)) * plotHeight,

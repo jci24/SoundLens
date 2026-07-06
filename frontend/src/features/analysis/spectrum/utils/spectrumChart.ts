@@ -7,11 +7,11 @@ import type {
 const getSpectrumChartDimensions = (width: number) => {
   if (width <= 720) {
     return {
-      chartHeight: 264,
+      chartHeight: 220,
       chartPadding: {
-        top: 18,
+        top: 16,
         right: 14,
-        bottom: 34,
+        bottom: 36,
         left: 54,
       },
     }
@@ -19,22 +19,22 @@ const getSpectrumChartDimensions = (width: number) => {
 
   if (width <= 1080) {
     return {
-      chartHeight: 312,
+      chartHeight: 248,
       chartPadding: {
-        top: 20,
+        top: 18,
         right: 16,
-        bottom: 36,
+        bottom: 38,
         left: 64,
       },
     }
   }
 
   return {
-    chartHeight: 360,
+    chartHeight: 276,
     chartPadding: {
-      top: 22,
+      top: 20,
       right: 18,
-      bottom: 38,
+      bottom: 40,
       left: 72,
     },
   }
@@ -66,6 +66,9 @@ const getSpectrumChartModel = (
     )
   }
 
+  const getRenderablePoints = (signal: IFrequencySpectrumSignal) =>
+    simplifySpectrumPoints(signal.points ?? [], minFrequency, maxFrequency, plotWidth)
+
   return {
     chartHeight,
     chartPadding,
@@ -79,13 +82,53 @@ const getSpectrumChartModel = (
     xForFrequency,
     yForValue,
     pathForSignal: (signal: IFrequencySpectrumSignal) =>
-      (signal.points ?? [])
+      getRenderablePoints(signal)
         .map((point, index) => {
           const prefix = index === 0 ? 'M' : 'L'
           return `${prefix}${xForFrequency(point.frequencyHz)} ${yForValue(point.value)}`
         })
         .join(' '),
   }
+}
+
+const simplifySpectrumPoints = (
+  points: IFrequencySpectrumPoint[],
+  minimumFrequencyHz: number,
+  maximumFrequencyHz: number,
+  plotWidth: number
+) => {
+  const targetPointCount = Math.max(64, Math.floor(plotWidth * 1.5))
+  if (points.length <= targetPointCount || plotWidth <= 1) {
+    return points
+  }
+
+  const frequencySpan = Math.max(maximumFrequencyHz - minimumFrequencyHz, 1)
+  const bucketCount = Math.max(1, Math.floor(plotWidth))
+  const buckets = Array.from({ length: bucketCount }, () => ({
+    totalFrequencyHz: 0,
+    totalValue: 0,
+    count: 0,
+  }))
+
+  for (const point of points) {
+    const normalizedFrequency = (point.frequencyHz - minimumFrequencyHz) / frequencySpan
+    const bucketIndex = Math.min(
+      bucketCount - 1,
+      Math.max(0, Math.floor(normalizedFrequency * bucketCount))
+    )
+    const bucket = buckets[bucketIndex]
+
+    bucket.totalFrequencyHz += point.frequencyHz
+    bucket.totalValue += point.value
+    bucket.count += 1
+  }
+
+  return buckets
+    .filter((bucket) => bucket.count > 0)
+    .map((bucket) => ({
+      frequencyHz: bucket.totalFrequencyHz / bucket.count,
+      value: bucket.totalValue / bucket.count,
+    }))
 }
 
 interface ISpectrumViewport {
@@ -192,5 +235,6 @@ export {
   getSpectrumViewport,
   getVisibleSpectrumSignals,
   getVisibleSpectrumXAxis,
+  simplifySpectrumPoints,
 }
 export type { ISpectrumViewport }

@@ -2,6 +2,7 @@ import { AnalysisWorkspaceChart } from './AnalysisWorkspaceChart'
 import { AnalysisWorkspaceHeader } from './AnalysisWorkspaceHeader'
 import { RecordingRail } from '../../recording-rail/components/RecordingRail'
 import { useAnalysisWorkspaceMetrics } from '../../metrics/hooks/useAnalysisWorkspaceMetrics'
+import { formatCompactDuration } from '../../utils/analysisWorkspaceFormatting'
 import { useAnalysisWorkspacePanels } from '../hooks/useAnalysisWorkspacePanels'
 import { useTimeWaveformWorkspace } from '../hooks/useTimeWaveformWorkspace'
 import type { IImportedFileSummary } from '../../../../common/contracts/import'
@@ -49,6 +50,8 @@ const TimeWaveformWorkspace = ({ importedFiles }: ITimeWaveformWorkspaceProps) =
     onSpectrumRangeReset,
     onSpectrumRangeStartChange,
     onSurfaceChange,
+    onRegionOfInterestChange,
+    regionOfInterest,
   } = useTimeWaveformWorkspace(importedFiles)
   const waveformYAxis = waveforms?.yAxis ?? null
   const spectrumYAxis = spectrum?.yAxis ?? null
@@ -72,13 +75,14 @@ const TimeWaveformWorkspace = ({ importedFiles }: ITimeWaveformWorkspaceProps) =
     waveformYAxis,
   })
   const { hasMetricsPending, metricSignals } = useAnalysisWorkspaceMetrics({
+    preferSpectrumMetrics: regionOfInterest !== null,
     spectrumSignals,
     waveformSignals,
   })
 
   return (
     <section
-      className={`time-waveform-workspace${hasActiveChart ? ' time-waveform-workspace--revealed' : ''}`}
+      className={`time-waveform-workspace${hasActiveChart ? ' time-waveform-workspace--revealed' : ''}${layoutMode === 'compare' ? ' time-waveform-workspace--compare' : ''}`}
       aria-label="Analysis workspace"
     >
       <AnalysisWorkspaceHeader
@@ -111,13 +115,32 @@ const TimeWaveformWorkspace = ({ importedFiles }: ITimeWaveformWorkspaceProps) =
           selectedSignalIds={selectedSignalIds}
         />
         <div className="time-waveform-workspace__main-pane">
+          {regionOfInterest && (
+            <section className="time-waveform-workspace__roi-summary" aria-label="Selected time region">
+              <div className="time-waveform-workspace__roi-copy">
+                <span className="time-waveform-workspace__roi-title">Selected region</span>
+                <span className="time-waveform-workspace__roi-values">
+                  {`${formatCompactDuration(regionOfInterest.startTimeSeconds)} to ${formatCompactDuration(regionOfInterest.endTimeSeconds)} · ${formatCompactDuration(regionOfInterest.durationSeconds)}`}
+                </span>
+              </div>
+              <button
+                className="time-waveform-workspace__roi-clear"
+                type="button"
+                onClick={() => onRegionOfInterestChange(null)}
+              >
+                Clear region
+              </button>
+            </section>
+          )}
           <AnalysisWorkspaceChart
             chartRef={chartRef}
             chartWidth={chartWidth}
             hasMetricsPending={hasMetricsPending}
             isCompareMode={layoutMode === 'compare'}
             metricSignals={metricSignals}
+            onRegionOfInterestChange={onRegionOfInterestChange}
             panels={panels}
+            regionOfInterest={regionOfInterest}
             signalChartMode={signalChartMode}
             spectrumSignals={spectrumSignals}
             spectrumXAxis={spectrumXAxis}

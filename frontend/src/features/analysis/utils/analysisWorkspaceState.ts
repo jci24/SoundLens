@@ -3,6 +3,11 @@ export interface ISpectrumRange {
   endHz: number
 }
 
+export interface IRequestedRegionOfInterest {
+  startTimeSeconds: number
+  endTimeSeconds: number
+}
+
 const spectrumFftSizeValues = [
   512,
   1024,
@@ -36,6 +41,21 @@ const spectrumFftSizeSelectOptions = spectrumFftSizeValues.map((value) => ({
 // Selection order drives overlay order, so this intentionally compares sequences, not sets.
 const areSignalIdsEqual = (left: string[], right: string[]) =>
   left.length === right.length && left.every((signalId, index) => signalId === right[index])
+
+const areRegionOfInterestEqual = (
+  left: IRequestedRegionOfInterest | null,
+  right: IRequestedRegionOfInterest | null
+) => {
+  if (left === null && right === null) {
+    return true
+  }
+
+  if (left === null || right === null) {
+    return false
+  }
+
+  return left.startTimeSeconds === right.startTimeSeconds && left.endTimeSeconds === right.endTimeSeconds
+}
 
 const getNextExpandedRecordings = (currentExpanded: string[], recordingId: string) =>
   currentExpanded.includes(recordingId)
@@ -93,6 +113,7 @@ const getNextSpectrumRangeEnd = (
 }
 
 export {
+  areRegionOfInterestEqual,
   areSignalIdsEqual,
   clampSpectrumRange,
   defaultSpectrumFftSize,

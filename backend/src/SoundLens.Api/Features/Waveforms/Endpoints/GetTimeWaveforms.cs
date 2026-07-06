@@ -27,6 +27,21 @@ public sealed class GetTimeWaveforms : Endpoint<GetTimeWaveformsCommand, TimeWav
             RuleFor(command => command.BinCount)
                 .InclusiveBetween(WaveformOptions.MinimumBinCount, WaveformOptions.MaximumBinCount)
                 .WithMessage($"BinCount must be between {WaveformOptions.MinimumBinCount} and {WaveformOptions.MaximumBinCount}.");
+
+            RuleFor(command => command)
+                .Must(command => (command.StartTimeSeconds is null) == (command.EndTimeSeconds is null))
+                .WithMessage("StartTimeSeconds and EndTimeSeconds must be provided together.");
+
+            When(command => command.StartTimeSeconds is not null && command.EndTimeSeconds is not null, () =>
+            {
+                RuleFor(command => command.StartTimeSeconds!.Value)
+                    .GreaterThanOrEqualTo(0)
+                    .WithMessage("StartTimeSeconds must be greater than or equal to 0.");
+
+                RuleFor(command => command.EndTimeSeconds!.Value)
+                    .GreaterThan(command => command.StartTimeSeconds!.Value)
+                    .WithMessage("EndTimeSeconds must be greater than StartTimeSeconds.");
+            });
         }
     }
 

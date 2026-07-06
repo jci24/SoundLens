@@ -1,4 +1,5 @@
 using FastEndpoints;
+using SoundLens.Api.Common;
 using SoundLens.Api.Features.Import.Common;
 using SoundLens.Api.Features.Waveforms.Commands;
 using SoundLens.Api.Features.Waveforms.Common;
@@ -17,7 +18,22 @@ public sealed class GetTimeWaveformsHandler(
             ThrowError("Import at least one audio file before requesting waveform data.");
         }
 
-        var response = waveformService.BuildTimeWaveforms(currentFiles, command.BinCount, command.SignalIds, ct);
+        TimeWaveformResponse response;
+        try
+        {
+            response = waveformService.BuildTimeWaveforms(
+                currentFiles,
+                command.BinCount,
+                command.SignalIds,
+                command.StartTimeSeconds,
+                command.EndTimeSeconds,
+                ct);
+        }
+        catch (ArgumentOutOfRangeException exception)
+        {
+            ThrowError(exception.Message);
+            throw;
+        }
 
         if (response.Recordings.Count == 0)
         {

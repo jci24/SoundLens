@@ -79,7 +79,9 @@ describe('AnalysisWorkspacePanel', () => {
       <AnalysisWorkspacePanel
         chartWidth={640}
         isCompareMode={false}
+        onRegionOfInterestChange={vi.fn()}
         panel={{ ...basePanel, isInitialLoading: true }}
+        regionOfInterest={null}
         signalChartMode="overlay"
         spectrumSignals={[]}
         spectrumXAxis={spectrumAxis}
@@ -98,7 +100,9 @@ describe('AnalysisWorkspacePanel', () => {
       <AnalysisWorkspacePanel
         chartWidth={640}
         isCompareMode={false}
+        onRegionOfInterestChange={vi.fn()}
         panel={{ ...basePanel, error: 'Waveform request failed' }}
+        regionOfInterest={null}
         signalChartMode="overlay"
         spectrumSignals={[]}
         spectrumXAxis={spectrumAxis}
@@ -117,7 +121,9 @@ describe('AnalysisWorkspacePanel', () => {
       <AnalysisWorkspacePanel
         chartWidth={640}
         isCompareMode={false}
+        onRegionOfInterestChange={vi.fn()}
         panel={{ ...basePanel, isRefreshing: true }}
+        regionOfInterest={null}
         signalChartMode="split"
         spectrumSignals={[]}
         spectrumXAxis={spectrumAxis}

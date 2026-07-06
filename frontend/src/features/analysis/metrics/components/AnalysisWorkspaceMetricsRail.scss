@@ -123,3 +123,32 @@
     color: color-mix(in srgb, var(--destructive) 78%, var(--foreground) 22%);
   }
 }
+
+.time-waveform-workspace--compare {
+  .time-waveform-workspace__metrics-rail {
+    padding: 0.3rem 0.7rem 0.35rem;
+    border-radius: 0.95rem;
+  }
+
+  .time-waveform-workspace__metrics-rail-header {
+    margin-bottom: 0.2rem;
+  }
+
+  .time-waveform-workspace__metrics-scroll {
+    max-height: 6.5rem;
+  }
+
+  .time-waveform-workspace__metrics-table {
+    th {
+      padding: 0.14rem 0.4rem 0.16rem;
+    }
+
+    td {
+      padding: 0.14rem 0.4rem;
+    }
+  }
+
+  .time-waveform-workspace__metrics-signal-cell {
+    max-width: 9rem;
+  }
+}

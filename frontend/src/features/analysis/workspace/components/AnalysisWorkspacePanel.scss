@@ -2,9 +2,10 @@
   &__panel-shell {
     position: relative;
     display: flex;
+    flex: 1 1 auto;
     flex-direction: column;
     min-width: 0;
-    min-height: clamp(14rem, 24vh, 19rem);
+    min-height: 0;
     border: 1px solid color-mix(in srgb, var(--border) 82%, transparent);
     border-radius: 1.55rem;
     background:
@@ -55,8 +56,10 @@
 
   &__panel-chart-grid {
     display: grid;
+    flex: 1 1 auto;
     gap: 0.75rem;
     min-width: 0;
+    min-height: 0;
     padding: 0.5rem 0.6rem 0.6rem;
   }
 
@@ -103,6 +106,32 @@
   }
 
   &__panel-chart-frame {
+    display: flex;
     min-width: 0;
+    min-height: 0;
+  }
+}
+
+.time-waveform-workspace--compare {
+  .time-waveform-workspace__panel-shell {
+    border-radius: 1.15rem;
+  }
+
+  .time-waveform-workspace__panel-header {
+    min-height: 2.4rem;
+    padding: 0.55rem 0.8rem 0.5rem;
+  }
+
+  .time-waveform-workspace__panel-chart-grid {
+    gap: 0.5rem;
+    padding: 0.35rem 0.4rem 0.45rem;
+  }
+
+  .time-waveform-workspace__panel-chart-grid--compare {
+    padding: 0.35rem;
+  }
+
+  .time-waveform-workspace__panel-chart-card-header {
+    padding: 0.35rem 0.5rem 0.3rem;
   }
 }

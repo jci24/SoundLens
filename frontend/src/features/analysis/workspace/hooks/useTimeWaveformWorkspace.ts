@@ -9,6 +9,7 @@ import {
 } from '../../spectrum/utils/spectrumChart'
 import type { IImportedFileSummary } from '../../../../common/contracts/import'
 import type {
+  IAnalysisRegionOfInterest,
   IFrequencySpectrumAxis,
   IFrequencySpectrumResponse,
   IFrequencySpectrumSignal,
@@ -20,6 +21,7 @@ import type {
 } from '../../types'
 import { useMeasuredChartWidth } from './useMeasuredChartWidth'
 import {
+  areRegionOfInterestEqual,
   areSignalIdsEqual,
   clampSpectrumRange,
   defaultSpectrumFftSize,
@@ -29,6 +31,7 @@ import {
   getNextSpectrumRangeStart,
   getWaveformRequestedBinCount,
   spectrumFftSizeSelectOptions,
+  type IRequestedRegionOfInterest,
   type ISpectrumRange,
 } from '../../utils/analysisWorkspaceState'
 import { useAnalysisWorkspaceStore } from '../../stores/useAnalysisWorkspaceStore'
@@ -70,6 +73,14 @@ interface IUseTimeWaveformWorkspaceResult {
   onSpectrumRangeReset: () => void
   onSpectrumRangeStartChange: (value: string) => void
   onSurfaceChange: (surface: TAnalysisSurface) => void
+  onRegionOfInterestChange: (regionOfInterest: IAnalysisRegionOfInterest | null) => void
+  regionOfInterest: IAnalysisRegionOfInterest | null
+}
+
+interface IResolvedSpectrumRequest {
+  fftSize: number
+  regionOfInterest: IRequestedRegionOfInterest | null
+  signalIds: string[]
 }
 
 const useTimeWaveformWorkspace = (
@@ -81,6 +92,7 @@ const useTimeWaveformWorkspace = (
   const [spectrum, setSpectrum] = useState<IFrequencySpectrumResponse | null>(null)
   const [waveformError, setWaveformError] = useState<string | null>(null)
   const [spectrumError, setSpectrumError] = useState<string | null>(null)
+  const [resolvedSpectrumRequest, setResolvedSpectrumRequest] = useState<IResolvedSpectrumRequest | null>(null)
   const [selectedSpectrumFftSize, setSelectedSpectrumFftSize] = useState(defaultSpectrumFftSize)
   const [spectrumRange, setSpectrumRange] = useState<ISpectrumRange>({
     startHz: 0,
@@ -92,11 +104,23 @@ const useTimeWaveformWorkspace = (
   const signalChartMode = useAnalysisWorkspaceStore((state) => state.signalChartMode)
   const selectedSignalIds = useAnalysisWorkspaceStore((state) => state.selectedSignalIds)
   const expandedRecordings = useAnalysisWorkspaceStore((state) => state.expandedRecordings)
+  const regionOfInterest = useAnalysisWorkspaceStore((state) => state.regionOfInterest)
   const syncSignalIds = useAnalysisWorkspaceStore((state) => state.syncSignalIds)
+  const setRegionOfInterest = useAnalysisWorkspaceStore((state) => state.setRegionOfInterest)
 
   const binCount = useMemo(() => getWaveformRequestedBinCount(chartWidth), [chartWidth])
   const showWaveformPanel = layoutMode === 'compare' || activeSurface === 'waveform'
   const showSpectrumPanel = layoutMode === 'compare' || activeSurface === 'spectrum'
+  const requestedRegionOfInterest = useMemo<IRequestedRegionOfInterest | null>(
+    () =>
+      regionOfInterest
+        ? {
+            startTimeSeconds: regionOfInterest.startTimeSeconds,
+            endTimeSeconds: regionOfInterest.endTimeSeconds,
+          }
+        : null,
+    [regionOfInterest]
+  )
 
   useEffect(() => {
     if (binCount <= 0 || importedFiles.length === 0) {
@@ -126,7 +150,7 @@ const useTimeWaveformWorkspace = (
     }
 
     if (showSpectrumPanel) {
-      void getFrequencySpectra(selectedSpectrumFftSize, selectedSignalIds)
+      void getFrequencySpectra(selectedSpectrumFftSize, selectedSignalIds, requestedRegionOfInterest)
         .then((response) => {
           if (!isCurrent) {
             return
@@ -134,6 +158,11 @@ const useTimeWaveformWorkspace = (
 
           setSpectrum(response)
           setSpectrumError(null)
+          setResolvedSpectrumRequest({
+            fftSize: selectedSpectrumFftSize,
+            regionOfInterest: requestedRegionOfInterest,
+            signalIds: [...selectedSignalIds],
+          })
           syncSignalIds(response.selectedSignals.map((signal) => signal.signalId))
         })
         .catch((caughtError) => {
@@ -148,10 +177,16 @@ const useTimeWaveformWorkspace = (
     return () => {
       isCurrent = false
     }
-  }, [binCount, importedFiles.length, selectedSignalIds, selectedSpectrumFftSize, showSpectrumPanel, showWaveformPanel, syncSignalIds])
+  }, [binCount, importedFiles.length, requestedRegionOfInterest, selectedSignalIds, selectedSpectrumFftSize, showSpectrumPanel, showWaveformPanel, syncSignalIds])
 
   const waveformResponseSignalIds = waveforms?.selectedSignals.map((signal) => signal.signalId) ?? []
   const spectrumResponseSignalIds = spectrum?.selectedSignals.map((signal) => signal.signalId) ?? []
+  const spectrumResponseRegionOfInterest = spectrum?.regionOfInterest
+    ? {
+        startTimeSeconds: spectrum.regionOfInterest.startTimeSeconds,
+        endTimeSeconds: spectrum.regionOfInterest.endTimeSeconds,
+      }
+    : null
   const activeResponseSignalIds = activeSurface === 'waveform' ? waveformResponseSignalIds : spectrumResponseSignalIds
   const isWaveformRefreshing =
     showWaveformPanel &&
@@ -167,9 +202,11 @@ const useTimeWaveformWorkspace = (
     binCount > 0 &&
     !spectrumError &&
     (!spectrum ||
-      spectrum.analysis.fftLength !== selectedSpectrumFftSize ||
+      resolvedSpectrumRequest?.fftSize !== selectedSpectrumFftSize ||
+      !areRegionOfInterestEqual(requestedRegionOfInterest, resolvedSpectrumRequest.regionOfInterest ?? null) ||
+      !areRegionOfInterestEqual(requestedRegionOfInterest, spectrumResponseRegionOfInterest) ||
       (selectedSignalIds.length > 0 &&
-        !areSignalIdsEqual(selectedSignalIds, spectrumResponseSignalIds)))
+        !areSignalIdsEqual(selectedSignalIds, resolvedSpectrumRequest?.signalIds ?? [])))
   const isSpectrumInitialLoading = isSpectrumRefreshing && spectrum === null
 
   const recordings = waveforms?.recordings ?? spectrum?.recordings ?? []
@@ -199,12 +236,16 @@ const useTimeWaveformWorkspace = (
     [fullSpectrumXAxis, spectrumViewport]
   )
   const resolvedSelectedSignalIds = selectedSignalIds.length > 0 ? selectedSignalIds : activeResponseSignalIds
+  const resolvedRegionOfInterest = regionOfInterest ?? spectrum?.regionOfInterest ?? null
 
   const onRecordingToggle = useAnalysisWorkspaceStore((state) => state.toggleRecording)
   const onLayoutModeChange = useAnalysisWorkspaceStore((state) => state.setLayoutMode)
   const onSignalSelection = useAnalysisWorkspaceStore((state) => state.selectSignal)
   const onSignalChartModeChange = useAnalysisWorkspaceStore((state) => state.setSignalChartMode)
   const onSurfaceChange = useAnalysisWorkspaceStore((state) => state.setActiveSurface)
+  const onRegionOfInterestChange = (nextRegionOfInterest: IAnalysisRegionOfInterest | null) => {
+    setRegionOfInterest(nextRegionOfInterest)
+  }
 
   const onSpectrumPresetChange = (preset: string) => {
     const selectedOption = spectrumFftSizeSelectOptions.find((option) => option.label === preset)
@@ -277,6 +318,8 @@ const useTimeWaveformWorkspace = (
     onSpectrumRangeReset,
     onSpectrumRangeStartChange,
     onSurfaceChange,
+    onRegionOfInterestChange,
+    regionOfInterest: resolvedRegionOfInterest,
   }
 }
 

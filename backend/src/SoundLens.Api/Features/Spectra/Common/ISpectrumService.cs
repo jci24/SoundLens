@@ -9,5 +9,7 @@ public interface ISpectrumService
         int requestedBinCount,
         int? explicitFftSize,
         IReadOnlyList<string>? selectedSignalIds,
+        double? startTimeSeconds,
+        double? endTimeSeconds,
         CancellationToken cancellationToken);
 }

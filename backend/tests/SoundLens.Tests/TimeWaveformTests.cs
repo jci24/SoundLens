@@ -55,6 +55,7 @@ public sealed class TimeWaveformTests : IClassFixture<WebApplicationFactory<Prog
             Assert.InRange(signal.Metrics.CrestFactor, 1.25, 1.27);
             Assert.Equal(2, signal.Metrics.ClippingSampleCount);
             Assert.True(signal.Metrics.HasClipping);
+            Assert.Null(result.RegionOfInterest);
         }
         finally
         {
@@ -194,6 +195,123 @@ public sealed class TimeWaveformTests : IClassFixture<WebApplicationFactory<Prog
     }
 
     [Fact]
+    public async Task POST_TimeWaveforms_PreservesRequestedSignalOrderAcrossRecordings()
+    {
+        var firstPath = Path.Combine(Path.GetTempPath(), $"soundlens_waveform_first_{Guid.NewGuid():N}.wav");
+        var secondPath = Path.Combine(Path.GetTempPath(), $"soundlens_waveform_second_{Guid.NewGuid():N}.wav");
+        await File.WriteAllBytesAsync(firstPath, CreateMono16BitWav(
+            sampleRate: 8,
+            samples: [32767, 16384, 0, -16384]));
+        await File.WriteAllBytesAsync(secondPath, CreateMono16BitWav(
+            sampleRate: 8,
+            samples: [-32768, -16384, 0, 16384]));
+
+        try
+        {
+            var client = _factory.CreateClient();
+            var importResponse = await client.PostAsJsonAsync("/api/import", new { filePaths = new[] { firstPath, secondPath } });
+            importResponse.EnsureSuccessStatusCode();
+
+            var baselineResponse = await client.PostAsJsonAsync("/api/waveforms/time", new { binCount = 64 });
+            baselineResponse.EnsureSuccessStatusCode();
+            var baseline = await baselineResponse.Content.ReadFromJsonAsync<TimeWaveformResponse>();
+
+            Assert.NotNull(baseline);
+            Assert.Equal(2, baseline!.Recordings.Count);
+
+            var firstSignalId = baseline.Recordings[0].Signals.Single().SignalId;
+            var secondSignalId = baseline.Recordings[1].Signals.Single().SignalId;
+
+            var filteredResponse = await client.PostAsJsonAsync("/api/waveforms/time", new
+            {
+                binCount = 64,
+                signalIds = new[] { secondSignalId, firstSignalId }
+            });
+
+            filteredResponse.EnsureSuccessStatusCode();
+            var filtered = await filteredResponse.Content.ReadFromJsonAsync<TimeWaveformResponse>();
+
+            Assert.NotNull(filtered);
+            Assert.Equal([secondSignalId, firstSignalId], filtered!.SelectedSignals.Select(signal => signal.SignalId).ToArray());
+            Assert.Equal(baseline.Recordings[1].FileName, filtered.SelectedSignals[0].RecordingFileName);
+            Assert.Equal(baseline.Recordings[0].FileName, filtered.SelectedSignals[1].RecordingFileName);
+        }
+        finally
+        {
+            File.Delete(firstPath);
+            File.Delete(secondPath);
+        }
+    }
+
+    [Fact]
+    public async Task POST_TimeWaveforms_ReturnsRegionScopedMetricsAndEchoesRequestedRegion()
+    {
+        var tempPath = Path.Combine(Path.GetTempPath(), $"soundlens_waveform_roi_{Guid.NewGuid():N}.wav");
+        await File.WriteAllBytesAsync(tempPath, CreateMono16BitWav(
+            sampleRate: 8,
+            samples: [32767, 32767, 32767, 32767, 8192, 8192, 8192, 8192]));
+
+        try
+        {
+            var client = _factory.CreateClient();
+            var importResponse = await client.PostAsJsonAsync("/api/import", new { filePaths = new[] { tempPath } });
+            importResponse.EnsureSuccessStatusCode();
+
+            var response = await client.PostAsJsonAsync("/api/waveforms/time", new
+            {
+                binCount = 64,
+                startTimeSeconds = 0.5,
+                endTimeSeconds = 1.0
+            });
+
+            response.EnsureSuccessStatusCode();
+            var result = await response.Content.ReadFromJsonAsync<TimeWaveformResponse>();
+
+            Assert.NotNull(result);
+            var signal = Assert.Single(result!.SelectedSignals);
+            Assert.NotNull(result.RegionOfInterest);
+            Assert.Equal(0.5, result.RegionOfInterest!.StartTimeSeconds, 6);
+            Assert.Equal(1.0, result.RegionOfInterest.EndTimeSeconds, 6);
+            Assert.Equal(0.5, result.RegionOfInterest.DurationSeconds, 6);
+            Assert.InRange(signal.Metrics.PeakAmplitude, 0.24, 0.26);
+            Assert.All(signal.Bins, bin => Assert.InRange(bin[1], 0.24, 0.26));
+        }
+        finally
+        {
+            File.Delete(tempPath);
+        }
+    }
+
+    [Fact]
+    public async Task POST_TimeWaveforms_RejectsRegionThatExceedsSelectedSignalDuration()
+    {
+        var tempPath = Path.Combine(Path.GetTempPath(), $"soundlens_waveform_roi_invalid_{Guid.NewGuid():N}.wav");
+        await File.WriteAllBytesAsync(tempPath, CreateMono16BitWav(
+            sampleRate: 8,
+            samples: [32767, 16384, 0, -16384]));
+
+        try
+        {
+            var client = _factory.CreateClient();
+            var importResponse = await client.PostAsJsonAsync("/api/import", new { filePaths = new[] { tempPath } });
+            importResponse.EnsureSuccessStatusCode();
+
+            var response = await client.PostAsJsonAsync("/api/waveforms/time", new
+            {
+                binCount = 64,
+                startTimeSeconds = 0.25,
+                endTimeSeconds = 1.5
+            });
+
+            Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+        }
+        finally
+        {
+            File.Delete(tempPath);
+        }
+    }
+
+    [Fact]
     public async Task WaveformService_ReusesCachedWaveformAfterSourceFileIsDeleted()
     {
         var sampleRate = 1024;
@@ -206,10 +324,10 @@ public sealed class TimeWaveformTests : IClassFixture<WebApplicationFactory<Prog
 
         try
         {
-            var firstResult = waveformService.BuildTimeWaveforms([importedFile], requestedBinCount: 256, selectedSignalIds: null, CancellationToken.None);
+            var firstResult = waveformService.BuildTimeWaveforms([importedFile], requestedBinCount: 256, selectedSignalIds: null, startTimeSeconds: null, endTimeSeconds: null, CancellationToken.None);
             File.Delete(tempPath);
 
-            var secondResult = waveformService.BuildTimeWaveforms([importedFile], requestedBinCount: 256, selectedSignalIds: null, CancellationToken.None);
+            var secondResult = waveformService.BuildTimeWaveforms([importedFile], requestedBinCount: 256, selectedSignalIds: null, startTimeSeconds: null, endTimeSeconds: null, CancellationToken.None);
             Assert.Equal(firstResult.Recordings.Count, secondResult.Recordings.Count);
             Assert.Equal(firstResult.SelectedSignals.Count, secondResult.SelectedSignals.Count);
             Assert.Equal(firstResult.YAxis.Unit, secondResult.YAxis.Unit);
@@ -257,7 +375,7 @@ public sealed class TimeWaveformTests : IClassFixture<WebApplicationFactory<Prog
             var importedFile = new ImportedFileSummary("8bit.wav", new FileInfo(tempPath).Length, tempPath, "audio/wav");
             var waveformService = new WaveformService();
 
-            var result = waveformService.BuildTimeWaveforms([importedFile], requestedBinCount: 256, selectedSignalIds: null, CancellationToken.None);
+            var result = waveformService.BuildTimeWaveforms([importedFile], requestedBinCount: 256, selectedSignalIds: null, startTimeSeconds: null, endTimeSeconds: null, CancellationToken.None);
 
             var signal = Assert.Single(result.SelectedSignals);
             Assert.Equal(4, signal.Bins.Count);
@@ -301,7 +419,7 @@ public sealed class TimeWaveformTests : IClassFixture<WebApplicationFactory<Prog
             var importedFile = new ImportedFileSummary("24bit.wav", new FileInfo(tempPath).Length, tempPath, "audio/wav");
             var waveformService = new WaveformService();
 
-            var result = waveformService.BuildTimeWaveforms([importedFile], requestedBinCount: 256, selectedSignalIds: null, CancellationToken.None);
+            var result = waveformService.BuildTimeWaveforms([importedFile], requestedBinCount: 256, selectedSignalIds: null, startTimeSeconds: null, endTimeSeconds: null, CancellationToken.None);
 
             var signal = Assert.Single(result.SelectedSignals);
             Assert.Equal(4, signal.Bins.Count);
@@ -338,7 +456,7 @@ public sealed class TimeWaveformTests : IClassFixture<WebApplicationFactory<Prog
             var importedFile = new ImportedFileSummary("float32.wav", new FileInfo(tempPath).Length, tempPath, "audio/wav");
             var waveformService = new WaveformService();
 
-            var result = waveformService.BuildTimeWaveforms([importedFile], requestedBinCount: 256, selectedSignalIds: null, CancellationToken.None);
+            var result = waveformService.BuildTimeWaveforms([importedFile], requestedBinCount: 256, selectedSignalIds: null, startTimeSeconds: null, endTimeSeconds: null, CancellationToken.None);
 
             var signal = Assert.Single(result.SelectedSignals);
             Assert.Equal(4, signal.Bins.Count);
@@ -376,7 +494,7 @@ public sealed class TimeWaveformTests : IClassFixture<WebApplicationFactory<Prog
             var importedFile = new ImportedFileSummary("dc.wav", new FileInfo(tempPath).Length, tempPath, "audio/wav");
             var waveformService = new WaveformService();
 
-            var result = waveformService.BuildTimeWaveforms([importedFile], requestedBinCount: 64, selectedSignalIds: null, CancellationToken.None);
+            var result = waveformService.BuildTimeWaveforms([importedFile], requestedBinCount: 64, selectedSignalIds: null, startTimeSeconds: null, endTimeSeconds: null, CancellationToken.None);
 
             var signal = Assert.Single(result.SelectedSignals);
             var expectedNormalised = dcSampleValue / 32768.0;
@@ -417,7 +535,7 @@ public sealed class TimeWaveformTests : IClassFixture<WebApplicationFactory<Prog
             var waveformService = new WaveformService();
 
             // Request only 1 bin so all samples land in the same bin
-            var result = waveformService.BuildTimeWaveforms([importedFile], requestedBinCount: 64, selectedSignalIds: null, CancellationToken.None);
+            var result = waveformService.BuildTimeWaveforms([importedFile], requestedBinCount: 64, selectedSignalIds: null, startTimeSeconds: null, endTimeSeconds: null, CancellationToken.None);
 
             var signal = Assert.Single(result.SelectedSignals);
             var firstBin = signal.Bins[0];
@@ -450,14 +568,14 @@ public sealed class TimeWaveformTests : IClassFixture<WebApplicationFactory<Prog
             var waveformService = new WaveformService();
 
             var clippingFile = new ImportedFileSummary("clip.wav", new FileInfo(clippingPath).Length, clippingPath, "audio/wav");
-            var clippingResult = waveformService.BuildTimeWaveforms([clippingFile], requestedBinCount: 256, selectedSignalIds: null, CancellationToken.None);
+            var clippingResult = waveformService.BuildTimeWaveforms([clippingFile], requestedBinCount: 256, selectedSignalIds: null, startTimeSeconds: null, endTimeSeconds: null, CancellationToken.None);
             var clippingSignal = Assert.Single(clippingResult.SelectedSignals);
 
             Assert.Equal(1, clippingSignal.Metrics.ClippingSampleCount);
             Assert.True(clippingSignal.Metrics.HasClipping);
 
             var safeFile = new ImportedFileSummary("safe.wav", new FileInfo(safePath).Length, safePath, "audio/wav");
-            var safeResult = waveformService.BuildTimeWaveforms([safeFile], requestedBinCount: 256, selectedSignalIds: null, CancellationToken.None);
+            var safeResult = waveformService.BuildTimeWaveforms([safeFile], requestedBinCount: 256, selectedSignalIds: null, startTimeSeconds: null, endTimeSeconds: null, CancellationToken.None);
             var safeSignal = Assert.Single(safeResult.SelectedSignals);
 
             Assert.Equal(0, safeSignal.Metrics.ClippingSampleCount);

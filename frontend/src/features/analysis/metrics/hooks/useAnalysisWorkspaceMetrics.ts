@@ -16,6 +16,7 @@ interface IMetricSignalItem {
 }
 
 interface IUseAnalysisWorkspaceMetricsOptions {
+  preferSpectrumMetrics?: boolean
   spectrumSignals: IFrequencySpectrumSignal[]
   waveformSignals: ITimeWaveformSignal[]
 }
@@ -34,11 +35,17 @@ const defaultMetrics = {
 }
 
 const useAnalysisWorkspaceMetrics = ({
+  preferSpectrumMetrics = false,
   spectrumSignals,
   waveformSignals,
 }: IUseAnalysisWorkspaceMetricsOptions): IUseAnalysisWorkspaceMetricsResult =>
   useMemo(() => {
-    const sourceSignals = waveformSignals.length > 0 ? waveformSignals : spectrumSignals
+    const sourceSignals =
+      preferSpectrumMetrics && spectrumSignals.length > 0
+        ? spectrumSignals
+        : waveformSignals.length > 0
+          ? waveformSignals
+          : spectrumSignals
 
     return {
       hasMetricsPending: sourceSignals.some((signal) => signal.metrics === undefined),
@@ -57,7 +64,7 @@ const useAnalysisWorkspaceMetrics = ({
         findings: signal.findings ?? [],
       })),
     }
-  }, [spectrumSignals, waveformSignals])
+  }, [preferSpectrumMetrics, spectrumSignals, waveformSignals])
 
 export { useAnalysisWorkspaceMetrics }
 export type { IMetricSignalItem }

@@ -4,7 +4,7 @@ import {
   getNextExpandedRecordings,
   getNextRequestedSignalIds,
 } from '../utils/analysisWorkspaceState'
-import type { TAnalysisLayoutMode, TAnalysisSurface, TSignalChartMode } from '../types'
+import type { IAnalysisRegionOfInterest, TAnalysisLayoutMode, TAnalysisSurface, TSignalChartMode } from '../types'
 
 interface IAnalysisWorkspaceStore {
   selectedSignalIds: string[]
@@ -12,11 +12,13 @@ interface IAnalysisWorkspaceStore {
   activeSurface: TAnalysisSurface
   layoutMode: TAnalysisLayoutMode
   signalChartMode: TSignalChartMode
+  regionOfInterest: IAnalysisRegionOfInterest | null
   selectSignal: (signalId: string) => void
   toggleRecording: (recordingId: string) => void
   setActiveSurface: (surface: TAnalysisSurface) => void
   setLayoutMode: (mode: TAnalysisLayoutMode) => void
   setSignalChartMode: (mode: TSignalChartMode) => void
+  setRegionOfInterest: (regionOfInterest: IAnalysisRegionOfInterest | null) => void
   syncSignalIds: (responseSignalIds: string[]) => void
 }
 
@@ -26,6 +28,7 @@ const useAnalysisWorkspaceStore = create<IAnalysisWorkspaceStore>((set) => ({
   activeSurface: 'waveform',
   layoutMode: 'focused',
   signalChartMode: 'overlay',
+  regionOfInterest: null,
 
   selectSignal: (signalId) =>
     set((state) => ({
@@ -46,6 +49,8 @@ const useAnalysisWorkspaceStore = create<IAnalysisWorkspaceStore>((set) => ({
     })),
 
   setSignalChartMode: (mode) => set({ signalChartMode: mode }),
+
+  setRegionOfInterest: (regionOfInterest) => set({ regionOfInterest }),
 
   syncSignalIds: (responseSignalIds) =>
     set((state) => {

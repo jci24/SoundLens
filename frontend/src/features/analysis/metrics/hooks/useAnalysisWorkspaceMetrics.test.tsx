@@ -85,6 +85,88 @@ describe('useAnalysisWorkspaceMetrics', () => {
     expect(result.current.hasMetricsPending).toBe(false)
   })
 
+  it('prefers spectrum metrics when a region-of-interest workflow is active', () => {
+    const { result } = renderHook(() =>
+      useAnalysisWorkspaceMetrics({
+        preferSpectrumMetrics: true,
+        spectrumSignals: [
+          {
+            signalId: 'spec-roi-1',
+            recordingId: 'recording-1',
+            recordingFileName: 'spec.wav',
+            displayName: 'Channel 1',
+            durationSeconds: 0.25,
+            sampleRate: 48_000,
+            channelIndex: 0,
+            amplitudeUnit: 'dB rel.',
+            isCalibrated: false,
+            metrics: {
+              peakAmplitude: 0.21,
+              rmsAmplitude: 0.11,
+              crestFactor: 1.91,
+              clippingSampleCount: 0,
+              hasClipping: false,
+            },
+            findings: [
+              {
+                category: 'TonalPeak',
+                severity: 'Info',
+                label: 'ROI tonal peak',
+                detail: 'Peak near 2 kHz',
+              },
+            ],
+            points: [],
+          },
+        ],
+        waveformSignals: [
+          {
+            signalId: 'wave-full-1',
+            recordingId: 'recording-1',
+            recordingFileName: 'wave.wav',
+            displayName: 'Channel 1',
+            durationSeconds: 2,
+            sampleRate: 44_100,
+            channelIndex: 0,
+            amplitudeUnit: 'FS',
+            isCalibrated: false,
+            metrics: {
+              peakAmplitude: 1,
+              rmsAmplitude: 0.7,
+              crestFactor: 1.43,
+              clippingSampleCount: 2,
+              hasClipping: true,
+            },
+            findings: [],
+            bins: [],
+          },
+        ],
+      })
+    )
+
+    expect(result.current.metricSignals).toEqual([
+      {
+        signalId: 'spec-roi-1',
+        recordingFileName: 'spec.wav',
+        displayName: 'Channel 1',
+        durationSeconds: 0.25,
+        sampleRate: 48_000,
+        peakAmplitude: 0.21,
+        rmsAmplitude: 0.11,
+        crestFactor: 1.91,
+        clippingSampleCount: 0,
+        hasClipping: false,
+        findings: [
+          {
+            category: 'TonalPeak',
+            severity: 'Info',
+            label: 'ROI tonal peak',
+            detail: 'Peak near 2 kHz',
+          },
+        ],
+      },
+    ])
+  })
+
   it('falls back safely when a signal does not yet include derived metrics', () => {
     const { result } = renderHook(() =>
       useAnalysisWorkspaceMetrics({

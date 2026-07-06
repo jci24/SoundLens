@@ -8,5 +8,7 @@ public interface IWaveformService
         IReadOnlyList<ImportedFileSummary> files,
         int requestedBinCount,
         IReadOnlyList<string>? selectedSignalIds,
+        double? startTimeSeconds,
+        double? endTimeSeconds,
         CancellationToken cancellationToken);
 }

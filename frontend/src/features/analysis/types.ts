@@ -12,6 +12,12 @@ export type TSignalChartMode = 'overlay' | 'split'
 
 export type TTimeWaveformBin = [number, number]
 
+export interface IAnalysisRegionOfInterest {
+  startTimeSeconds: number
+  endTimeSeconds: number
+  durationSeconds: number
+}
+
 export interface ISignalDerivedMetrics {
   peakAmplitude: number
   rmsAmplitude: number
@@ -64,6 +70,7 @@ export interface ITimeWaveformResponse {
   recordings: ITimeWaveformRecording[]
   selectedSignals: ITimeWaveformSignal[]
   yAxis: ITimeWaveformAxis
+  regionOfInterest: IAnalysisRegionOfInterest | null
   failedFiles: string[]
 }
 
@@ -113,5 +120,6 @@ export interface IFrequencySpectrumResponse {
   xAxis: IFrequencySpectrumAxis
   yAxis: IFrequencySpectrumAxis
   analysis: IFrequencySpectrumAnalysis
+  regionOfInterest: IAnalysisRegionOfInterest | null
   failedFiles: string[]
 }

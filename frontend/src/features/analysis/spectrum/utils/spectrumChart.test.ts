@@ -4,6 +4,7 @@ import {
   getSpectrumViewport,
   getVisibleSpectrumSignals,
   getVisibleSpectrumXAxis,
+  simplifySpectrumPoints,
 } from './spectrumChart'
 import type { IFrequencySpectrumAxis, IFrequencySpectrumSignal } from '../../types'
 
@@ -80,5 +81,19 @@ describe('spectrumChart', () => {
     const nearestPoint = getNearestSpectrumPoint(signals[0]?.points ?? [], 2_400)
 
     expect(nearestPoint).toEqual({ frequencyHz: 2_000, value: -35 })
+  })
+
+  it('simplifies dense spectrum points for chart rendering', () => {
+    const densePoints = Array.from({ length: 2_000 }, (_, index) => ({
+      frequencyHz: index * 10,
+      value: -90 + ((index % 25) * 2),
+    }))
+
+    const simplifiedPoints = simplifySpectrumPoints(densePoints, 0, 19_990, 400)
+
+    expect(simplifiedPoints.length).toBeLessThan(densePoints.length)
+    expect(simplifiedPoints.length).toBeLessThanOrEqual(400)
+    expect(simplifiedPoints[0]?.frequencyHz).toBeGreaterThanOrEqual(0)
+    expect(simplifiedPoints.at(-1)?.frequencyHz).toBeLessThanOrEqual(19_990)
   })
 })

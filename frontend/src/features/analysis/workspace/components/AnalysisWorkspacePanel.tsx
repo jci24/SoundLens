@@ -5,13 +5,15 @@ import { WaveformChart } from '../../waveform/components/WaveformChart'
 import { useMeasuredChartWidth } from '../hooks/useMeasuredChartWidth'
 import { useAnalysisWorkspacePanelCharts } from '../hooks/useAnalysisWorkspacePanelCharts'
 import type { IAnalysisWorkspacePanel } from '../hooks/useAnalysisWorkspacePanels'
-import type { TSignalChartMode, IFrequencySpectrumAxis, IFrequencySpectrumSignal, ITimeWaveformSignal, ITimeWaveformResponse } from '../../types'
+import type { IAnalysisRegionOfInterest, TSignalChartMode, IFrequencySpectrumAxis, IFrequencySpectrumSignal, ITimeWaveformSignal, ITimeWaveformResponse } from '../../types'
 import './AnalysisWorkspacePanel.scss'
 
 interface IAnalysisWorkspacePanelProps {
   chartWidth: number
   isCompareMode: boolean
+  onRegionOfInterestChange: (regionOfInterest: IAnalysisRegionOfInterest | null) => void
   panel: IAnalysisWorkspacePanel
+  regionOfInterest: IAnalysisRegionOfInterest | null
   signalChartMode: TSignalChartMode
   spectrumSignals: IFrequencySpectrumSignal[]
   spectrumXAxis: IFrequencySpectrumAxis | null
@@ -23,7 +25,9 @@ interface IAnalysisWorkspacePanelProps {
 interface IAnalysisWorkspacePanelChartFrameProps {
   chartWidth: number
   chartItem: ReturnType<typeof useAnalysisWorkspacePanelCharts>[number]
+  onRegionOfInterestChange: (regionOfInterest: IAnalysisRegionOfInterest | null) => void
   panelSurface: IAnalysisWorkspacePanel['surface']
+  regionOfInterest: IAnalysisRegionOfInterest | null
   spectrumXAxis: IFrequencySpectrumAxis | null
   spectrumYAxis: IFrequencySpectrumAxis | null
   waveformYAxis: ITimeWaveformResponse['yAxis'] | null
@@ -32,7 +36,9 @@ interface IAnalysisWorkspacePanelChartFrameProps {
 const AnalysisWorkspacePanelChartFrame = ({
   chartWidth,
   chartItem,
+  onRegionOfInterestChange,
   panelSurface,
+  regionOfInterest,
   spectrumXAxis,
   spectrumYAxis,
   waveformYAxis,
@@ -48,6 +54,8 @@ const AnalysisWorkspacePanelChartFrame = ({
         renderedChartWidth > 0 &&
         chartItem.waveformSignals.length > 0 && (
           <WaveformChart
+            onRegionOfInterestChange={onRegionOfInterestChange}
+            regionOfInterest={regionOfInterest}
             signals={chartItem.waveformSignals}
             width={renderedChartWidth}
             yAxis={waveformYAxis}
@@ -75,7 +83,9 @@ const AnalysisWorkspacePanelChartFrame = ({
 const AnalysisWorkspacePanel = ({
   chartWidth,
   isCompareMode,
+  onRegionOfInterestChange,
   panel,
+  regionOfInterest,
   signalChartMode,
   spectrumSignals,
   spectrumXAxis,
@@ -132,7 +142,9 @@ const AnalysisWorkspacePanel = ({
               <AnalysisWorkspacePanelChartFrame
                 chartItem={chartItem}
                 chartWidth={chartWidth}
+                onRegionOfInterestChange={onRegionOfInterestChange}
                 panelSurface={panel.surface}
+                regionOfInterest={regionOfInterest}
                 spectrumXAxis={spectrumXAxis}
                 spectrumYAxis={spectrumYAxis}
                 waveformYAxis={waveformYAxis}

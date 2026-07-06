@@ -81,21 +81,9 @@ Completed:
 - `B7` Negotiated MessagePack transport for waveform and spectrum payloads
 - `B4` Synthetic signal fixture expansion: bit-depth paths, DC, bin envelope, clipping boundary, Nyquist, short-signal degradation
 - `B5` Analysis parameter contract: explicit FFT size, AllowedFftSizes validation, analysis round-trip tests
+- `B6` Region-of-interest waveform and spectrum requests: shared backend ROI contract (`startTimeSeconds` / `endTimeSeconds`), waveform selection overlay, workspace clear action, region-scoped waveform/spectrum responses, and ROI bounds coverage
 
 Open stories:
-
-#### B6 `Later` `Backend + Frontend`
-
-As a user, I would like to request evidence for a selected time region, so that I can investigate a specific event instead of the full recording.
-
-Backend
-- Add region-of-interest waveform and spectrum requests.
-
-Frontend
-- Provide a region selection interaction that stays compatible with future surfaces.
-
-Validation
-- Add tests for region bounds, empty regions, and response consistency.
 
 ### Epic C: Comparison And Interpretation Workflow
 
@@ -125,29 +113,23 @@ Completed:
 - `D2` Vitest + RTL setup
 - `D3` Hook and utility coverage expansion
 - `D4` DSP fixture regression coverage expansion (38 tests passing)
+- `D5` Component rendering tests for analysis surfaces
 
 Open stories:
-
-#### D5 `Later` `Frontend`
-
-As a user, I would like the main analysis surfaces to behave consistently after refactors, so that the workspace stays demo-ready as it grows.
-
-Frontend
-- Add component rendering tests for tabs, recording rail, controls, and future metrics surfaces.
 
 ## Suggested Next Thin Tasks
 
 If we continue immediately after this branch, the best next options are:
 
-1. `D5` Component rendering tests for analysis surfaces
-2. `B6` Region-of-interest waveform and spectrum requests
-3. `C4++` Extend findings with harmonic series detection
+1. `C4++` Extend findings with harmonic series detection
+2. ROI polish: keyboard nudging, handle ergonomics, and multi-signal duration edge cases
+3. Demo validation pass for ROI + findings workflow
 
 Recommended order:
 
-1. Expand frontend rendering tests to keep the workspace demo-stable.
-2. Add region-of-interest support so users can investigate specific time regions.
-3. Extend findings with harmonic detection once tonal peak is validated with real users.
+1. Extend findings with harmonic detection so the new ROI workflow surfaces richer deterministic interpretation.
+2. Polish ROI ergonomics only if customer-demo usage shows friction; avoid turning it into a general annotation tool.
+3. Run a focused demo-validation pass against real comparison recordings before widening the analysis surface set.
 
 ## GitHub Projects Mapping
 

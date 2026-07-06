@@ -1,10 +1,12 @@
 import { API_BASE_URL } from '../../../common/api/config'
 import { isMessagePackResponse, readMessagePack } from '../../../common/api/messagePack'
+import type { IRequestedRegionOfInterest } from '../utils/analysisWorkspaceState'
 import type { ITimeWaveformResponse } from '../types'
 
 export const getTimeWaveforms = async (
   binCount: number,
-  signalIds?: string[]
+  signalIds?: string[],
+  regionOfInterest?: IRequestedRegionOfInterest | null
 ): Promise<ITimeWaveformResponse> => {
   const response = await fetch(`${API_BASE_URL}/api/waveforms/time`, {
     method: 'POST',
@@ -12,7 +14,12 @@ export const getTimeWaveforms = async (
       Accept: 'application/x-msgpack, application/json',
       'Content-Type': 'application/json',
     },
-    body: JSON.stringify({ binCount, signalIds: signalIds ?? [] }),
+    body: JSON.stringify({
+      binCount,
+      signalIds: signalIds ?? [],
+      startTimeSeconds: regionOfInterest?.startTimeSeconds ?? null,
+      endTimeSeconds: regionOfInterest?.endTimeSeconds ?? null,
+    }),
   })
 
   if (!response.ok) {

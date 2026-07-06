@@ -4,7 +4,7 @@ import { AnalysisWorkspacePanel } from './AnalysisWorkspacePanel'
 import { FindingsPanel } from '../../metrics/components/FindingsPanel'
 import type { IMetricSignalItem } from '../../metrics/hooks/useAnalysisWorkspaceMetrics'
 import type { IAnalysisWorkspacePanel } from '../hooks/useAnalysisWorkspacePanels'
-import type { TSignalChartMode, IFrequencySpectrumAxis, IFrequencySpectrumSignal, ITimeWaveformSignal, ITimeWaveformResponse } from '../../types'
+import type { IAnalysisRegionOfInterest, TSignalChartMode, IFrequencySpectrumAxis, IFrequencySpectrumSignal, ITimeWaveformSignal, ITimeWaveformResponse } from '../../types'
 
 interface IAnalysisWorkspaceChartProps {
   chartRef: RefObject<HTMLDivElement | null>
@@ -12,7 +12,9 @@ interface IAnalysisWorkspaceChartProps {
   hasMetricsPending: boolean
   isCompareMode: boolean
   metricSignals: IMetricSignalItem[]
+  onRegionOfInterestChange: (regionOfInterest: IAnalysisRegionOfInterest | null) => void
   panels: IAnalysisWorkspacePanel[]
+  regionOfInterest: IAnalysisRegionOfInterest | null
   signalChartMode: TSignalChartMode
   spectrumSignals: IFrequencySpectrumSignal[]
   spectrumXAxis: IFrequencySpectrumAxis | null
@@ -27,7 +29,9 @@ const AnalysisWorkspaceChart = ({
   hasMetricsPending,
   isCompareMode,
   metricSignals,
+  onRegionOfInterestChange,
   panels,
+  regionOfInterest,
   signalChartMode,
   spectrumSignals,
   spectrumXAxis,
@@ -53,7 +57,9 @@ const AnalysisWorkspaceChart = ({
           chartWidth={chartWidth}
           isCompareMode={isCompareMode}
           key={panel.surface}
+          onRegionOfInterestChange={onRegionOfInterestChange}
           panel={panel}
+          regionOfInterest={regionOfInterest}
           signalChartMode={signalChartMode}
           spectrumSignals={spectrumSignals}
           spectrumXAxis={spectrumXAxis}

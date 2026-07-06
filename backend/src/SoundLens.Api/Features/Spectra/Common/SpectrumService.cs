@@ -19,6 +19,8 @@ public sealed class SpectrumService : ISpectrumService
         int requestedBinCount,
         int? explicitFftSize,
         IReadOnlyList<string>? selectedSignalIds,
+        double? startTimeSeconds,
+        double? endTimeSeconds,
         CancellationToken cancellationToken)
     {
         var requestedBins = Math.Clamp(
@@ -53,12 +55,19 @@ public sealed class SpectrumService : ISpectrumService
         var allSignals = recordings
             .SelectMany(recording => recording.ChannelSignals)
             .ToList();
-        var requestedSignalIdSet = (selectedSignalIds ?? [])
+        var requestedSignalIds = (selectedSignalIds ?? [])
             .Where(signalId => !string.IsNullOrWhiteSpace(signalId))
             .Distinct()
+            .ToList();
+        var requestedSignalIdSet = requestedSignalIds
             .ToHashSet(StringComparer.Ordinal);
-        var selectedChannels = requestedSignalIdSet.Count > 0
-            ? allSignals.Where(signal => requestedSignalIdSet.Contains(signal.SignalId)).ToList()
+        var signalsById = allSignals.ToDictionary(signal => signal.SignalId, StringComparer.Ordinal);
+        var selectedChannels = requestedSignalIds.Count > 0
+            ? requestedSignalIds
+                .Select(signalId => signalsById.GetValueOrDefault(signalId))
+                .Where(signal => signal is not null)
+                .Cast<DecodedSpectrumChannelSignal>()
+                .ToList()
             : [];
 
         if (selectedChannels.Count == 0)
@@ -79,16 +88,18 @@ public sealed class SpectrumService : ISpectrumService
                 new FrequencySpectrumAxis("Hz", 0, 1, [0, 1]),
                 new FrequencySpectrumAxis("dB rel.", -120, 0, [0, -40, -80, -120]),
                 new FrequencySpectrumAnalysis("Line spectrum", "Rectangular", 0, 0, 0, "Mean amplitude", "Relative amplitude", "dB rel.", false),
+                null,
                 failedFiles);
         }
 
-        var analysisState = BuildAnalysisState(selectedChannels, requestedBins, explicitFftSize);
+        var regionOfInterest = ResolveRegionOfInterest(selectedChannels, startTimeSeconds, endTimeSeconds);
+        var analysisState = BuildAnalysisState(selectedChannels, requestedBins, explicitFftSize, regionOfInterest);
         var selectedSignals = selectedChannels
             .Select(channel =>
             {
-                var points = GetOrBuildSpectrumPoints(channel, analysisState, cancellationToken);
-                var findings = FindingsService.BuildFindings(channel.Metrics)
-                    .Concat(FindingsService.BuildSpectralFindings(points))
+                var signalSlice = BuildSignalSlice(channel, regionOfInterest, analysisState, cancellationToken);
+                var findings = FindingsService.BuildFindings(signalSlice.Metrics)
+                    .Concat(FindingsService.BuildSpectralFindings(signalSlice.Points))
                     .ToList();
                 return new FrequencySpectrumSignal(
                     channel.SignalId,
@@ -100,9 +111,9 @@ public sealed class SpectrumService : ISpectrumService
                     channel.ChannelIndex,
                     "dB rel.",
                     false,
-                    channel.Metrics,
+                    signalSlice.Metrics,
                     findings,
-                    points);
+                    signalSlice.Points);
             })
             .ToList();
 
@@ -122,6 +133,7 @@ public sealed class SpectrumService : ISpectrumService
                 "Relative amplitude",
                 "dB rel.",
                 false),
+            regionOfInterest,
             failedFiles);
     }
 
@@ -156,13 +168,47 @@ public sealed class SpectrumService : ISpectrumService
         return points;
     }
 
+    private SignalSlice BuildSignalSlice(
+        DecodedSpectrumChannelSignal channel,
+        AnalysisRegionOfInterest? regionOfInterest,
+        AnalysisState analysisState,
+        CancellationToken cancellationToken)
+    {
+        var sampledRegion = regionOfInterest is null
+            ? channel.Samples
+            : SliceSamples(channel.Samples, regionOfInterest, channel.Recording.SampleRate);
+        var metrics = BuildMetrics(sampledRegion, channel.PositiveFullScaleThreshold);
+        var points = GetOrBuildSpectrumPoints(channel, analysisState, sampledRegion, regionOfInterest, cancellationToken);
+
+        return new SignalSlice(metrics, points);
+    }
+
+    private IReadOnlyList<FrequencySpectrumPoint> GetOrBuildSpectrumPoints(
+        DecodedSpectrumChannelSignal channel,
+        AnalysisState analysisState,
+        IReadOnlyList<double> sampledRegion,
+        AnalysisRegionOfInterest? regionOfInterest,
+        CancellationToken cancellationToken)
+    {
+        if (regionOfInterest is null)
+        {
+            return GetOrBuildSpectrumPoints(channel, analysisState, cancellationToken);
+        }
+
+        return BuildSpectrumPoints(sampledRegion, channel.Recording.SampleRate, analysisState, cancellationToken);
+    }
+
     private static AnalysisState BuildAnalysisState(
         IReadOnlyList<DecodedSpectrumChannelSignal> selectedChannels,
         int requestedBins,
-        int? explicitFftSize)
+        int? explicitFftSize,
+        AnalysisRegionOfInterest? regionOfInterest)
     {
         var referenceChannel = selectedChannels.First();
-        var smallestSampleCount = selectedChannels.Min(channel => channel.Samples.Count);
+        var smallestSampleCount = selectedChannels.Min(channel =>
+            regionOfInterest is null
+                ? channel.Samples.Count
+                : GetSliceLength(channel.Samples.Count, channel.Recording.SampleRate, regionOfInterest));
         var requestedFftLength = explicitFftSize.HasValue
             ? explicitFftSize.Value
             : Math.Max(2, (requestedBins - 1) * 2);
@@ -171,6 +217,102 @@ public sealed class SpectrumService : ISpectrumService
         var frequencyResolutionHz = referenceChannel.Recording.SampleRate / (double)fftLength;
 
         return new AnalysisState(fftLength, frequencyResolutionHz);
+    }
+
+    private static int GetSliceLength(int sampleCount, int sampleRate, AnalysisRegionOfInterest regionOfInterest)
+    {
+        if (sampleCount == 0 || sampleRate <= 0)
+        {
+            return 0;
+        }
+
+        var startIndex = Math.Clamp((int)Math.Floor(regionOfInterest.StartTimeSeconds * sampleRate), 0, sampleCount - 1);
+        var endIndexExclusive = Math.Clamp((int)Math.Ceiling(regionOfInterest.EndTimeSeconds * sampleRate), startIndex + 1, sampleCount);
+        return Math.Max(0, endIndexExclusive - startIndex);
+    }
+
+    private static SignalDerivedMetrics BuildMetrics(
+        IReadOnlyList<double> samples,
+        double positiveFullScaleThreshold)
+    {
+        var accumulator = new SignalMetricsAccumulator(positiveFullScaleThreshold);
+
+        foreach (var sample in samples)
+        {
+            accumulator.Include(sample);
+        }
+
+        return accumulator.Build();
+    }
+
+    private static IReadOnlyList<double> SliceSamples(
+        IReadOnlyList<double> samples,
+        AnalysisRegionOfInterest regionOfInterest,
+        int sampleRate)
+    {
+        if (samples.Count == 0 || sampleRate <= 0)
+        {
+            return [];
+        }
+
+        var startIndex = Math.Clamp((int)Math.Floor(regionOfInterest.StartTimeSeconds * sampleRate), 0, samples.Count - 1);
+        var endIndexExclusive = Math.Clamp((int)Math.Ceiling(regionOfInterest.EndTimeSeconds * sampleRate), startIndex + 1, samples.Count);
+        var sliceLength = Math.Max(0, endIndexExclusive - startIndex);
+
+        if (sliceLength == 0)
+        {
+            return [];
+        }
+
+        var slicedSamples = new double[sliceLength];
+        for (var index = 0; index < sliceLength; index++)
+        {
+            slicedSamples[index] = samples[startIndex + index];
+        }
+
+        return slicedSamples;
+    }
+
+    private static AnalysisRegionOfInterest? ResolveRegionOfInterest(
+        IReadOnlyList<DecodedSpectrumChannelSignal> selectedChannels,
+        double? startTimeSeconds,
+        double? endTimeSeconds)
+    {
+        if (startTimeSeconds is null && endTimeSeconds is null)
+        {
+            return null;
+        }
+
+        if (startTimeSeconds is null || endTimeSeconds is null)
+        {
+            throw new ArgumentOutOfRangeException(nameof(startTimeSeconds), "StartTimeSeconds and EndTimeSeconds must be provided together.");
+        }
+
+        var shortestDuration = selectedChannels.Count == 0
+            ? 0
+            : selectedChannels.Min(channel => channel.Recording.DurationSeconds);
+
+        if (startTimeSeconds.Value < 0)
+        {
+            throw new ArgumentOutOfRangeException(nameof(startTimeSeconds), "StartTimeSeconds must be greater than or equal to 0.");
+        }
+
+        if (endTimeSeconds.Value <= startTimeSeconds.Value)
+        {
+            throw new ArgumentOutOfRangeException(nameof(endTimeSeconds), "EndTimeSeconds must be greater than StartTimeSeconds.");
+        }
+
+        if (endTimeSeconds.Value > shortestDuration)
+        {
+            throw new ArgumentOutOfRangeException(
+                nameof(endTimeSeconds),
+                $"EndTimeSeconds must be less than or equal to the shortest selected signal duration ({shortestDuration:0.###} s).");
+        }
+
+        return new AnalysisRegionOfInterest(
+            startTimeSeconds.Value,
+            endTimeSeconds.Value,
+            endTimeSeconds.Value - startTimeSeconds.Value);
     }
 
     private static IReadOnlyList<FrequencySpectrumPoint> BuildSpectrumPoints(
@@ -516,11 +658,12 @@ public sealed class SpectrumService : ISpectrumService
         }
 
         var frameCount = ValidateFrameCount((long)dataChunkSize / bytesPerFrame);
+        var positiveFullScaleThreshold = GetPositiveFullScaleThreshold(format);
         var channels = Enumerable.Range(0, format.Channels)
             .Select(index => new DecodedSpectrumChannel(
                 index,
                 $"Channel {index + 1}",
-                new SignalMetricsAccumulator(GetPositiveFullScaleThreshold(format)),
+                positiveFullScaleThreshold,
                 new double[frameCount]))
             .ToArray();
         stream.Position = dataChunkPosition;
@@ -533,7 +676,6 @@ public sealed class SpectrumService : ISpectrumService
             {
                 var sample = ReadSample(reader, format);
                 var normalizedSample = Math.Clamp(sample, -1.0, 1.0);
-                channels[channel].MetricsAccumulator.Include(sample);
                 channels[channel].Samples[frame] = normalizedSample;
             }
         }
@@ -676,8 +818,8 @@ public sealed class SpectrumService : ISpectrumService
                     BuildSignalId(RecordingId, channel.ChannelIndex),
                     channel.ChannelIndex,
                     channel.DisplayName,
-                    channel.MetricsAccumulator.Build(),
                     channel.Samples,
+                    channel.PositiveFullScaleThreshold,
                     this))
                 .ToList();
 
@@ -701,14 +843,18 @@ public sealed class SpectrumService : ISpectrumService
     private sealed record DecodedSpectrumChannel(
         int ChannelIndex,
         string DisplayName,
-        SignalMetricsAccumulator MetricsAccumulator,
+        double PositiveFullScaleThreshold,
         double[] Samples);
 
     private sealed record DecodedSpectrumChannelSignal(
         string SignalId,
         int ChannelIndex,
         string DisplayName,
-        SignalDerivedMetrics Metrics,
         IReadOnlyList<double> Samples,
+        double PositiveFullScaleThreshold,
         DecodedSpectrumRecording Recording);
+
+    private sealed record SignalSlice(
+        SignalDerivedMetrics Metrics,
+        IReadOnlyList<FrequencySpectrumPoint> Points);
 }

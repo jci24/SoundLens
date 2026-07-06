@@ -1,10 +1,12 @@
 import { API_BASE_URL } from '../../../common/api/config'
 import { isMessagePackResponse, readMessagePack } from '../../../common/api/messagePack'
+import type { IRequestedRegionOfInterest } from '../utils/analysisWorkspaceState'
 import type { IFrequencySpectrumResponse } from '../types'
 
 export const getFrequencySpectra = async (
   fftSize: number,
-  signalIds?: string[]
+  signalIds?: string[],
+  regionOfInterest?: IRequestedRegionOfInterest | null
 ): Promise<IFrequencySpectrumResponse> => {
   const binCount = Math.floor(fftSize / 2) + 1
   const response = await fetch(`${API_BASE_URL}/api/spectra/frequency`, {
@@ -13,7 +15,13 @@ export const getFrequencySpectra = async (
       Accept: 'application/x-msgpack, application/json',
       'Content-Type': 'application/json',
     },
-    body: JSON.stringify({ binCount, fftSize, signalIds: signalIds ?? [] }),
+    body: JSON.stringify({
+      binCount,
+      fftSize,
+      signalIds: signalIds ?? [],
+      startTimeSeconds: regionOfInterest?.startTimeSeconds ?? null,
+      endTimeSeconds: regionOfInterest?.endTimeSeconds ?? null,
+    }),
   })
 
   if (!response.ok) {

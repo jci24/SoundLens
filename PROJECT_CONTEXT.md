@@ -1,6 +1,6 @@
 # SoundLens Project Context
 
-Last updated: 2026-07-05
+Last updated: 2026-07-06
 
 ## Purpose
 
@@ -57,6 +57,8 @@ The current demo slice is now centered on browser-first import plus waveform and
 - The analysis workspace now reflows more gracefully across browser zoom levels and narrower desktop widths, reducing chart overflow and preserving a usable demo layout across common screen setups.
 - The analysis workspace can now switch between a focused single-surface view and a screenfit compare layout that keeps waveform and spectrum visible together, while focused mode can also split selected signals into separate charts for detailed inspection.
 - The analysis workspace has been refactored into smaller frontend components and hooks so rendering, interaction state, and formatting are easier to maintain without changing product behavior.
+- Users can now select a single time region directly on the waveform surface, clear it from the workspace shell, and keep the waveform view visually stable while requesting region-scoped spectrum and derived evidence for the selected segment.
+- Region-of-interest requests are validated by the backend with shared `startTimeSeconds` / `endTimeSeconds` bounds, and the effective analyzed region is echoed back in analysis responses so the frontend stays aligned with backend-owned evidence.
 - Backend deterministic tests now cover waveform, spectrum, import/CORS, selected-signal behavior, oversized-spectrum-file failure reporting, and synthetic signal fixtures for bit-depth paths, DC signals, bin envelope, clipping boundary, Nyquist presence, and short-signal degradation (38 tests passing).
 - Frontend unit-test infrastructure is now established with Vitest and React Testing Library, with initial coverage around analysis formatting and popover interaction hooks.
 - Signal selection state is now managed by a shared workspace-level store so analysis surfaces consume the same compare context without feature-to-feature coupling.
@@ -70,7 +72,7 @@ The current demo slice is now centered on browser-first import plus waveform and
 
 Immediate next step after this slice:
 
-- Add component rendering tests (D5) to keep the workspace demo-stable, then region-of-interest support (B6) so users can investigate specific time regions.
+- Extend deterministic findings with harmonic-series detection (C4++) so ROI and full-recording investigation can surface stronger interpretation hints without involving AI.
 
 ## Collaboration Process
 

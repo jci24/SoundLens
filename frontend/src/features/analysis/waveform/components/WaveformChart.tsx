@@ -1,19 +1,30 @@
+import { useEffect, useMemo, useState } from 'react'
 import {
   formatAmplitudeTick,
   formatTimeTick,
   getAmplitudeUnitLabel,
   getWaveformChartModel,
 } from '../utils/waveformChart'
-import type { ITimeWaveformAxis, ITimeWaveformSignal } from '../../types'
+import type { IAnalysisRegionOfInterest, ITimeWaveformAxis, ITimeWaveformSignal } from '../../types'
 import './WaveformChart.scss'
 
 interface IWaveformChartProps {
+  onRegionOfInterestChange?: (regionOfInterest: IAnalysisRegionOfInterest | null) => void
+  regionOfInterest?: IAnalysisRegionOfInterest | null
   signals: ITimeWaveformSignal[]
   width: number
   yAxis: ITimeWaveformAxis
 }
 
-const WaveformChart = ({ signals, width, yAxis }: IWaveformChartProps) => {
+type TRegionDragMode = 'create' | 'resize-start' | 'resize-end'
+
+const WaveformChart = ({
+  onRegionOfInterestChange,
+  regionOfInterest = null,
+  signals,
+  width,
+  yAxis,
+}: IWaveformChartProps) => {
   const {
     chartHeight,
     chartPadding,
@@ -21,10 +32,106 @@ const WaveformChart = ({ signals, width, yAxis }: IWaveformChartProps) => {
     plotWidth,
     xForBinIndex,
     xForTime,
+    timeForX,
     xTicks,
     yForAmplitude,
     yTicks,
   } = getWaveformChartModel(signals, yAxis, width)
+  const [draftRegion, setDraftRegion] = useState<IAnalysisRegionOfInterest | null>(null)
+  const [dragMode, setDragMode] = useState<TRegionDragMode | null>(null)
+  const [dragAnchorTime, setDragAnchorTime] = useState<number | null>(null)
+  const activeRegion = draftRegion ?? regionOfInterest
+  const maxDuration = useMemo(
+    () => Math.max(...signals.map((signal) => signal.durationSeconds), 0),
+    [signals]
+  )
+
+  useEffect(() => {
+    if (dragMode === null) {
+      setDraftRegion(null)
+    }
+  }, [dragMode, regionOfInterest])
+
+  const buildRegion = (startTimeSeconds: number, endTimeSeconds: number): IAnalysisRegionOfInterest => {
+    const safeStart = Math.max(0, Math.min(startTimeSeconds, endTimeSeconds))
+    const safeEnd = Math.min(maxDuration, Math.max(startTimeSeconds, endTimeSeconds))
+
+    return {
+      startTimeSeconds: safeStart,
+      endTimeSeconds: safeEnd,
+      durationSeconds: safeEnd - safeStart,
+    }
+  }
+
+  const getPointerTime = (clientX: number, currentTarget: SVGSVGElement) => {
+    const bounds = currentTarget.getBoundingClientRect()
+    const svgX = ((clientX - bounds.left) / bounds.width) * width
+    return timeForX(svgX)
+  }
+
+  const commitRegion = (nextRegion: IAnalysisRegionOfInterest | null) => {
+    setDraftRegion(null)
+    setDragMode(null)
+    setDragAnchorTime(null)
+
+    if (!onRegionOfInterestChange) {
+      return
+    }
+
+    if (!nextRegion || nextRegion.durationSeconds <= 0) {
+      onRegionOfInterestChange(null)
+      return
+    }
+
+    onRegionOfInterestChange(nextRegion)
+  }
+
+  const handleCreateStart = (clientX: number, currentTarget: SVGSVGElement) => {
+    const nextAnchorTime = getPointerTime(clientX, currentTarget)
+    setDragAnchorTime(nextAnchorTime)
+    setDragMode('create')
+    setDraftRegion(buildRegion(nextAnchorTime, nextAnchorTime))
+  }
+
+  const updateDrag = (clientX: number, currentTarget: SVGSVGElement) => {
+    if (dragMode === null) {
+      return
+    }
+
+    const pointerTime = getPointerTime(clientX, currentTarget)
+
+    if (dragMode === 'create' && dragAnchorTime !== null) {
+      setDraftRegion(buildRegion(dragAnchorTime, pointerTime))
+      return
+    }
+
+    if (!activeRegion) {
+      return
+    }
+
+    if (dragMode === 'resize-start') {
+      setDraftRegion(buildRegion(pointerTime, activeRegion.endTimeSeconds))
+      return
+    }
+
+    setDraftRegion(buildRegion(activeRegion.startTimeSeconds, pointerTime))
+  }
+
+  const finalizeDrag = () => {
+    if (draftRegion && draftRegion.durationSeconds > 0) {
+      commitRegion(draftRegion)
+      return
+    }
+
+    setDraftRegion(null)
+    setDragMode(null)
+    setDragAnchorTime(null)
+  }
+
+  const regionStartX = activeRegion ? xForTime(activeRegion.startTimeSeconds) : null
+  const regionEndX = activeRegion ? xForTime(activeRegion.endTimeSeconds) : null
+  const regionWidth = regionStartX !== null && regionEndX !== null ? Math.max(0, regionEndX - regionStartX) : 0
+  const regionHandleWidth = 8
 
   return (
     <svg
@@ -32,6 +139,13 @@ const WaveformChart = ({ signals, width, yAxis }: IWaveformChartProps) => {
       className="time-waveform-workspace__chart"
       role="img"
       viewBox={`0 0 ${width} ${chartHeight}`}
+      onPointerLeave={() => {
+        if (dragMode !== null) {
+          finalizeDrag()
+        }
+      }}
+      onPointerMove={(event) => updateDrag(event.clientX, event.currentTarget)}
+      onPointerUp={() => finalizeDrag()}
     >
       <rect
         className="time-waveform-workspace__plot-background"
@@ -69,6 +183,54 @@ const WaveformChart = ({ signals, width, yAxis }: IWaveformChartProps) => {
       <line className="time-waveform-workspace__axis-line" x1={chartPadding.left} x2={chartPadding.left} y1={chartPadding.top} y2={chartPadding.top + plotHeight} />
       <line className="time-waveform-workspace__axis-line" x1={chartPadding.left} x2={width - chartPadding.right} y1={chartPadding.top + plotHeight} y2={chartPadding.top + plotHeight} />
 
+      {activeRegion && regionStartX !== null && regionEndX !== null && (
+        <g className="time-waveform-workspace__roi-layer">
+          <rect
+            className="time-waveform-workspace__roi-curtain"
+            height={plotHeight}
+            width={Math.max(0, regionStartX - chartPadding.left)}
+            x={chartPadding.left}
+            y={chartPadding.top}
+          />
+          <rect
+            className="time-waveform-workspace__roi-curtain"
+            height={plotHeight}
+            width={Math.max(0, chartPadding.left + plotWidth - regionEndX)}
+            x={regionEndX}
+            y={chartPadding.top}
+          />
+          <rect
+            className="time-waveform-workspace__roi-selection"
+            height={plotHeight}
+            width={regionWidth}
+            x={regionStartX}
+            y={chartPadding.top}
+          />
+          <rect
+            className="time-waveform-workspace__roi-handle"
+            height={plotHeight}
+            width={regionHandleWidth}
+            x={regionStartX - regionHandleWidth / 2}
+            y={chartPadding.top}
+            onPointerDown={(event) => {
+              event.stopPropagation()
+              setDragMode('resize-start')
+            }}
+          />
+          <rect
+            className="time-waveform-workspace__roi-handle"
+            height={plotHeight}
+            width={regionHandleWidth}
+            x={regionEndX - regionHandleWidth / 2}
+            y={chartPadding.top}
+            onPointerDown={(event) => {
+              event.stopPropagation()
+              setDragMode('resize-end')
+            }}
+          />
+        </g>
+      )}
+
       {signals.map((signal, signalIndex) => (
         <g className="time-waveform-workspace__series" key={signal.signalId}>
           <title>{`${signal.recordingFileName}, ${signal.displayName}, ${signal.durationSeconds.toFixed(2)} seconds, ${signal.sampleRate} Hz`}</title>
@@ -87,6 +249,23 @@ const WaveformChart = ({ signals, width, yAxis }: IWaveformChartProps) => {
           })}
         </g>
       ))}
+
+      <rect
+        className="time-waveform-workspace__roi-target"
+        height={plotHeight}
+        width={plotWidth}
+        x={chartPadding.left}
+        y={chartPadding.top}
+        onDoubleClick={() => commitRegion(null)}
+        onPointerDown={(event) => {
+          const svgElement = event.currentTarget.ownerSVGElement
+          if (!svgElement) {
+            return
+          }
+
+          handleCreateStart(event.clientX, svgElement)
+        }}
+      />
 
       <text className="time-waveform-workspace__axis-title" textAnchor="middle" x={chartPadding.left + plotWidth / 2} y={chartHeight - 6}>
         s
