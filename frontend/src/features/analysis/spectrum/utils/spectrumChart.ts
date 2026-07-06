@@ -2,7 +2,7 @@ import type {
   IFrequencySpectrumPoint,
   IFrequencySpectrumAxis,
   IFrequencySpectrumSignal,
-} from '../types'
+} from '../../types'
 
 const getSpectrumChartDimensions = (width: number) => {
   if (width <= 720) {

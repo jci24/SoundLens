@@ -1,4 +1,4 @@
-import type { ISignalFinding } from '../types'
+import type { ISignalFinding } from '../../types'
 import './SignalFindingsStrip.scss'
 
 interface ISignalFindingsStripProps {

@@ -1,10 +1,10 @@
 import type { RefObject } from 'react'
-import { AnalysisWorkspaceMetricsRail } from './AnalysisWorkspaceMetricsRail'
+import { AnalysisWorkspaceMetricsRail } from '../../metrics/components/AnalysisWorkspaceMetricsRail'
 import { AnalysisWorkspacePanel } from './AnalysisWorkspacePanel'
-import { FindingsPanel } from './FindingsPanel'
-import type { IMetricSignalItem } from '../hooks/useAnalysisWorkspaceMetrics'
+import { FindingsPanel } from '../../metrics/components/FindingsPanel'
+import type { IMetricSignalItem } from '../../metrics/hooks/useAnalysisWorkspaceMetrics'
 import type { IAnalysisWorkspacePanel } from '../hooks/useAnalysisWorkspacePanels'
-import type { TSignalChartMode, IFrequencySpectrumAxis, IFrequencySpectrumSignal, ITimeWaveformSignal, ITimeWaveformResponse } from '../types'
+import type { TSignalChartMode, IFrequencySpectrumAxis, IFrequencySpectrumSignal, ITimeWaveformSignal, ITimeWaveformResponse } from '../../types'
 
 interface IAnalysisWorkspaceChartProps {
   chartRef: RefObject<HTMLDivElement | null>

@@ -4,7 +4,7 @@ import type {
   IFrequencySpectrumSignal,
   ITimeWaveformSignal,
   ITimeWaveformResponse,
-} from '../types'
+} from '../../types'
 
 type TAnalysisPanelSurface = 'waveform' | 'spectrum'
 

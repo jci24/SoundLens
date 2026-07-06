@@ -6,7 +6,7 @@ import {
   formatSpectrumTick,
   getSpectrumChartModel,
 } from '../utils/spectrumChart'
-import type { IFrequencySpectrumAxis, IFrequencySpectrumSignal } from '../types'
+import type { IFrequencySpectrumAxis, IFrequencySpectrumSignal } from '../../types'
 import './SpectrumChart.scss'
 
 interface ISpectrumChartProps {

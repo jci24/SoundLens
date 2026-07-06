@@ -1,4 +1,4 @@
-import type { ITimeWaveformAxis, ITimeWaveformSignal } from '../types'
+import type { ITimeWaveformAxis, ITimeWaveformSignal } from '../../types'
 
 const getWaveformChartDimensions = (width: number) => {
   if (width <= 720) {

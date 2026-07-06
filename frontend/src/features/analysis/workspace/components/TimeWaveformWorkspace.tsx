@@ -1,10 +1,10 @@
 import { AnalysisWorkspaceChart } from './AnalysisWorkspaceChart'
 import { AnalysisWorkspaceHeader } from './AnalysisWorkspaceHeader'
-import { RecordingRail } from './RecordingRail'
-import { useAnalysisWorkspaceMetrics } from '../hooks/useAnalysisWorkspaceMetrics'
+import { RecordingRail } from '../../recording-rail/components/RecordingRail'
+import { useAnalysisWorkspaceMetrics } from '../../metrics/hooks/useAnalysisWorkspaceMetrics'
 import { useAnalysisWorkspacePanels } from '../hooks/useAnalysisWorkspacePanels'
 import { useTimeWaveformWorkspace } from '../hooks/useTimeWaveformWorkspace'
-import type { IImportedFileSummary } from '../../../common/contracts/import'
+import type { IImportedFileSummary } from '../../../../common/contracts/import'
 import './TimeWaveformWorkspace.scss'
 
 interface ITimeWaveformWorkspaceProps {

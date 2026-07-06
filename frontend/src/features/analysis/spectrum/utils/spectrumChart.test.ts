@@ -5,7 +5,7 @@ import {
   getVisibleSpectrumSignals,
   getVisibleSpectrumXAxis,
 } from './spectrumChart'
-import type { IFrequencySpectrumAxis, IFrequencySpectrumSignal } from '../types'
+import type { IFrequencySpectrumAxis, IFrequencySpectrumSignal } from '../../types'
 
 const xAxis: IFrequencySpectrumAxis = {
   unit: 'Hz',
