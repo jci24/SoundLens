@@ -66,6 +66,7 @@ The current demo slice is now centered on browser-first import plus waveform and
 - The workspace header is now split into a primary surface shelf (Waveform, Spectrum, and future surfaces) and a subordinate view controls bar (layout mode, chart mode, analysis controls), giving future evidence surfaces a clear navigation home without cluttering the main workspace.
 - The analysis workspace card nesting has been flattened: the recording rail, per-signal metrics cards, and focused-mode chart inner cards no longer carry redundant borders, backgrounds, and shadows. Cards are preserved only where they provide real visual separation (compare/split chart mode).
 - Repo-side backlog tracking now lives in `BACKLOG.md`, with GitHub Projects recommended as the live execution board for epics and thin tasks.
+- The `analysis` feature has been reorganised into sub-feature folders: `workspace/` (shell, header, panels), `recording-rail/` (file/channel sidebar), `metrics/` (metrics table, findings), `waveform/` (chart + utils), `spectrum/` (chart, controls, hooks, utils). Shared `utils/`, `services/`, `stores/`, and `types.ts` remain at the `analysis/` root. All import paths updated; `tsc --noEmit` passes cleanly.
 
 Immediate next step after this slice:
 

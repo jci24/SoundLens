@@ -1,6 +1,6 @@
 # SoundLens Backlog
 
-Last updated: 2026-07-06 (5)
+Last updated: 2026-07-06 (6)
 
 This file is the repo-side backlog for SoundLens.
 
@@ -110,6 +110,7 @@ Completed:
 - `C5` Flexible multi-panel workspace layout
 - `C4` First-pass findings strip: deterministic `SignalFinding` contract (Clipping/Alert, HighCrestFactor/Warning, LowLevel/Info), threaded through both waveform and spectrum services, rendered as badges beneath the metrics grid
 - `C4+` Tonal peak finding: `BuildSpectralFindings` rule fires when top spectral bin is ≥ 20 dB above median; finding includes frequency and margin in detail; 6 boundary tests added (50 backend tests total)
+- `Refactor` Analysis feature reorganised into sub-feature folders (`workspace/`, `recording-rail/`, `metrics/`, `waveform/`, `spectrum/`); shared `utils/`, `services/`, `stores/`, and `types.ts` stay at analysis root; `tsc --noEmit` clean
 
 Open stories:
 
