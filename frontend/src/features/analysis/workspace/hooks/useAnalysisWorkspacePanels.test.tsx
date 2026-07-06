@@ -1,7 +1,7 @@
 import { renderHook } from '@testing-library/react'
 import { describe, expect, it } from 'vitest'
 import { useAnalysisWorkspacePanels } from './useAnalysisWorkspacePanels'
-import type { IFrequencySpectrumAxis, IFrequencySpectrumSignal, ITimeWaveformAxis, ITimeWaveformSignal } from '../types'
+import type { IFrequencySpectrumAxis, IFrequencySpectrumSignal, ITimeWaveformAxis, ITimeWaveformSignal } from '../../types'
 
 const waveformYAxis: ITimeWaveformAxis = {
   unit: 'FS',

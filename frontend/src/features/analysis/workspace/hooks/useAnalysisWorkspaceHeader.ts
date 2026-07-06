@@ -1,7 +1,7 @@
 import { useMemo } from 'react'
-import type { TAnalysisLayoutMode, TAnalysisSurface } from '../types'
-import type { ISpectrumViewport } from '../utils/spectrumChart'
-import { formatFrequencyRange } from '../utils/analysisWorkspaceFormatting'
+import type { TAnalysisLayoutMode, TAnalysisSurface } from '../../types'
+import type { ISpectrumViewport } from '../../spectrum/utils/spectrumChart'
+import { formatFrequencyRange } from '../../utils/analysisWorkspaceFormatting'
 
 interface IUseAnalysisWorkspaceHeaderOptions {
   activeSurface: TAnalysisSurface

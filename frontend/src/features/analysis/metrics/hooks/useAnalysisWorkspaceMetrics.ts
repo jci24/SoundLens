@@ -1,5 +1,5 @@
 import { useMemo } from 'react'
-import type { IFrequencySpectrumSignal, ISignalFinding, ITimeWaveformSignal } from '../types'
+import type { IFrequencySpectrumSignal, ISignalFinding, ITimeWaveformSignal } from '../../types'
 
 interface IMetricSignalItem {
   signalId: string

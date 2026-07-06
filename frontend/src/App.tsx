@@ -3,7 +3,7 @@ import { Toaster } from '@/components/ui/sonner'
 import { Sidebar } from './features/layout/components/Sidebar'
 import { MainContent } from './features/layout/components/MainContent'
 import { ImportWorkspace } from './features/import/components/ImportWorkspace'
-import { TimeWaveformWorkspace } from './features/analysis/components/TimeWaveformWorkspace'
+import { TimeWaveformWorkspace } from './features/analysis/workspace/components/TimeWaveformWorkspace'
 import type { IImportedFileSummary } from './common/contracts/import'
 import './App.scss'
 

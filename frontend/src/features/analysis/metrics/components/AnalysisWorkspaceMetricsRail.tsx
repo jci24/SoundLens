@@ -4,7 +4,7 @@ import {
   formatCompactDuration,
   formatCompactSampleRate,
   formatCrestFactor,
-} from '../utils/analysisWorkspaceFormatting'
+} from '../../utils/analysisWorkspaceFormatting'
 import type { IMetricSignalItem } from '../hooks/useAnalysisWorkspaceMetrics'
 import './AnalysisWorkspaceMetricsRail.scss'
 

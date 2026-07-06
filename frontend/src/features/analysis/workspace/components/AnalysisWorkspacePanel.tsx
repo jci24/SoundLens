@@ -1,11 +1,11 @@
 import { useRef } from 'react'
 import { AlertCircle, Loader2 } from 'lucide-react'
-import { SpectrumChart } from './SpectrumChart'
-import { WaveformChart } from './WaveformChart'
+import { SpectrumChart } from '../../spectrum/components/SpectrumChart'
+import { WaveformChart } from '../../waveform/components/WaveformChart'
 import { useMeasuredChartWidth } from '../hooks/useMeasuredChartWidth'
 import { useAnalysisWorkspacePanelCharts } from '../hooks/useAnalysisWorkspacePanelCharts'
 import type { IAnalysisWorkspacePanel } from '../hooks/useAnalysisWorkspacePanels'
-import type { TSignalChartMode, IFrequencySpectrumAxis, IFrequencySpectrumSignal, ITimeWaveformSignal, ITimeWaveformResponse } from '../types'
+import type { TSignalChartMode, IFrequencySpectrumAxis, IFrequencySpectrumSignal, ITimeWaveformSignal, ITimeWaveformResponse } from '../../types'
 import './AnalysisWorkspacePanel.scss'
 
 interface IAnalysisWorkspacePanelProps {

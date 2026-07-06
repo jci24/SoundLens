@@ -1,13 +1,13 @@
 import { useEffect, useMemo, useRef, useState, type RefObject } from 'react'
-import { getFrequencySpectra } from '../services/frequencySpectra'
-import { getTimeWaveforms } from '../services/timeWaveforms'
+import { getFrequencySpectra } from '../../services/frequencySpectra'
+import { getTimeWaveforms } from '../../services/timeWaveforms'
 import {
   getSpectrumViewport,
   getVisibleSpectrumSignals,
   getVisibleSpectrumXAxis,
   type ISpectrumViewport,
-} from '../utils/spectrumChart'
-import type { IImportedFileSummary } from '../../../common/contracts/import'
+} from '../../spectrum/utils/spectrumChart'
+import type { IImportedFileSummary } from '../../../../common/contracts/import'
 import type {
   IFrequencySpectrumAxis,
   IFrequencySpectrumResponse,
@@ -17,7 +17,7 @@ import type {
   TAnalysisLayoutMode,
   TAnalysisSurface,
   TSignalChartMode,
-} from '../types'
+} from '../../types'
 import { useMeasuredChartWidth } from './useMeasuredChartWidth'
 import {
   areSignalIdsEqual,
@@ -30,8 +30,8 @@ import {
   getWaveformRequestedBinCount,
   spectrumFftSizeSelectOptions,
   type ISpectrumRange,
-} from '../utils/analysisWorkspaceState'
-import { useAnalysisWorkspaceStore } from '../stores/useAnalysisWorkspaceStore'
+} from '../../utils/analysisWorkspaceState'
+import { useAnalysisWorkspaceStore } from '../../stores/useAnalysisWorkspaceStore'
 
 interface IUseTimeWaveformWorkspaceResult {
   activeSurface: TAnalysisSurface

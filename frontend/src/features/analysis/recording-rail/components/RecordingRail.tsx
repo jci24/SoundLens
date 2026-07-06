@@ -1,7 +1,7 @@
 import { ChevronRight } from 'lucide-react'
 import { Checkbox } from '@/components/ui/checkbox'
 import { Field, FieldLabel } from '@/components/ui/field'
-import type { ITimeWaveformRecording } from '../types'
+import type { ITimeWaveformRecording } from '../../types'
 import './RecordingRail.scss'
 
 interface IRecordingRailProps {

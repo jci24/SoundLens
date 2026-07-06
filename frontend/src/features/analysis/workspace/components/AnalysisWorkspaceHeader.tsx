@@ -1,9 +1,9 @@
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs'
-import { SpectrumControlsPopover } from './SpectrumControlsPopover'
+import { SpectrumControlsPopover } from '../../spectrum/components/SpectrumControlsPopover'
 import { useAnalysisWorkspaceHeader } from '../hooks/useAnalysisWorkspaceHeader'
-import { useSpectrumControlsPopover } from '../hooks/useSpectrumControlsPopover'
-import type { TAnalysisLayoutMode, TAnalysisSurface, TSignalChartMode } from '../types'
-import type { ISpectrumViewport } from '../utils/spectrumChart'
+import { useSpectrumControlsPopover } from '../../spectrum/hooks/useSpectrumControlsPopover'
+import type { TAnalysisLayoutMode, TAnalysisSurface, TSignalChartMode } from '../../types'
+import type { ISpectrumViewport } from '../../spectrum/utils/spectrumChart'
 import './AnalysisWorkspaceHeader.scss'
 
 interface IAnalysisWorkspaceHeaderProps {

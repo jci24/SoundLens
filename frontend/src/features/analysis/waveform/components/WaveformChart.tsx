@@ -4,7 +4,7 @@ import {
   getAmplitudeUnitLabel,
   getWaveformChartModel,
 } from '../utils/waveformChart'
-import type { ITimeWaveformAxis, ITimeWaveformSignal } from '../types'
+import type { ITimeWaveformAxis, ITimeWaveformSignal } from '../../types'
 import './WaveformChart.scss'
 
 interface IWaveformChartProps {

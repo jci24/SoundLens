@@ -1,7 +1,6 @@
 import { useMemo } from 'react'
-import type { IFrequencySpectrumSignal, ITimeWaveformSignal } from '../types'
+import type { IFrequencySpectrumSignal, ITimeWaveformSignal, TSignalChartMode } from '../../types'
 import type { IAnalysisWorkspacePanel } from './useAnalysisWorkspacePanels'
-import type { TSignalChartMode } from '../types'
 
 interface IAnalysisWorkspacePanelChartItem {
   chartKey: string
