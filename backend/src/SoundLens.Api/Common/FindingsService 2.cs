@@ -1,39 +1,9 @@
-using SoundLens.Api.Features.Spectra.Common;
-
 namespace SoundLens.Api.Common;
 
 public static class FindingsService
 {
     private const double HighCrestFactorThreshold = 10.0;
     private const double LowLevelPeakThreshold = 0.01;
-
-    private const double TonalPeakMarginDb = 20.0;
-
-    public static IReadOnlyList<SignalFinding> BuildSpectralFindings(IReadOnlyList<FrequencySpectrumPoint> points)
-    {
-        if (points.Count < 2)
-        {
-            return [];
-        }
-
-        var findings = new List<SignalFinding>();
-
-        var peakPoint = points.MaxBy(p => p.Value)!;
-        var sortedValues = points.Select(p => p.Value).Order().ToArray();
-        var medianValue = sortedValues[sortedValues.Length / 2];
-        var marginDb = peakPoint.Value - medianValue;
-
-        if (marginDb >= TonalPeakMarginDb)
-        {
-            var peakDb = peakPoint.Value.ToString("F1", System.Globalization.CultureInfo.InvariantCulture);
-            var peakHz = peakPoint.FrequencyHz.ToString("F0", System.Globalization.CultureInfo.InvariantCulture);
-            var margin = marginDb.ToString("F1", System.Globalization.CultureInfo.InvariantCulture);
-            var detail = $"Peak: {peakDb} dB at {peakHz} Hz · {margin} dB above median";
-            findings.Add(new SignalFinding("TonalPeak", "Info", "Dominant tonal component", detail));
-        }
-
-        return findings;
-    }
 
     public static IReadOnlyList<SignalFinding> BuildFindings(SignalDerivedMetrics metrics)
     {

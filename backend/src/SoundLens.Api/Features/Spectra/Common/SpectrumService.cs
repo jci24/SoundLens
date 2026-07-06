@@ -84,19 +84,26 @@ public sealed class SpectrumService : ISpectrumService
 
         var analysisState = BuildAnalysisState(selectedChannels, requestedBins, explicitFftSize);
         var selectedSignals = selectedChannels
-            .Select(channel => new FrequencySpectrumSignal(
-                channel.SignalId,
-                channel.Recording.RecordingId,
-                channel.Recording.FileName,
-                channel.DisplayName,
-                channel.Recording.DurationSeconds,
-                channel.Recording.SampleRate,
-                channel.ChannelIndex,
-                "dB rel.",
-                false,
-                channel.Metrics,
-                FindingsService.BuildFindings(channel.Metrics),
-                GetOrBuildSpectrumPoints(channel, analysisState, cancellationToken)))
+            .Select(channel =>
+            {
+                var points = GetOrBuildSpectrumPoints(channel, analysisState, cancellationToken);
+                var findings = FindingsService.BuildFindings(channel.Metrics)
+                    .Concat(FindingsService.BuildSpectralFindings(points))
+                    .ToList();
+                return new FrequencySpectrumSignal(
+                    channel.SignalId,
+                    channel.Recording.RecordingId,
+                    channel.Recording.FileName,
+                    channel.DisplayName,
+                    channel.Recording.DurationSeconds,
+                    channel.Recording.SampleRate,
+                    channel.ChannelIndex,
+                    "dB rel.",
+                    false,
+                    channel.Metrics,
+                    findings,
+                    points);
+            })
             .ToList();
 
         return new FrequencySpectrumResponse(

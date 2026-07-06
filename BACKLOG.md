@@ -1,6 +1,6 @@
 # SoundLens Backlog
 
-Last updated: 2026-07-05 (4)
+Last updated: 2026-07-06 (5)
 
 This file is the repo-side backlog for SoundLens.
 
@@ -109,6 +109,7 @@ Completed:
 - `C3` Derived metrics strip
 - `C5` Flexible multi-panel workspace layout
 - `C4` First-pass findings strip: deterministic `SignalFinding` contract (Clipping/Alert, HighCrestFactor/Warning, LowLevel/Info), threaded through both waveform and spectrum services, rendered as badges beneath the metrics grid
+- `C4+` Tonal peak finding: `BuildSpectralFindings` rule fires when top spectral bin is ≥ 20 dB above median; finding includes frequency and margin in detail; 6 boundary tests added (50 backend tests total)
 
 Open stories:
 
@@ -137,15 +138,15 @@ Frontend
 
 If we continue immediately after this branch, the best next options are:
 
-1. `B6` Region-of-interest waveform and spectrum requests
-2. `D5` Component rendering tests for analysis surfaces
-3. `C4+` Extend findings with tonal peak detection (top spectrum peak > median + 20 dB)
+1. `D5` Component rendering tests for analysis surfaces
+2. `B6` Region-of-interest waveform and spectrum requests
+3. `C4++` Extend findings with harmonic series detection
 
 Recommended order:
 
-1. Add region-of-interest support so users can investigate specific time regions.
-2. Expand frontend rendering tests to keep the workspace demo-stable.
-3. Extend findings with spectrum-derived observations once B6 region context is in place.
+1. Expand frontend rendering tests to keep the workspace demo-stable.
+2. Add region-of-interest support so users can investigate specific time regions.
+3. Extend findings with harmonic detection once tonal peak is validated with real users.
 
 ## GitHub Projects Mapping
 
