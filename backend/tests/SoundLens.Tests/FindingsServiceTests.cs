@@ -168,6 +168,71 @@ public sealed class FindingsServiceTests
         Assert.DoesNotContain(findings, f => f.Category == "TonalPeak");
     }
 
+    [Fact]
+    public void BuildSpectralFindings_HarmonicSeries_ReturnsHarmonicFinding()
+    {
+        var points = BuildFlatSpectrumWithPeaks(
+            binCount: 80,
+            floorDb: -80.0,
+            (5, -18.0),
+            (10, -24.0),
+            (15, -30.0));
+
+        var findings = FindingsService.BuildSpectralFindings(points);
+
+        var harmonic = findings.SingleOrDefault(f => f.Category == "HarmonicSeries");
+        Assert.NotNull(harmonic);
+        Assert.Equal("Info", harmonic.Severity);
+        Assert.Contains("Fundamental", harmonic.Detail);
+        Assert.Contains("500", harmonic.Detail);
+        Assert.Contains("1000", harmonic.Detail);
+        Assert.Contains("1500", harmonic.Detail);
+    }
+
+    [Fact]
+    public void BuildSpectralFindings_DualToneWithoutThirdHarmonic_ReturnsNoHarmonicFinding()
+    {
+        var points = BuildFlatSpectrumWithPeaks(
+            binCount: 80,
+            floorDb: -80.0,
+            (5, -18.0),
+            (10, -24.0));
+
+        var findings = FindingsService.BuildSpectralFindings(points);
+
+        Assert.DoesNotContain(findings, f => f.Category == "HarmonicSeries");
+    }
+
+    [Fact]
+    public void BuildSpectralFindings_NearHarmonicPeaksWithinTolerance_ReturnsHarmonicFinding()
+    {
+        var points = BuildFlatSpectrumWithPeaks(
+            binCount: 80,
+            floorDb: -80.0,
+            (20, -18.0),
+            (41, -24.0),
+            (61, -28.0));
+
+        var findings = FindingsService.BuildSpectralFindings(points);
+
+        Assert.Contains(findings, f => f.Category == "HarmonicSeries");
+    }
+
+    [Fact]
+    public void BuildSpectralFindings_PeaksOutsideTolerance_ReturnsNoHarmonicFinding()
+    {
+        var points = BuildFlatSpectrumWithPeaks(
+            binCount: 80,
+            floorDb: -80.0,
+            (20, -18.0),
+            (43, -24.0),
+            (64, -28.0));
+
+        var findings = FindingsService.BuildSpectralFindings(points);
+
+        Assert.DoesNotContain(findings, f => f.Category == "HarmonicSeries");
+    }
+
     private static IReadOnlyList<FrequencySpectrumPoint> BuildFlatSpectrumWithSpike(
         int binCount, int spikeIndex, double spikeValueDb, double floorDb)
     {
@@ -175,6 +240,20 @@ public sealed class FindingsServiceTests
             .Select(i => new FrequencySpectrumPoint(
                 i * 100.0,
                 i == spikeIndex ? spikeValueDb : floorDb))
+            .ToList();
+    }
+
+    private static IReadOnlyList<FrequencySpectrumPoint> BuildFlatSpectrumWithPeaks(
+        int binCount,
+        double floorDb,
+        params (int binIndex, double valueDb)[] peaks)
+    {
+        var peakMap = peaks.ToDictionary(peak => peak.binIndex, peak => peak.valueDb);
+
+        return Enumerable.Range(0, binCount)
+            .Select(index => new FrequencySpectrumPoint(
+                index * 100.0,
+                peakMap.GetValueOrDefault(index, floorDb)))
             .ToList();
     }
 }

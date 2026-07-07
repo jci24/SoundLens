@@ -167,6 +167,52 @@ describe('useAnalysisWorkspaceMetrics', () => {
     ])
   })
 
+  it('keeps harmonic-series findings available through the shared metrics model', () => {
+    const { result } = renderHook(() =>
+      useAnalysisWorkspaceMetrics({
+        spectrumSignals: [
+          {
+            signalId: 'spec-harmonic-1',
+            recordingId: 'recording-1',
+            recordingFileName: 'harmonic.wav',
+            displayName: 'Channel 1',
+            durationSeconds: 0.5,
+            sampleRate: 48_000,
+            channelIndex: 0,
+            amplitudeUnit: 'dB rel.',
+            isCalibrated: false,
+            metrics: {
+              peakAmplitude: 0.4,
+              rmsAmplitude: 0.18,
+              crestFactor: 2.22,
+              clippingSampleCount: 0,
+              hasClipping: false,
+            },
+            findings: [
+              {
+                category: 'HarmonicSeries',
+                severity: 'Info',
+                label: 'Harmonic series detected',
+                detail: 'Fundamental ≈ 480 Hz · harmonics at 960, 1440 Hz',
+              },
+            ],
+            points: [],
+          },
+        ],
+        waveformSignals: [],
+      })
+    )
+
+    expect(result.current.metricSignals[0].findings).toEqual([
+      {
+        category: 'HarmonicSeries',
+        severity: 'Info',
+        label: 'Harmonic series detected',
+        detail: 'Fundamental ≈ 480 Hz · harmonics at 960, 1440 Hz',
+      },
+    ])
+  })
+
   it('falls back safely when a signal does not yet include derived metrics', () => {
     const { result } = renderHook(() =>
       useAnalysisWorkspaceMetrics({

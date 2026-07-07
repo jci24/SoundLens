@@ -294,6 +294,47 @@ public sealed class FrequencySpectrumTests : IClassFixture<WebApplicationFactory
     }
 
     [Fact]
+    public async Task POST_FrequencySpectra_RegionScopedHarmonicSignal_ReturnsHarmonicSeriesFinding()
+    {
+        var sampleRate = 1024;
+        var firstHalf = new short[sampleRate];
+        var secondHalf = CreateHarmonicSeriesSamples(sampleRate, fundamentalFrequencyHz: 64, durationSeconds: 1.0);
+        var samples = firstHalf.Concat(secondHalf).ToArray();
+        var tempPath = Path.Combine(Path.GetTempPath(), $"soundlens_spectrum_roi_harmonic_{Guid.NewGuid():N}.wav");
+        await File.WriteAllBytesAsync(tempPath, CreateMono16BitWav(sampleRate, samples));
+
+        try
+        {
+            var client = _factory.CreateClient();
+            var importResponse = await client.PostAsJsonAsync("/api/import", new { filePaths = new[] { tempPath } });
+            importResponse.EnsureSuccessStatusCode();
+
+            var response = await client.PostAsJsonAsync("/api/spectra/frequency", new
+            {
+                binCount = 513,
+                startTimeSeconds = 1.0,
+                endTimeSeconds = 2.0
+            });
+
+            response.EnsureSuccessStatusCode();
+            var result = await response.Content.ReadFromJsonAsync<FrequencySpectrumResponse>();
+
+            Assert.NotNull(result);
+            var signal = Assert.Single(result!.SelectedSignals);
+            var harmonicFinding = signal.Findings.SingleOrDefault(finding => finding.Category == "HarmonicSeries");
+
+            Assert.NotNull(harmonicFinding);
+            Assert.Contains("64", harmonicFinding!.Detail);
+            Assert.Contains("128", harmonicFinding.Detail);
+            Assert.Contains("192", harmonicFinding.Detail);
+        }
+        finally
+        {
+            File.Delete(tempPath);
+        }
+    }
+
+    [Fact]
     public async Task POST_FrequencySpectra_RejectsRegionThatExceedsSelectedSignalDuration()
     {
         var sampleRate = 1024;
@@ -799,6 +840,23 @@ public sealed class FrequencySpectrumTests : IClassFixture<WebApplicationFactory
             var rawValue = Math.Sin((2 * Math.PI * frequencyHz * index) / sampleRate) * 1.3;
             var clippedValue = Math.Clamp(rawValue, -1.0, 1.0);
             samples[index] = (short)Math.Round(clippedValue * short.MaxValue);
+        }
+
+        return samples;
+    }
+
+    private static short[] CreateHarmonicSeriesSamples(int sampleRate, int fundamentalFrequencyHz, double durationSeconds)
+    {
+        var sampleCount = (int)(sampleRate * durationSeconds);
+        var samples = new short[sampleCount];
+
+        for (var index = 0; index < sampleCount; index++)
+        {
+            var first = Math.Sin((2 * Math.PI * fundamentalFrequencyHz * index) / sampleRate) * 0.45;
+            var second = Math.Sin((2 * Math.PI * fundamentalFrequencyHz * 2 * index) / sampleRate) * 0.2;
+            var third = Math.Sin((2 * Math.PI * fundamentalFrequencyHz * 3 * index) / sampleRate) * 0.12;
+            var combined = Math.Clamp(first + second + third, -0.95, 0.95);
+            samples[index] = (short)Math.Round(combined * short.MaxValue);
         }
 
         return samples;
