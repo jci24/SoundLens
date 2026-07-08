@@ -1,6 +1,6 @@
 # SoundLens Backlog
 
-Last updated: 2026-07-07
+Last updated: 2026-07-08
 
 This file is the repo-side backlog for SoundLens.
 
@@ -120,19 +120,48 @@ Completed:
 
 Open stories:
 
+### Epic E: AI Copilot
+
+Goal:
+Let the user ask natural-language questions about loaded recordings and receive answers grounded in backend-computed DSP evidence only. The model decides what to analyze, triggers real services, and explains only what was measured.
+
+Completed:
+
+Open stories:
+
+- `E1` **Grounded AI answer — V1 (tool-calling agentic loop)** `Now`
+
+  The user types a question (e.g. "Which signal has more distortion?") and receives a structured, evidence-backed answer. The backend runs an OpenAI tool-calling loop: the model decides which DSP tools to call, the C# handler dispatches real services on each turn, and the model explains only the measured evidence.
+
+  Architecture: single `POST /api/agent/query` endpoint → `AgentQueryHandler` runs a loop (max 5 rounds) → `AgentToolDispatcher` maps tool names to `IWaveformService` / `ISpectrumService` / `FindingsService` → compact JSON summaries returned to model (no raw bins, no audio to OpenAI) → structured `AgentQueryResponse { answer, citedEvidence[], limitations[], nextSteps[], toolsUsed[] }` returned to frontend.
+
+  Tools exposed to the model: `get_signal_metrics`, `get_signal_findings`, `get_spectrum_summary`, `compare_signals`.
+
+  Frontend: new Copilot tab in the tool shelf → `CopilotPanel` with question input and response card showing answer + evidence badges + limitations + next steps.
+
+  Branch split: `codex/grounded-ai-answer-backend` → `codex/grounded-ai-answer-frontend`.
+
+  Requires `OpenAI` NuGet package (openai-dotnet v2.x). API key stored server-side only via `OpenAI:ApiKey` config / env var.
+
+  Out of scope for V1: streaming, multi-turn history, new DSP analysis types.
+
+- `E1-V2` **Grounded AI answer — V2 (structured planner-executor)** `Icebox`
+
+  Upgrade the agentic loop to a two-phase planner-executor pattern. Phase 1: a single OpenAI call with `response_format: json_schema` returns a structured plan `{ requiredTools: [{ tool, signalId, params }] }`. Phase 2: the backend executes all planned tools in parallel, then sends results to a second OpenAI call for the final grounded explanation. Benefits over V1: parallel tool execution (lower latency), predictable cost per query, easier to test the planning step in isolation. Tradeoffs: less adaptive if the plan misses something the model would have caught in a reactive loop.
+
+  Prerequisites: V1 must be validated with real customer questions to confirm the tool set is stable enough to plan upfront.
+
 ## Suggested Next Thin Tasks
 
-If we continue immediately after this branch, the best next options are:
+In progress:
 
-1. ROI polish: keyboard nudging, handle ergonomics, and multi-signal duration edge cases
-2. Demo dataset and short comparison report for customer sessions
-3. First grounded AI answer over the current deterministic evidence set
+1. `E1` Grounded AI answer V1 — tool-calling agentic loop (backend branch first)
 
-Recommended order:
+After E1 lands:
 
-1. Polish ROI ergonomics only where the documented demo flow shows friction; avoid turning it into a general annotation tool.
-2. Assemble a stable comparison dataset and short evidence summary so customer sessions start from a repeatable baseline.
-3. Add the first grounded AI answer once the evidence flow and demo script are stable enough to explain confidently.
+1. Demo dataset and short comparison report for customer sessions
+2. ROI polish: keyboard nudging, handle ergonomics, multi-signal duration edge cases
+3. `E1-V2` Planner-executor upgrade once V1 is validated with real customer questions
 
 ## GitHub Projects Mapping
 
