@@ -12,6 +12,7 @@ interface ICopilotPanelProps {
 
 const CopilotPanel = ({ selectedSignalIds, regionOfInterest }: ICopilotPanelProps) => {
   const { response, isLoading, error, submit, reset } = useCopilotQuery()
+  const hasContent = isLoading || !!error || !!response
 
   const handleSubmit = (question: string) => {
     reset()
@@ -24,49 +25,44 @@ const CopilotPanel = ({ selectedSignalIds, regionOfInterest }: ICopilotPanelProp
   }
 
   return (
-    <section className="copilot-panel" aria-label="AI investigation copilot">
-      <header className="copilot-panel__header">
-        <p className="copilot-panel__eyebrow">Analysis</p>
-        <h2 className="copilot-panel__title">Copilot</h2>
-        <p className="copilot-panel__subtitle">
-          Ask a question about the loaded recordings. The AI investigates using real backend measurements — it never invents values.
-        </p>
-      </header>
-
-      <div className="copilot-panel__body">
-        <CopilotInput isLoading={isLoading} onSubmit={handleSubmit} />
-
-        {/* Loading state */}
-        {isLoading && (
-          <div className="copilot-panel__loading" aria-live="polite">
-            <Loader2 className="copilot-panel__spinner" size={18} />
-            <span>Investigating — running analysis tools…</span>
+    <section className="copilot-panel" aria-label="AI copilot">
+      {/* Thread area — fills available space, scrollable */}
+      <div className="copilot-panel__thread">
+        {!hasContent && (
+          <div className="copilot-panel__empty-state">
+            <p className="copilot-panel__empty-label">Copilot</p>
+            <p className="copilot-panel__empty-hint">Ask a question about the loaded recordings.</p>
           </div>
         )}
 
-        {/* Error state */}
+        {isLoading && (
+          <div className="copilot-panel__loading" aria-live="polite">
+            <Loader2 className="copilot-panel__spinner" size={14} />
+            <span>Investigating…</span>
+          </div>
+        )}
+
         {!isLoading && error && (
           <div className="copilot-panel__error" role="alert">
             <span>{error}</span>
           </div>
         )}
 
-        {/* Response */}
         {!isLoading && !error && response && (
           <CopilotResponse
             response={response}
-            onRegenerate={() => {
-              if (response) reset()
-            }}
+            onRegenerate={reset}
           />
         )}
+      </div>
 
-        {/* Empty state */}
-        {!isLoading && !error && !response && (
-          <p className="copilot-panel__empty">
-            Select signals in the sidebar, then ask a question above.
-          </p>
-        )}
+      {/* Input bar — always pinned to bottom */}
+      <div className="copilot-panel__input-bar">
+        <CopilotInput
+          isLoading={isLoading}
+          showSuggestions={!hasContent}
+          onSubmit={handleSubmit}
+        />
       </div>
     </section>
   )

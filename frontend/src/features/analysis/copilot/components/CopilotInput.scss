@@ -85,25 +85,4 @@
     }
   }
 
-  &__footer {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 0.5rem;
-  }
-
-  &__char-count {
-    font-size: var(--font-xs);
-    color: var(--muted-foreground);
-
-    &--over {
-      color: var(--destructive);
-      font-weight: 600;
-    }
-  }
-
-  &__hint {
-    font-size: var(--font-xs);
-    color: color-mix(in srgb, var(--muted-foreground) 60%, transparent);
-  }
 }
