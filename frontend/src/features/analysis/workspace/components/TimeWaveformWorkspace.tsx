@@ -1,6 +1,7 @@
 import { AnalysisWorkspaceChart } from './AnalysisWorkspaceChart'
 import { AnalysisWorkspaceHeader } from './AnalysisWorkspaceHeader'
 import { RecordingRail } from '../../recording-rail/components/RecordingRail'
+import { CopilotPanel } from '../../copilot/components/CopilotPanel'
 import { useAnalysisWorkspaceMetrics } from '../../metrics/hooks/useAnalysisWorkspaceMetrics'
 import { formatCompactDuration } from '../../utils/analysisWorkspaceFormatting'
 import { useAnalysisWorkspacePanels } from '../hooks/useAnalysisWorkspacePanels'
@@ -115,39 +116,48 @@ const TimeWaveformWorkspace = ({ importedFiles }: ITimeWaveformWorkspaceProps) =
           selectedSignalIds={selectedSignalIds}
         />
         <div className="time-waveform-workspace__main-pane">
-          {regionOfInterest && (
-            <section className="time-waveform-workspace__roi-summary" aria-label="Selected time region">
-              <div className="time-waveform-workspace__roi-copy">
-                <span className="time-waveform-workspace__roi-title">Selected region</span>
-                <span className="time-waveform-workspace__roi-values">
-                  {`${formatCompactDuration(regionOfInterest.startTimeSeconds)} to ${formatCompactDuration(regionOfInterest.endTimeSeconds)} · ${formatCompactDuration(regionOfInterest.durationSeconds)}`}
-                </span>
-              </div>
-              <button
-                className="time-waveform-workspace__roi-clear"
-                type="button"
-                onClick={() => onRegionOfInterestChange(null)}
-              >
-                Clear region
-              </button>
-            </section>
+          {activeSurface === 'copilot' ? (
+            <CopilotPanel
+              regionOfInterest={regionOfInterest}
+              selectedSignalIds={selectedSignalIds}
+            />
+          ) : (
+            <>
+              {regionOfInterest && (
+                <section className="time-waveform-workspace__roi-summary" aria-label="Selected time region">
+                  <div className="time-waveform-workspace__roi-copy">
+                    <span className="time-waveform-workspace__roi-title">Selected region</span>
+                    <span className="time-waveform-workspace__roi-values">
+                      {`${formatCompactDuration(regionOfInterest.startTimeSeconds)} to ${formatCompactDuration(regionOfInterest.endTimeSeconds)} · ${formatCompactDuration(regionOfInterest.durationSeconds)}`}
+                    </span>
+                  </div>
+                  <button
+                    className="time-waveform-workspace__roi-clear"
+                    type="button"
+                    onClick={() => onRegionOfInterestChange(null)}
+                  >
+                    Clear region
+                  </button>
+                </section>
+              )}
+              <AnalysisWorkspaceChart
+                chartRef={chartRef}
+                chartWidth={chartWidth}
+                hasMetricsPending={hasMetricsPending}
+                isCompareMode={layoutMode === 'compare'}
+                metricSignals={metricSignals}
+                onRegionOfInterestChange={onRegionOfInterestChange}
+                panels={panels}
+                regionOfInterest={regionOfInterest}
+                signalChartMode={signalChartMode}
+                spectrumSignals={spectrumSignals}
+                spectrumXAxis={spectrumXAxis}
+                spectrumYAxis={spectrumYAxis}
+                waveformSignals={waveformSignals}
+                waveformYAxis={waveformYAxis}
+              />
+            </>
           )}
-          <AnalysisWorkspaceChart
-            chartRef={chartRef}
-            chartWidth={chartWidth}
-            hasMetricsPending={hasMetricsPending}
-            isCompareMode={layoutMode === 'compare'}
-            metricSignals={metricSignals}
-            onRegionOfInterestChange={onRegionOfInterestChange}
-            panels={panels}
-            regionOfInterest={regionOfInterest}
-            signalChartMode={signalChartMode}
-            spectrumSignals={spectrumSignals}
-            spectrumXAxis={spectrumXAxis}
-            spectrumYAxis={spectrumYAxis}
-            waveformSignals={waveformSignals}
-            waveformYAxis={waveformYAxis}
-          />
         </div>
       </div>
     </section>

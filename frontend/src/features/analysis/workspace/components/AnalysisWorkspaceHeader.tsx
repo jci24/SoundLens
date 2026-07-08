@@ -86,6 +86,7 @@ const AnalysisWorkspaceHeader = ({
           <TabsList>
             <TabsTrigger value="waveform">Waveform</TabsTrigger>
             <TabsTrigger value="spectrum">Spectrum</TabsTrigger>
+            <TabsTrigger value="copilot">Copilot</TabsTrigger>
           </TabsList>
         </Tabs>
       </div>

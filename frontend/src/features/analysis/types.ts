@@ -1,4 +1,4 @@
-export type TAnalysisSurface = 'waveform' | 'spectrum'
+export type TAnalysisSurface = 'waveform' | 'spectrum' | 'copilot'
 
 export interface ISignalFinding {
   category: string
