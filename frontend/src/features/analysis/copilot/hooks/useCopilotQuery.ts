@@ -4,6 +4,7 @@ import type { IAgentQueryRequest, IAgentQueryResponse } from '../types/copilot.t
 
 interface IUseCopilotQueryResult {
   response: IAgentQueryResponse | null
+  lastQuestion: string | null
   isLoading: boolean
   error: string | null
   submit: (request: IAgentQueryRequest) => Promise<void>
@@ -12,12 +13,14 @@ interface IUseCopilotQueryResult {
 
 const useCopilotQuery = (): IUseCopilotQueryResult => {
   const [response, setResponse] = useState<IAgentQueryResponse | null>(null)
+  const [lastQuestion, setLastQuestion] = useState<string | null>(null)
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
   const submit = useCallback(async (request: IAgentQueryRequest) => {
     setIsLoading(true)
     setError(null)
+    setLastQuestion(request.question)
 
     try {
       const result = await postAgentQuery(request)
@@ -32,9 +35,10 @@ const useCopilotQuery = (): IUseCopilotQueryResult => {
   const reset = useCallback(() => {
     setResponse(null)
     setError(null)
+    setLastQuestion(null)
   }, [])
 
-  return { response, isLoading, error, submit, reset }
+  return { response, lastQuestion, isLoading, error, submit, reset }
 }
 
 export { useCopilotQuery }

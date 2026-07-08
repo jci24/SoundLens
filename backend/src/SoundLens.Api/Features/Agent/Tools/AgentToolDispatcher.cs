@@ -72,9 +72,9 @@ public sealed class AgentToolDispatcher(
             isCalibrated = signal.IsCalibrated,
             metrics = signal.Metrics is null ? null : new
             {
-                peakAmplitudeDbFs = signal.Metrics.PeakAmplitude,
-                rmsAmplitudeDbFs = signal.Metrics.RmsAmplitude,
-                crestFactor = signal.Metrics.CrestFactor,
+                peakAmplitudeDbFs = Math.Round(ToDbFs(signal.Metrics.PeakAmplitude), 1),
+                rmsAmplitudeDbFs = Math.Round(ToDbFs(signal.Metrics.RmsAmplitude), 1),
+                crestFactor = Math.Round(signal.Metrics.CrestFactor, 2),
                 clippingSampleCount = signal.Metrics.ClippingSampleCount,
                 hasClipping = signal.Metrics.HasClipping
             }
@@ -240,9 +240,9 @@ public sealed class AgentToolDispatcher(
             fileName = s.RecordingFileName,
             durationSeconds = s.DurationSeconds,
             sampleRate = s.SampleRate,
-            peakAmplitudeDbFs = s.Metrics?.PeakAmplitude,
-            rmsAmplitudeDbFs = s.Metrics?.RmsAmplitude,
-            crestFactor = s.Metrics?.CrestFactor,
+            peakAmplitudeDbFs = s.Metrics is null ? (double?)null : Math.Round(ToDbFs(s.Metrics.PeakAmplitude), 1),
+            rmsAmplitudeDbFs = s.Metrics is null ? (double?)null : Math.Round(ToDbFs(s.Metrics.RmsAmplitude), 1),
+            crestFactor = s.Metrics is null ? (double?)null : Math.Round(s.Metrics.CrestFactor, 2),
             hasClipping = s.Metrics?.HasClipping
         }).ToArray();
 
@@ -309,4 +309,7 @@ public sealed class AgentToolDispatcher(
 
     private static string ErrorJson(string message) =>
         JsonSerializer.Serialize(new { error = message }, SerializerOptions);
+
+    private static double ToDbFs(double linearAmplitude) =>
+        linearAmplitude > 0 ? 20.0 * Math.Log10(linearAmplitude) : -120.0;
 }

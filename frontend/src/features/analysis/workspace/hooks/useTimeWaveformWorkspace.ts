@@ -107,6 +107,7 @@ const useTimeWaveformWorkspace = (
   const regionOfInterest = useAnalysisWorkspaceStore((state) => state.regionOfInterest)
   const syncSignalIds = useAnalysisWorkspaceStore((state) => state.syncSignalIds)
   const setRegionOfInterest = useAnalysisWorkspaceStore((state) => state.setRegionOfInterest)
+  const setRecordings = useAnalysisWorkspaceStore((state) => state.setRecordings)
 
   const binCount = useMemo(() => getWaveformRequestedBinCount(chartWidth), [chartWidth])
   const showWaveformPanel = layoutMode === 'compare' || activeSurface === 'waveform'
@@ -138,6 +139,7 @@ const useTimeWaveformWorkspace = (
 
           setWaveforms(response)
           setWaveformError(null)
+          setRecordings(response.recordings)
           syncSignalIds(response.selectedSignals.map((signal) => signal.signalId))
         })
         .catch((caughtError) => {
@@ -177,7 +179,7 @@ const useTimeWaveformWorkspace = (
     return () => {
       isCurrent = false
     }
-  }, [binCount, importedFiles.length, requestedRegionOfInterest, selectedSignalIds, selectedSpectrumFftSize, showSpectrumPanel, showWaveformPanel, syncSignalIds])
+  }, [binCount, importedFiles.length, requestedRegionOfInterest, selectedSignalIds, selectedSpectrumFftSize, showSpectrumPanel, showWaveformPanel, syncSignalIds, setRecordings])
 
   const waveformResponseSignalIds = waveforms?.selectedSignals.map((signal) => signal.signalId) ?? []
   const spectrumResponseSignalIds = spectrum?.selectedSignals.map((signal) => signal.signalId) ?? []

@@ -4,6 +4,8 @@ using OpenAI.Chat;
 using SoundLens.Api.Features.Agent.Commands;
 using SoundLens.Api.Features.Agent.Responses;
 using SoundLens.Api.Features.Agent.Tools;
+using SoundLens.Api.Features.Import.Common;
+using SoundLens.Api.Features.Waveforms.Common;
 
 namespace SoundLens.Api.Features.Agent.Handlers;
 
@@ -14,9 +16,11 @@ namespace SoundLens.Api.Features.Agent.Handlers;
 // 4. Returns a structured AgentQueryResponse with the answer, cited evidence, limitations, and next steps.
 public sealed class AgentQueryHandler(
     ChatClient chatClient,
-    AgentToolDispatcher toolDispatcher) : CommandHandler<AgentQueryCommand, AgentQueryResponse>
+    AgentToolDispatcher toolDispatcher,
+    IImportedFileStore importedFileStore,
+    IWaveformService waveformService) : CommandHandler<AgentQueryCommand, AgentQueryResponse>
 {
-    private const int MaxToolRounds = 5;
+    private const int MaxToolRounds = 8;
 
     private const string SystemPrompt = """
         You are SoundLens, an acoustic investigation copilot.
@@ -24,11 +28,15 @@ public sealed class AgentQueryHandler(
 
         RULES:
         - You MUST call at least one tool before answering any question about signal quality, levels, distortion, or spectral content.
+        - Once you have called a tool and received its results, you MUST immediately produce your final JSON answer. Do NOT call additional tools unless the first tool result was an error or explicitly insufficient to answer the question.
         - You MUST only cite values that were returned by a tool call in this conversation. Never estimate or invent measurements, frequency values, levels, or root causes.
         - If a value was not returned by a tool, say "not measured in this session".
         - All amplitude values are in dBFS (relative to digital full scale), not calibrated to physical SPL. State this when relevant to the user's question.
         - If the question cannot be answered from available tools, say so clearly and suggest what analysis would be needed.
         - Keep answers concise and engineering-focused. Use the exact values from tool results.
+        - NEVER ask the user for a signal ID. The available signal IDs are always listed in the context below. Use them directly.
+        - In the answer text, ALWAYS refer to signals by their displayName (e.g. "Channel 1"), never by their signalId hash.
+        - In citedEvidence, use the exact tool name as called (e.g. "get_signal_metrics"), never prefixed with "functions." or any other namespace.
 
         RESPONSE FORMAT:
         You must respond with a JSON object that matches this exact structure:
@@ -41,17 +49,30 @@ public sealed class AgentQueryHandler(
           "nextSteps": ["<suggested next step 1>", "<suggested next step 2>"]
         }
 
-        citedEvidence must list every tool result you cited in the answer.
+        citedEvidence must list every tool result you cited in the answer. The toolName field must be one of: get_signal_metrics, get_signal_findings, get_spectrum_summary, compare_signals.
         limitations must include at least: "Values are in dBFS, not calibrated to physical SPL."
         nextSteps should suggest 1–3 follow-up analyses or actions that would deepen the investigation.
         """;
 
     public override async Task<AgentQueryResponse> ExecuteAsync(AgentQueryCommand command, CancellationToken ct = default)
     {
+        var availableSignals = importedFileStore.CurrentFiles.Count > 0
+            ? waveformService.BuildTimeWaveforms(
+                importedFileStore.CurrentFiles,
+                requestedBinCount: 1,
+                selectedSignalIds: null,
+                startTimeSeconds: null,
+                endTimeSeconds: null,
+                cancellationToken: ct)
+                .Recordings
+                .SelectMany(r => r.Signals)
+                .ToList()
+            : [];
+
         var messages = new List<ChatMessage>
         {
             new SystemChatMessage(SystemPrompt),
-            new UserChatMessage(BuildUserMessage(command))
+            new UserChatMessage(BuildUserMessage(command, availableSignals))
         };
 
         var options = new ChatCompletionOptions();
@@ -92,6 +113,14 @@ public sealed class AgentQueryHandler(
                 }
 
                 toolRounds++;
+
+                // Nudge the model to answer if it has been calling tools for too many rounds.
+                if (toolRounds >= MaxToolRounds - 2)
+                {
+                    messages.Add(new UserChatMessage(
+                        "You have gathered enough evidence. Now produce your final JSON answer. Do not call any more tools."));
+                }
+
                 continue;
             }
 
@@ -108,13 +137,19 @@ public sealed class AgentQueryHandler(
             ToolsUsed: toolsUsed);
     }
 
-    private static string BuildUserMessage(AgentQueryCommand command)
+    private static string BuildUserMessage(AgentQueryCommand command, IReadOnlyList<TimeWaveformSignalSummary> availableSignals)
     {
         var parts = new List<string> { command.Question };
 
+        if (availableSignals.Count > 0)
+        {
+            var signalList = string.Join(", ", availableSignals.Select(s => $"{s.DisplayName} (signalId: \"{s.SignalId}\""));
+            parts.Add($"Available signals: {signalList}");
+        }
+
         if (command.SignalIds is { Count: > 0 })
         {
-            parts.Add($"Selected signal IDs: {string.Join(", ", command.SignalIds)}");
+            parts.Add($"User has selected these signal IDs: {string.Join(", ", command.SignalIds)}. Analyse these first.");
         }
 
         if (command.StartTimeSeconds.HasValue && command.EndTimeSeconds.HasValue)

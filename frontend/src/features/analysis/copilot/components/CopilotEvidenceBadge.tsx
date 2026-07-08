@@ -1,3 +1,4 @@
+import { useAnalysisWorkspaceStore } from '../../stores/useAnalysisWorkspaceStore'
 import type { IAgentEvidenceItem } from '../types/copilot.types'
 import './CopilotEvidenceBadge.scss'
 
@@ -13,13 +14,19 @@ const TOOL_LABELS: Record<string, string> = {
 }
 
 const CopilotEvidenceBadge = ({ item }: ICopilotEvidenceBadgeProps) => {
-  const label = TOOL_LABELS[item.toolName] ?? item.toolName
+  const recordings = useAnalysisWorkspaceStore((state) => state.recordings)
+  const normalizedToolName = item.toolName.replace(/^functions\./, '')
+  const label = TOOL_LABELS[normalizedToolName] ?? normalizedToolName
+
+  const signalDisplay = item.signalId
+    ? recordings.flatMap((r) => r.signals).find((s) => s.signalId === item.signalId)?.displayName ?? item.signalId
+    : null
 
   return (
     <span className="copilot-evidence-badge" title={item.summary}>
       <span className="copilot-evidence-badge__tool">{label}</span>
-      {item.signalId && (
-        <span className="copilot-evidence-badge__signal">{item.signalId}</span>
+      {signalDisplay && (
+        <span className="copilot-evidence-badge__signal">{signalDisplay}</span>
       )}
     </span>
   )

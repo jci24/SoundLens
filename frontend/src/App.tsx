@@ -17,6 +17,7 @@ const App = () => {
   const enterAnimationTimeoutRef = useRef<number | null>(null)
   const selectedSignalIds = useAnalysisWorkspaceStore((state) => state.selectedSignalIds)
   const regionOfInterest = useAnalysisWorkspaceStore((state) => state.regionOfInterest)
+  const recordings = useAnalysisWorkspaceStore((state) => state.recordings)
 
   useEffect(() => {
     return () => {
@@ -47,7 +48,7 @@ const App = () => {
         isCollapsed={isSidebarCollapsed}
         onToggleCollapse={() => setIsSidebarCollapsed((currentValue) => !currentValue)}
       />
-      <MainContent>
+      <MainContent isCopilotOpen={isCopilotOpen}>
         <div className={`app__workspace-stage${isEnteringAnalysis ? ' app__workspace-stage--entering' : ''}`}>
           {importedFiles.length > 0 ? (
             <TimeWaveformWorkspace
@@ -63,6 +64,7 @@ const App = () => {
       {importedFiles.length > 0 && (
         <CopilotSidebar
           isOpen={isCopilotOpen}
+          recordings={recordings}
           regionOfInterest={regionOfInterest}
           selectedSignalIds={selectedSignalIds}
         />
