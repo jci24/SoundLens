@@ -1,3 +1,4 @@
+import { PanelRightClose, PanelRightOpen } from 'lucide-react'
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { SpectrumControlsPopover } from '../../spectrum/components/SpectrumControlsPopover'
 import { useAnalysisWorkspaceHeader } from '../hooks/useAnalysisWorkspaceHeader'
@@ -8,7 +9,9 @@ import './AnalysisWorkspaceHeader.scss'
 
 interface IAnalysisWorkspaceHeaderProps {
   activeSurface: TAnalysisSurface
+  isCopilotOpen: boolean
   layoutMode: TAnalysisLayoutMode
+  onCopilotToggle: () => void
   onSpectrumPresetChange: (preset: string) => void
   onSpectrumRangeEndChange: (value: string) => void
   onSpectrumRangeReset: () => void
@@ -29,7 +32,9 @@ interface IAnalysisWorkspaceHeaderProps {
 
 const AnalysisWorkspaceHeader = ({
   activeSurface,
+  isCopilotOpen,
   layoutMode,
+  onCopilotToggle,
   onLayoutModeChange,
   onSignalChartModeChange,
   onSpectrumPresetChange,
@@ -74,6 +79,15 @@ const AnalysisWorkspaceHeader = ({
           <p className="time-waveform-workspace__eyebrow">{activeEyebrow}</p>
           <h2 className="time-waveform-workspace__title">{activeTitle}</h2>
         </div>
+        <button
+          aria-label={isCopilotOpen ? 'Close Copilot' : 'Open Copilot'}
+          className={`time-waveform-workspace__copilot-toggle${isCopilotOpen ? ' time-waveform-workspace__copilot-toggle--active' : ''}`}
+          title={isCopilotOpen ? 'Close Copilot' : 'Open Copilot'}
+          type="button"
+          onClick={onCopilotToggle}
+        >
+          {isCopilotOpen ? <PanelRightClose size={18} /> : <PanelRightOpen size={18} />}
+        </button>
       </header>
 
       {/* Primary surface shelf — pick which analysis surface to view */}
@@ -86,7 +100,6 @@ const AnalysisWorkspaceHeader = ({
           <TabsList>
             <TabsTrigger value="waveform">Waveform</TabsTrigger>
             <TabsTrigger value="spectrum">Spectrum</TabsTrigger>
-            <TabsTrigger value="copilot">Copilot</TabsTrigger>
           </TabsList>
         </Tabs>
       </div>

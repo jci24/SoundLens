@@ -1,0 +1,151 @@
+[Patterns](https://www.shapeof.ai/)
+[UI Library](https://www.shapeof.ai/examples)
+[About](https://www.shapeof.ai/about)
+
+# Exploring how User Experience will evolve with the growth of Artificial Intelligence.
+
+- WayfindersInputsTunersGovernorsTrust buildersIdentifiers
+Wayfinders
+Inputs
+Tuners
+Governors
+Trust builders
+Identifiers
+[WayfindersHelp users construct their first prompt and get started.](https://www.shapeof.ai/pattern-types/wayfinders)
+
+### Wayfinders
+[Example galleryShare sample generations, prompts, and parameters to educate and inspire users.](https://www.shapeof.ai/patterns/gallery)
+Share sample generations, prompts, and parameters to educate and inspire users.
+[Follow upGet more information from the user when the initial prompt isn't sufficiently clear.](https://www.shapeof.ai/patterns/follow-up)
+Get more information from the user when the initial prompt isn't sufficiently clear.
+[Initial CTALarge, open-ended input inviting the user to start their first interaction with the AI.](https://www.shapeof.ai/patterns/cta)
+Large, open-ended input inviting the user to start their first interaction with the AI.
+[NudgesAlert users to actions they can take to use AI, especially if they are just getting started.](https://www.shapeof.ai/patterns/nudges)
+Alert users to actions they can take to use AI, especially if they are just getting started.
+[Prompt detailsShow users what is actually happening behind the scenes.](https://www.shapeof.ai/patterns/prompt-details)
+Show users what is actually happening behind the scenes.
+[RandomizeKickstart the prompting experience with a low bar and fun results](https://www.shapeof.ai/patterns/randomize)
+Kickstart the prompting experience with a low bar and fun results
+[SuggestionsSolves the blank canvas dilemma with clues for how to prompt.](https://www.shapeof.ai/patterns/suggestions)
+Solves the blank canvas dilemma with clues for how to prompt.
+[TemplatesStructured templates that can be filled by the user or pre-filled by the AI.](https://www.shapeof.ai/patterns/templates)
+Structured templates that can be filled by the user or pre-filled by the AI.
+[Prompt actionsDifferent actions that users can direct AI to complete.](https://www.shapeof.ai/pattern-types/inputs)
+
+### Prompt actions
+[Auto-fillExtend a prompt to multiple fields or inputs at once.](https://www.shapeof.ai/patterns/auto-fill)
+Extend a prompt to multiple fields or inputs at once.
+[Chained action](https://www.shapeof.ai/patterns/chained-action)
+[DescribeDecomposes the course into its fundamental tokens and suggested prompt.](https://www.shapeof.ai/patterns/describe)
+Decomposes the course into its fundamental tokens and suggested prompt.
+[ExpandLengthen the underlying content or add depth and details.](https://www.shapeof.ai/patterns/expand)
+Lengthen the underlying content or add depth and details.
+[Inline ActionAsk or interact with AI contextually based on something already available on the page.](https://www.shapeof.ai/patterns/inline-action)
+Ask or interact with AI contextually based on something already available on the page.
+[InpaintingTarget specific areas of the AI's result to regenerate or remix.](https://www.shapeof.ai/patterns/inpainting)
+Target specific areas of the AI's result to regenerate or remix.
+[MadlibsRepeatedly run generative tasks without compromising on the format or accuracy.](https://www.shapeof.ai/patterns/madlibs)
+Repeatedly run generative tasks without compromising on the format or accuracy.
+[Open inputOpen ended prompt inputs that can be used in AI conversations and other natural language prompting](https://www.shapeof.ai/patterns/open-input)
+Open ended prompt inputs that can be used in AI conversations and other natural language prompting
+[RegenerateHave the AI reproduce its response to the prompt without additional input](https://www.shapeof.ai/patterns/regenerate)
+Have the AI reproduce its response to the prompt without additional input
+[RestructureUse existing content as the starting point for prompting.](https://www.shapeof.ai/patterns/restructure)
+Use existing content as the starting point for prompting.
+[RestyleTransfer styles without changing the underlying structure of a generation.](https://www.shapeof.ai/patterns/restyle)
+Transfer styles without changing the underlying structure of a generation.
+[SummaryHave AI distill a topic or resource down to its essence.](https://www.shapeof.ai/patterns/summary)
+Have AI distill a topic or resource down to its essence.
+[SynthesisDistill or reorganize complicated information into simple structure.](https://www.shapeof.ai/patterns/synthesis)
+Distill or reorganize complicated information into simple structure.
+[TransformUse AI to change the modality of content.](https://www.shapeof.ai/patterns/change-form)
+Use AI to change the modality of content.
+[TunersAdjust contextual data, token weights, and input details to refine the prompt](https://www.shapeof.ai/pattern-types/tuners)
+
+### Tuners
+
+[AttachmentsGive the AI a specific reference to anchor its response.](https://www.shapeof.ai/patterns/attachments)
+Give the AI a specific reference to anchor its response.
+[ConnectorsAllow AI to reference external data and context.](https://www.shapeof.ai/patterns/connectors)
+Allow AI to reference external data and context.
+[FiltersConstrain the inputs or the outputs of the AI by source, type, modality, etc.](https://www.shapeof.ai/patterns/filters)
+Constrain the inputs or the outputs of the AI by source, type, modality, etc.
+[Model managementLet users specify what model to use for their prompts.](https://www.shapeof.ai/patterns/model-management)
+Let users specify what model to use for their prompts.
+[ModesAdjust the underlying training, constraints, and persona to a specific context of use.](https://www.shapeof.ai/patterns/modes)
+Adjust the underlying training, constraints, and persona to a specific context of use.
+[ParametersInclude constraints with your prompt for the AI to reference when generating its result.](https://www.shapeof.ai/patterns/parameters)
+Include constraints with your prompt for the AI to reference when generating its result.
+[Preset stylesProvide default options to change the texture, aesthetic, or tone of generative media.](https://www.shapeof.ai/patterns/preset-styles)
+Provide default options to change the texture, aesthetic, or tone of generative media.
+[Prompt enhancer](https://www.shapeof.ai/patterns/prompt-enhancer)
+[Saved stylesAllow users to define their own style presets for re-use.](https://www.shapeof.ai/patterns/saved-styles)
+Allow users to define their own style presets for re-use.
+[Voice and toneEnsure outputs match your voice, tone, and preferences in a consistent way.](https://www.shapeof.ai/patterns/voice-and-tone)
+Ensure outputs match your voice, tone, and preferences in a consistent way.
+[GovernorsHuman-in-the-loop features to maintain user oversight and agency.](https://www.shapeof.ai/pattern-types/governors)
+
+### Governors
+[Action planHave the AI show the steps it will take to respond to the user's prompt before it executes its response](https://www.shapeof.ai/patterns/action-plan)
+Have the AI show the steps it will take to respond to the user's prompt before it executes its response
+[BranchesSupport iterative prompting while retaining footprints band visibility back to the original](https://www.shapeof.ai/patterns/branches)
+Support iterative prompting while retaining footprints band visibility back to the original
+[CitationsLets the AI give inline annotations to cite its sources](https://www.shapeof.ai/patterns/citations)
+Lets the AI give inline annotations to cite its sources
+[ControlsManage the flow of information or pause a request mid-stream to adjust the prompt](https://www.shapeof.ai/patterns/controls)
+Manage the flow of information or pause a request mid-stream to adjust the prompt
+[Cost estimatesHelp users proactively modulate compute power through transparent cost estimates for actions](https://www.shapeof.ai/patterns/cost-estimates)
+Help users proactively modulate compute power through transparent cost estimates for actions
+[Draft modeSupport exploration and iterative prompting while reducing compute costs until a final form is ready](https://www.shapeof.ai/patterns/draft-mode)
+Support exploration and iterative prompting while reducing compute costs until a final form is ready
+[MemoryControl what details the AI knows about you](https://www.shapeof.ai/patterns/memory)
+Control what details the AI knows about you
+[ReferencesSee and manage what additional sources the AI references to generate its response](https://www.shapeof.ai/patterns/references)
+See and manage what additional sources the AI references to generate its response
+[Sample responseConfirm the user's intent for complicated prompts](https://www.shapeof.ai/patterns/sample-response)
+Confirm the user's intent for complicated prompts
+[Shared visionLive visibility into the AI's action in a shared canvas or workspace](https://www.shapeof.ai/patterns/shared-vision)
+Live visibility into the AI's action in a shared canvas or workspace
+[Stream of ThoughtReveals the AI's logic thought process, tool use, and decisions for oversight and auditability](https://www.shapeof.ai/patterns/stream-of-thought)
+Reveals the AI's logic thought process, tool use, and decisions for oversight and auditability
+[VariationsTrace through multiple variations of a result to choose the one that works best for them](https://www.shapeof.ai/patterns/variations)
+Trace through multiple variations of a result to choose the one that works best for them
+[VerificationAllow users to confirm AI decisions and actions before proceeding](https://www.shapeof.ai/patterns/verification)
+Allow users to confirm AI decisions and actions before proceeding
+[Trust buildersGive users confidence that the AI's results are ethical, accurate, and trustworthy](https://www.shapeof.ai/pattern-types/trust-builders)
+
+### Trust builders
+[CaveatInform users about shortcomings or risks in the model or the technology overall](https://www.shapeof.ai/patterns/caveat)
+Inform users about shortcomings or risks in the model or the technology overall
+[ConsentOnly capture data from others with their knowledge and permission](https://www.shapeof.ai/patterns/consent)
+Only capture data from others with their knowledge and permission
+[Data ownershipControl how the model remembers and uses your data](https://www.shapeof.ai/patterns/data-ownership)
+Control how the model remembers and uses your data
+[DisclosureClearly mark content and interactions guided or delivered by AI](https://www.shapeof.ai/patterns/disclosure)
+Clearly mark content and interactions guided or delivered by AI
+[FootprintsLet users trace the AI's steps from prompt to result](https://www.shapeof.ai/patterns/footprints)
+Let users trace the AI's steps from prompt to result
+[Incognito ModeInteract with the AI outside of its memory](https://www.shapeof.ai/patterns/incognito-mode)
+Interact with the AI outside of its memory
+[WatermarkIdentifiers on AI Generative content that humans, software, or programs can read](https://www.shapeof.ai/patterns/watermark)
+Identifiers on AI Generative content that humans, software, or programs can read
+[IdentifiersDistinct qualities of AI that can be modified at the brand or model level to stand out.](https://www.shapeof.ai/pattern-types/identifiers)
+
+### Identifiers
+
+[AvatarVisual identifier of the AI itself to help it be recognizable, memorable, and on-brand.](https://www.shapeof.ai/patterns/avatar)
+Visual identifier of the AI itself to help it be recognizable, memorable, and on-brand.
+[ColorVisual cues to help users identify AI features or content.](https://www.shapeof.ai/patterns/color)
+Visual cues to help users identify AI features or content.
+[IconographyImages that represent AI-powered actions throughout the interface.](https://www.shapeof.ai/patterns/iconography)
+Images that represent AI-powered actions throughout the interface.
+[NameHow the AI is referred to through the product and across the overall customer experience.](https://www.shapeof.ai/patterns/name)
+How the AI is referred to through the product and across the overall customer experience.
+[PersonalityCharacteristics that distinguish the AI's personality and vibe.](https://www.shapeof.ai/patterns/personality)
+Characteristics that distinguish the AI's personality and vibe.
+
+# Follow along
+
+[[↑] Subscribe to the newsletter](https://shapeofai.substack.com/)for free to support the project or follow along.
+[↑] Join the Slack where we can discuss emerging patterns, new products, and the changing role of design. The community is free to join and participate in.
+© Emily Campbell 2025 | Sharable under CC-BY-NC-SA | [Contact](https://www.shapeof.ai/about)

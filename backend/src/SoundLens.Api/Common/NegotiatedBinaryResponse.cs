@@ -29,7 +29,7 @@ internal static class NegotiatedBinaryResponse
 
     internal static async Task SendMessagePackAsync<T>(HttpResponse response, T payload, CancellationToken cancellationToken)
     {
-        var bytes = MessagePackSerializer.Serialize(payload, SerializerOptions, cancellationToken);
+        var bytes = MessagePackSerializer.Serialize(payload, SerializerOptions, CancellationToken.None);
 
         response.StatusCode = StatusCodes.Status200OK;
         response.ContentType = MessagePackContentType;

@@ -12,6 +12,13 @@ const string LocalFrontendCorsPolicy = "LocalFrontend";
 try
 {
     var builder = WebApplication.CreateBuilder(args);
+
+    // Load gitignored local overrides (e.g. appsettings.Development.local.json) for secrets like API keys.
+    builder.Configuration.AddJsonFile(
+        $"appsettings.{builder.Environment.EnvironmentName}.local.json",
+        optional: true,
+        reloadOnChange: false);
+
     var uploadLimitsSection = builder.Configuration.GetSection("UploadLimits");
     var allowedCorsOrigins =
         builder.Configuration.GetSection("Cors:AllowedOrigins").Get<string[]>() ??

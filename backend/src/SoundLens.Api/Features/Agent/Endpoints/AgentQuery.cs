@@ -47,7 +47,14 @@ public sealed class AgentQuery : Endpoint<AgentQueryCommand, AgentQueryResponse>
 
     public override async Task HandleAsync(AgentQueryCommand req, CancellationToken ct)
     {
-        var result = await req.ExecuteAsync(ct);
-        await Send.OkAsync(result, ct);
+        try
+        {
+            var result = await req.ExecuteAsync(ct);
+            await Send.OkAsync(result, ct);
+        }
+        catch (InvalidOperationException ex) when (ex.Message.Contains("API key"))
+        {
+            await Send.ErrorsAsync(503, ct);
+        }
     }
 }
