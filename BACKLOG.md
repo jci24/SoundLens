@@ -1,6 +1,6 @@
 # SoundLens Backlog
 
-Last updated: 2026-07-06 (6)
+Last updated: 2026-07-07
 
 This file is the repo-side backlog for SoundLens.
 
@@ -98,6 +98,8 @@ Completed:
 - `C5` Flexible multi-panel workspace layout
 - `C4` First-pass findings strip: deterministic `SignalFinding` contract (Clipping/Alert, HighCrestFactor/Warning, LowLevel/Info), threaded through both waveform and spectrum services, rendered as badges beneath the metrics grid
 - `C4+` Tonal peak finding: `BuildSpectralFindings` rule fires when top spectral bin is ≥ 20 dB above median; finding includes frequency and margin in detail; 6 boundary tests added (50 backend tests total)
+- `C4++` Harmonic series finding: deterministic `HarmonicSeries` detection added to spectral findings for full-recording and ROI-scoped spectra, with backend and frontend regression coverage
+- `C6` ROI + findings demo validation kit: repeatable demo flow and customer interview notes template added under `docs/validation/`
 - `Refactor` Analysis feature reorganised into sub-feature folders (`workspace/`, `recording-rail/`, `metrics/`, `waveform/`, `spectrum/`); shared `utils/`, `services/`, `stores/`, and `types.ts` stay at analysis root; `tsc --noEmit` clean
 
 Open stories:
@@ -114,6 +116,7 @@ Completed:
 - `D3` Hook and utility coverage expansion
 - `D4` DSP fixture regression coverage expansion (38 tests passing)
 - `D5` Component rendering tests for analysis surfaces
+- `D6` Vitest worker startup fix: frontend suite moved to `happy-dom`, temporary divergent Vitest config removed, and `npm run test:run` / `npm run build` pass locally
 
 Open stories:
 
@@ -121,15 +124,15 @@ Open stories:
 
 If we continue immediately after this branch, the best next options are:
 
-1. `C4++` Extend findings with harmonic series detection
-2. ROI polish: keyboard nudging, handle ergonomics, and multi-signal duration edge cases
-3. Demo validation pass for ROI + findings workflow
+1. ROI polish: keyboard nudging, handle ergonomics, and multi-signal duration edge cases
+2. Demo dataset and short comparison report for customer sessions
+3. First grounded AI answer over the current deterministic evidence set
 
 Recommended order:
 
-1. Extend findings with harmonic detection so the new ROI workflow surfaces richer deterministic interpretation.
-2. Polish ROI ergonomics only if customer-demo usage shows friction; avoid turning it into a general annotation tool.
-3. Run a focused demo-validation pass against real comparison recordings before widening the analysis surface set.
+1. Polish ROI ergonomics only where the documented demo flow shows friction; avoid turning it into a general annotation tool.
+2. Assemble a stable comparison dataset and short evidence summary so customer sessions start from a repeatable baseline.
+3. Add the first grounded AI answer once the evidence flow and demo script are stable enough to explain confidently.
 
 ## GitHub Projects Mapping
 

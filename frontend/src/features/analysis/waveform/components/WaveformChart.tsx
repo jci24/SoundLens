@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useMemo, useState } from 'react'
 import {
   formatAmplitudeTick,
   formatTimeTick,
@@ -45,12 +45,6 @@ const WaveformChart = ({
     () => Math.max(...signals.map((signal) => signal.durationSeconds), 0),
     [signals]
   )
-
-  useEffect(() => {
-    if (dragMode === null) {
-      setDraftRegion(null)
-    }
-  }, [dragMode, regionOfInterest])
 
   const buildRegion = (startTimeSeconds: number, endTimeSeconds: number): IAnalysisRegionOfInterest => {
     const safeStart = Math.max(0, Math.min(startTimeSeconds, endTimeSeconds))
