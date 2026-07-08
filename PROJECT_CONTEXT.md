@@ -1,6 +1,6 @@
 # SoundLens Project Context
 
-Last updated: 2026-07-07
+Last updated: 2026-07-08
 
 ## Purpose
 
@@ -72,10 +72,11 @@ The current demo slice is now centered on browser-first import plus waveform and
 - The `analysis` feature has been reorganised into sub-feature folders: `workspace/` (shell, header, panels), `recording-rail/` (file/channel sidebar), `metrics/` (metrics table, findings), `waveform/` (chart + utils), `spectrum/` (chart, controls, hooks, utils). Shared `utils/`, `services/`, `stores/`, and `types.ts` remain at the `analysis/` root. All import paths updated; `tsc --noEmit` passes cleanly.
 - Frontend validation now includes a clean local Vitest run again: the suite uses `happy-dom`, the divergent debug-only Vitest config has been removed, and the current frontend baseline passes `npm run test:run` and `npm run build`.
 - The repo now includes a repeatable ROI and findings demo-validation kit under `docs/validation/`, including a scripted demo flow and a customer interview notes template.
+- The backend now includes a grounded AI agent endpoint (`POST /api/agent/query`). The agent runs an OpenAI tool-calling loop (max 5 rounds, `gpt-4o-mini`): the model decides which DSP tool to call, the C# handler dispatches to real `IWaveformService` / `ISpectrumService` / `FindingsService` instances, and only compact JSON summaries (never raw bins or audio) are sent to OpenAI. The four tools are `get_signal_metrics`, `get_signal_findings`, `get_spectrum_summary`, and `compare_signals`. The response is a structured `AgentQueryResponse { answer, citedEvidence[], limitations[], nextSteps[], toolsUsed[] }`. The `OpenAI` NuGet package (v2.2.0) is added; the API key is stored server-side via `OpenAI:ApiKey` config / `OPENAI__APIKEY` env var and is never returned in any response. 14 new backend tests; full suite 75/75 passing.
 
 Immediate next step after this slice:
 
-- Run the documented ROI + findings demo flow against a stable comparison recording pair and use the captured friction to decide whether ROI polish or demo-dataset work should land next.
+- Build the frontend Copilot tab (`codex/grounded-ai-answer-frontend`) so the agent endpoint can be driven from the UI and validated end-to-end with a real API key.
 
 ## Collaboration Process
 
