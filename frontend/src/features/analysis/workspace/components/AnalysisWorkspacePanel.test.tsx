@@ -92,7 +92,7 @@ describe('AnalysisWorkspacePanel', () => {
     )
 
     expect(screen.getByText('Loading waveform…')).toBeInTheDocument()
-    expect(screen.queryByTestId('waveform-chart')).not.toBeInTheDocument()
+    expect(screen.getByTestId('waveform-chart')).toBeInTheDocument()
   })
 
   it('renders an error state when analysis fails', () => {

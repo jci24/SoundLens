@@ -38,9 +38,9 @@ describe('AnalysisWorkspaceHeader', () => {
     expect(screen.getByRole('tab', { name: 'Overlay' })).toBeInTheDocument()
     expect(screen.getByRole('tab', { name: 'Split' })).toBeInTheDocument()
 
-    fireEvent.click(screen.getByRole('tab', { name: 'Spectrum' }))
-    fireEvent.click(screen.getByRole('tab', { name: 'Compare' }))
-    fireEvent.click(screen.getByRole('tab', { name: 'Split' }))
+    fireEvent.mouseDown(screen.getByRole('tab', { name: 'Spectrum' }), { button: 0 })
+    fireEvent.mouseDown(screen.getByRole('tab', { name: 'Compare' }), { button: 0 })
+    fireEvent.mouseDown(screen.getByRole('tab', { name: 'Split' }), { button: 0 })
 
     expect(props.onSurfaceChange).toHaveBeenCalledWith('spectrum')
     expect(props.onLayoutModeChange).toHaveBeenCalledWith('compare')

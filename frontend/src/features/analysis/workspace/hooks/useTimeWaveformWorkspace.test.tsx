@@ -1,4 +1,4 @@
-import { renderHook, waitFor } from '@testing-library/react'
+import { act, renderHook, waitFor } from '@testing-library/react'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { useAnalysisWorkspaceStore } from '../../stores/useAnalysisWorkspaceStore'
 import { useTimeWaveformWorkspace } from './useTimeWaveformWorkspace'
@@ -195,20 +195,94 @@ describe('useTimeWaveformWorkspace', () => {
       })
     })
 
-    useAnalysisWorkspaceStore.setState({
-      activeSurface: 'spectrum',
+    act(() => {
+      useAnalysisWorkspaceStore.setState({
+        activeSurface: 'spectrum',
+      })
     })
     rerender()
 
+    act(() => {
+      useAnalysisWorkspaceStore.setState({
+        activeSurface: 'waveform',
+        regionOfInterest: {
+          startTimeSeconds: 0.5,
+          endTimeSeconds: 0.8,
+          durationSeconds: 0.3,
+        },
+      })
+    })
+    rerender()
+
+    expect(result.current.regionOfInterest).toEqual({
+      startTimeSeconds: 0.5,
+      endTimeSeconds: 0.8,
+      durationSeconds: 0.3,
+    })
+
+    unmount()
+  })
+
+  it('lets the workspace clear and reselect ROI after switching between waveform and spectrum surfaces', async () => {
     useAnalysisWorkspaceStore.setState({
       activeSurface: 'waveform',
-      regionOfInterest: {
+      layoutMode: 'focused',
+      regionOfInterest: null,
+    })
+
+    const { result, rerender, unmount } = renderHook(() => useTimeWaveformWorkspace(importedFiles))
+
+    await waitFor(() => {
+      expect(result.current.waveforms).toEqual(waveformResponse)
+    })
+
+    act(() => {
+      result.current.onRegionOfInterestChange({
+        startTimeSeconds: 0.1,
+        endTimeSeconds: 0.4,
+        durationSeconds: 0.3,
+      })
+    })
+
+    expect(result.current.regionOfInterest).toEqual({
+      startTimeSeconds: 0.1,
+      endTimeSeconds: 0.4,
+      durationSeconds: 0.3,
+    })
+
+    act(() => {
+      useAnalysisWorkspaceStore.setState({
+        activeSurface: 'spectrum',
+      })
+    })
+    rerender()
+
+    expect(result.current.regionOfInterest).toEqual({
+      startTimeSeconds: 0.1,
+      endTimeSeconds: 0.4,
+      durationSeconds: 0.3,
+    })
+
+    act(() => {
+      result.current.onRegionOfInterestChange(null)
+    })
+
+    expect(result.current.regionOfInterest).toBeNull()
+
+    act(() => {
+      useAnalysisWorkspaceStore.setState({
+        activeSurface: 'waveform',
+      })
+    })
+    rerender()
+
+    act(() => {
+      result.current.onRegionOfInterestChange({
         startTimeSeconds: 0.5,
         endTimeSeconds: 0.8,
         durationSeconds: 0.3,
-      },
+      })
     })
-    rerender()
 
     expect(result.current.regionOfInterest).toEqual({
       startTimeSeconds: 0.5,

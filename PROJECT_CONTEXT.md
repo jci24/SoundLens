@@ -1,6 +1,6 @@
 # SoundLens Project Context
 
-Last updated: 2026-07-06
+Last updated: 2026-07-07
 
 ## Purpose
 
@@ -65,14 +65,17 @@ The current demo slice is now centered on browser-first import plus waveform and
 - The spectrum endpoint now accepts an explicit FFT size parameter (`fftSize`) validated against a canonical `AllowedFftSizes` set. The backend is the single source of truth for which sizes are valid and returns the actual `fftLength` used in the `Analysis` contract so the frontend can verify what was computed rather than recomputing it locally.
 - Both waveform and spectrum signal responses now carry a structured `findings` list. The `FindingsService` produces deterministic `SignalFinding` items (Clipping/Alert, HighCrestFactor/Warning, LowLevel/Info) from `SignalDerivedMetrics` without any model or AI involvement. The frontend renders these in a dedicated `FindingsPanel` below the metrics table, giving users a first-pass interpretation before they inspect the charts.
 - The spectrum findings pipeline now includes tonal peak detection: `FindingsService.BuildSpectralFindings` fires a `TonalPeak/Info` finding when the highest spectral bin exceeds the median by ≥ 20 dB, and includes the peak frequency and margin in the finding detail. This is the first spectrum-derived (not amplitude-derived) finding in the system.
+- The spectral findings pipeline now also includes deterministic harmonic-series detection, so both full-recording and ROI-scoped spectra can surface a `HarmonicSeries` finding when strong peaks align to harmonic multiples.
 - The workspace header is now split into a primary surface shelf (Waveform, Spectrum, and future surfaces) and a subordinate view controls bar (layout mode, chart mode, analysis controls), giving future evidence surfaces a clear navigation home without cluttering the main workspace.
 - The analysis workspace card nesting has been flattened: the recording rail, per-signal metrics cards, and focused-mode chart inner cards no longer carry redundant borders, backgrounds, and shadows. Cards are preserved only where they provide real visual separation (compare/split chart mode).
 - Repo-side backlog tracking now lives in `BACKLOG.md`, with GitHub Projects recommended as the live execution board for epics and thin tasks.
 - The `analysis` feature has been reorganised into sub-feature folders: `workspace/` (shell, header, panels), `recording-rail/` (file/channel sidebar), `metrics/` (metrics table, findings), `waveform/` (chart + utils), `spectrum/` (chart, controls, hooks, utils). Shared `utils/`, `services/`, `stores/`, and `types.ts` remain at the `analysis/` root. All import paths updated; `tsc --noEmit` passes cleanly.
+- Frontend validation now includes a clean local Vitest run again: the suite uses `happy-dom`, the divergent debug-only Vitest config has been removed, and the current frontend baseline passes `npm run test:run` and `npm run build`.
+- The repo now includes a repeatable ROI and findings demo-validation kit under `docs/validation/`, including a scripted demo flow and a customer interview notes template.
 
 Immediate next step after this slice:
 
-- Extend deterministic findings with harmonic-series detection (C4++) so ROI and full-recording investigation can surface stronger interpretation hints without involving AI.
+- Run the documented ROI + findings demo flow against a stable comparison recording pair and use the captured friction to decide whether ROI polish or demo-dataset work should land next.
 
 ## Collaboration Process
 
