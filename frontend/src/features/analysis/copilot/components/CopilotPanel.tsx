@@ -13,18 +13,17 @@ interface ICopilotPanelProps {
 }
 
 const CopilotPanel = ({ selectedSignalIds, regionOfInterest, recordings }: ICopilotPanelProps) => {
-  const { response, lastQuestion, isLoading, error, submit, reset } = useCopilotQuery()
+  const { turns, isLoading, submit, retry } = useCopilotQuery()
   const threadRef = useRef<HTMLDivElement | null>(null)
-  const hasConversation = !!lastQuestion
+  const hasConversation = turns.length > 0
 
   useEffect(() => {
     if (threadRef.current) {
       threadRef.current.scrollTop = threadRef.current.scrollHeight
     }
-  }, [lastQuestion, response, isLoading])
+  }, [turns, isLoading])
 
   const handleSubmit = (question: string) => {
-    reset()
     const mentionMatches = Array.from(question.matchAll(/@\[([^\]]+)\]\(([^)]+)\)/g))
     const mentionedIds = mentionMatches.map((m) => m[2])
     const resolvedIds = mentionedIds.length > 0
@@ -51,26 +50,32 @@ const CopilotPanel = ({ selectedSignalIds, regionOfInterest, recordings }: ICopi
 
         {hasConversation && (
           <>
-            <div className="copilot-panel__user-bubble">
-              <span>{lastQuestion.replace(/@\[([^\]]+)\]\([^)]+\)/g, '@$1')}</span>
-            </div>
+            {turns.map((turn) => (
+              <div className="copilot-panel__turn" key={turn.id}>
+                <div className="copilot-panel__user-bubble">
+                  <span>{turn.question}</span>
+                </div>
 
-            {isLoading && (
-              <div className="copilot-panel__thinking" aria-live="polite">
-                <Loader2 className="copilot-panel__spinner" size={13} />
-                <span>Thinking…</span>
+                {turn.isLoading && (
+                  <div className="copilot-panel__status-marker" aria-live="polite" role="status">
+                    <Loader2 className="copilot-panel__spinner" size={13} />
+                    <span>Thinking…</span>
+                  </div>
+                )}
+
+                {!turn.isLoading && turn.error && (
+                  <div className="copilot-panel__status-marker copilot-panel__status-marker--error" role="alert">
+                    <span>{turn.error}</span>
+                  </div>
+                )}
+
+                {!turn.isLoading && !turn.error && turn.response && (
+                  <div className="copilot-panel__assistant-response">
+                    <CopilotResponse response={turn.response} onRegenerate={() => retry(turn.id)} />
+                  </div>
+                )}
               </div>
-            )}
-
-            {!isLoading && error && (
-              <div className="copilot-panel__error" role="alert">
-                <span>{error}</span>
-              </div>
-            )}
-
-            {!isLoading && !error && response && (
-              <CopilotResponse response={response} onRegenerate={reset} />
-            )}
+            ))}
           </>
         )}
       </div>

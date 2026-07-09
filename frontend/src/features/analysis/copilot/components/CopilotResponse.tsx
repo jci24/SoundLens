@@ -24,26 +24,37 @@ const CopilotResponse = ({ response, onRegenerate }: ICopilotResponseProps) => {
       <p className="copilot-response__answer">{response.answer}</p>
 
       {response.citedEvidence.length > 0 && (
-        <div className="copilot-response__evidence-badges">
-          {response.citedEvidence.map((item, index) => (
-            <CopilotEvidenceBadge key={index} item={item} />
-          ))}
-        </div>
+        <section className="copilot-response__section" aria-label="Evidence used">
+          <p className="copilot-response__section-label">Evidence used</p>
+          <div className="copilot-response__evidence-badges">
+            {response.citedEvidence.map((item, index) => (
+              <CopilotEvidenceBadge key={index} item={item} />
+            ))}
+          </div>
+        </section>
       )}
 
       {response.limitations.length > 0 && (
-        <div className="copilot-response__limitations">
-          <AlertCircle size={11} />
-          <span>{response.limitations.join(' · ')}</span>
-        </div>
+        <section className="copilot-response__section" aria-label="Limitations">
+          <div className="copilot-response__limitations">
+            <AlertCircle size={11} />
+            <span>{response.limitations.join(' · ')}</span>
+          </div>
+        </section>
       )}
 
       {response.nextSteps.length > 0 && (
-        <ul className="copilot-response__next-steps-list">
-          {response.nextSteps.map((step, index) => (
-            <li key={index}>{step}</li>
-          ))}
-        </ul>
+        <section className="copilot-response__section" aria-label="Suggested next steps">
+          <p className="copilot-response__section-label">Suggested next steps</p>
+          <ul className="copilot-response__next-steps-list">
+            {response.nextSteps.map((step, index) => (
+              <li className="copilot-response__next-step-item" key={index}>
+                <span className="copilot-response__next-step-bullet" aria-hidden="true">•</span>
+                <span>{step}</span>
+              </li>
+            ))}
+          </ul>
+        </section>
       )}
 
       <div className="copilot-response__footer">

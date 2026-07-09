@@ -4,7 +4,9 @@ import { AnalysisWorkspaceHeader } from './AnalysisWorkspaceHeader'
 
 const createProps = () => ({
   activeSurface: 'waveform' as const,
+  isCopilotOpen: false,
   layoutMode: 'focused' as const,
+  onCopilotToggle: vi.fn(),
   onLayoutModeChange: vi.fn(),
   onSignalChartModeChange: vi.fn(),
   onSpectrumPresetChange: vi.fn(),

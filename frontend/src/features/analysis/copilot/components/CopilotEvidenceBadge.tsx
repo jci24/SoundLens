@@ -18,9 +18,19 @@ const CopilotEvidenceBadge = ({ item }: ICopilotEvidenceBadgeProps) => {
   const normalizedToolName = item.toolName.replace(/^functions\./, '')
   const label = TOOL_LABELS[normalizedToolName] ?? normalizedToolName
 
-  const signalDisplay = item.signalId
-    ? recordings.flatMap((r) => r.signals).find((s) => s.signalId === item.signalId)?.displayName ?? item.signalId
+  const signal = item.signalId
+    ? recordings.flatMap((r) =>
+        r.signals.map((s) => ({
+          signalId: s.signalId,
+          displayName: s.displayName,
+          fileName: r.fileName,
+        }))
+      ).find((s) => s.signalId === item.signalId)
     : null
+
+  const signalDisplay = signal
+    ? `${signal.fileName} · ${signal.displayName}`
+    : item.signalId || null
 
   return (
     <span className="copilot-evidence-badge" title={item.summary}>

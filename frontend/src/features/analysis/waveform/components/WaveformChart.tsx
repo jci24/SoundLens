@@ -1,5 +1,6 @@
 import { useMemo, useState } from 'react'
 import {
+  buildWaveformPath,
   formatAmplitudeTick,
   formatTimeTick,
   getAmplitudeUnitLabel,
@@ -228,19 +229,10 @@ const WaveformChart = ({
       {signals.map((signal, signalIndex) => (
         <g className="time-waveform-workspace__series" key={signal.signalId}>
           <title>{`${signal.recordingFileName}, ${signal.displayName}, ${signal.durationSeconds.toFixed(2)} seconds, ${signal.sampleRate} Hz`}</title>
-          {signal.bins.map((bin, binIndex) => {
-            const x = xForBinIndex(binIndex, signal.bins.length)
-            return (
-              <line
-                className={`time-waveform-workspace__waveform-line time-waveform-workspace__waveform-line--${signalIndex % 4}`}
-                key={`${signal.signalId}-${binIndex}`}
-                x1={x}
-                x2={x}
-                y1={yForAmplitude(bin[0])}
-                y2={yForAmplitude(bin[1])}
-              />
-            )
-          })}
+          <path
+            className={`time-waveform-workspace__waveform-line time-waveform-workspace__waveform-line--${signalIndex % 4}`}
+            d={buildWaveformPath(signal, xForBinIndex, yForAmplitude)}
+          />
         </g>
       ))}
 

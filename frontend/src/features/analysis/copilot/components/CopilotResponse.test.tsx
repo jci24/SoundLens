@@ -1,0 +1,31 @@
+import { fireEvent, render, screen } from '@testing-library/react'
+import { describe, expect, it } from 'vitest'
+import { CopilotResponse } from './CopilotResponse'
+
+const response = {
+  answer: 'The strongest tonal peak is around 2 kHz.',
+  citedEvidence: [
+    {
+      toolName: 'get_spectrum_summary',
+      signalId: 'signal-1',
+      summary: 'Peak around 2 kHz.',
+    },
+  ],
+  limitations: ['This is uncalibrated evidence.'],
+  nextSteps: ['Zoom into 1 to 3 kHz.', 'Compare against the ROI spectrum.'],
+  toolsUsed: ['get_spectrum_summary'],
+}
+
+describe('CopilotResponse', () => {
+  it('renders next steps inside a labeled section with tool details toggle', () => {
+    render(<CopilotResponse response={response} onRegenerate={() => {}} />)
+
+    expect(screen.getByText('Suggested next steps')).toBeInTheDocument()
+    expect(screen.getByText('Zoom into 1 to 3 kHz.')).toBeInTheDocument()
+    expect(screen.getByText('Compare against the ROI spectrum.')).toBeInTheDocument()
+
+    fireEvent.click(screen.getByRole('button', { name: /1 tool used/i }))
+
+    expect(screen.getByText('Spectrum summary')).toBeInTheDocument()
+  })
+})

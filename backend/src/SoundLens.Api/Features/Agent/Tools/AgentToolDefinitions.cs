@@ -38,7 +38,7 @@ public static class AgentToolDefinitions
 
         ChatTool.CreateFunctionTool(
             functionName: GetSignalFindings,
-            functionDescription: "Returns deterministic findings for a single signal. Findings include: Clipping (Alert), HighCrestFactor (Warning), LowLevel (Info), TonalPeak (Info — dominant frequency component 20 dB above median), HarmonicSeries (Info — detected harmonic overtone structure). Use this when the user asks what is wrong with a signal, what anomalies are present, or why it sounds a certain way.",
+            functionDescription: "Returns deterministic findings for a single signal. Findings may include spectral anomalies such as TonalPeak (Info — dominant frequency component 20 dB above median) and HarmonicSeries (Info — detected harmonic overtone structure). Do not use absence of a clipping finding as proof that clipping was analyzed; use get_signal_metrics or compare_signals for clipping questions. Use this when the user asks what is wrong with a signal, what anomalies are present, or why it sounds a certain way.",
             functionParameters: BinaryData.FromString("""
                 {
                   "type": "object",
@@ -92,7 +92,7 @@ public static class AgentToolDefinitions
 
         ChatTool.CreateFunctionTool(
             functionName: CompareSignals,
-            functionDescription: "Returns amplitude metrics (peak, RMS, crest factor, clipping) for multiple signals side by side in a single table. Use this when the user asks to compare two or more signals, determine which is louder, or rank signals by any metric.",
+            functionDescription: "Returns amplitude metrics (peak, RMS, crest factor, clipping sample count, hasClipping) for multiple signals side by side in a single table, plus deterministic summaries such as highestRmsDbFs, highestPeakDbFs, signalsAtHighestRmsDbFs, signalsAtHighestPeakDbFs, signalsWithClipping, loudestByRmsDbFs, loudestByPeakDbFs, rmsComparisonSummary, peakComparisonSummary, and clippingComparisonSummary. If multiple signals share the same top value, use the tie-aware signalsAtHighest... arrays or the provided summary strings instead of naming a single winner. Use this when the user asks to compare two or more signals, asks whether any recording has clipping, determine which is louder, or rank signals by any metric. Prefer the returned summary fields over recomputing winners yourself.",
             functionParameters: BinaryData.FromString("""
                 {
                   "type": "object",

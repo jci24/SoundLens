@@ -1,3 +1,4 @@
+using System.Globalization;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using SoundLens.Api.Common;
@@ -126,6 +127,7 @@ public sealed class AgentToolDispatcher(
         {
             signalId,
             displayName = signal.DisplayName,
+            fileName = signal.RecordingFileName,
             findingCount = findings.Length,
             findings
         };
@@ -183,6 +185,7 @@ public sealed class AgentToolDispatcher(
         {
             signalId,
             displayName = signal.DisplayName,
+            fileName = signal.RecordingFileName,
             amplitudeUnit = signal.AmplitudeUnit,
             isCalibrated = signal.IsCalibrated,
             analysis = new
@@ -243,13 +246,114 @@ public sealed class AgentToolDispatcher(
             peakAmplitudeDbFs = s.Metrics is null ? (double?)null : Math.Round(ToDbFs(s.Metrics.PeakAmplitude), 1),
             rmsAmplitudeDbFs = s.Metrics is null ? (double?)null : Math.Round(ToDbFs(s.Metrics.RmsAmplitude), 1),
             crestFactor = s.Metrics is null ? (double?)null : Math.Round(s.Metrics.CrestFactor, 2),
+            clippingSampleCount = s.Metrics?.ClippingSampleCount,
             hasClipping = s.Metrics?.HasClipping
         }).ToArray();
+
+        var loudestByRms = rows
+            .Where(row => row.rmsAmplitudeDbFs.HasValue)
+            .OrderByDescending(row => row.rmsAmplitudeDbFs)
+            .FirstOrDefault();
+
+        var loudestByPeak = rows
+            .Where(row => row.peakAmplitudeDbFs.HasValue)
+            .OrderByDescending(row => row.peakAmplitudeDbFs)
+            .FirstOrDefault();
+
+        var highestRmsDbFs = loudestByRms?.rmsAmplitudeDbFs;
+        var highestPeakDbFs = loudestByPeak?.peakAmplitudeDbFs;
+
+        var signalsAtHighestRmsDbFs = highestRmsDbFs is null
+            ? []
+            : rows
+                .Where(row => row.rmsAmplitudeDbFs == highestRmsDbFs)
+                .Select(row => new
+                {
+                    row.signalId,
+                    row.displayName,
+                    row.fileName,
+                    row.rmsAmplitudeDbFs
+                })
+                .ToArray();
+
+        var signalsAtHighestPeakDbFs = highestPeakDbFs is null
+            ? []
+            : rows
+                .Where(row => row.peakAmplitudeDbFs == highestPeakDbFs)
+                .Select(row => new
+                {
+                    row.signalId,
+                    row.displayName,
+                    row.fileName,
+                    row.peakAmplitudeDbFs
+                })
+                .ToArray();
+
+        var signalsWithClipping = rows
+            .Where(row => row.hasClipping == true)
+            .Select(row => new
+            {
+                row.signalId,
+                row.displayName,
+                row.fileName,
+                row.clippingSampleCount,
+                row.hasClipping
+            })
+            .ToArray();
+
+        var rmsComparisonSummary = signalsAtHighestRmsDbFs.Length switch
+        {
+            0 => null,
+            1 => $"{signalsAtHighestRmsDbFs[0].fileName} · {signalsAtHighestRmsDbFs[0].displayName} is loudest by RMS at {FormatDb(signalsAtHighestRmsDbFs[0].rmsAmplitudeDbFs)} dBFS.",
+            _ => $"The loudest RMS amplitude is tied at {FormatDb(highestRmsDbFs)} dBFS across {string.Join(", ", signalsAtHighestRmsDbFs.Select(signal => $"{signal.fileName} · {signal.displayName}"))}."
+        };
+
+        var peakComparisonSummary = signalsAtHighestPeakDbFs.Length switch
+        {
+            0 => null,
+            1 => $"{signalsAtHighestPeakDbFs[0].fileName} · {signalsAtHighestPeakDbFs[0].displayName} has the highest peak amplitude at {FormatDb(signalsAtHighestPeakDbFs[0].peakAmplitudeDbFs)} dBFS.",
+            _ => $"The highest peak amplitude is tied at {FormatDb(highestPeakDbFs)} dBFS across {string.Join(", ", signalsAtHighestPeakDbFs.Select(signal => $"{signal.fileName} · {signal.displayName}"))}."
+        };
+
+        var clippingComparisonSummary = rows.All(row => row.hasClipping is null)
+            ? null
+            : signalsWithClipping.Length switch
+            {
+                0 => "No clipping was detected in any compared signal.",
+                1 => $"Clipping was detected in {signalsWithClipping[0].fileName} · {signalsWithClipping[0].displayName} ({signalsWithClipping[0].clippingSampleCount} clipped samples).",
+                _ => $"Clipping was detected in {signalsWithClipping.Length} signals: {string.Join(", ", signalsWithClipping.Select(signal => $"{signal.fileName} · {signal.displayName} ({signal.clippingSampleCount} clipped samples)"))}."
+            };
 
         var result = new
         {
             comparedSignalCount = rows.Length,
-            signals = rows
+            signals = rows,
+            highestRmsDbFs,
+            highestPeakDbFs,
+            signalsAtHighestRmsDbFs,
+            signalsAtHighestPeakDbFs,
+            signalsWithClipping,
+            rmsComparisonSummary,
+            peakComparisonSummary,
+            clippingComparisonSummary,
+            loudestByRmsDbFs = loudestByRms is null
+                ? null
+                : new
+                {
+                    loudestByRms.signalId,
+                    loudestByRms.displayName,
+                    loudestByRms.fileName,
+                    loudestByRms.rmsAmplitudeDbFs
+                },
+            loudestByPeakDbFs = loudestByPeak is null
+                ? null
+                : new
+                {
+                    loudestByPeak.signalId,
+                    loudestByPeak.displayName,
+                    loudestByPeak.fileName,
+                    loudestByPeak.peakAmplitudeDbFs
+                }
         };
 
         return Task.FromResult(JsonSerializer.Serialize(result, SerializerOptions));
@@ -309,6 +413,9 @@ public sealed class AgentToolDispatcher(
 
     private static string ErrorJson(string message) =>
         JsonSerializer.Serialize(new { error = message }, SerializerOptions);
+
+    private static string FormatDb(double? value) =>
+        value?.ToString("0.0", CultureInfo.InvariantCulture) ?? "not measured";
 
     private static double ToDbFs(double linearAmplitude) =>
         linearAmplitude > 0 ? 20.0 * Math.Log10(linearAmplitude) : -120.0;

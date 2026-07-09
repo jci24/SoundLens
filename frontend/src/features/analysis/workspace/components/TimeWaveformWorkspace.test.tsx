@@ -119,7 +119,13 @@ describe('TimeWaveformWorkspace', () => {
 
     mockUseTimeWaveformWorkspace.mockReturnValue(workspaceState)
 
-    render(<TimeWaveformWorkspace importedFiles={importedFiles} />)
+    render(
+      <TimeWaveformWorkspace
+        importedFiles={importedFiles}
+        isCopilotOpen={false}
+        onCopilotToggle={vi.fn()}
+      />
+    )
 
     expect(screen.getByLabelText('Selected time region')).toBeInTheDocument()
     expect(screen.getByText('Selected region')).toBeInTheDocument()
@@ -155,7 +161,13 @@ describe('TimeWaveformWorkspace', () => {
 
     mockUseTimeWaveformWorkspace.mockReturnValue(workspaceState)
 
-    render(<TimeWaveformWorkspace importedFiles={importedFiles} />)
+    render(
+      <TimeWaveformWorkspace
+        importedFiles={importedFiles}
+        isCopilotOpen={false}
+        onCopilotToggle={vi.fn()}
+      />
+    )
 
     expect(mockUseAnalysisWorkspaceMetrics).toHaveBeenCalledWith(
       expect.objectContaining({

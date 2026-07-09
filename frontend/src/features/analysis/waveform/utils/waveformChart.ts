@@ -66,6 +66,18 @@ const getWaveformChartModel = (
   }
 }
 
+const buildWaveformPath = (
+  signal: ITimeWaveformSignal,
+  xForBinIndex: (binIndex: number, binCount: number) => number,
+  yForAmplitude: (amplitude: number) => number
+) =>
+  signal.bins
+    .map((bin, binIndex) => {
+      const x = xForBinIndex(binIndex, signal.bins.length)
+      return `M${x} ${yForAmplitude(bin[0])} L${x} ${yForAmplitude(bin[1])}`
+    })
+    .join(' ')
+
 const getAmplitudeUnitLabel = (yAxis: ITimeWaveformAxis) => yAxis.unit
 
 const buildTimeTicks = (durationSeconds: number) => {
@@ -79,6 +91,7 @@ const formatTimeTick = (seconds: number) => `${seconds.toFixed(seconds >= 10 ? 0
 const formatAmplitudeTick = (amplitude: number) => amplitude.toFixed(1)
 
 export {
+  buildWaveformPath,
   formatAmplitudeTick,
   formatTimeTick,
   getAmplitudeUnitLabel,

@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState, type RefObject } from 'react'
+import { useDeferredValue, useEffect, useMemo, useRef, useState, type RefObject } from 'react'
 import { getFrequencySpectra } from '../../services/frequencySpectra'
 import { getTimeWaveforms } from '../../services/timeWaveforms'
 import {
@@ -88,6 +88,7 @@ const useTimeWaveformWorkspace = (
 ): IUseTimeWaveformWorkspaceResult => {
   const chartRef = useRef<HTMLDivElement | null>(null)
   const chartWidth = useMeasuredChartWidth(chartRef)
+  const deferredChartWidth = useDeferredValue(chartWidth)
   const [waveforms, setWaveforms] = useState<ITimeWaveformResponse | null>(null)
   const [spectrum, setSpectrum] = useState<IFrequencySpectrumResponse | null>(null)
   const [waveformError, setWaveformError] = useState<string | null>(null)
@@ -109,7 +110,7 @@ const useTimeWaveformWorkspace = (
   const setRegionOfInterest = useAnalysisWorkspaceStore((state) => state.setRegionOfInterest)
   const setRecordings = useAnalysisWorkspaceStore((state) => state.setRecordings)
 
-  const binCount = useMemo(() => getWaveformRequestedBinCount(chartWidth), [chartWidth])
+  const binCount = useMemo(() => getWaveformRequestedBinCount(deferredChartWidth), [deferredChartWidth])
   const showWaveformPanel = layoutMode === 'compare' || activeSurface === 'waveform'
   const showSpectrumPanel = layoutMode === 'compare' || activeSurface === 'spectrum'
   const requestedRegionOfInterest = useMemo<IRequestedRegionOfInterest | null>(

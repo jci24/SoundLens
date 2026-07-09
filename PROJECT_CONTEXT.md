@@ -1,6 +1,6 @@
 # SoundLens Project Context
 
-Last updated: 2026-07-08
+Last updated: 2026-07-09
 
 ## Purpose
 
@@ -73,10 +73,14 @@ The current demo slice is now centered on browser-first import plus waveform and
 - Frontend validation now includes a clean local Vitest run again: the suite uses `happy-dom`, the divergent debug-only Vitest config has been removed, and the current frontend baseline passes `npm run test:run` and `npm run build`.
 - The repo now includes a repeatable ROI and findings demo-validation kit under `docs/validation/`, including a scripted demo flow and a customer interview notes template.
 - The backend now includes a grounded AI agent endpoint (`POST /api/agent/query`). The agent runs an OpenAI tool-calling loop (max 5 rounds, `gpt-4o-mini`): the model decides which DSP tool to call, the C# handler dispatches to real `IWaveformService` / `ISpectrumService` / `FindingsService` instances, and only compact JSON summaries (never raw bins or audio) are sent to OpenAI. The four tools are `get_signal_metrics`, `get_signal_findings`, `get_spectrum_summary`, and `compare_signals`. The response is a structured `AgentQueryResponse { answer, citedEvidence[], limitations[], nextSteps[], toolsUsed[] }`. The `OpenAI` NuGet package (v2.2.0) is added; the API key is stored server-side via `OpenAI:ApiKey` config / `OPENAI__APIKEY` env var and is never returned in any response. 14 new backend tests; full suite 75/75 passing.
+- The frontend now includes a persistent Copilot panel that can submit grounded questions against the selected analysis context, preserve prior turns in the chat thread, render status/limitations/evidence separately from assistant prose, and display responses in a ChatGPT-like non-bubble layout.
+- Copilot evidence labels now resolve backend signal IDs back to file name plus channel display name, so answers and evidence use labels such as `recording.wav · Channel 1` instead of ordinal phrases or signal hashes.
+- The agent compare contract now includes deterministic winner/tie summaries for RMS, peak, and clipping evidence, including file/channel labels, clipping sample counts, and invariant decimal formatting. The response post-processing normalizes compare evidence so cited evidence matches deterministic backend winner arrays rather than arbitrary model-selected signal IDs.
+- Waveform rendering has been optimized for responsiveness by rendering each waveform as a compact SVG path and deferring chart-width-dependent bin recalculation during layout changes.
 
 Immediate next step after this slice:
 
-- Build the frontend Copilot tab (`codex/grounded-ai-answer-frontend`) so the agent endpoint can be driven from the UI and validated end-to-end with a real API key.
+- Build an automated Copilot answer-evaluation harness (`codex/copilot-answer-evals`) so grounded answers can be checked across repeated model runs for tool choice, numeric correctness, evidence alignment, wording constraints, and hallucination regressions without manually reviewing each response one by one.
 
 ## Collaboration Process
 
