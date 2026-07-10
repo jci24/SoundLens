@@ -13,6 +13,15 @@ try
 {
     var builder = WebApplication.CreateBuilder(args);
 
+    var localAppDataPath = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
+    var logDirectory = string.IsNullOrWhiteSpace(localAppDataPath)
+        ? Path.Combine(Path.GetTempPath(), "SoundLens", "Logs")
+        : Path.Combine(localAppDataPath, "SoundLens", "Logs");
+    var logFilePath = Path.Combine(logDirectory, "SoundLens.Api-.json");
+
+    Directory.CreateDirectory(logDirectory);
+    builder.Configuration["Serilog:WriteTo:1:Args:path"] = logFilePath;
+
     // Load gitignored local overrides (e.g. appsettings.Development.local.json) for secrets like API keys.
     builder.Configuration.AddJsonFile(
         $"appsettings.{builder.Environment.EnvironmentName}.local.json",
