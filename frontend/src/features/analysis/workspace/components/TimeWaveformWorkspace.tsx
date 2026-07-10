@@ -5,7 +5,8 @@ import { useAnalysisWorkspaceMetrics } from '../../metrics/hooks/useAnalysisWork
 import { formatCompactDuration } from '../../utils/analysisWorkspaceFormatting'
 import { useAnalysisWorkspacePanels } from '../hooks/useAnalysisWorkspacePanels'
 import { useTimeWaveformWorkspace } from '../hooks/useTimeWaveformWorkspace'
-import { exportReportContext } from '../../report/services/exportReportContext'
+import { exportReportMarkdown } from '../../report/services/exportReportMarkdown'
+import { downloadTextFile } from '../../report/utils/reportDownload'
 import type { IImportedFileSummary } from '../../../../common/contracts/import'
 import { useState } from 'react'
 import { toast } from 'sonner'
@@ -90,7 +91,7 @@ const TimeWaveformWorkspace = ({ importedFiles, isCopilotOpen, onCopilotToggle }
     try {
       setIsExporting(true)
 
-      const response = await exportReportContext({
+      const response = await exportReportMarkdown({
         activeSurface,
         layoutMode,
         signalChartMode,
@@ -114,11 +115,10 @@ const TimeWaveformWorkspace = ({ importedFiles, isCopilotOpen, onCopilotToggle }
         endTimeSeconds: regionOfInterest?.endTimeSeconds,
       })
 
-      toast.success(
-        `${response.reportTitle} prepared for ${response.summary.recordingCount} recording${response.summary.recordingCount === 1 ? '' : 's'} and ${response.summary.selectedSignalCount} signal${response.summary.selectedSignalCount === 1 ? '' : 's'}.`
-      )
+      downloadTextFile(response.fileName, response.markdown)
+      toast.success(`Downloaded ${response.fileName}.`)
     } catch {
-      toast.error('The report context could not be prepared.')
+      toast.error('The markdown report could not be prepared.')
     } finally {
       setIsExporting(false)
     }

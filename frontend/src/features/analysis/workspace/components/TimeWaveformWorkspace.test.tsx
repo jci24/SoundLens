@@ -1,4 +1,4 @@
-import { fireEvent, render, screen } from '@testing-library/react'
+import { fireEvent, render, screen, waitFor } from '@testing-library/react'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { TimeWaveformWorkspace } from './TimeWaveformWorkspace'
 import type { IMetricSignalItem } from '../../metrics/hooks/useAnalysisWorkspaceMetrics'
@@ -9,7 +9,8 @@ import type { IAnalysisRegionOfInterest, IFrequencySpectrumSignal, ITimeWaveform
 const mockUseTimeWaveformWorkspace = vi.fn()
 const mockUseAnalysisWorkspacePanels = vi.fn()
 const mockUseAnalysisWorkspaceMetrics = vi.fn()
-const mockExportReportContext = vi.fn()
+const mockExportReportMarkdown = vi.fn()
+const mockDownloadTextFile = vi.fn()
 
 vi.mock('../hooks/useTimeWaveformWorkspace', () => ({
   useTimeWaveformWorkspace: (...args: unknown[]) => mockUseTimeWaveformWorkspace(...args),
@@ -23,8 +24,12 @@ vi.mock('../../metrics/hooks/useAnalysisWorkspaceMetrics', () => ({
   useAnalysisWorkspaceMetrics: (...args: unknown[]) => mockUseAnalysisWorkspaceMetrics(...args),
 }))
 
-vi.mock('../../report/services/exportReportContext', () => ({
-  exportReportContext: (...args: unknown[]) => mockExportReportContext(...args),
+vi.mock('../../report/services/exportReportMarkdown', () => ({
+  exportReportMarkdown: (...args: unknown[]) => mockExportReportMarkdown(...args),
+}))
+
+vi.mock('../../report/utils/reportDownload', () => ({
+  downloadTextFile: (...args: unknown[]) => mockDownloadTextFile(...args),
 }))
 
 vi.mock('./AnalysisWorkspaceHeader', () => ({
@@ -115,21 +120,9 @@ describe('TimeWaveformWorkspace', () => {
       metricSignals,
     })
 
-    mockExportReportContext.mockResolvedValue({
-      reportTitle: 'SoundLens export - 1 recording',
-      exportedAtUtc: '2026-07-10T12:00:00Z',
-      activeSurface: 'waveform',
-      layoutMode: 'focused',
-      signalChartMode: 'overlay',
-      regionOfInterest: null,
-      recordings: [],
-      selectedSignals: [],
-      summary: {
-        recordingCount: 1,
-        totalSignalCount: 1,
-        selectedSignalCount: 1,
-        hasRegionOfInterest: false,
-      },
+    mockExportReportMarkdown.mockResolvedValue({
+      fileName: 'soundlens-export-1-recording-20260710-120000.md',
+      markdown: '# SoundLens export - 1 recording',
     })
 
     mockUseTimeWaveformWorkspace.mockReturnValue(createWorkspaceState())
@@ -242,32 +235,38 @@ describe('TimeWaveformWorkspace', () => {
 
     fireEvent.click(screen.getByRole('button', { name: 'Export report' }))
 
-    expect(mockExportReportContext).toHaveBeenCalledWith({
-      activeSurface: 'waveform',
-      layoutMode: 'focused',
-      signalChartMode: 'overlay',
-      recordings: [
-        {
-          recordingId: 'recording-1',
-          fileName: 'alpha.wav',
-          sizeBytes: 1024,
-          durationSeconds: 1,
-          sampleRate: 44_100,
-          channels: 1,
-          channelMode: 'Mono',
-          signals: [
-            {
-              signalId: 'signal-1',
-              channelIndex: 0,
-              displayName: 'Channel 1',
-              fileName: 'alpha.wav',
-            },
-          ],
-        },
-      ],
-      selectedSignalIds: ['signal-1'],
-      startTimeSeconds: 0.1,
-      endTimeSeconds: 0.4,
+    await waitFor(() => {
+      expect(mockExportReportMarkdown).toHaveBeenCalledWith({
+        activeSurface: 'waveform',
+        layoutMode: 'focused',
+        signalChartMode: 'overlay',
+        recordings: [
+          {
+            recordingId: 'recording-1',
+            fileName: 'alpha.wav',
+            sizeBytes: 1024,
+            durationSeconds: 1,
+            sampleRate: 44_100,
+            channels: 1,
+            channelMode: 'Mono',
+            signals: [
+              {
+                signalId: 'signal-1',
+                channelIndex: 0,
+                displayName: 'Channel 1',
+                fileName: 'alpha.wav',
+              },
+            ],
+          },
+        ],
+        selectedSignalIds: ['signal-1'],
+        startTimeSeconds: 0.1,
+        endTimeSeconds: 0.4,
+      })
+      expect(mockDownloadTextFile).toHaveBeenCalledWith(
+        'soundlens-export-1-recording-20260710-120000.md',
+        '# SoundLens export - 1 recording'
+      )
     })
   })
 })
