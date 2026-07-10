@@ -83,11 +83,12 @@ The current demo slice is now centered on browser-first import plus waveform and
 - If the backend is started without `OpenAI:ApiKey` / `OPENAI__APIKEY`, the Copilot endpoint now returns a structured unavailable response in the chat panel instead of a bare HTTP 503, so local demo sessions fail with actionable setup guidance rather than a generic request error.
 - Report export has now started as a separate thin slice: `POST /api/report/export` accepts the current workspace context (surface, layout, ROI, recordings, selected signals) and returns a normalized deterministic snapshot that the frontend can prepare for later report generation.
 - The next report-export slice now turns that normalized context into a deterministic markdown artifact via `POST /api/report/export/markdown`, and the workspace export action downloads the `.md` file directly without any AI-written narrative yet.
-- The readable-report slice should now sit on top of the deterministic markdown export by improving formatting, moving trace IDs out of the main narrative flow, and including selected-signal metrics/findings from the current workspace state before any AI summary is added.
+- The readable-report slice now presents a cleaner narrative summary, keeps trace IDs in a dedicated section, and includes selected-signal metrics/findings from the current workspace state.
+- Export evidence correctness is now tighter: selected-signal amplitudes are converted to real dBFS values before labeling, channel mode wording is normalized for common cases like stereo, the summary avoids redundant bullet repetition, and empty finding sets are stated explicitly as `Findings: none`.
 
 Immediate next step after this slice:
 
-- Build an automated Copilot answer-evaluation harness (`codex/copilot-answer-evals`) so grounded answers can be checked across repeated model runs for tool choice, numeric correctness, evidence alignment, wording constraints, and hallucination regressions without manually reviewing each response one by one.
+- Add the first AI-written export narrative slice on top of the deterministic report evidence so the export becomes easier to interpret without weakening traceability or overstating conclusions.
 
 ## Collaboration Process
 

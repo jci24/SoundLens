@@ -22,11 +22,6 @@ public static class ReportMarkdownWriter
         builder.AppendLine();
         builder.AppendLine(BuildReadableSummary(context));
         builder.AppendLine();
-        builder.AppendLine($"- Recordings: {context.Summary.RecordingCount}");
-        builder.AppendLine($"- Total signals: {context.Summary.TotalSignalCount}");
-        builder.AppendLine($"- Selected signals: {context.Summary.SelectedSignalCount}");
-        builder.AppendLine($"- ROI active: {(context.Summary.HasRegionOfInterest ? "Yes" : "No")}");
-        builder.AppendLine();
 
         if (context.RegionOfInterest is not null)
         {
@@ -47,7 +42,7 @@ public static class ReportMarkdownWriter
             builder.AppendLine();
             builder.AppendLine($"- Duration: {FormatSeconds(recording.DurationSeconds)}");
             builder.AppendLine($"- Sample rate: {recording.SampleRate} Hz");
-            builder.AppendLine($"- Channels: {recording.Channels} ({FormatLabel(recording.ChannelMode)})");
+            builder.AppendLine($"- Channels: {recording.Channels} ({FormatChannelMode(recording.Channels, recording.ChannelMode)})");
             builder.AppendLine($"- Size: {recording.SizeBytes} bytes");
             builder.AppendLine();
             builder.AppendLine("Signals:");
@@ -78,8 +73,8 @@ public static class ReportMarkdownWriter
 
                 if (signal.Metrics is not null)
                 {
-                    builder.AppendLine($"- Peak: {FormatDbFs(signal.Metrics.PeakAmplitude)}");
-                    builder.AppendLine($"- RMS: {FormatDbFs(signal.Metrics.RmsAmplitude)}");
+                    builder.AppendLine($"- Peak: {FormatDbFsFromLinearAmplitude(signal.Metrics.PeakAmplitude)}");
+                    builder.AppendLine($"- RMS: {FormatDbFsFromLinearAmplitude(signal.Metrics.RmsAmplitude)}");
                     builder.AppendLine($"- Crest factor: {signal.Metrics.CrestFactor.ToString("0.###", CultureInfo.InvariantCulture)}");
                     builder.AppendLine($"- Clipping: {(signal.Metrics.HasClipping ? $"Yes ({signal.Metrics.ClippingSampleCount} samples)" : "No")}");
                 }
@@ -88,9 +83,9 @@ public static class ReportMarkdownWriter
                     builder.AppendLine("- Metrics: not available in this export.");
                 }
 
+                builder.AppendLine();
                 if (signal.Findings.Count > 0)
                 {
-                    builder.AppendLine();
                     builder.AppendLine("Findings:");
                     foreach (var finding in signal.Findings)
                     {
@@ -99,6 +94,10 @@ public static class ReportMarkdownWriter
                             : $": {finding.Detail}";
                         builder.AppendLine($"- [{finding.Severity}] {finding.Label}{detailSuffix}");
                     }
+                }
+                else
+                {
+                    builder.AppendLine("Findings: none");
                 }
 
                 builder.AppendLine();
@@ -145,6 +144,26 @@ public static class ReportMarkdownWriter
         surface.Equals("spectrum", StringComparison.OrdinalIgnoreCase) ? "Spectrum" :
         FormatLabel(surface);
 
+    private static string FormatChannelMode(int channels, string channelMode)
+    {
+        if (channels == 1)
+        {
+            return "Mono";
+        }
+
+        if (channels == 2 && channelMode.Contains("discrete", StringComparison.OrdinalIgnoreCase))
+        {
+            return "Stereo";
+        }
+
+        if (channelMode.Contains("discrete", StringComparison.OrdinalIgnoreCase))
+        {
+            return $"{channels}-channel discrete";
+        }
+
+        return FormatLabel(channelMode);
+    }
+
     private static string FormatLabel(string value)
     {
         var normalized = value.Replace('-', ' ').Replace('_', ' ');
@@ -154,6 +173,9 @@ public static class ReportMarkdownWriter
     private static string FormatSeconds(double value) =>
         $"{value.ToString("0.###", CultureInfo.InvariantCulture)} s";
 
-    private static string FormatDbFs(double value) =>
-        $"{value.ToString("0.###", CultureInfo.InvariantCulture)} dBFS";
+    private static string FormatDbFsFromLinearAmplitude(double value)
+    {
+        var dbFs = value > 0 ? 20.0 * Math.Log10(value) : -120.0;
+        return $"{dbFs.ToString("0.###", CultureInfo.InvariantCulture)} dBFS";
+    }
 }

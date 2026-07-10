@@ -34,8 +34,8 @@ public sealed class ExportReportMarkdownTests : IClassFixture<WebApplicationFact
                         sizeBytes = 1024,
                         durationSeconds = 1.5,
                         sampleRate = 44100,
-                        channels = 1,
-                        channelMode = "Mono",
+                        channels = 2,
+                        channelMode = "discrete_multi_channel",
                         signals = new[]
                         {
                             new
@@ -43,6 +43,13 @@ public sealed class ExportReportMarkdownTests : IClassFixture<WebApplicationFact
                                 signalId = "signal-left",
                                 channelIndex = 0,
                                 displayName = "Channel 1",
+                                fileName = "alpha.wav",
+                            },
+                            new
+                            {
+                                signalId = "signal-right",
+                                channelIndex = 1,
+                                displayName = "Channel 2",
                                 fileName = "alpha.wav",
                             },
                         },
@@ -59,22 +66,13 @@ public sealed class ExportReportMarkdownTests : IClassFixture<WebApplicationFact
                         sampleRate = 44100,
                         metrics = new
                         {
-                            peakAmplitude = -1.5,
-                            rmsAmplitude = -14.2,
+                            peakAmplitude = 0.81,
+                            rmsAmplitude = 0.143,
                             crestFactor = 4.3,
                             clippingSampleCount = 0,
                             hasClipping = false,
                         },
-                        findings = new[]
-                        {
-                            new
-                            {
-                                category = "Spectral",
-                                severity = "Info",
-                                label = "TonalPeak",
-                                detail = "A strong tone is present near the dominant peak.",
-                            },
-                        },
+                        findings = Array.Empty<object>(),
                     },
                 },
                 selectedSignalIds = new[] { "signal-left" },
@@ -88,7 +86,12 @@ public sealed class ExportReportMarkdownTests : IClassFixture<WebApplicationFact
         Assert.Contains("# SoundLens export - 1 recording", payload.Markdown);
         Assert.Contains("## Summary", payload.Markdown);
         Assert.Contains("1 recording loaded; 1 signal selected", payload.Markdown);
+        Assert.DoesNotContain("- Recordings:", payload.Markdown);
+        Assert.Contains("- Channels: 2 (Stereo)", payload.Markdown);
         Assert.Contains("- Duration: 2.535 s", payload.Markdown);
+        Assert.Contains("- Peak: -1.83 dBFS", payload.Markdown);
+        Assert.Contains("- RMS: -16.893 dBFS", payload.Markdown);
+        Assert.Contains("Findings: none", payload.Markdown);
         Assert.Contains("## Traceability", payload.Markdown);
         Assert.Contains("Recording ID: `recording-a`", payload.Markdown);
         Assert.Contains("No AI-written interpretation is included in this slice.", payload.Markdown);
