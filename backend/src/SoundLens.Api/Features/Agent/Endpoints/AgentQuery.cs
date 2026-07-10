@@ -7,6 +7,9 @@ namespace SoundLens.Api.Features.Agent.Endpoints;
 
 public sealed class AgentQuery : Endpoint<AgentQueryCommand, AgentQueryResponse>
 {
+    private const string MissingApiKeyMessage =
+        "Copilot is unavailable because the OpenAI API key is not configured on the backend. Set OpenAI:ApiKey or OPENAI__APIKEY and retry.";
+
     public override void Configure()
     {
         Post("/agent/query");
@@ -54,7 +57,22 @@ public sealed class AgentQuery : Endpoint<AgentQueryCommand, AgentQueryResponse>
         }
         catch (InvalidOperationException ex) when (ex.Message.Contains("API key"))
         {
-            await Send.ErrorsAsync(503, ct);
+            await Send.OkAsync(
+                new AgentQueryResponse(
+                    Answer: MissingApiKeyMessage,
+                    CitedEvidence: [],
+                    Limitations:
+                    [
+                        "Values are in dBFS, not calibrated to physical SPL.",
+                        "No grounded investigation was run because the OpenAI API key is missing on the backend."
+                    ],
+                    NextSteps:
+                    [
+                        "Set OpenAI:ApiKey in backend configuration or OPENAI__APIKEY in the backend environment.",
+                        "Restart the backend and re-run the question."
+                    ],
+                    ToolsUsed: []),
+                ct);
         }
     }
 }

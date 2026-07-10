@@ -80,6 +80,7 @@ The current demo slice is now centered on browser-first import plus waveform and
 - The repo now includes the first Copilot answer-eval harness slice under `scripts/copilot-evals/`: a small Node runner that imports known files, discovers signal IDs from the waveform API, submits repeated grounded Copilot questions to `/api/agent/query`, and grades the returned `AgentQueryResponse` for structural regressions such as missing dBFS limitations, missing cited evidence, forbidden tool usage, ordinal phrases, and internal tool-name leakage in `nextSteps`.
 - API startup/build ergonomics have been tightened by moving the Serilog file sink out of the build output path. Runtime log files no longer accumulate under `bin/Debug/net10.0/Logs`, which avoids slow MSBuild incremental-clean passes that made `dotnet build` and `dotnet run` appear stuck after compilation.
 - The eval harness now owns deterministic repo-managed WAV fixtures under `scripts/copilot-evals/fixtures/`, with regeneration scripted in `scripts/copilot-evals/generate-fixtures.mjs`. The dataset uses relative fixture paths rather than developer-specific absolute paths, so the local workflow can run end-to-end once the backend and OpenAI API key are available.
+- If the backend is started without `OpenAI:ApiKey` / `OPENAI__APIKEY`, the Copilot endpoint now returns a structured unavailable response in the chat panel instead of a bare HTTP 503, so local demo sessions fail with actionable setup guidance rather than a generic request error.
 
 Immediate next step after this slice:
 
