@@ -1,5 +1,6 @@
 import { PanelRightClose, PanelRightOpen } from 'lucide-react'
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs'
+import { Button } from '@/components/ui/button'
 import { SpectrumControlsPopover } from '../../spectrum/components/SpectrumControlsPopover'
 import { useAnalysisWorkspaceHeader } from '../hooks/useAnalysisWorkspaceHeader'
 import { useSpectrumControlsPopover } from '../../spectrum/hooks/useSpectrumControlsPopover'
@@ -10,8 +11,10 @@ import './AnalysisWorkspaceHeader.scss'
 interface IAnalysisWorkspaceHeaderProps {
   activeSurface: TAnalysisSurface
   isCopilotOpen: boolean
+  isExporting: boolean
   layoutMode: TAnalysisLayoutMode
   onCopilotToggle: () => void
+  onExportReport: () => void
   onSpectrumPresetChange: (preset: string) => void
   onSpectrumRangeEndChange: (value: string) => void
   onSpectrumRangeReset: () => void
@@ -33,8 +36,10 @@ interface IAnalysisWorkspaceHeaderProps {
 const AnalysisWorkspaceHeader = ({
   activeSurface,
   isCopilotOpen,
+  isExporting,
   layoutMode,
   onCopilotToggle,
+  onExportReport,
   onLayoutModeChange,
   onSignalChartModeChange,
   onSpectrumPresetChange,
@@ -79,15 +84,26 @@ const AnalysisWorkspaceHeader = ({
           <p className="time-waveform-workspace__eyebrow">{activeEyebrow}</p>
           <h2 className="time-waveform-workspace__title">{activeTitle}</h2>
         </div>
-        <button
-          aria-label={isCopilotOpen ? 'Close Copilot' : 'Open Copilot'}
-          className={`time-waveform-workspace__copilot-toggle${isCopilotOpen ? ' time-waveform-workspace__copilot-toggle--active' : ''}`}
-          title={isCopilotOpen ? 'Close Copilot' : 'Open Copilot'}
-          type="button"
-          onClick={onCopilotToggle}
-        >
-          {isCopilotOpen ? <PanelRightClose size={18} /> : <PanelRightOpen size={18} />}
-        </button>
+        <div className="time-waveform-workspace__header-actions">
+          <Button
+            className="time-waveform-workspace__export-button"
+            disabled={isExporting}
+            onClick={onExportReport}
+            type="button"
+            variant="outline"
+          >
+            {isExporting ? 'Preparing export...' : 'Export report'}
+          </Button>
+          <button
+            aria-label={isCopilotOpen ? 'Close Copilot' : 'Open Copilot'}
+            className={`time-waveform-workspace__copilot-toggle${isCopilotOpen ? ' time-waveform-workspace__copilot-toggle--active' : ''}`}
+            title={isCopilotOpen ? 'Close Copilot' : 'Open Copilot'}
+            type="button"
+            onClick={onCopilotToggle}
+          >
+            {isCopilotOpen ? <PanelRightClose size={18} /> : <PanelRightOpen size={18} />}
+          </button>
+        </div>
       </header>
 
       {/* Primary surface shelf — pick which analysis surface to view */}

@@ -1,5 +1,5 @@
 [Patterns](https://www.shapeof.ai/)
-[UI Library](https://www.shapeof.ai/examples)
+[UI Library](https://www.shapeof.ai/examples)
 [About](https://www.shapeof.ai/about)
 
 # Exploring how User Experience will evolve with the growth of Artificial Intelligence.
@@ -118,34 +118,3 @@ Allow users to confirm AI decisions and actions before proceeding
 [CaveatInform users about shortcomings or risks in the model or the technology overall](https://www.shapeof.ai/patterns/caveat)
 Inform users about shortcomings or risks in the model or the technology overall
 [ConsentOnly capture data from others with their knowledge and permission](https://www.shapeof.ai/patterns/consent)
-Only capture data from others with their knowledge and permission
-[Data ownershipControl how the model remembers and uses your data](https://www.shapeof.ai/patterns/data-ownership)
-Control how the model remembers and uses your data
-[DisclosureClearly mark content and interactions guided or delivered by AI](https://www.shapeof.ai/patterns/disclosure)
-Clearly mark content and interactions guided or delivered by AI
-[FootprintsLet users trace the AI's steps from prompt to result](https://www.shapeof.ai/patterns/footprints)
-Let users trace the AI's steps from prompt to result
-[Incognito ModeInteract with the AI outside of its memory](https://www.shapeof.ai/patterns/incognito-mode)
-Interact with the AI outside of its memory
-[WatermarkIdentifiers on AI Generative content that humans, software, or programs can read](https://www.shapeof.ai/patterns/watermark)
-Identifiers on AI Generative content that humans, software, or programs can read
-[IdentifiersDistinct qualities of AI that can be modified at the brand or model level to stand out.](https://www.shapeof.ai/pattern-types/identifiers)
-
-### Identifiers
-
-[AvatarVisual identifier of the AI itself to help it be recognizable, memorable, and on-brand.](https://www.shapeof.ai/patterns/avatar)
-Visual identifier of the AI itself to help it be recognizable, memorable, and on-brand.
-[ColorVisual cues to help users identify AI features or content.](https://www.shapeof.ai/patterns/color)
-Visual cues to help users identify AI features or content.
-[IconographyImages that represent AI-powered actions throughout the interface.](https://www.shapeof.ai/patterns/iconography)
-Images that represent AI-powered actions throughout the interface.
-[NameHow the AI is referred to through the product and across the overall customer experience.](https://www.shapeof.ai/patterns/name)
-How the AI is referred to through the product and across the overall customer experience.
-[PersonalityCharacteristics that distinguish the AI's personality and vibe.](https://www.shapeof.ai/patterns/personality)
-Characteristics that distinguish the AI's personality and vibe.
-
-# Follow along
-
-[[↑] Subscribe to the newsletter](https://shapeofai.substack.com/)for free to support the project or follow along.
-[↑] Join the Slack where we can discuss emerging patterns, new products, and the changing role of design. The community is free to join and participate in.
-© Emily Campbell 2025 | Sharable under CC-BY-NC-SA | [Contact](https://www.shapeof.ai/about)

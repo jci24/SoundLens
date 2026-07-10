@@ -4,11 +4,12 @@ import { TimeWaveformWorkspace } from './TimeWaveformWorkspace'
 import type { IMetricSignalItem } from '../../metrics/hooks/useAnalysisWorkspaceMetrics'
 import type { IAnalysisWorkspacePanel } from '../hooks/useAnalysisWorkspacePanels'
 import type { IImportedFileSummary } from '../../../../common/contracts/import'
-import type { IAnalysisRegionOfInterest, IFrequencySpectrumSignal } from '../../types'
+import type { IAnalysisRegionOfInterest, IFrequencySpectrumSignal, ITimeWaveformRecording } from '../../types'
 
 const mockUseTimeWaveformWorkspace = vi.fn()
 const mockUseAnalysisWorkspacePanels = vi.fn()
 const mockUseAnalysisWorkspaceMetrics = vi.fn()
+const mockExportReportContext = vi.fn()
 
 vi.mock('../hooks/useTimeWaveformWorkspace', () => ({
   useTimeWaveformWorkspace: (...args: unknown[]) => mockUseTimeWaveformWorkspace(...args),
@@ -22,8 +23,16 @@ vi.mock('../../metrics/hooks/useAnalysisWorkspaceMetrics', () => ({
   useAnalysisWorkspaceMetrics: (...args: unknown[]) => mockUseAnalysisWorkspaceMetrics(...args),
 }))
 
+vi.mock('../../report/services/exportReportContext', () => ({
+  exportReportContext: (...args: unknown[]) => mockExportReportContext(...args),
+}))
+
 vi.mock('./AnalysisWorkspaceHeader', () => ({
-  AnalysisWorkspaceHeader: () => <div data-testid="workspace-header" />,
+  AnalysisWorkspaceHeader: ({ onExportReport }: { onExportReport: () => void }) => (
+    <button data-testid="workspace-header" onClick={onExportReport} type="button">
+      Export report
+    </button>
+  ),
 }))
 
 vi.mock('../../recording-rail/components/RecordingRail', () => ({
@@ -56,8 +65,8 @@ const createWorkspaceState = () => ({
   isWaveformInitialLoading: false,
   isWaveformRefreshing: false,
   layoutMode: 'focused' as const,
-  recordings: [],
-  selectedSignalIds: [],
+  recordings: [] as ITimeWaveformRecording[],
+  selectedSignalIds: [] as string[],
   selectedSpectrumPreset: '4096',
   signalChartMode: 'overlay' as const,
   showSpectrumPanel: false,
@@ -104,6 +113,23 @@ describe('TimeWaveformWorkspace', () => {
     mockUseAnalysisWorkspaceMetrics.mockReturnValue({
       hasMetricsPending: false,
       metricSignals,
+    })
+
+    mockExportReportContext.mockResolvedValue({
+      reportTitle: 'SoundLens export - 1 recording',
+      exportedAtUtc: '2026-07-10T12:00:00Z',
+      activeSurface: 'waveform',
+      layoutMode: 'focused',
+      signalChartMode: 'overlay',
+      regionOfInterest: null,
+      recordings: [],
+      selectedSignals: [],
+      summary: {
+        recordingCount: 1,
+        totalSignalCount: 1,
+        selectedSignalCount: 1,
+        hasRegionOfInterest: false,
+      },
     })
 
     mockUseTimeWaveformWorkspace.mockReturnValue(createWorkspaceState())
@@ -175,5 +201,73 @@ describe('TimeWaveformWorkspace', () => {
         spectrumSignals: workspaceState.spectrumSignals,
       })
     )
+  })
+
+  it('exports the current workspace context from the header action', async () => {
+    const workspaceState = createWorkspaceState()
+    workspaceState.recordings = [
+      {
+        recordingId: 'recording-1',
+        fileName: 'alpha.wav',
+        sizeBytes: 1024,
+        durationSeconds: 1,
+        sampleRate: 44_100,
+        channels: 1,
+        channelMode: 'Mono',
+        signals: [
+          {
+            signalId: 'signal-1',
+            channelIndex: 0,
+            displayName: 'Channel 1',
+          },
+        ],
+      },
+    ]
+    workspaceState.selectedSignalIds = ['signal-1']
+    workspaceState.regionOfInterest = {
+      startTimeSeconds: 0.1,
+      endTimeSeconds: 0.4,
+      durationSeconds: 0.3,
+    }
+
+    mockUseTimeWaveformWorkspace.mockReturnValue(workspaceState)
+
+    render(
+      <TimeWaveformWorkspace
+        importedFiles={importedFiles}
+        isCopilotOpen={false}
+        onCopilotToggle={vi.fn()}
+      />
+    )
+
+    fireEvent.click(screen.getByRole('button', { name: 'Export report' }))
+
+    expect(mockExportReportContext).toHaveBeenCalledWith({
+      activeSurface: 'waveform',
+      layoutMode: 'focused',
+      signalChartMode: 'overlay',
+      recordings: [
+        {
+          recordingId: 'recording-1',
+          fileName: 'alpha.wav',
+          sizeBytes: 1024,
+          durationSeconds: 1,
+          sampleRate: 44_100,
+          channels: 1,
+          channelMode: 'Mono',
+          signals: [
+            {
+              signalId: 'signal-1',
+              channelIndex: 0,
+              displayName: 'Channel 1',
+              fileName: 'alpha.wav',
+            },
+          ],
+        },
+      ],
+      selectedSignalIds: ['signal-1'],
+      startTimeSeconds: 0.1,
+      endTimeSeconds: 0.4,
+    })
   })
 })
