@@ -111,7 +111,13 @@ const useCopilotQuery = (): IUseCopilotQueryResult => {
 
   const publicTurns = useMemo<ICopilotConversationTurn[]>(
     () =>
-      turns.map(({ request: _request, ...turn }) => turn),
+      turns.map((turn) => ({
+        id: turn.id,
+        question: turn.question,
+        response: turn.response,
+        error: turn.error,
+        isLoading: turn.isLoading,
+      })),
     [turns]
   )
   const isLoading = turns.some((turn) => turn.isLoading)
