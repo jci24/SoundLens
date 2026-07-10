@@ -5,8 +5,10 @@ import { AnalysisWorkspaceHeader } from './AnalysisWorkspaceHeader'
 const createProps = () => ({
   activeSurface: 'waveform' as const,
   isCopilotOpen: false,
+  isExporting: false,
   layoutMode: 'focused' as const,
   onCopilotToggle: vi.fn(),
+  onExportReport: vi.fn(),
   onLayoutModeChange: vi.fn(),
   onSignalChartModeChange: vi.fn(),
   onSpectrumPresetChange: vi.fn(),
@@ -36,6 +38,7 @@ describe('AnalysisWorkspaceHeader', () => {
 
     expect(screen.getByText('Time analysis')).toBeInTheDocument()
     expect(screen.getByRole('heading', { name: 'Waveform overview' })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Export report' })).toBeInTheDocument()
     expect(screen.getByRole('tab', { name: 'Waveform' })).toHaveAttribute('data-state', 'active')
     expect(screen.getByRole('tab', { name: 'Overlay' })).toBeInTheDocument()
     expect(screen.getByRole('tab', { name: 'Split' })).toBeInTheDocument()
@@ -59,5 +62,11 @@ describe('AnalysisWorkspaceHeader', () => {
     expect(screen.getByRole('dialog', { name: 'Spectrum settings' })).toBeInTheDocument()
     expect(screen.getByText('FFT')).toBeInTheDocument()
     expect(screen.getByRole('button', { name: 'Reset' })).toBeInTheDocument()
+  })
+
+  it('disables export while the report context is being prepared', () => {
+    render(<AnalysisWorkspaceHeader {...createProps()} isExporting />)
+
+    expect(screen.getByRole('button', { name: 'Preparing export...' })).toBeDisabled()
   })
 })

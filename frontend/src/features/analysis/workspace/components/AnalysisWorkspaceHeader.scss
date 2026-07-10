@@ -12,6 +12,18 @@
     box-sizing: border-box;
   }
 
+  &__header-actions {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.55rem;
+    margin-left: auto;
+  }
+
+  &__export-button {
+    height: 2.15rem;
+    border-radius: 0.75rem;
+  }
+
   &__eyebrow {
     margin: 0 0 0.12rem;
     color: var(--muted-foreground);
@@ -65,7 +77,6 @@
     background: transparent;
     color: var(--muted-foreground);
     cursor: pointer;
-    margin-left: auto;
     transition:
       background-color 160ms ease,
       border-color 160ms ease,

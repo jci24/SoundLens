@@ -5,7 +5,10 @@ import { useAnalysisWorkspaceMetrics } from '../../metrics/hooks/useAnalysisWork
 import { formatCompactDuration } from '../../utils/analysisWorkspaceFormatting'
 import { useAnalysisWorkspacePanels } from '../hooks/useAnalysisWorkspacePanels'
 import { useTimeWaveformWorkspace } from '../hooks/useTimeWaveformWorkspace'
+import { exportReportContext } from '../../report/services/exportReportContext'
 import type { IImportedFileSummary } from '../../../../common/contracts/import'
+import { useState } from 'react'
+import { toast } from 'sonner'
 import './TimeWaveformWorkspace.scss'
 
 interface ITimeWaveformWorkspaceProps {
@@ -15,6 +18,7 @@ interface ITimeWaveformWorkspaceProps {
 }
 
 const TimeWaveformWorkspace = ({ importedFiles, isCopilotOpen, onCopilotToggle }: ITimeWaveformWorkspaceProps) => {
+  const [isExporting, setIsExporting] = useState(false)
   const {
     activeSurface,
     chartRef,
@@ -82,6 +86,44 @@ const TimeWaveformWorkspace = ({ importedFiles, isCopilotOpen, onCopilotToggle }
     waveformSignals,
   })
 
+  const handleExportReport = async () => {
+    try {
+      setIsExporting(true)
+
+      const response = await exportReportContext({
+        activeSurface,
+        layoutMode,
+        signalChartMode,
+        recordings: recordings.map((recording) => ({
+          recordingId: recording.recordingId,
+          fileName: recording.fileName,
+          sizeBytes: recording.sizeBytes,
+          durationSeconds: recording.durationSeconds,
+          sampleRate: recording.sampleRate,
+          channels: recording.channels,
+          channelMode: recording.channelMode,
+          signals: recording.signals.map((signal) => ({
+            signalId: signal.signalId,
+            channelIndex: signal.channelIndex,
+            displayName: signal.displayName,
+            fileName: recording.fileName,
+          })),
+        })),
+        selectedSignalIds: selectedSignalIds.length > 0 ? selectedSignalIds : undefined,
+        startTimeSeconds: regionOfInterest?.startTimeSeconds,
+        endTimeSeconds: regionOfInterest?.endTimeSeconds,
+      })
+
+      toast.success(
+        `${response.reportTitle} prepared for ${response.summary.recordingCount} recording${response.summary.recordingCount === 1 ? '' : 's'} and ${response.summary.selectedSignalCount} signal${response.summary.selectedSignalCount === 1 ? '' : 's'}.`
+      )
+    } catch {
+      toast.error('The report context could not be prepared.')
+    } finally {
+      setIsExporting(false)
+    }
+  }
+
   return (
     <section
       className={`time-waveform-workspace${hasActiveChart ? ' time-waveform-workspace--revealed' : ''}${layoutMode === 'compare' ? ' time-waveform-workspace--compare' : ''}`}
@@ -90,8 +132,10 @@ const TimeWaveformWorkspace = ({ importedFiles, isCopilotOpen, onCopilotToggle }
       <AnalysisWorkspaceHeader
         activeSurface={activeSurface}
         isCopilotOpen={isCopilotOpen}
+        isExporting={isExporting}
         layoutMode={layoutMode}
         onCopilotToggle={onCopilotToggle}
+        onExportReport={handleExportReport}
         onLayoutModeChange={onLayoutModeChange}
         onSignalChartModeChange={onSignalChartModeChange}
         onSpectrumPresetChange={onSpectrumPresetChange}
