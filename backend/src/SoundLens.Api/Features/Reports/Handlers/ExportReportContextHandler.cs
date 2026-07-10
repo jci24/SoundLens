@@ -32,6 +32,7 @@ public sealed class ExportReportContextHandler : CommandHandler<ExportReportCont
             RegionOfInterest: regionOfInterest,
             Recordings: command.Recordings,
             SelectedSignals: selectedSignals,
+            SelectedSignalEvidence: command.SelectedSignalEvidence ?? [],
             Summary: new ReportExportSummary(
                 RecordingCount: command.Recordings.Count,
                 TotalSignalCount: allSignals.Count,

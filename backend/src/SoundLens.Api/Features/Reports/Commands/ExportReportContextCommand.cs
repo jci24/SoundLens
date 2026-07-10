@@ -8,6 +8,7 @@ public sealed record ExportReportContextCommand(
     string LayoutMode,
     string SignalChartMode,
     IReadOnlyList<ReportExportRecording> Recordings,
+    IReadOnlyList<ReportExportSignalEvidence>? SelectedSignalEvidence,
     IReadOnlyList<string>? SelectedSignalIds,
     double? StartTimeSeconds,
     double? EndTimeSeconds) : ICommand<ExportReportContextResponse>;

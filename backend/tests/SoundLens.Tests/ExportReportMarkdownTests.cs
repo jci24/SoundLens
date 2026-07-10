@@ -48,6 +48,35 @@ public sealed class ExportReportMarkdownTests : IClassFixture<WebApplicationFact
                         },
                     },
                 },
+                selectedSignalEvidence = new[]
+                {
+                    new
+                    {
+                        signalId = "signal-left",
+                        fileName = "alpha.wav",
+                        displayName = "Channel 1",
+                        durationSeconds = 2.535,
+                        sampleRate = 44100,
+                        metrics = new
+                        {
+                            peakAmplitude = -1.5,
+                            rmsAmplitude = -14.2,
+                            crestFactor = 4.3,
+                            clippingSampleCount = 0,
+                            hasClipping = false,
+                        },
+                        findings = new[]
+                        {
+                            new
+                            {
+                                category = "Spectral",
+                                severity = "Info",
+                                label = "TonalPeak",
+                                detail = "A strong tone is present near the dominant peak.",
+                            },
+                        },
+                    },
+                },
                 selectedSignalIds = new[] { "signal-left" },
             });
 
@@ -58,7 +87,10 @@ public sealed class ExportReportMarkdownTests : IClassFixture<WebApplicationFact
         Assert.EndsWith(".md", payload!.FileName, StringComparison.OrdinalIgnoreCase);
         Assert.Contains("# SoundLens export - 1 recording", payload.Markdown);
         Assert.Contains("## Summary", payload.Markdown);
-        Assert.Contains("alpha.wav", payload.Markdown);
+        Assert.Contains("1 recording loaded; 1 signal selected", payload.Markdown);
+        Assert.Contains("- Duration: 2.535 s", payload.Markdown);
+        Assert.Contains("## Traceability", payload.Markdown);
+        Assert.Contains("Recording ID: `recording-a`", payload.Markdown);
         Assert.Contains("No AI-written interpretation is included in this slice.", payload.Markdown);
     }
 }
