@@ -82,6 +82,7 @@ The current demo slice is now centered on browser-first import plus waveform and
 - The eval harness now owns deterministic repo-managed WAV fixtures under `scripts/copilot-evals/fixtures/`, with regeneration scripted in `scripts/copilot-evals/generate-fixtures.mjs`. The dataset uses relative fixture paths rather than developer-specific absolute paths, so the local workflow can run end-to-end once the backend and OpenAI API key are available.
 - If the backend is started without `OpenAI:ApiKey` / `OPENAI__APIKEY`, the Copilot endpoint now returns a structured unavailable response in the chat panel instead of a bare HTTP 503, so local demo sessions fail with actionable setup guidance rather than a generic request error.
 - Report export has now started as a separate thin slice: `POST /api/report/export` accepts the current workspace context (surface, layout, ROI, recordings, selected signals) and returns a normalized deterministic snapshot that the frontend can prepare for later report generation.
+- The next report-export slice now turns that normalized context into a deterministic markdown artifact via `POST /api/report/export/markdown`, and the workspace export action downloads the `.md` file directly without any AI-written narrative yet.
 
 Immediate next step after this slice:
 
