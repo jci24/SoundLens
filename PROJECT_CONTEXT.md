@@ -1,6 +1,6 @@
 # SoundLens Project Context
 
-Last updated: 2026-07-09
+Last updated: 2026-07-10
 
 ## Purpose
 
@@ -77,6 +77,9 @@ The current demo slice is now centered on browser-first import plus waveform and
 - Copilot evidence labels now resolve backend signal IDs back to file name plus channel display name, so answers and evidence use labels such as `recording.wav · Channel 1` instead of ordinal phrases or signal hashes.
 - The agent compare contract now includes deterministic winner/tie summaries for RMS, peak, and clipping evidence, including file/channel labels, clipping sample counts, and invariant decimal formatting. The response post-processing normalizes compare evidence so cited evidence matches deterministic backend winner arrays rather than arbitrary model-selected signal IDs.
 - Waveform rendering has been optimized for responsiveness by rendering each waveform as a compact SVG path and deferring chart-width-dependent bin recalculation during layout changes.
+- The repo now includes the first Copilot answer-eval harness slice under `scripts/copilot-evals/`: a small Node runner that imports known files, discovers signal IDs from the waveform API, submits repeated grounded Copilot questions to `/api/agent/query`, and grades the returned `AgentQueryResponse` for structural regressions such as missing dBFS limitations, missing cited evidence, forbidden tool usage, ordinal phrases, and internal tool-name leakage in `nextSteps`.
+- API startup/build ergonomics have been tightened by moving the Serilog file sink out of the build output path. Runtime log files no longer accumulate under `bin/Debug/net10.0/Logs`, which avoids slow MSBuild incremental-clean passes that made `dotnet build` and `dotnet run` appear stuck after compilation.
+- The eval harness now owns deterministic repo-managed WAV fixtures under `scripts/copilot-evals/fixtures/`, with regeneration scripted in `scripts/copilot-evals/generate-fixtures.mjs`. The dataset uses relative fixture paths rather than developer-specific absolute paths, so the local workflow can run end-to-end once the backend and OpenAI API key are available.
 
 Immediate next step after this slice:
 

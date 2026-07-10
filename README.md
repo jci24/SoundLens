@@ -60,6 +60,7 @@ The repository pins .NET through [global.json](global.json).
 Backend:
 
 ```bash
+./scripts/run-backend.sh
 dotnet restore backend/SoundLens.slnx
 dotnet build backend/SoundLens.slnx -nodeReuse:false
 dotnet test backend/SoundLens.slnx -nodeReuse:false
@@ -67,6 +68,8 @@ dotnet run --project backend/src/SoundLens.Api -nodeReuse:false
 ```
 
 The `-nodeReuse:false` flag prevents MSBuild from holding file locks that compete with IDE language servers, which otherwise makes builds and `dotnet run` take several minutes. You can also set `MSBUILDDISABLENODEREUSE=1` in your shell profile to make this the default.
+
+`./scripts/run-backend.sh` is the repo-local wrapper for normal backend startup. It runs the API from the repository root and sets `MSBUILDDISABLENODEREUSE=1` for that invocation so local editor build hosts are less likely to interfere.
 
 If builds are still slow, check that only one C# language-server extension is enabled in your IDE. Multiple C# extensions (for example the Microsoft C# extension and the `muhammad-sammy.csharp` extension) can both lock the same build outputs, causing multi-minute waits even with `-nodeReuse:false`.
 

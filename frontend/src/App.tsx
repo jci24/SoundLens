@@ -1,13 +1,21 @@
-import { useEffect, useRef, useState } from 'react'
+import { Suspense, lazy, useEffect, useRef, useState } from 'react'
 import { Toaster } from '@/components/ui/sonner'
 import { Sidebar } from './features/layout/components/Sidebar'
 import { MainContent } from './features/layout/components/MainContent'
 import { ImportWorkspace } from './features/import/components/ImportWorkspace'
-import { TimeWaveformWorkspace } from './features/analysis/workspace/components/TimeWaveformWorkspace'
-import { CopilotSidebar } from './features/analysis/copilot/components/CopilotSidebar'
 import { useAnalysisWorkspaceStore } from './features/analysis/stores/useAnalysisWorkspaceStore'
 import type { IImportedFileSummary } from './common/contracts/import'
 import './App.scss'
+
+const TimeWaveformWorkspace = lazy(async () => {
+  const module = await import('./features/analysis/workspace/components/TimeWaveformWorkspace')
+  return { default: module.TimeWaveformWorkspace }
+})
+
+const CopilotSidebar = lazy(async () => {
+  const module = await import('./features/analysis/copilot/components/CopilotSidebar')
+  return { default: module.CopilotSidebar }
+})
 
 const App = () => {
   const [importedFiles, setImportedFiles] = useState<IImportedFileSummary[]>([])
@@ -51,23 +59,27 @@ const App = () => {
       <MainContent isCopilotOpen={isCopilotOpen}>
         <div className={`app__workspace-stage${isEnteringAnalysis ? ' app__workspace-stage--entering' : ''}`}>
           {importedFiles.length > 0 ? (
-            <TimeWaveformWorkspace
-              importedFiles={importedFiles}
-              isCopilotOpen={isCopilotOpen}
-              onCopilotToggle={() => setIsCopilotOpen((prev) => !prev)}
-            />
+            <Suspense fallback={null}>
+              <TimeWaveformWorkspace
+                importedFiles={importedFiles}
+                isCopilotOpen={isCopilotOpen}
+                onCopilotToggle={() => setIsCopilotOpen((prev) => !prev)}
+              />
+            </Suspense>
           ) : (
             <ImportWorkspace onImportedFiles={handleImportedFiles} />
           )}
         </div>
       </MainContent>
       {importedFiles.length > 0 && (
-        <CopilotSidebar
-          isOpen={isCopilotOpen}
-          recordings={recordings}
-          regionOfInterest={regionOfInterest}
-          selectedSignalIds={selectedSignalIds}
-        />
+        <Suspense fallback={null}>
+          <CopilotSidebar
+            isOpen={isCopilotOpen}
+            recordings={recordings}
+            regionOfInterest={regionOfInterest}
+            selectedSignalIds={selectedSignalIds}
+          />
+        </Suspense>
       )}
       <Toaster position="top-right" closeButton />
     </div>

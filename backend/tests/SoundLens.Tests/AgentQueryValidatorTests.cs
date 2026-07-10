@@ -23,7 +23,7 @@ public sealed class AgentQueryValidatorTests
         var result = await validator.ValidateAsync(command);
 
         Assert.False(result.IsValid);
-        Assert.Contains(result.Errors, e => e.PropertyName == "Question");
+        Assert.Contains(result.Errors, e => string.Equals(e.PropertyName, "Question", StringComparison.OrdinalIgnoreCase));
     }
 
     [Fact]
@@ -36,7 +36,7 @@ public sealed class AgentQueryValidatorTests
         var result = await validator.ValidateAsync(command);
 
         Assert.False(result.IsValid);
-        Assert.Contains(result.Errors, e => e.PropertyName == "Question");
+        Assert.Contains(result.Errors, e => string.Equals(e.PropertyName, "Question", StringComparison.OrdinalIgnoreCase));
     }
 
     [Fact]
