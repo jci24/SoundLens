@@ -1,0 +1,45 @@
+{
+  "filePaths": [
+    "./fixtures/eval-quiet.wav",
+    "./fixtures/eval-loud.wav",
+    "./fixtures/eval-clipped.wav"
+  ],
+  "cases": [
+    {
+      "id": "compare-loudness-all-signals",
+      "question": "Compare loudness across all signals",
+      "signals": [],
+      "expectedTools": ["compare_signals"],
+      "forbiddenTools": ["get_signal_findings"],
+      "requiredAnswerPhrases": [
+        "eval-loud.wav",
+        "channel 1",
+        "-6.0 dBFS"
+      ],
+      "forbiddenAnswerPhrases": [
+        "first signal",
+        "second signal"
+      ],
+      "expectedEvidenceSignalLabels": [
+        "eval-loud.wav · Channel 1"
+      ]
+    },
+    {
+      "id": "clipping-all-signals",
+      "question": "Is there clipping in any recording?",
+      "signals": [],
+      "expectedTools": ["compare_signals"],
+      "forbiddenTools": ["get_signal_findings"],
+      "requiredAnswerPhrases": [
+        "clipping",
+        "eval-clipped.wav",
+        "channel 1"
+      ],
+      "forbiddenAnswerPhrases": [
+        "tonal peaks and harmonic series prove",
+        "first signal",
+        "second signal"
+      ]
+    }
+  ]
+}

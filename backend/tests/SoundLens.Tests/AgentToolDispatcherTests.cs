@@ -28,6 +28,40 @@ public sealed class AgentToolDispatcherTests
     private static AgentToolDispatcher BuildDispatcherEmpty()
         => BuildDispatcherWithFiles([]);
 
+    private static byte[] CreateMono16BitWav(int sampleRate, short[] samples)
+    {
+        var bytesPerSample = 2;
+        var channelCount = 1;
+        var blockAlign = channelCount * bytesPerSample;
+        var byteRate = sampleRate * blockAlign;
+        var dataSize = samples.Length * blockAlign;
+
+        using var stream = new MemoryStream();
+        using var writer = new BinaryWriter(stream);
+
+        writer.Write("RIFF"u8.ToArray());
+        writer.Write(36 + dataSize);
+        writer.Write("WAVE"u8.ToArray());
+        writer.Write("fmt "u8.ToArray());
+        writer.Write(16);
+        writer.Write((short)1);
+        writer.Write((short)channelCount);
+        writer.Write(sampleRate);
+        writer.Write(byteRate);
+        writer.Write((short)blockAlign);
+        writer.Write((short)(bytesPerSample * 8));
+        writer.Write("data"u8.ToArray());
+        writer.Write(dataSize);
+
+        foreach (var sample in samples)
+        {
+            writer.Write(sample);
+        }
+
+        writer.Flush();
+        return stream.ToArray();
+    }
+
     private static byte[] CreateStereo16BitWav(int sampleRate, short[] leftSamples, short[] rightSamples)
     {
         if (leftSamples.Length != rightSamples.Length)
@@ -173,27 +207,27 @@ public sealed class AgentToolDispatcherTests
     [Fact]
     public async Task CompareSignals_ReturnsDeterministicLoudestByRmsSummary()
     {
-        var tempPath = Path.Combine(Path.GetTempPath(), $"soundlens_agent_compare_{Guid.NewGuid():N}.wav");
-        await File.WriteAllBytesAsync(
-            tempPath,
-            CreateStereo16BitWav(
-                sampleRate: 8,
-                leftSamples: [8192, 8192, 8192, 8192],
-                rightSamples: [16384, 16384, 16384, 16384]));
+        var quietPath = Path.Combine(Path.GetTempPath(), $"soundlens_agent_compare_quiet_{Guid.NewGuid():N}.wav");
+        var loudPath = Path.Combine(Path.GetTempPath(), $"soundlens_agent_compare_loud_{Guid.NewGuid():N}.wav");
+        await File.WriteAllBytesAsync(quietPath, CreateMono16BitWav(sampleRate: 8, samples: [8192, 8192, 8192, 8192]));
+        await File.WriteAllBytesAsync(loudPath, CreateMono16BitWav(sampleRate: 8, samples: [16384, 16384, 16384, 16384]));
 
         try
         {
-            var importedFile = new ImportedFileSummary("compare.wav", new FileInfo(tempPath).Length, tempPath, "audio/wav");
-            var dispatcher = BuildDispatcherWithFiles([importedFile]);
+            var quietFile = new ImportedFileSummary("compare-quiet.wav", new FileInfo(quietPath).Length, quietPath, "audio/wav");
+            var loudFile = new ImportedFileSummary("compare-loud.wav", new FileInfo(loudPath).Length, loudPath, "audio/wav");
+            var importedFiles = new[] { quietFile, loudFile };
+            var dispatcher = BuildDispatcherWithFiles(importedFiles);
             var waveformService = new WaveformService();
             var baseline = waveformService.BuildTimeWaveforms(
-                [importedFile],
+                importedFiles,
                 requestedBinCount: 64,
                 selectedSignalIds: null,
                 startTimeSeconds: null,
                 endTimeSeconds: null,
                 cancellationToken: CancellationToken.None);
-            var signalIds = baseline.SelectedSignals
+            var signalIds = baseline.Recordings
+                .SelectMany(recording => recording.Signals)
                 .Select(signal => signal.SignalId)
                 .ToArray();
 
@@ -207,41 +241,42 @@ public sealed class AgentToolDispatcherTests
             using var compareDoc = JsonDocument.Parse(compareJson);
             var loudestByRms = compareDoc.RootElement.GetProperty("loudestByRmsDbFs");
 
-            Assert.Equal("compare.wav", loudestByRms.GetProperty("fileName").GetString());
-            Assert.Equal("Channel 2", loudestByRms.GetProperty("displayName").GetString());
+            Assert.Equal("compare-loud.wav", loudestByRms.GetProperty("fileName").GetString());
+            Assert.Equal("Channel 1", loudestByRms.GetProperty("displayName").GetString());
             Assert.True(loudestByRms.GetProperty("rmsAmplitudeDbFs").GetDouble() >
                         compareDoc.RootElement.GetProperty("signals")[0].GetProperty("rmsAmplitudeDbFs").GetDouble());
         }
         finally
         {
-            File.Delete(tempPath);
+            File.Delete(quietPath);
+            File.Delete(loudPath);
         }
     }
 
     [Fact]
     public async Task CompareSignals_ReturnsAllSignalsAtHighestPeakWhenPeakIsTied()
     {
-        var tempPath = Path.Combine(Path.GetTempPath(), $"soundlens_agent_compare_tie_{Guid.NewGuid():N}.wav");
-        await File.WriteAllBytesAsync(
-            tempPath,
-            CreateStereo16BitWav(
-                sampleRate: 8,
-                leftSamples: [16384, 0, 0, 0],
-                rightSamples: [16384, 8192, 8192, 8192]));
+        var firstPath = Path.Combine(Path.GetTempPath(), $"soundlens_agent_compare_tie_a_{Guid.NewGuid():N}.wav");
+        var secondPath = Path.Combine(Path.GetTempPath(), $"soundlens_agent_compare_tie_b_{Guid.NewGuid():N}.wav");
+        await File.WriteAllBytesAsync(firstPath, CreateMono16BitWav(sampleRate: 8, samples: [16384, 0, 0, 0]));
+        await File.WriteAllBytesAsync(secondPath, CreateMono16BitWav(sampleRate: 8, samples: [16384, 8192, 8192, 8192]));
 
         try
         {
-            var importedFile = new ImportedFileSummary("tie.wav", new FileInfo(tempPath).Length, tempPath, "audio/wav");
-            var dispatcher = BuildDispatcherWithFiles([importedFile]);
+            var firstFile = new ImportedFileSummary("tie-a.wav", new FileInfo(firstPath).Length, firstPath, "audio/wav");
+            var secondFile = new ImportedFileSummary("tie-b.wav", new FileInfo(secondPath).Length, secondPath, "audio/wav");
+            var importedFiles = new[] { firstFile, secondFile };
+            var dispatcher = BuildDispatcherWithFiles(importedFiles);
             var waveformService = new WaveformService();
             var baseline = waveformService.BuildTimeWaveforms(
-                [importedFile],
+                importedFiles,
                 requestedBinCount: 64,
                 selectedSignalIds: null,
                 startTimeSeconds: null,
                 endTimeSeconds: null,
                 cancellationToken: CancellationToken.None);
-            var signalIds = baseline.SelectedSignals
+            var signalIds = baseline.Recordings
+                .SelectMany(recording => recording.Signals)
                 .Select(signal => signal.SignalId)
                 .ToArray();
 
@@ -256,11 +291,12 @@ public sealed class AgentToolDispatcherTests
             Assert.Equal(2, peakTieSignals.Length);
             Assert.All(peakTieSignals, signal =>
             {
-                Assert.Equal("tie.wav", signal.GetProperty("fileName").GetString());
+                var fileName = signal.GetProperty("fileName").GetString();
+                Assert.True(fileName is "tie-a.wav" or "tie-b.wav");
                 Assert.Equal(-6.0, signal.GetProperty("peakAmplitudeDbFs").GetDouble(), 1);
             });
             Assert.Equal(
-                "The highest peak amplitude is tied at -6.0 dBFS across tie.wav · Channel 1, tie.wav · Channel 2.",
+                "The highest peak amplitude is tied at -6.0 dBFS across tie-a.wav · Channel 1, tie-b.wav · Channel 1.",
                 compareDoc.RootElement.GetProperty("peakComparisonSummary").GetString());
             Assert.Equal(
                 "No clipping was detected in any compared signal.",
@@ -268,34 +304,35 @@ public sealed class AgentToolDispatcherTests
         }
         finally
         {
-            File.Delete(tempPath);
+            File.Delete(firstPath);
+            File.Delete(secondPath);
         }
     }
 
     [Fact]
     public async Task CompareSignals_ReturnsSignalsWithClippingSummary()
     {
-        var tempPath = Path.Combine(Path.GetTempPath(), $"soundlens_agent_compare_clipping_{Guid.NewGuid():N}.wav");
-        await File.WriteAllBytesAsync(
-            tempPath,
-            CreateStereo16BitWav(
-                sampleRate: 8,
-                leftSamples: [32767, 0, 0, 0],
-                rightSamples: [8192, 8192, 8192, 8192]));
+        var clippedPath = Path.Combine(Path.GetTempPath(), $"soundlens_agent_compare_clipping_{Guid.NewGuid():N}.wav");
+        var cleanPath = Path.Combine(Path.GetTempPath(), $"soundlens_agent_compare_clean_{Guid.NewGuid():N}.wav");
+        await File.WriteAllBytesAsync(clippedPath, CreateMono16BitWav(sampleRate: 8, samples: [32767, 0, 0, 0]));
+        await File.WriteAllBytesAsync(cleanPath, CreateMono16BitWav(sampleRate: 8, samples: [8192, 8192, 8192, 8192]));
 
         try
         {
-            var importedFile = new ImportedFileSummary("clip.wav", new FileInfo(tempPath).Length, tempPath, "audio/wav");
-            var dispatcher = BuildDispatcherWithFiles([importedFile]);
+            var clippedFile = new ImportedFileSummary("clip.wav", new FileInfo(clippedPath).Length, clippedPath, "audio/wav");
+            var cleanFile = new ImportedFileSummary("clean.wav", new FileInfo(cleanPath).Length, cleanPath, "audio/wav");
+            var importedFiles = new[] { clippedFile, cleanFile };
+            var dispatcher = BuildDispatcherWithFiles(importedFiles);
             var waveformService = new WaveformService();
             var baseline = waveformService.BuildTimeWaveforms(
-                [importedFile],
+                importedFiles,
                 requestedBinCount: 64,
                 selectedSignalIds: null,
                 startTimeSeconds: null,
                 endTimeSeconds: null,
                 cancellationToken: CancellationToken.None);
-            var signalIds = baseline.SelectedSignals
+            var signalIds = baseline.Recordings
+                .SelectMany(recording => recording.Signals)
                 .Select(signal => signal.SignalId)
                 .ToArray();
 
@@ -318,7 +355,8 @@ public sealed class AgentToolDispatcherTests
         }
         finally
         {
-            File.Delete(tempPath);
+            File.Delete(clippedPath);
+            File.Delete(cleanPath);
         }
     }
 }
