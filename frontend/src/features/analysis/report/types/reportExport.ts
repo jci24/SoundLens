@@ -1,4 +1,5 @@
 import type { IAnalysisRegionOfInterest, TAnalysisLayoutMode, TAnalysisSurface, TSignalChartMode } from '../../types'
+import type { ISignalDerivedMetrics, ISignalFinding } from '../../types'
 
 export interface IReportExportRecording {
   recordingId: string
@@ -16,6 +17,7 @@ export interface IReportExportRequest {
   layoutMode: TAnalysisLayoutMode
   signalChartMode: TSignalChartMode
   recordings: IReportExportRecording[]
+  selectedSignalEvidence?: IReportExportSignalEvidence[]
   selectedSignalIds?: string[]
   startTimeSeconds?: number
   endTimeSeconds?: number
@@ -26,6 +28,16 @@ export interface IReportExportSignal {
   channelIndex: number
   displayName: string
   fileName: string
+}
+
+export interface IReportExportSignalEvidence {
+  signalId: string
+  fileName: string
+  displayName: string
+  durationSeconds: number
+  sampleRate: number
+  metrics?: ISignalDerivedMetrics
+  findings: ISignalFinding[]
 }
 
 export interface IReportExportSummary {
@@ -44,5 +56,6 @@ export interface IReportExportResponse {
   regionOfInterest: IAnalysisRegionOfInterest | null
   recordings: IReportExportRecording[]
   selectedSignals: IReportExportSignal[]
+  selectedSignalEvidence: IReportExportSignalEvidence[]
   summary: IReportExportSummary
 }

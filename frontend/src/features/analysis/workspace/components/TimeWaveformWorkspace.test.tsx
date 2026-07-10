@@ -236,10 +236,10 @@ describe('TimeWaveformWorkspace', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Export report' }))
 
     await waitFor(() => {
-      expect(mockExportReportMarkdown).toHaveBeenCalledWith({
-        activeSurface: 'waveform',
-        layoutMode: 'focused',
-        signalChartMode: 'overlay',
+    expect(mockExportReportMarkdown).toHaveBeenCalledWith({
+      activeSurface: 'waveform',
+      layoutMode: 'focused',
+      signalChartMode: 'overlay',
         recordings: [
           {
             recordingId: 'recording-1',
@@ -257,12 +257,13 @@ describe('TimeWaveformWorkspace', () => {
                 fileName: 'alpha.wav',
               },
             ],
-          },
-        ],
-        selectedSignalIds: ['signal-1'],
-        startTimeSeconds: 0.1,
-        endTimeSeconds: 0.4,
-      })
+        },
+      ],
+      selectedSignalEvidence: [],
+      selectedSignalIds: ['signal-1'],
+      startTimeSeconds: 0.1,
+      endTimeSeconds: 0.4,
+    })
       expect(mockDownloadTextFile).toHaveBeenCalledWith(
         'soundlens-export-1-recording-20260710-120000.md',
         '# SoundLens export - 1 recording'

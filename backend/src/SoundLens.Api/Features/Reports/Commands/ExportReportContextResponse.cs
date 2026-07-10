@@ -11,4 +11,5 @@ public sealed record ExportReportContextResponse(
     ReportExportRegionOfInterest? RegionOfInterest,
     IReadOnlyList<ReportExportRecording> Recordings,
     IReadOnlyList<ReportExportSignal> SelectedSignals,
+    IReadOnlyList<ReportExportSignalEvidence> SelectedSignalEvidence,
     ReportExportSummary Summary);

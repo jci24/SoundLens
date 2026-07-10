@@ -1,5 +1,6 @@
 using FastEndpoints;
 using FluentValidation;
+using SoundLens.Api.Common;
 using SoundLens.Api.Features.Reports.Commands;
 using SoundLens.Api.Features.Reports.Common;
 
@@ -49,6 +50,21 @@ public sealed class ExportReportContext : Endpoint<ExportReportContextCommand, E
                     recording.RuleFor(item => item.RecordingId).NotEmpty();
                     recording.RuleFor(item => item.FileName).NotEmpty();
                     recording.RuleFor(item => item.Signals).NotEmpty();
+                });
+
+            RuleForEach(command => command.SelectedSignalEvidence)
+                .ChildRules(signal =>
+                {
+                    signal.RuleFor(item => item.SignalId).NotEmpty();
+                    signal.RuleFor(item => item.FileName).NotEmpty();
+                    signal.RuleFor(item => item.DisplayName).NotEmpty();
+                    signal.RuleForEach(item => item.Findings)
+                        .ChildRules(finding =>
+                        {
+                            finding.RuleFor(item => item.Category).NotEmpty();
+                            finding.RuleFor(item => item.Severity).NotEmpty();
+                            finding.RuleFor(item => item.Label).NotEmpty();
+                        });
                 });
 
             RuleFor(command => command)
