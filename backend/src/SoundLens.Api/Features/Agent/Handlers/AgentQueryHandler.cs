@@ -2,6 +2,7 @@ using System.Globalization;
 using System.Text.Json;
 using FastEndpoints;
 using OpenAI.Chat;
+using SoundLens.Api.Configuration;
 using SoundLens.Api.Features.Agent.Commands;
 using SoundLens.Api.Features.Agent.Responses;
 using SoundLens.Api.Features.Agent.Tools;
@@ -16,7 +17,7 @@ namespace SoundLens.Api.Features.Agent.Handlers;
 // 3. Feeds the result back to the model and continues until the model produces a final answer.
 // 4. Returns a structured AgentQueryResponse with the answer, cited evidence, limitations, and next steps.
 public sealed class AgentQueryHandler(
-    ChatClient chatClient,
+    IChatClientProvider chatClientProvider,
     AgentToolDispatcher toolDispatcher,
     IImportedFileStore importedFileStore,
     IWaveformService waveformService) : CommandHandler<AgentQueryCommand, AgentQueryResponse>
@@ -71,6 +72,7 @@ public sealed class AgentQueryHandler(
 
     public override async Task<AgentQueryResponse> ExecuteAsync(AgentQueryCommand command, CancellationToken ct = default)
     {
+        var chatClient = chatClientProvider.GetRequiredClient();
         var availableSignals = importedFileStore.CurrentFiles.Count > 0
             ? waveformService.BuildTimeWaveforms(
                 importedFileStore.CurrentFiles,

@@ -30,15 +30,8 @@ public static class DependencyInjection
         {
             services.AddSingleton(new ChatClient(model: openAiModel, apiKey: openAiApiKey));
         }
-        else
-        {
-            // Allow the app to start without an API key in development.
-            // The agent endpoint returns a structured unavailable response if called without a key configured.
-            services.AddSingleton<ChatClient>(_ =>
-                throw new InvalidOperationException(
-                    "OpenAI API key is not configured. Set OpenAI:ApiKey in appsettings or the OPENAI__APIKEY environment variable."));
-        }
 
+        services.AddSingleton<IChatClientProvider, ChatClientProvider>();
         services.AddSingleton<AgentToolDispatcher>();
         services.AddSingleton<IReportNarrativeService, OpenAiReportNarrativeService>();
 
