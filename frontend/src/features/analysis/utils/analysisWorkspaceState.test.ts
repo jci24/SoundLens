@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest'
 import {
   areSignalIdsEqual,
   clampSpectrumRange,
+  getComparisonSetupSummary,
   getNextExpandedRecordings,
   getNextRecordingGroupAssignments,
   getNextRequestedSignalIds,
@@ -34,6 +35,100 @@ describe('analysisWorkspaceState', () => {
     ).toEqual({
       'recording-1': 'A',
       'recording-3': 'B',
+    })
+  })
+
+  it('marks comparison setup invalid when both groups are empty', () => {
+    expect(
+      getComparisonSetupSummary(
+        [
+          {
+            recordingId: 'recording-1',
+            fileName: 'alpha.wav',
+            sizeBytes: 1024,
+            durationSeconds: 1,
+            sampleRate: 44_100,
+            channels: 1,
+            channelMode: 'Mono',
+            signals: [],
+          },
+        ],
+        {}
+      )
+    ).toEqual({
+      counts: { unassigned: 1, A: 0, B: 0 },
+      state: 'invalid',
+    })
+  })
+
+  it('marks comparison setup incomplete when only one group has recordings', () => {
+    expect(
+      getComparisonSetupSummary(
+        [
+          {
+            recordingId: 'recording-1',
+            fileName: 'alpha.wav',
+            sizeBytes: 1024,
+            durationSeconds: 1,
+            sampleRate: 44_100,
+            channels: 1,
+            channelMode: 'Mono',
+            signals: [],
+          },
+          {
+            recordingId: 'recording-2',
+            fileName: 'beta.wav',
+            sizeBytes: 2048,
+            durationSeconds: 1,
+            sampleRate: 44_100,
+            channels: 1,
+            channelMode: 'Mono',
+            signals: [],
+          },
+        ],
+        {
+          'recording-1': 'A',
+        }
+      )
+    ).toEqual({
+      counts: { unassigned: 1, A: 1, B: 0 },
+      state: 'incomplete',
+    })
+  })
+
+  it('marks comparison setup valid when both groups have recordings', () => {
+    expect(
+      getComparisonSetupSummary(
+        [
+          {
+            recordingId: 'recording-1',
+            fileName: 'alpha.wav',
+            sizeBytes: 1024,
+            durationSeconds: 1,
+            sampleRate: 44_100,
+            channels: 1,
+            channelMode: 'Mono',
+            signals: [],
+          },
+          {
+            recordingId: 'recording-2',
+            fileName: 'beta.wav',
+            sizeBytes: 2048,
+            durationSeconds: 1,
+            sampleRate: 44_100,
+            channels: 1,
+            channelMode: 'Mono',
+            signals: [],
+          },
+        ],
+        {
+          'recording-1': 'A',
+          'recording-2': 'B',
+        }
+      )
+    ).toEqual({
+      counts: { unassigned: 0, A: 1, B: 1 },
+      state: 'valid',
     })
   })
 

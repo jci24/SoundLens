@@ -1,4 +1,5 @@
-import type { TComparisonGroupAssignment } from '../types'
+import type { TComparisonGroupAssignment, TComparisonSetupState } from '../types'
+import type { ITimeWaveformRecording } from '../types'
 
 export interface ISpectrumRange {
   startHz: number
@@ -8,6 +9,11 @@ export interface ISpectrumRange {
 export interface IRequestedRegionOfInterest {
   startTimeSeconds: number
   endTimeSeconds: number
+}
+
+export interface IComparisonSetupSummary {
+  counts: Record<TComparisonGroupAssignment, number>
+  state: TComparisonSetupState
 }
 
 const spectrumFftSizeValues = [
@@ -75,6 +81,39 @@ const getNextRecordingGroupAssignments = (
   )
 }
 
+const getComparisonSetupSummary = (
+  recordings: ITimeWaveformRecording[],
+  recordingGroupAssignments: Record<string, TComparisonGroupAssignment>
+): IComparisonSetupSummary => {
+  const counts = recordings.reduce<Record<TComparisonGroupAssignment, number>>(
+    (nextCounts, recording) => {
+      const assignment = recordingGroupAssignments[recording.recordingId] ?? 'unassigned'
+      nextCounts[assignment] += 1
+      return nextCounts
+    },
+    { unassigned: 0, A: 0, B: 0 }
+  )
+
+  if (counts.A > 0 && counts.B > 0) {
+    return {
+      counts,
+      state: 'valid',
+    }
+  }
+
+  if (counts.A > 0 || counts.B > 0) {
+    return {
+      counts,
+      state: 'incomplete',
+    }
+  }
+
+  return {
+    counts,
+    state: 'invalid',
+  }
+}
+
 const getNextRequestedSignalIds = (currentSignalIds: string[], signalId: string) => {
   if (currentSignalIds.length === 0) {
     return [signalId]
@@ -132,6 +171,7 @@ export {
   defaultSpectrumFftSize,
   defaultSpectrumRangeEndHz,
   formatSpectrumFftSizeOption,
+  getComparisonSetupSummary,
   getNextExpandedRecordings,
   getNextRecordingGroupAssignments,
   getNextRequestedSignalIds,

@@ -7,8 +7,8 @@ import { useAnalysisWorkspacePanels } from '../hooks/useAnalysisWorkspacePanels'
 import { useTimeWaveformWorkspace } from '../hooks/useTimeWaveformWorkspace'
 import { exportReportMarkdown } from '../../report/services/exportReportMarkdown'
 import { downloadTextFile } from '../../report/utils/reportDownload'
+import { getComparisonSetupSummary } from '../../utils/analysisWorkspaceState'
 import type { IImportedFileSummary } from '../../../../common/contracts/import'
-import type { TComparisonGroupAssignment } from '../../types'
 import { useState } from 'react'
 import { toast } from 'sonner'
 import './TimeWaveformWorkspace.scss'
@@ -89,14 +89,22 @@ const TimeWaveformWorkspace = ({ importedFiles, isCopilotOpen, onCopilotToggle }
     spectrumSignals,
     waveformSignals,
   })
-  const comparisonScope = recordings.reduce<Record<TComparisonGroupAssignment, number>>(
-    (counts, recording) => {
-      const assignment = recordingGroupAssignments[recording.recordingId] ?? 'unassigned'
-      counts[assignment] += 1
-      return counts
-    },
-    { unassigned: 0, A: 0, B: 0 }
-  )
+  const comparisonSetup = getComparisonSetupSummary(recordings, recordingGroupAssignments)
+  const comparisonGuidance =
+    comparisonSetup.state === 'valid'
+      ? {
+          label: 'Ready',
+          copy: 'Both groups are populated. Compare mode is ready.',
+        }
+      : comparisonSetup.state === 'incomplete'
+        ? {
+            label: 'Incomplete',
+            copy: 'Assign at least one recording to the empty group to unlock compare mode.',
+          }
+        : {
+            label: 'Not ready',
+            copy: 'Assign recordings to Group A and Group B to begin a valid comparison.',
+          }
 
   const handleExportReport = async () => {
     try {
@@ -157,6 +165,7 @@ const TimeWaveformWorkspace = ({ importedFiles, isCopilotOpen, onCopilotToggle }
     >
       <AnalysisWorkspaceHeader
         activeSurface={activeSurface}
+        canEnterCompareMode={comparisonSetup.state === 'valid'}
         isCopilotOpen={isCopilotOpen}
         isExporting={isExporting}
         layoutMode={layoutMode}
@@ -191,22 +200,34 @@ const TimeWaveformWorkspace = ({ importedFiles, isCopilotOpen, onCopilotToggle }
           selectedSignalIds={selectedSignalIds}
         />
         <div className="time-waveform-workspace__main-pane">
-          <section className="time-waveform-workspace__comparison-scope" aria-label="Comparison scope">
+          <section
+            className={`time-waveform-workspace__comparison-scope time-waveform-workspace__comparison-scope--${comparisonSetup.state}`}
+            aria-label="Comparison scope"
+          >
             <div className="time-waveform-workspace__comparison-scope-meta">
               <span className="time-waveform-workspace__comparison-scope-kicker">Setup</span>
               <span className="time-waveform-workspace__comparison-scope-title">Comparison scope</span>
             </div>
             <div className="time-waveform-workspace__comparison-scope-metrics">
               <span className="time-waveform-workspace__comparison-scope-pill time-waveform-workspace__comparison-scope-pill--A">
-                A <strong>{comparisonScope.A}</strong>
+                A <strong>{comparisonSetup.counts.A}</strong>
               </span>
               <span className="time-waveform-workspace__comparison-scope-pill time-waveform-workspace__comparison-scope-pill--B">
-                B <strong>{comparisonScope.B}</strong>
+                B <strong>{comparisonSetup.counts.B}</strong>
               </span>
               <span className="time-waveform-workspace__comparison-scope-pill time-waveform-workspace__comparison-scope-pill--unassigned">
-                Unassigned <strong>{comparisonScope.unassigned}</strong>
+                Unassigned <strong>{comparisonSetup.counts.unassigned}</strong>
               </span>
             </div>
+          </section>
+          <section
+            className={`time-waveform-workspace__comparison-guidance time-waveform-workspace__comparison-guidance--${comparisonSetup.state}`}
+            aria-label="Comparison setup guidance"
+          >
+            <span className="time-waveform-workspace__comparison-guidance-label">
+              {comparisonGuidance.label}
+            </span>
+            <p className="time-waveform-workspace__comparison-guidance-copy">{comparisonGuidance.copy}</p>
           </section>
           {regionOfInterest && (
             <section className="time-waveform-workspace__roi-summary" aria-label="Selected time region">

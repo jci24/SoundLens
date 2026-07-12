@@ -4,6 +4,7 @@ import { AnalysisWorkspaceHeader } from './AnalysisWorkspaceHeader'
 
 const createProps = () => ({
   activeSurface: 'waveform' as const,
+  canEnterCompareMode: true,
   isCopilotOpen: false,
   isExporting: false,
   layoutMode: 'focused' as const,
@@ -68,5 +69,11 @@ describe('AnalysisWorkspaceHeader', () => {
     render(<AnalysisWorkspaceHeader {...createProps()} isExporting />)
 
     expect(screen.getByRole('button', { name: 'Preparing export...' })).toBeDisabled()
+  })
+
+  it('keeps compare mode unavailable until both groups are ready', () => {
+    render(<AnalysisWorkspaceHeader {...createProps()} canEnterCompareMode={false} />)
+
+    expect(screen.getByRole('tab', { name: 'Compare' })).toBeDisabled()
   })
 })

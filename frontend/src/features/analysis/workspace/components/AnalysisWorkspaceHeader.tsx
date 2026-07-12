@@ -10,6 +10,7 @@ import './AnalysisWorkspaceHeader.scss'
 
 interface IAnalysisWorkspaceHeaderProps {
   activeSurface: TAnalysisSurface
+  canEnterCompareMode: boolean
   isCopilotOpen: boolean
   isExporting: boolean
   layoutMode: TAnalysisLayoutMode
@@ -35,6 +36,7 @@ interface IAnalysisWorkspaceHeaderProps {
 
 const AnalysisWorkspaceHeader = ({
   activeSurface,
+  canEnterCompareMode,
   isCopilotOpen,
   isExporting,
   layoutMode,
@@ -130,7 +132,9 @@ const AnalysisWorkspaceHeader = ({
           >
             <TabsList>
               <TabsTrigger value="focused">Focused</TabsTrigger>
-              <TabsTrigger value="compare">Compare</TabsTrigger>
+              <TabsTrigger disabled={!canEnterCompareMode} value="compare">
+                Compare
+              </TabsTrigger>
             </TabsList>
           </Tabs>
 

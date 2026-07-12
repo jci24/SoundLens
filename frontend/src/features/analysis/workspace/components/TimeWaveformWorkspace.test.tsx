@@ -33,10 +33,19 @@ vi.mock('../../report/utils/reportDownload', () => ({
 }))
 
 vi.mock('./AnalysisWorkspaceHeader', () => ({
-  AnalysisWorkspaceHeader: ({ onExportReport }: { onExportReport: () => void }) => (
-    <button data-testid="workspace-header" onClick={onExportReport} type="button">
-      Export report
-    </button>
+  AnalysisWorkspaceHeader: ({
+    canEnterCompareMode,
+    onExportReport,
+  }: {
+    canEnterCompareMode: boolean
+    onExportReport: () => void
+  }) => (
+    <div>
+      <button data-testid="workspace-header" onClick={onExportReport} type="button">
+        Export report
+      </button>
+      <span>{canEnterCompareMode ? 'Compare enabled' : 'Compare disabled'}</span>
+    </div>
   ),
 }))
 
@@ -215,10 +224,87 @@ describe('TimeWaveformWorkspace', () => {
     expect(comparisonScope).toHaveTextContent('A 1')
     expect(comparisonScope).toHaveTextContent('B 0')
     expect(comparisonScope).toHaveTextContent('Unassigned 1')
+    expect(screen.getByLabelText('Comparison setup guidance')).toHaveTextContent('Incomplete')
+    expect(screen.getByText('Assign at least one recording to the empty group to unlock compare mode.')).toBeInTheDocument()
+    expect(screen.getByText('Compare disabled')).toBeInTheDocument()
 
     fireEvent.click(screen.getByRole('button', { name: 'Assign recording' }))
 
     expect(workspaceState.onRecordingGroupAssignment).toHaveBeenCalledWith('recording-1', 'A')
+  })
+
+  it('marks compare mode ready when both groups are populated', () => {
+    const workspaceState = createWorkspaceState()
+    workspaceState.recordings = [
+      {
+        recordingId: 'recording-1',
+        fileName: 'alpha.wav',
+        sizeBytes: 1024,
+        durationSeconds: 1,
+        sampleRate: 44_100,
+        channels: 1,
+        channelMode: 'Mono',
+        signals: [],
+      },
+      {
+        recordingId: 'recording-2',
+        fileName: 'beta.wav',
+        sizeBytes: 2_048,
+        durationSeconds: 1,
+        sampleRate: 44_100,
+        channels: 1,
+        channelMode: 'Mono',
+        signals: [],
+      },
+    ]
+    workspaceState.recordingGroupAssignments = {
+      'recording-1': 'A',
+      'recording-2': 'B',
+    }
+
+    mockUseTimeWaveformWorkspace.mockReturnValue(workspaceState)
+
+    render(
+      <TimeWaveformWorkspace
+        importedFiles={importedFiles}
+        isCopilotOpen={false}
+        onCopilotToggle={vi.fn()}
+      />
+    )
+
+    expect(screen.getByLabelText('Comparison setup guidance')).toHaveTextContent('Ready')
+    expect(screen.getByText('Both groups are populated. Compare mode is ready.')).toBeInTheDocument()
+    expect(screen.getByText('Compare enabled')).toBeInTheDocument()
+  })
+
+  it('keeps compare mode blocked when nothing is assigned yet', () => {
+    const workspaceState = createWorkspaceState()
+    workspaceState.recordings = [
+      {
+        recordingId: 'recording-1',
+        fileName: 'alpha.wav',
+        sizeBytes: 1024,
+        durationSeconds: 1,
+        sampleRate: 44_100,
+        channels: 1,
+        channelMode: 'Mono',
+        signals: [],
+      },
+    ]
+
+    mockUseTimeWaveformWorkspace.mockReturnValue(workspaceState)
+
+    render(
+      <TimeWaveformWorkspace
+        importedFiles={importedFiles}
+        isCopilotOpen={false}
+        onCopilotToggle={vi.fn()}
+      />
+    )
+
+    expect(screen.getByLabelText('Comparison setup guidance')).toHaveTextContent('Not ready')
+    expect(screen.getByText('Assign recordings to Group A and Group B to begin a valid comparison.')).toBeInTheDocument()
+    expect(screen.getByText('Compare disabled')).toBeInTheDocument()
   })
 
   it('prefers spectrum-backed metrics whenever an ROI is active', () => {
