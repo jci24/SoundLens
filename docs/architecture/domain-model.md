@@ -106,6 +106,13 @@ The first comparison slice should apply this rule:
 
 This rule is deliberately conservative. SoundLens should prefer an explicit “cannot compare safely” outcome over an optimistic but misleading comparison.
 
+The current backend implementation of this rule is a pairwise alignment report between two recordings. It classifies each source or unmatched target signal as:
+
+- matched by normalized display name
+- matched by channel index fallback
+- ambiguous by name
+- missing on one side
+
 ## Deferred Direction
 
 The following concepts are plausible later but should remain deferred for now:
