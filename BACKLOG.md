@@ -1,186 +1,322 @@
 # SoundLens Backlog
 
-Last updated: 2026-07-08
+Last updated: 2026-07-12
 
-This file is the repo-side backlog for SoundLens.
-
-Use it to keep the product direction, implementation queue, and branch sizing aligned before work is pushed into GitHub Projects or issues.
+This backlog reflects the current product direction: focused A/B comparison of repeated recordings with deterministic evidence, drill-down, grounded explanation, and report export.
 
 ## Working Rules
 
-- Prefer thin vertical slices that preserve an end-to-end user outcome.
-- Split backend and frontend into separate tasks when that improves reviewability, but keep the same user story visible.
+- Prefer thin vertical slices with one clear user outcome.
 - Default to one branch per task: `codex/<short-task-name>`.
-- Update this file and `PROJECT_CONTEXT.md` when the current product state or near-term implementation order changes.
-- Treat large PRs as a smell. If one task turns into many concepts, split it before merge.
-- New GitHub issues should be written as user stories starting with: `As a user, I would like to ...`
-- Under each user story, list the implementation breakdown explicitly as flat `Backend`, `Frontend`, and `Validation` tasks when applicable.
+- Keep speculative platform work out of the immediate queue.
+- Update `PROJECT_CONTEXT.md`, `CURRENT_STATE.md`, and this file when the active milestone changes.
+- New GitHub issues should use: `As a user, I would like to ...`
 
-## GitHub Story Template
+## Current Epic
 
-Use this format for new GitHub Project items and issues:
-
-```text
-As a user, I would like to <goal>, so that <outcome>.
-
-Backend
-- ...
-
-Frontend
-- ...
-
-Validation
-- ...
-```
-
-## Status Legend
-
-- `Now`: actively prioritized for the next branch or already in progress
-- `Next`: ready to start after the current thin slice lands
-- `Later`: valid backlog item, but not part of the immediate demo sequence
-- `Icebox`: intentionally deferred until customer feedback justifies it
-
-## Current Demo Goal
-
-Deliver a credible analysis workspace that lets a prospective customer:
-
-1. Import one or more audio recordings from the browser.
-2. Inspect channels/signals in a calm workspace.
-3. Compare waveform and spectrum evidence with trustworthy backend-computed values.
-4. Understand what to do next without hidden logic or confusing UI states.
-
-## Active Epics
-
-### Epic A: Analysis Workspace Foundations
+### Epic A: A/B Product Or Condition Comparison
 
 Goal:
-Turn the current import-to-analysis flow into a reliable demo surface for engineering conversations.
+Turn the current analysis workspace into a focused comparison workflow for repeated recordings.
 
-Completed:
+### Completed Foundations
 
-- `A1` Browser-first import flow
-- `A2` Time waveform workspace
-- `A3` Spectrum workspace
-- `A4` Workspace decomposition follow-through
-- `A5` Shared workspace state store for signal selection and navigation
-- Frontend workspace card nesting flattened: recording rail, metrics signal cards, and focused-mode chart cards reduced to eliminate redundant border/shadow layers
-- `A6` Tool shelf navigation: workspace header split into a primary surface shelf (Waveform/Spectrum) and a subordinate view controls bar (Focused/Compare, Overlay/Split, popover)
+- browser-first import
+- waveform workspace
+- spectrum workspace
+- ROI selection and ROI-scoped evidence
+- derived metrics rail
+- deterministic findings
+- grounded Copilot over workspace evidence
+- markdown export with AI interpretation guardrails
 
-Open stories:
+## Ordered Thin Tasks
 
-### Epic B: Trustworthy DSP And Evidence Contracts
+### A1. Recording Group Assignment
 
-Goal:
-Make every displayed value traceable, testable, and safe to explain later through AI.
+User value:
+- A user can explicitly separate imported recordings into Product or Condition A and B.
 
-Completed:
+Thin-slice boundary:
+- Introduce group assignment state and UI without yet computing aggregate comparison results.
 
-- `B1` Waveform binning on the backend
-- `B2` Spectrum binning and parameter contract
-- `B3` Oversized input guardrails
-- `B7` Negotiated MessagePack transport for waveform and spectrum payloads
-- `B4` Synthetic signal fixture expansion: bit-depth paths, DC, bin envelope, clipping boundary, Nyquist, short-signal degradation
-- `B5` Analysis parameter contract: explicit FFT size, AllowedFftSizes validation, analysis round-trip tests
-- `B6` Region-of-interest waveform and spectrum requests: shared backend ROI contract (`startTimeSeconds` / `endTimeSeconds`), waveform selection overlay, workspace clear action, region-scoped waveform/spectrum responses, and ROI bounds coverage
+Acceptance criteria:
+- a user can assign each recording to A, B, or unassigned
+- the current comparison scope is visible in the workspace
+- unassigned recordings are clearly distinguished
 
-Open stories:
+Test expectations:
+- backend tests only if contracts change
+- frontend state and interaction coverage for assignment behavior
 
-### Epic C: Comparison And Interpretation Workflow
+Proposed branch name:
+- `codex/comparison-group-assignment`
 
-Goal:
-Move from isolated charts toward a comparison workflow that is useful in a customer demo.
+Dependencies:
+- current import workspace
 
-Completed:
+### A2. Group Validation And Empty States
 
-- `C1` Visible compare model
-- `C2` Multi-surface workspace tab model
-- `C3` Derived metrics strip
-- `C5` Flexible multi-panel workspace layout
-- `C4` First-pass findings strip: deterministic `SignalFinding` contract (Clipping/Alert, HighCrestFactor/Warning, LowLevel/Info), threaded through both waveform and spectrum services, rendered as badges beneath the metrics grid
-- `C4+` Tonal peak finding: `BuildSpectralFindings` rule fires when top spectral bin is ≥ 20 dB above median; finding includes frequency and margin in detail; 6 boundary tests added (50 backend tests total)
-- `C4++` Harmonic series finding: deterministic `HarmonicSeries` detection added to spectral findings for full-recording and ROI-scoped spectra, with backend and frontend regression coverage
-- `C6` ROI + findings demo validation kit: repeatable demo flow and customer interview notes template added under `docs/validation/`
-- `Refactor` Analysis feature reorganised into sub-feature folders (`workspace/`, `recording-rail/`, `metrics/`, `waveform/`, `spectrum/`); shared `utils/`, `services/`, `stores/`, and `types.ts` stay at analysis root; `tsc --noEmit` clean
+User value:
+- A user understands when the comparison setup is incomplete or invalid.
 
-Open stories:
+Thin-slice boundary:
+- Add validation, guidance, and empty states for the new group model.
 
-### Epic D: Testing Foundation
+Acceptance criteria:
+- comparison actions are blocked when one side is empty
+- users see actionable guidance for missing or incomplete setup
+- the UI distinguishes valid, partial, and invalid comparison scope
 
-Goal:
-Grow confidence without waiting for full E2E coverage.
+Test expectations:
+- frontend validation coverage
+- backend validation tests if comparison requests are introduced
 
-Completed:
+Proposed branch name:
+- `codex/comparison-group-validation`
 
-- `D1` Deterministic backend tests
-- `D2` Vitest + RTL setup
-- `D3` Hook and utility coverage expansion
-- `D4` DSP fixture regression coverage expansion (38 tests passing)
-- `D5` Component rendering tests for analysis surfaces
-- `D6` Vitest worker startup fix: frontend suite moved to `happy-dom`, temporary divergent Vitest config removed, and `npm run test:run` / `npm run build` pass locally
+Dependencies:
+- `A1`
 
-Open stories:
+### A3. Strict Signal-Alignment Rule
 
-### Epic E: AI Copilot
+User value:
+- A user avoids misleading comparisons between unrelated channels or signals.
 
-Goal:
-Let the user ask natural-language questions about loaded recordings and receive answers grounded in backend-computed DSP evidence only. The model decides what to analyze, triggers real services, and explains only what was measured.
+Thin-slice boundary:
+- Add the first strict alignment rule without yet introducing ranking UI.
 
-Completed:
+Acceptance criteria:
+- alignment normalizes and matches channel name where possible
+- otherwise alignment falls back to channel index
+- ambiguous or missing matches are reported explicitly
+- unrelated signals are not silently compared
 
-Open stories:
+Test expectations:
+- backend contract tests for alignment rules
+- fixtures covering ambiguous and missing matches
 
-- `E1` **Grounded AI answer — V1 (tool-calling agentic loop)** `Now`
+Proposed branch name:
+- `codex/comparison-signal-alignment`
 
-  The user types a question (e.g. "Which signal has more distortion?") and receives a structured, evidence-backed answer. The backend runs an OpenAI tool-calling loop: the model decides which DSP tools to call, the C# handler dispatches real services on each turn, and the model explains only the measured evidence.
+Dependencies:
+- `A1`
 
-  Architecture: single `POST /api/agent/query` endpoint → `AgentQueryHandler` runs a loop (max 5 rounds) → `AgentToolDispatcher` maps tool names to `IWaveformService` / `ISpectrumService` / `FindingsService` → compact JSON summaries returned to model (no raw bins, no audio to OpenAI) → structured `AgentQueryResponse { answer, citedEvidence[], limitations[], nextSteps[], toolsUsed[] }` returned to frontend.
+### A4. ROI-Aware Comparison Contract
 
-  Tools exposed to the model: `get_signal_metrics`, `get_signal_findings`, `get_spectrum_summary`, `compare_signals`.
+User value:
+- A user can compare the same bounded region across aligned signals.
 
-  Frontend: new Copilot tab in the tool shelf → `CopilotPanel` with question input and response card showing answer + evidence badges + limitations + next steps.
+Thin-slice boundary:
+- Introduce the comparison API contract and ROI handling, but not yet ranked UI.
 
-  Branch split: `codex/grounded-ai-answer-backend` → `codex/grounded-ai-answer-frontend`.
+Acceptance criteria:
+- comparison requests accept aligned signals and optional ROI
+- the response preserves effective ROI scope and limitations
+- incompatible requests fail clearly
 
-  Requires `OpenAI` NuGet package (openai-dotnet v2.x). API key stored server-side only via `OpenAI:ApiKey` config / env var.
+Test expectations:
+- backend endpoint and handler coverage
+- ROI boundary and invalid-request cases
 
-  Out of scope for V1: streaming, multi-turn history, new DSP analysis types.
+Proposed branch name:
+- `codex/comparison-roi-contract`
 
-- `E1-V2` **Grounded AI answer — V2 (structured planner-executor)** `Icebox`
+Dependencies:
+- `A2`
+- `A3`
 
-  Upgrade the agentic loop to a two-phase planner-executor pattern. Phase 1: a single OpenAI call with `response_format: json_schema` returns a structured plan `{ requiredTools: [{ tool, signalId, params }] }`. Phase 2: the backend executes all planned tools in parallel, then sends results to a second OpenAI call for the final grounded explanation. Benefits over V1: parallel tool execution (lower latency), predictable cost per query, easier to test the planning step in isolation. Tradeoffs: less adaptive if the plan misses something the model would have caught in a reactive loop.
+### A5. Aggregate Comparison Calculations
 
-  Prerequisites: V1 must be validated with real customer questions to confirm the tool set is stable enough to plan upfront.
+User value:
+- A user can see deterministic aggregate differences between A and B instead of only per-signal inspection.
 
-## Suggested Next Thin Tasks
+Thin-slice boundary:
+- Compute aggregates before adding ranking or polished drill-down UX.
 
-In progress:
+Acceptance criteria:
+- response includes count, mean, median, min, max, spread, and missing-value count where applicable
+- limitations stay explicit for small groups and incompatible evidence
+- comparison output remains deterministic and traceable
 
-1. `E1` Grounded AI answer V1 — tool-calling agentic loop (backend branch first)
+Test expectations:
+- backend calculation tests
+- synthetic fixtures for unequal groups, missing values, and edge cases
 
-After E1 lands:
+Proposed branch name:
+- `codex/comparison-aggregates`
 
-1. Demo dataset and short comparison report for customer sessions
-2. ROI polish: keyboard nudging, handle ergonomics, multi-signal duration edge cases
-3. `E1-V2` Planner-executor upgrade once V1 is validated with real customer questions
+Dependencies:
+- `A4`
 
-## GitHub Projects Mapping
+### A6. Ranked Differences UI
 
-Recommended fields for the GitHub Project:
+User value:
+- A user sees the most meaningful differences first.
 
-- `Status`: Backlog, Ready, In Progress, In Review, Blocked, Done
-- `Area`: Product, Backend, Frontend, DSP, Testing, Docs
-- `Epic`: A, B, C, D
-- `Slice Size`: XS, S, M
-- `Target Branch`: free text
-- `Risk`: Low, Medium, High
+Thin-slice boundary:
+- Add ranking presentation for aggregate results without yet deepening AI behavior.
 
-Recommended views:
+Acceptance criteria:
+- ranked differences are visible in priority order
+- ranking language stays honest for small sample sizes
+- selected ranked items can drive the current evidence focus
 
-- `Roadmap`: grouped by `Epic`
-- `Ready Queue`: filtered to `Status = Ready`
-- `In Progress`: filtered to `Status = In Progress`
-- `Review`: filtered to `Status = In Review`
-- `Backend`: filtered to `Area = Backend OR DSP`
-- `Frontend`: filtered to `Area = Frontend`
+Test expectations:
+- frontend render and state coverage
+- ranking contract tests if ranking is backend-owned
 
-Use [docs/process/github-projects-setup.md](docs/process/github-projects-setup.md) for the concrete setup and automation model.
+Proposed branch name:
+- `codex/comparison-ranked-differences`
+
+Dependencies:
+- `A5`
+
+### A7. Coverage And Missing-Values UI
+
+User value:
+- A user can understand how complete or incomplete the comparison is.
+
+Thin-slice boundary:
+- Surface coverage quality without changing ranking logic.
+
+Acceptance criteria:
+- users can see missing-value counts and incomplete coverage
+- the app distinguishes weak coverage from strong coverage
+- limitations remain visible near ranked results
+
+Test expectations:
+- frontend coverage-state tests
+- backend response coverage if new fields are added
+
+Proposed branch name:
+- `codex/comparison-coverage-ui`
+
+Dependencies:
+- `A5`
+
+### A8. Drill-Down From Ranked Result
+
+User value:
+- A user can move from a ranked difference into the underlying waveform and spectrum evidence.
+
+Thin-slice boundary:
+- Connect ranked results to existing evidence surfaces before adding new AI behavior.
+
+Acceptance criteria:
+- selecting a ranked result focuses the relevant evidence
+- drill-down preserves comparison context and ROI scope
+- the user can return to the ranked summary without losing context
+
+Test expectations:
+- frontend interaction coverage
+- integration-style tests for state transitions where practical
+
+Proposed branch name:
+- `codex/comparison-drilldown`
+
+Dependencies:
+- `A6`
+
+### A9. Deterministic Factual Comparison Answers
+
+User value:
+- A user gets direct factual comparison answers without paying the cost or risk of an LLM when it is unnecessary.
+
+Thin-slice boundary:
+- Introduce deterministic answer routing for factual comparison questions only.
+
+Acceptance criteria:
+- simple factual comparison queries bypass freeform LLM narration
+- answers cite deterministic comparison evidence
+- unsupported questions are clearly separated from answerable ones
+
+Test expectations:
+- backend routing tests
+- comparison-answer regression cases in the eval harness
+
+Proposed branch name:
+- `codex/comparison-factual-answers`
+
+Dependencies:
+- `A5`
+
+### A10. AI Evidence Explanation
+
+User value:
+- A user can ask for a clearer explanation of selected comparison evidence.
+
+Thin-slice boundary:
+- AI explains already selected comparison evidence; it does not invent or silently widen scope.
+
+Acceptance criteria:
+- explanation is grounded in selected comparison results
+- scope, limitations, and calibration state remain explicit
+- wording avoids unsupported conclusions
+
+Test expectations:
+- backend narrative or agent tests
+- eval cases for unsupported claims and no-difference scenarios
+
+Proposed branch name:
+- `codex/comparison-ai-explanation`
+
+Dependencies:
+- `A8`
+- `A9`
+
+### A11. Comparison Report
+
+User value:
+- A user can export a shareable grounded comparison report.
+
+Thin-slice boundary:
+- Build comparison-specific reporting over ranked and selected comparison evidence.
+
+Acceptance criteria:
+- export structure reflects A/B comparison rather than raw workspace state
+- report cites comparison evidence and limitations clearly
+- fallback behavior remains safe when AI narrative is unavailable
+
+Test expectations:
+- backend export tests
+- frontend export interaction coverage if the UX changes
+
+Proposed branch name:
+- `codex/comparison-report`
+
+Dependencies:
+- `A10`
+
+### A12. Comparison Eval Cases
+
+User value:
+- A user can trust that the comparison workflow refuses unsupported claims and handles edge cases consistently.
+
+Thin-slice boundary:
+- Expand eval coverage without broad platform changes.
+
+Acceptance criteria:
+- evals cover undefined criteria, no meaningful difference, calibration mismatch, missing evidence, and unsupported causal claims
+- failures retain enough detail to diagnose routing or grounding problems
+
+Test expectations:
+- new eval cases under `scripts/copilot-evals/`
+- documentation update for running and interpreting comparison evals
+
+Proposed branch name:
+- `codex/comparison-evals`
+
+Dependencies:
+- `A9`
+- `A10`
+
+## Deferred Work
+
+The following remain intentionally out of the immediate backlog:
+
+- persistent projects and datasets
+- advanced psychoacoustic metrics beyond the validated wedge
+- generalized batch infrastructure
+- enterprise deployment concerns
+- broad open-ended investigation features unrelated to repeated-recording comparison
