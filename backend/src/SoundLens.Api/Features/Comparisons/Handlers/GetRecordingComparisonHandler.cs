@@ -9,7 +9,8 @@ namespace SoundLens.Api.Features.Comparisons.Handlers;
 public sealed class GetRecordingComparisonHandler(
     IImportedFileStore importedFileStore,
     IWaveformService waveformService,
-    SignalAlignmentService signalAlignmentService) : CommandHandler<GetRecordingComparisonCommand, RecordingComparisonResponse>
+    SignalAlignmentService signalAlignmentService,
+    RecordingComparisonAggregationService aggregationService) : CommandHandler<GetRecordingComparisonCommand, RecordingComparisonResponse>
 {
     public override Task<RecordingComparisonResponse> ExecuteAsync(GetRecordingComparisonCommand command, CancellationToken ct = default)
     {
@@ -71,6 +72,7 @@ public sealed class GetRecordingComparisonHandler(
                 entry.Target.ChannelIndex,
                 entry.Basis))
             .ToList();
+        var signalsById = waveformResponse.SelectedSignals.ToDictionary(signal => signal.SignalId, StringComparer.Ordinal);
 
         if (alignedSignals.Count == 0)
         {
@@ -87,6 +89,52 @@ public sealed class GetRecordingComparisonHandler(
                 entry.Outcome.ToString(),
                 entry.Detail))
             .ToList();
+        var observations = alignedSignals
+            .Select(pair =>
+            {
+                var hasSignalA = signalsById.TryGetValue(pair.SignalIdA, out var resolvedSignalA);
+                var hasSignalB = signalsById.TryGetValue(pair.SignalIdB, out var resolvedSignalB);
+
+                if (!hasSignalA || !hasSignalB)
+                {
+                    ThrowError($"The comparison metrics for aligned signals '{pair.SignalIdA}' and '{pair.SignalIdB}' could not be resolved.");
+                }
+                var signalA = resolvedSignalA!;
+                var signalB = resolvedSignalB!;
+
+                return new RecordingComparisonSignalObservation(
+                    pair.SignalIdA,
+                    pair.DisplayNameA,
+                    pair.ChannelIndexA,
+                    pair.SignalIdB,
+                    pair.DisplayNameB,
+                    pair.ChannelIndexB,
+                    pair.Basis,
+                    signalA.Metrics.PeakAmplitude,
+                    signalB.Metrics.PeakAmplitude,
+                    signalA.Metrics.PeakAmplitude - signalB.Metrics.PeakAmplitude,
+                    signalA.Metrics.RmsAmplitude,
+                    signalB.Metrics.RmsAmplitude,
+                    signalA.Metrics.RmsAmplitude - signalB.Metrics.RmsAmplitude,
+                    signalA.Metrics.CrestFactor,
+                    signalB.Metrics.CrestFactor,
+                    signalA.Metrics.CrestFactor - signalB.Metrics.CrestFactor,
+                    signalA.Metrics.ClippingSampleCount,
+                    signalB.Metrics.ClippingSampleCount,
+                    signalA.Metrics.ClippingSampleCount - signalB.Metrics.ClippingSampleCount,
+                    signalA.Metrics.HasClipping,
+                    signalB.Metrics.HasClipping);
+            })
+            .ToList();
+        var missingValueCount = limitations.Count;
+        var aggregateMetrics = aggregationService.BuildAggregates(observations, missingValueCount);
+
+        if (observations.Count < 2)
+        {
+            limitations.Add(new RecordingComparisonLimitation(
+                "LowCoverage",
+                $"Only {observations.Count} aligned signal pair is available for aggregate comparison. Treat the summary as low coverage."));
+        }
 
         return Task.FromResult(new RecordingComparisonResponse(
             new RecordingComparisonRecording(
@@ -100,6 +148,8 @@ public sealed class GetRecordingComparisonHandler(
                 recordingB.Channels,
                 recordingB.DurationSeconds),
             alignedSignals,
+            observations,
+            aggregateMetrics,
             limitations,
             waveformResponse.RegionOfInterest));
     }

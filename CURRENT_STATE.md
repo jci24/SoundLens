@@ -25,9 +25,9 @@ The current product is strong as an analysis workspace, but it is not yet a focu
 - The backend persists uploaded files into a temporary local workspace.
 - Imported files are also tracked in an in-memory import session used by analysis and Copilot requests.
 - The current model is session-oriented rather than project-oriented or persistent.
-- The frontend now tracks recording-level comparison-group assignment locally so the A/B workflow is visible before aggregate comparison contracts exist.
-- The backend now includes a deterministic pairwise signal-alignment contract that classifies matches as name-based, index-based, ambiguous, or missing, but no public comparison API consumes it yet.
-- The backend now exposes a pairwise recording-comparison contract with optional ROI, aligned-signal pairs, and explicit limitation reporting before aggregate comparison math exists.
+- The frontend now tracks recording-level comparison-group assignment locally so the A/B workflow is visible before group-level aggregate comparison contracts exist.
+- The backend now includes a deterministic pairwise signal-alignment contract that classifies matches as name-based, index-based, ambiguous, or missing.
+- The backend now exposes a pairwise recording-comparison contract with optional ROI, aligned-signal pairs, per-pair metric observations, aggregate delta summaries, and explicit limitation reporting.
 
 ## Waveform And Spectrum Behavior
 
@@ -119,7 +119,6 @@ The repo is still intentionally simple: no extra backend projects, no persistenc
 
 - Group assignment exists only as frontend workspace state; no comparison validation or backend contract uses it yet
 - No group-level aggregate comparison result contract exists yet
-- No aggregate comparison result model
 - No ranked-differences surface
 - No coverage or missing-values comparison UI
 - No persisted project or dataset model
@@ -129,11 +128,10 @@ The repo is still intentionally simple: no extra backend projects, no persistenc
 
 ## Immediate Next Product Slice
 
-The next product slice should establish the comparison wedge explicitly:
+The next product slice should deepen the comparison wedge from backend summaries into usable product prioritization:
 
-1. assign recordings to Group A and Group B
-2. validate group completeness and empty states
-3. apply the backend signal-alignment rule through a public comparison contract
-4. introduce an ROI-aware deterministic comparison request and response shape
+1. rank the most meaningful aggregate differences
+2. keep weak-coverage and partial-alignment limitations visible
+3. connect ranked results back to waveform and spectrum evidence
 
-That is the smallest step that starts turning SoundLens from an analysis workspace into a comparison product.
+That is the next step from a pairwise comparison contract toward a comparison-first product workflow.
