@@ -85,10 +85,12 @@ The current demo slice is now centered on browser-first import plus waveform and
 - The next report-export slice now turns that normalized context into a deterministic markdown artifact via `POST /api/report/export/markdown`, and the workspace export action downloads the `.md` file directly without any AI-written narrative yet.
 - The readable-report slice now presents a cleaner narrative summary, keeps trace IDs in a dedicated section, and includes selected-signal metrics/findings from the current workspace state.
 - Export evidence correctness is now tighter: selected-signal amplitudes are converted to real dBFS values before labeling, channel mode wording is normalized for common cases like stereo, the summary avoids redundant bullet repetition, and empty finding sets are stated explicitly as `Findings: none`.
+- Report markdown export now starts with an AI-written interpretation section generated from the deterministic workspace snapshot through the existing backend OpenAI client path. If the backend has no API key configured, export still succeeds with a clear fallback note and the deterministic evidence sections remain intact below.
+- The AI export narrative now has deterministic quality guardrails on top of the model output: it must reflect selection scope when only some signals are selected, reuse normalized workspace terms like `Stereo`, and avoid filler phrases that simply restate that metrics exist without interpretation.
 
 Immediate next step after this slice:
 
-- Add the first AI-written export narrative slice on top of the deterministic report evidence so the export becomes easier to interpret without weakening traceability or overstating conclusions.
+- Extend the narrative guardrails and tests for compare-mode multi-recording exports and ROI-specific exports so the interpretation can summarize ties, outliers, and narrowed time windows without sounding generic.
 
 ## Collaboration Process
 

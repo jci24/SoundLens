@@ -6,7 +6,7 @@ namespace SoundLens.Api.Features.Reports.Common;
 
 public static class ReportMarkdownWriter
 {
-    public static string Write(ExportReportContextResponse context)
+    public static string Write(ExportReportContextResponse context, ReportNarrativeResult narrative)
     {
         var builder = new StringBuilder();
 
@@ -22,6 +22,30 @@ public static class ReportMarkdownWriter
         builder.AppendLine();
         builder.AppendLine(BuildReadableSummary(context));
         builder.AppendLine();
+        builder.AppendLine("## AI Interpretation");
+        builder.AppendLine();
+        builder.AppendLine(narrative.Overview);
+        builder.AppendLine();
+
+        if (narrative.KeyTakeaways.Count > 0)
+        {
+            builder.AppendLine("Key takeaways:");
+            foreach (var takeaway in narrative.KeyTakeaways)
+            {
+                builder.AppendLine($"- {takeaway}");
+            }
+            builder.AppendLine();
+        }
+
+        if (narrative.Cautions.Count > 0)
+        {
+            builder.AppendLine("Cautions:");
+            foreach (var caution in narrative.Cautions)
+            {
+                builder.AppendLine($"- {caution}");
+            }
+            builder.AppendLine();
+        }
 
         if (context.RegionOfInterest is not null)
         {
@@ -121,9 +145,11 @@ public static class ReportMarkdownWriter
 
         builder.AppendLine("## Limitations");
         builder.AppendLine();
-        builder.AppendLine("- This export is deterministic workspace context only.");
+        builder.AppendLine("- The export evidence snapshot is deterministic workspace context captured at export time.");
         builder.AppendLine("- Values are in dBFS, not calibrated to physical SPL.");
-        builder.AppendLine("- No AI-written interpretation is included in this slice.");
+        builder.AppendLine(narrative.IsFallback
+            ? "- AI-written interpretation was unavailable or could not be parsed, so rely on the deterministic evidence sections below."
+            : "- AI-written interpretation is grounded only in the exported workspace context and may omit context not present in this export.");
 
         return builder.ToString();
     }

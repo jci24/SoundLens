@@ -3,6 +3,7 @@ using Microsoft.Extensions.DependencyInjection;
 using OpenAI.Chat;
 using SoundLens.Api.Features.Agent.Tools;
 using SoundLens.Api.Features.Import.Common;
+using SoundLens.Api.Features.Reports.Common;
 using SoundLens.Api.Features.Spectra.Common;
 using SoundLens.Api.Features.Waveforms.Common;
 
@@ -39,6 +40,7 @@ public static class DependencyInjection
         }
 
         services.AddSingleton<AgentToolDispatcher>();
+        services.AddSingleton<IReportNarrativeService, OpenAiReportNarrativeService>();
 
         return services;
     }
