@@ -1,6 +1,7 @@
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using OpenAI.Chat;
+using SoundLens.Api.Features.Comparisons.Common;
 using SoundLens.Api.Features.Agent.Tools;
 using SoundLens.Api.Features.Import.Common;
 using SoundLens.Api.Features.Reports.Common;
@@ -17,6 +18,7 @@ public static class DependencyInjection
         services.AddSingleton<IImportedFileStore, InMemoryImportedFileStore>();
         services.AddSingleton<IWaveformService, WaveformService>();
         services.AddSingleton<ISpectrumService, SpectrumService>();
+        services.AddSingleton<SignalAlignmentService>();
 
         return services;
     }

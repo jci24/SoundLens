@@ -597,11 +597,7 @@ public sealed class WaveformService : IWaveformService
         }
     }
 
-    private static string BuildRecordingId(ImportedFileSummary file)
-    {
-        var payload = $"{file.FileName}|{file.SizeBytes}|{file.ContentType}|{file.FilePath}";
-        return Convert.ToHexStringLower(SHA256.HashData(Encoding.UTF8.GetBytes(payload)))[..24];
-    }
+    private static string BuildRecordingId(ImportedFileSummary file) => ImportedFileIdentity.BuildRecordingId(file);
 
     private static string BuildWaveformCacheKey(ImportedFileSummary file) =>
         $"{BuildRecordingId(file)}|waveform";

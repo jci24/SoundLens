@@ -27,6 +27,7 @@ The current product is strong as an analysis workspace, but it is not yet a focu
 - The current model is session-oriented rather than project-oriented or persistent.
 - The frontend now tracks recording-level comparison-group assignment locally so the A/B workflow is visible before aggregate comparison contracts exist.
 - The backend now includes a deterministic pairwise signal-alignment contract that classifies matches as name-based, index-based, ambiguous, or missing, but no public comparison API consumes it yet.
+- The backend now exposes a pairwise recording-comparison contract with optional ROI, aligned-signal pairs, and explicit limitation reporting before aggregate comparison math exists.
 
 ## Waveform And Spectrum Behavior
 
@@ -117,7 +118,7 @@ The repo is still intentionally simple: no extra backend projects, no persistenc
 ## Known Limitations
 
 - Group assignment exists only as frontend workspace state; no comparison validation or backend contract uses it yet
-- No public comparison endpoint or aggregate result contract uses the new signal-alignment report yet
+- No group-level aggregate comparison result contract exists yet
 - No aggregate comparison result model
 - No ranked-differences surface
 - No coverage or missing-values comparison UI
