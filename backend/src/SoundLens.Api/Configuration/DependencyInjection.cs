@@ -19,6 +19,7 @@ public static class DependencyInjection
         services.AddSingleton<IWaveformService, WaveformService>();
         services.AddSingleton<ISpectrumService, SpectrumService>();
         services.AddSingleton<SignalAlignmentService>();
+        services.AddSingleton<RecordingComparisonAggregationService>();
 
         return services;
     }
