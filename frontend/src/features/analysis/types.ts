@@ -1,4 +1,5 @@
 export type TAnalysisSurface = 'waveform' | 'spectrum'
+export type TComparisonGroupAssignment = 'unassigned' | 'A' | 'B'
 
 export interface ISignalFinding {
   category: string

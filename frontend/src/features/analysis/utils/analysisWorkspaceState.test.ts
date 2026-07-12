@@ -3,6 +3,7 @@ import {
   areSignalIdsEqual,
   clampSpectrumRange,
   getNextExpandedRecordings,
+  getNextRecordingGroupAssignments,
   getNextRequestedSignalIds,
   getNextSpectrumRangeEnd,
   getNextSpectrumRangeStart,
@@ -18,6 +19,22 @@ describe('analysisWorkspaceState', () => {
   it('toggles expanded recordings', () => {
     expect(getNextExpandedRecordings([], 'recording-1')).toEqual(['recording-1'])
     expect(getNextExpandedRecordings(['recording-1'], 'recording-1')).toEqual([])
+  })
+
+  it('drops recording assignments for recordings that are no longer present', () => {
+    expect(
+      getNextRecordingGroupAssignments(
+        {
+          'recording-1': 'A',
+          'recording-2': 'unassigned',
+          'recording-3': 'B',
+        },
+        ['recording-1', 'recording-3']
+      )
+    ).toEqual({
+      'recording-1': 'A',
+      'recording-3': 'B',
+    })
   })
 
   it('keeps at least one selected signal', () => {

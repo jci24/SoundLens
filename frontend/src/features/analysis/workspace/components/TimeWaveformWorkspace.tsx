@@ -8,6 +8,7 @@ import { useTimeWaveformWorkspace } from '../hooks/useTimeWaveformWorkspace'
 import { exportReportMarkdown } from '../../report/services/exportReportMarkdown'
 import { downloadTextFile } from '../../report/utils/reportDownload'
 import type { IImportedFileSummary } from '../../../../common/contracts/import'
+import type { TComparisonGroupAssignment } from '../../types'
 import { useState } from 'react'
 import { toast } from 'sonner'
 import './TimeWaveformWorkspace.scss'
@@ -30,6 +31,7 @@ const TimeWaveformWorkspace = ({ importedFiles, isCopilotOpen, onCopilotToggle }
     isWaveformInitialLoading,
     isWaveformRefreshing,
     layoutMode,
+    recordingGroupAssignments,
     spectrumFftSizeOptions,
     spectrumMaximumHz,
     spectrumRangeEndHz,
@@ -49,6 +51,7 @@ const TimeWaveformWorkspace = ({ importedFiles, isCopilotOpen, onCopilotToggle }
     spectrumError,
     waveforms,
     onLayoutModeChange,
+    onRecordingGroupAssignment,
     onRecordingToggle,
     onSignalSelection,
     onSignalChartModeChange,
@@ -86,6 +89,14 @@ const TimeWaveformWorkspace = ({ importedFiles, isCopilotOpen, onCopilotToggle }
     spectrumSignals,
     waveformSignals,
   })
+  const comparisonScope = recordings.reduce<Record<TComparisonGroupAssignment, number>>(
+    (counts, recording) => {
+      const assignment = recordingGroupAssignments[recording.recordingId] ?? 'unassigned'
+      counts[assignment] += 1
+      return counts
+    },
+    { unassigned: 0, A: 0, B: 0 }
+  )
 
   const handleExportReport = async () => {
     try {
@@ -172,12 +183,31 @@ const TimeWaveformWorkspace = ({ importedFiles, isCopilotOpen, onCopilotToggle }
       <div className="time-waveform-workspace__body">
         <RecordingRail
           expandedRecordings={expandedRecordings}
+          onRecordingGroupAssignment={onRecordingGroupAssignment}
           onRecordingToggle={onRecordingToggle}
           onSignalSelection={onSignalSelection}
           recordings={recordings}
+          recordingGroupAssignments={recordingGroupAssignments}
           selectedSignalIds={selectedSignalIds}
         />
         <div className="time-waveform-workspace__main-pane">
+          <section className="time-waveform-workspace__comparison-scope" aria-label="Comparison scope">
+            <div className="time-waveform-workspace__comparison-scope-meta">
+              <span className="time-waveform-workspace__comparison-scope-kicker">Setup</span>
+              <span className="time-waveform-workspace__comparison-scope-title">Comparison scope</span>
+            </div>
+            <div className="time-waveform-workspace__comparison-scope-metrics">
+              <span className="time-waveform-workspace__comparison-scope-pill time-waveform-workspace__comparison-scope-pill--A">
+                A <strong>{comparisonScope.A}</strong>
+              </span>
+              <span className="time-waveform-workspace__comparison-scope-pill time-waveform-workspace__comparison-scope-pill--B">
+                B <strong>{comparisonScope.B}</strong>
+              </span>
+              <span className="time-waveform-workspace__comparison-scope-pill time-waveform-workspace__comparison-scope-pill--unassigned">
+                Unassigned <strong>{comparisonScope.unassigned}</strong>
+              </span>
+            </div>
+          </section>
           {regionOfInterest && (
             <section className="time-waveform-workspace__roi-summary" aria-label="Selected time region">
               <div className="time-waveform-workspace__roi-copy">

@@ -28,6 +28,79 @@
     gap: 0.4rem;
   }
 
+  &__comparison-scope {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.9rem;
+    min-height: 2.85rem;
+    padding: 0.45rem 0.8rem;
+    border: 1px solid color-mix(in srgb, var(--border) 76%, transparent);
+    border-radius: 0.85rem;
+    background: color-mix(in srgb, var(--card) 96%, white 4%);
+  }
+
+  &__comparison-scope-meta {
+    display: flex;
+    align-items: baseline;
+    gap: 0.55rem;
+    min-width: 0;
+  }
+
+  &__comparison-scope-kicker {
+    color: var(--muted-foreground);
+    font-size: 0.68rem;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+
+  &__comparison-scope-title {
+    color: var(--foreground);
+    font-size: var(--font-sm);
+    font-weight: 650;
+  }
+
+  &__comparison-scope-metrics {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+    gap: 0.45rem;
+  }
+
+  &__comparison-scope-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    padding: 0.34rem 0.62rem;
+    border: 1px solid color-mix(in srgb, var(--border) 78%, transparent);
+    border-radius: 999px;
+    background: color-mix(in srgb, var(--card) 98%, white 2%);
+    color: var(--foreground);
+    font-size: var(--font-xs);
+    font-weight: 600;
+    font-variant-numeric: tabular-nums;
+  }
+
+  &__comparison-scope-pill strong {
+    font-size: 0.82rem;
+    font-weight: 700;
+  }
+
+  &__comparison-scope-pill--A {
+    border-color: color-mix(in srgb, oklch(0.47 0.11 188) 36%, var(--border));
+    background: color-mix(in srgb, oklch(0.92 0.02 188) 64%, white 36%);
+  }
+
+  &__comparison-scope-pill--B {
+    border-color: color-mix(in srgb, oklch(0.63 0.12 55) 34%, var(--border));
+    background: color-mix(in srgb, oklch(0.95 0.03 55) 68%, white 32%);
+  }
+
+  &__comparison-scope-pill--unassigned {
+    color: var(--muted-foreground);
+  }
+
   &__roi-summary {
     display: flex;
     align-items: center;
@@ -185,6 +258,11 @@
       gap: 0.4rem;
     }
 
+    .time-waveform-workspace__comparison-scope {
+      min-height: 2.55rem;
+      padding: 0.4rem 0.68rem;
+    }
+
     .time-waveform-workspace__roi-summary {
       min-height: 3.4rem;
       padding: 0.55rem 0.75rem;
@@ -246,6 +324,22 @@
   .time-waveform-workspace {
     &__body {
       grid-template-columns: 1fr;
+    }
+
+    &__comparison-scope,
+    &__roi-summary {
+      align-items: flex-start;
+      flex-direction: column;
+    }
+
+    &__comparison-scope-meta {
+      align-items: flex-start;
+      flex-direction: column;
+      gap: 0.15rem;
+    }
+
+    &__comparison-scope-metrics {
+      justify-content: flex-start;
     }
 
     &__panel-grid--compare {

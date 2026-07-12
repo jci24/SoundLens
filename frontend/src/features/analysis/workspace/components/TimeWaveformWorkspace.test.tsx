@@ -41,7 +41,20 @@ vi.mock('./AnalysisWorkspaceHeader', () => ({
 }))
 
 vi.mock('../../recording-rail/components/RecordingRail', () => ({
-  RecordingRail: () => <div data-testid="recording-rail" />,
+  RecordingRail: ({
+    onRecordingGroupAssignment,
+    recordingGroupAssignments,
+  }: {
+    onRecordingGroupAssignment: (recordingId: string, assignment: 'A' | 'B' | 'unassigned') => void
+    recordingGroupAssignments: Record<string, 'A' | 'B' | 'unassigned'>
+  }) => (
+    <div data-testid="recording-rail">
+      <button onClick={() => onRecordingGroupAssignment('recording-1', 'A')} type="button">
+        Assign recording
+      </button>
+      <span>{recordingGroupAssignments['recording-1'] ?? 'unassigned'}</span>
+    </div>
+  ),
 }))
 
 vi.mock('./AnalysisWorkspaceChart', () => ({
@@ -71,6 +84,7 @@ const createWorkspaceState = () => ({
   isWaveformRefreshing: false,
   layoutMode: 'focused' as const,
   recordings: [] as ITimeWaveformRecording[],
+  recordingGroupAssignments: {} as Record<string, 'A' | 'B' | 'unassigned'>,
   selectedSignalIds: [] as string[],
   selectedSpectrumPreset: '4096',
   signalChartMode: 'overlay' as const,
@@ -96,6 +110,7 @@ const createWorkspaceState = () => ({
     },
   },
   onLayoutModeChange: vi.fn(),
+  onRecordingGroupAssignment: vi.fn(),
   onRecordingToggle: vi.fn(),
   onSignalSelection: vi.fn(),
   onSignalChartModeChange: vi.fn(),
@@ -152,6 +167,58 @@ describe('TimeWaveformWorkspace', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Clear region' }))
 
     expect(workspaceState.onRegionOfInterestChange).toHaveBeenCalledWith(null)
+  })
+
+  it('shows the current comparison scope and forwards recording assignments', () => {
+    const workspaceState = createWorkspaceState()
+    workspaceState.recordings = [
+      {
+        recordingId: 'recording-1',
+        fileName: 'alpha.wav',
+        sizeBytes: 1024,
+        durationSeconds: 1,
+        sampleRate: 44_100,
+        channels: 1,
+        channelMode: 'Mono',
+        signals: [],
+      },
+      {
+        recordingId: 'recording-2',
+        fileName: 'beta.wav',
+        sizeBytes: 2_048,
+        durationSeconds: 1,
+        sampleRate: 44_100,
+        channels: 1,
+        channelMode: 'Mono',
+        signals: [],
+      },
+    ]
+    workspaceState.recordingGroupAssignments = {
+      'recording-1': 'A',
+    }
+
+    mockUseTimeWaveformWorkspace.mockReturnValue(workspaceState)
+
+    render(
+      <TimeWaveformWorkspace
+        importedFiles={importedFiles}
+        isCopilotOpen={false}
+        onCopilotToggle={vi.fn()}
+      />
+    )
+
+    const comparisonScope = screen.getByLabelText('Comparison scope')
+
+    expect(comparisonScope).toBeInTheDocument()
+    expect(screen.getByText('Setup')).toBeInTheDocument()
+    expect(screen.getByText('Comparison scope')).toBeInTheDocument()
+    expect(comparisonScope).toHaveTextContent('A 1')
+    expect(comparisonScope).toHaveTextContent('B 0')
+    expect(comparisonScope).toHaveTextContent('Unassigned 1')
+
+    fireEvent.click(screen.getByRole('button', { name: 'Assign recording' }))
+
+    expect(workspaceState.onRecordingGroupAssignment).toHaveBeenCalledWith('recording-1', 'A')
   })
 
   it('prefers spectrum-backed metrics whenever an ROI is active', () => {

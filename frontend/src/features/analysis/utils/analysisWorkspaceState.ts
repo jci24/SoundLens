@@ -1,3 +1,5 @@
+import type { TComparisonGroupAssignment } from '../types'
+
 export interface ISpectrumRange {
   startHz: number
   endHz: number
@@ -62,6 +64,17 @@ const getNextExpandedRecordings = (currentExpanded: string[], recordingId: strin
     ? currentExpanded.filter((expandedPath) => expandedPath !== recordingId)
     : [...currentExpanded, recordingId]
 
+const getNextRecordingGroupAssignments = (
+  currentAssignments: Record<string, TComparisonGroupAssignment>,
+  availableRecordingIds: string[]
+) => {
+  const availableIds = new Set(availableRecordingIds)
+
+  return Object.fromEntries(
+    Object.entries(currentAssignments).filter(([recordingId]) => availableIds.has(recordingId))
+  )
+}
+
 const getNextRequestedSignalIds = (currentSignalIds: string[], signalId: string) => {
   if (currentSignalIds.length === 0) {
     return [signalId]
@@ -120,6 +133,7 @@ export {
   defaultSpectrumRangeEndHz,
   formatSpectrumFftSizeOption,
   getNextExpandedRecordings,
+  getNextRecordingGroupAssignments,
   getNextRequestedSignalIds,
   getNextSpectrumRangeEnd,
   getNextSpectrumRangeStart,
