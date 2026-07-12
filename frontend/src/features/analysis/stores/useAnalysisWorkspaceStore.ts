@@ -2,13 +2,22 @@ import { create } from 'zustand'
 import {
   areSignalIdsEqual,
   getNextExpandedRecordings,
+  getNextRecordingGroupAssignments,
   getNextRequestedSignalIds,
 } from '../utils/analysisWorkspaceState'
-import type { IAnalysisRegionOfInterest, ITimeWaveformRecording, TAnalysisLayoutMode, TAnalysisSurface, TSignalChartMode } from '../types'
+import type {
+  IAnalysisRegionOfInterest,
+  ITimeWaveformRecording,
+  TAnalysisLayoutMode,
+  TAnalysisSurface,
+  TComparisonGroupAssignment,
+  TSignalChartMode,
+} from '../types'
 
 interface IAnalysisWorkspaceStore {
   selectedSignalIds: string[]
   expandedRecordings: string[]
+  recordingGroupAssignments: Record<string, TComparisonGroupAssignment>
   activeSurface: TAnalysisSurface
   layoutMode: TAnalysisLayoutMode
   signalChartMode: TSignalChartMode
@@ -16,6 +25,7 @@ interface IAnalysisWorkspaceStore {
   recordings: ITimeWaveformRecording[]
   selectSignal: (signalId: string) => void
   toggleRecording: (recordingId: string) => void
+  setRecordingGroupAssignment: (recordingId: string, assignment: TComparisonGroupAssignment) => void
   setActiveSurface: (surface: TAnalysisSurface) => void
   setLayoutMode: (mode: TAnalysisLayoutMode) => void
   setSignalChartMode: (mode: TSignalChartMode) => void
@@ -27,6 +37,7 @@ interface IAnalysisWorkspaceStore {
 const useAnalysisWorkspaceStore = create<IAnalysisWorkspaceStore>((set) => ({
   selectedSignalIds: [],
   expandedRecordings: [],
+  recordingGroupAssignments: {},
   activeSurface: 'waveform',
   layoutMode: 'focused',
   signalChartMode: 'overlay',
@@ -43,6 +54,14 @@ const useAnalysisWorkspaceStore = create<IAnalysisWorkspaceStore>((set) => ({
       expandedRecordings: getNextExpandedRecordings(state.expandedRecordings, recordingId),
     })),
 
+  setRecordingGroupAssignment: (recordingId, assignment) =>
+    set((state) => ({
+      recordingGroupAssignments: {
+        ...state.recordingGroupAssignments,
+        [recordingId]: assignment,
+      },
+    })),
+
   setActiveSurface: (surface) => set({ activeSurface: surface }),
 
   setLayoutMode: (mode) =>
@@ -55,7 +74,14 @@ const useAnalysisWorkspaceStore = create<IAnalysisWorkspaceStore>((set) => ({
 
   setRegionOfInterest: (regionOfInterest) => set({ regionOfInterest }),
 
-  setRecordings: (recordings) => set({ recordings }),
+  setRecordings: (recordings) =>
+    set((state) => ({
+      recordings,
+      recordingGroupAssignments: getNextRecordingGroupAssignments(
+        state.recordingGroupAssignments,
+        recordings.map((recording) => recording.recordingId)
+      ),
+    })),
 
   syncSignalIds: (responseSignalIds) =>
     set((state) => {

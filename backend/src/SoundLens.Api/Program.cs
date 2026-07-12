@@ -13,14 +13,7 @@ try
 {
     var builder = WebApplication.CreateBuilder(args);
 
-    var localAppDataPath = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
-    var logDirectory = string.IsNullOrWhiteSpace(localAppDataPath)
-        ? Path.Combine(Path.GetTempPath(), "SoundLens", "Logs")
-        : Path.Combine(localAppDataPath, "SoundLens", "Logs");
-    var logFilePath = Path.Combine(logDirectory, "SoundLens.Api-.json");
-
-    Directory.CreateDirectory(logDirectory);
-    builder.Configuration["Serilog:WriteTo:1:Args:path"] = logFilePath;
+    ConfigureLogFilePath(builder.Configuration);
 
     // Load gitignored local overrides (e.g. appsettings.Development.local.json) for secrets like API keys.
     builder.Configuration.AddJsonFile(
@@ -129,10 +122,31 @@ try
 catch (Exception ex)
 {
     Log.Fatal(ex, "Application terminated unexpectedly");
+    throw;
 }
 finally
 {
     Log.CloseAndFlush();
+}
+
+static void ConfigureLogFilePath(ConfigurationManager configuration)
+{
+    try
+    {
+        var localAppDataPath = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
+        var logDirectory = string.IsNullOrWhiteSpace(localAppDataPath)
+            ? Path.Combine(Path.GetTempPath(), "SoundLens", "Logs")
+            : Path.Combine(localAppDataPath, "SoundLens", "Logs");
+        var logFilePath = Path.Combine(logDirectory, "SoundLens.Api-.json");
+
+        Directory.CreateDirectory(logDirectory);
+        configuration["Serilog:WriteTo:1:Args:path"] = logFilePath;
+    }
+    catch (Exception ex)
+    {
+        // Keep API startup resilient if local log-file path discovery fails in tests or CI.
+        Log.Warning(ex, "Falling back to default Serilog file path configuration.");
+    }
 }
 
 public partial class Program { }

@@ -17,6 +17,7 @@ import type {
   ITimeWaveformResponse,
   TAnalysisLayoutMode,
   TAnalysisSurface,
+  TComparisonGroupAssignment,
   TSignalChartMode,
 } from '../../types'
 import { useMeasuredChartWidth } from './useMeasuredChartWidth'
@@ -47,6 +48,7 @@ interface IUseTimeWaveformWorkspaceResult {
   isWaveformRefreshing: boolean
   layoutMode: TAnalysisLayoutMode
   recordings: ITimeWaveformResponse['recordings']
+  recordingGroupAssignments: Record<string, TComparisonGroupAssignment>
   selectedSignalIds: string[]
   selectedSpectrumPreset: string
   signalChartMode: TSignalChartMode
@@ -65,6 +67,7 @@ interface IUseTimeWaveformWorkspaceResult {
   waveformSignals: ITimeWaveformSignal[]
   waveforms: ITimeWaveformResponse | null
   onLayoutModeChange: (mode: TAnalysisLayoutMode) => void
+  onRecordingGroupAssignment: (recordingId: string, assignment: TComparisonGroupAssignment) => void
   onRecordingToggle: (recordingId: string) => void
   onSignalSelection: (signalId: string) => void
   onSignalChartModeChange: (mode: TSignalChartMode) => void
@@ -105,6 +108,7 @@ const useTimeWaveformWorkspace = (
   const signalChartMode = useAnalysisWorkspaceStore((state) => state.signalChartMode)
   const selectedSignalIds = useAnalysisWorkspaceStore((state) => state.selectedSignalIds)
   const expandedRecordings = useAnalysisWorkspaceStore((state) => state.expandedRecordings)
+  const recordingGroupAssignments = useAnalysisWorkspaceStore((state) => state.recordingGroupAssignments)
   const regionOfInterest = useAnalysisWorkspaceStore((state) => state.regionOfInterest)
   const syncSignalIds = useAnalysisWorkspaceStore((state) => state.syncSignalIds)
   const setRegionOfInterest = useAnalysisWorkspaceStore((state) => state.setRegionOfInterest)
@@ -242,6 +246,9 @@ const useTimeWaveformWorkspace = (
   const resolvedRegionOfInterest = regionOfInterest ?? spectrum?.regionOfInterest ?? null
 
   const onRecordingToggle = useAnalysisWorkspaceStore((state) => state.toggleRecording)
+  const onRecordingGroupAssignment = useAnalysisWorkspaceStore(
+    (state) => state.setRecordingGroupAssignment
+  )
   const onLayoutModeChange = useAnalysisWorkspaceStore((state) => state.setLayoutMode)
   const onSignalSelection = useAnalysisWorkspaceStore((state) => state.selectSignal)
   const onSignalChartModeChange = useAnalysisWorkspaceStore((state) => state.setSignalChartMode)
@@ -295,6 +302,7 @@ const useTimeWaveformWorkspace = (
     isWaveformRefreshing,
     layoutMode,
     recordings,
+    recordingGroupAssignments,
     selectedSignalIds: resolvedSelectedSignalIds,
     selectedSpectrumPreset: formatSpectrumFftSizeOption(selectedSpectrumFftSize),
     signalChartMode,
@@ -313,6 +321,7 @@ const useTimeWaveformWorkspace = (
     waveformSignals,
     waveforms,
     onLayoutModeChange,
+    onRecordingGroupAssignment,
     onRecordingToggle,
     onSignalSelection,
     onSignalChartModeChange,

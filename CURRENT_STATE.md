@@ -9,6 +9,7 @@ Today SoundLens supports a deterministic analysis workspace for imported recordi
 - import WAV recordings from the browser
 - persist uploaded files into a temporary local backend workspace
 - browse recordings and channels in a left rail
+- assign imported recordings to Group A, Group B, or unassigned
 - inspect backend-computed waveform evidence
 - inspect backend-computed spectrum evidence
 - select one or more signals for comparison within the workspace
@@ -24,6 +25,7 @@ The current product is strong as an analysis workspace, but it is not yet a focu
 - The backend persists uploaded files into a temporary local workspace.
 - Imported files are also tracked in an in-memory import session used by analysis and Copilot requests.
 - The current model is session-oriented rather than project-oriented or persistent.
+- The frontend now tracks recording-level comparison-group assignment locally so the A/B workflow is visible before aggregate comparison contracts exist.
 
 ## Waveform And Spectrum Behavior
 
@@ -113,7 +115,7 @@ The repo is still intentionally simple: no extra backend projects, no persistenc
 
 ## Known Limitations
 
-- No first-class Group A / Group B comparison workflow yet
+- Group assignment exists only as frontend workspace state; no comparison validation or backend contract uses it yet
 - No strict signal-alignment contract for repeated-recording comparison
 - No aggregate comparison result model
 - No ranked-differences surface

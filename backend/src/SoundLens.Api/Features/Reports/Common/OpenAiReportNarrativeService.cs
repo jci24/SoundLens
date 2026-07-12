@@ -1,11 +1,12 @@
 using System.Globalization;
 using System.Text.Json;
 using OpenAI.Chat;
+using SoundLens.Api.Configuration;
 using SoundLens.Api.Features.Reports.Commands;
 
 namespace SoundLens.Api.Features.Reports.Common;
 
-public sealed class OpenAiReportNarrativeService(ChatClient chatClient) : IReportNarrativeService
+public sealed class OpenAiReportNarrativeService(IChatClientProvider chatClientProvider) : IReportNarrativeService
 {
     private const string SystemPrompt = """
         You write concise, grounded export narratives for SoundLens.
@@ -36,6 +37,7 @@ public sealed class OpenAiReportNarrativeService(ChatClient chatClient) : IRepor
 
     public async Task<ReportNarrativeResult> BuildAsync(ExportReportContextResponse context, CancellationToken ct)
     {
+        var chatClient = chatClientProvider.GetRequiredClient();
         var messages = new List<ChatMessage>
         {
             new SystemChatMessage(SystemPrompt),
