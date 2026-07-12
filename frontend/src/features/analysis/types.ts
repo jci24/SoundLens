@@ -1,5 +1,6 @@
 export type TAnalysisSurface = 'waveform' | 'spectrum'
 export type TComparisonGroupAssignment = 'unassigned' | 'A' | 'B'
+export type TComparisonSetupState = 'invalid' | 'incomplete' | 'valid'
 
 export interface ISignalFinding {
   category: string
