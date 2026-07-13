@@ -1,5 +1,7 @@
 using System.Net;
 using System.Net.Http.Json;
+using System.Text.Json;
+using System.Text.Json.Serialization;
 using Microsoft.AspNetCore.Mvc.Testing;
 using SoundLens.Api.Features.Comparisons.Common;
 
@@ -7,7 +9,17 @@ namespace SoundLens.Tests;
 
 public sealed class RecordingComparisonTests : IClassFixture<WebApplicationFactory<Program>>
 {
+    private static readonly JsonSerializerOptions ResponseJsonOptions = new(JsonSerializerDefaults.Web)
+    {
+        PropertyNameCaseInsensitive = true
+    };
+
     private readonly WebApplicationFactory<Program> _factory;
+
+    static RecordingComparisonTests()
+    {
+        ResponseJsonOptions.Converters.Add(new JsonStringEnumConverter(JsonNamingPolicy.CamelCase));
+    }
 
     public RecordingComparisonTests(WebApplicationFactory<Program> factory)
     {
@@ -46,7 +58,7 @@ public sealed class RecordingComparisonTests : IClassFixture<WebApplicationFacto
             });
 
             response.EnsureSuccessStatusCode();
-            var result = await response.Content.ReadFromJsonAsync<RecordingComparisonResponse>();
+            var result = await response.Content.ReadFromJsonAsync<RecordingComparisonResponse>(ResponseJsonOptions);
 
             Assert.NotNull(result);
             Assert.Equal(imported.Recordings[0].RecordingId, result!.RecordingA.RecordingId);
@@ -97,7 +109,7 @@ public sealed class RecordingComparisonTests : IClassFixture<WebApplicationFacto
             });
 
             response.EnsureSuccessStatusCode();
-            var result = await response.Content.ReadFromJsonAsync<RecordingComparisonResponse>();
+            var result = await response.Content.ReadFromJsonAsync<RecordingComparisonResponse>(ResponseJsonOptions);
 
             Assert.NotNull(result);
             Assert.Single(result!.AlignedSignals);

@@ -273,6 +273,67 @@ describe('TimeWaveformWorkspace', () => {
     expect(workspaceState.onRegionOfInterestChange).toHaveBeenCalledWith(null)
   })
 
+  it('folds ROI scope into compare guidance and clears it there', async () => {
+    const workspaceState = createWorkspaceState()
+    workspaceState.layoutMode = 'compare'
+    workspaceState.recordings = [
+      {
+        recordingId: 'recording-1',
+        fileName: 'alpha.wav',
+        sizeBytes: 1024,
+        durationSeconds: 1,
+        sampleRate: 44_100,
+        channels: 1,
+        channelMode: 'Mono',
+        signals: [],
+      },
+      {
+        recordingId: 'recording-2',
+        fileName: 'beta.wav',
+        sizeBytes: 2_048,
+        durationSeconds: 1,
+        sampleRate: 44_100,
+        channels: 1,
+        channelMode: 'Mono',
+        signals: [],
+      },
+    ]
+    workspaceState.recordingGroupAssignments = {
+      'recording-1': 'A',
+      'recording-2': 'B',
+    }
+    workspaceState.regionOfInterest = {
+      startTimeSeconds: 0.1,
+      endTimeSeconds: 0.4,
+      durationSeconds: 0.3,
+    }
+
+    mockUseTimeWaveformWorkspace.mockReturnValue(workspaceState)
+
+    render(
+      <TimeWaveformWorkspace
+        importedFiles={importedFiles}
+        isCopilotOpen={false}
+        onCopilotToggle={vi.fn()}
+      />
+    )
+
+    await waitFor(() => {
+      expect(mockGetRecordingComparison).toHaveBeenCalledWith('recording-1', 'recording-2', {
+        startTimeSeconds: 0.1,
+        endTimeSeconds: 0.4,
+      })
+    })
+
+    expect(screen.getByLabelText('Comparison scope')).toHaveTextContent('ROI')
+    expect(screen.getByText('0.10 s to 0.40 s · 0.30 s')).toBeInTheDocument()
+    expect(screen.queryByLabelText('Selected time region')).not.toBeInTheDocument()
+
+    fireEvent.click(screen.getByRole('button', { name: 'Clear selected comparison region' }))
+
+    expect(workspaceState.onRegionOfInterestChange).toHaveBeenCalledWith(null)
+  })
+
   it('shows the current comparison scope and forwards recording assignments', () => {
     const workspaceState = createWorkspaceState()
     workspaceState.recordings = [
@@ -312,7 +373,7 @@ describe('TimeWaveformWorkspace', () => {
     )
 
     expect(screen.getByLabelText('Comparison setup guidance')).toHaveTextContent('Incomplete')
-    expect(screen.getByText('Choose one recording for the empty compare target to unlock compare mode.')).toBeInTheDocument()
+    expect(screen.getByText('Choose the empty target.')).toBeInTheDocument()
     expect(screen.getByText('Compare disabled')).toBeInTheDocument()
 
     fireEvent.click(screen.getByRole('button', { name: 'Assign recording' }))
@@ -360,7 +421,7 @@ describe('TimeWaveformWorkspace', () => {
     )
 
     expect(screen.getByLabelText('Comparison setup guidance')).toHaveTextContent('Ready')
-    expect(screen.getByText('Compare A has 1 recording and Compare B has 1 recording.')).toBeInTheDocument()
+    expect(screen.getByText('A 1 · B 1')).toBeInTheDocument()
     expect(screen.getByText('Compare enabled')).toBeInTheDocument()
   })
 
@@ -476,7 +537,7 @@ describe('TimeWaveformWorkspace', () => {
     expect(screen.getByLabelText('Comparison setup guidance')).toHaveTextContent('Ready')
     expect(
       screen.getByText(
-        'Ranked differences currently support one recording from Compare A and one from Compare B. Reduce each side to one recording to review deterministic deltas.'
+        'One recording per side.'
       )
     ).toBeInTheDocument()
     expect(screen.getByLabelText('Ranked comparison results')).toHaveTextContent('Pairwise compare mode is active')
@@ -509,7 +570,7 @@ describe('TimeWaveformWorkspace', () => {
     )
 
     expect(screen.getByLabelText('Comparison setup guidance')).toHaveTextContent('Not ready')
-    expect(screen.getByText('Choose one recording for Compare A and one for Compare B to begin.')).toBeInTheDocument()
+    expect(screen.getByText('Choose A and B.')).toBeInTheDocument()
     expect(screen.getByText('Compare disabled')).toBeInTheDocument()
   })
 

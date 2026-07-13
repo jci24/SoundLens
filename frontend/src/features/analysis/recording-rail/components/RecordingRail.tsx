@@ -28,14 +28,14 @@ const assignmentBadgeLabels: Record<TComparisonGroupAssignment, string> = {
 
 const formatCompareTargetSummary = (recordings: ITimeWaveformRecording[]) => {
   if (recordings.length === 0) {
-    return 'Choose a recording'
+    return 'None'
   }
 
   if (recordings.length === 1) {
     return recordings[0].fileName
   }
 
-  return `${recordings.length} recordings selected`
+  return `${recordings.length} selected`
 }
 
 const RecordingRail = ({
@@ -57,21 +57,18 @@ const RecordingRail = ({
   return (
     <aside className="time-waveform-workspace__recording-rail" aria-label="Imported recordings and channels">
       <div className="time-waveform-workspace__recording-rail-header">
-        <span className="time-waveform-workspace__recording-rail-title">Compare builder</span>
-        <span className="time-waveform-workspace__recording-rail-hint">
-          Choose one recording for Compare A and one for Compare B. Assigning a new one replaces the current choice.
-        </span>
+        <span className="time-waveform-workspace__recording-rail-title">Compare</span>
       </div>
 
       <section className="time-waveform-workspace__compare-targets" aria-label="Compare targets">
         <div className="time-waveform-workspace__compare-target time-waveform-workspace__compare-target--A">
-          <span className="time-waveform-workspace__compare-target-label">Compare A</span>
+          <span className="time-waveform-workspace__compare-target-label">A</span>
           <strong className="time-waveform-workspace__compare-target-value">
             {formatCompareTargetSummary(groupARecordings)}
           </strong>
         </div>
         <div className="time-waveform-workspace__compare-target time-waveform-workspace__compare-target--B">
-          <span className="time-waveform-workspace__compare-target-label">Compare B</span>
+          <span className="time-waveform-workspace__compare-target-label">B</span>
           <strong className="time-waveform-workspace__compare-target-value">
             {formatCompareTargetSummary(groupBRecordings)}
           </strong>
@@ -109,7 +106,7 @@ const RecordingRail = ({
             {expandedRecordings.includes(recording.recordingId) && (
               <div className="time-waveform-workspace__recording-detail">
                 <div className="time-waveform-workspace__assignment-panel">
-                  <span className="time-waveform-workspace__assignment-caption">Send this recording to</span>
+                  <span className="time-waveform-workspace__assignment-caption">Assign</span>
                   <div
                     aria-label={`${recording.fileName} comparison group`}
                     className="time-waveform-workspace__assignment-picker"
@@ -138,7 +135,7 @@ const RecordingRail = ({
                 </div>
 
                 <div className="time-waveform-workspace__signal-list">
-                  <span className="time-waveform-workspace__signal-list-caption">Signals</span>
+                  <span className="time-waveform-workspace__signal-list-caption">Channels</span>
                   {recording.signals.map((signal) => {
                     const isSelected = selectedSignalIds.includes(signal.signalId)
 

@@ -6,18 +6,7 @@
     min-width: 0;
     min-height: auto;
     max-height: min(32rem, 100%);
-    padding: 0.78rem 0.82rem 0.6rem;
-    border: 1px solid color-mix(in srgb, var(--border) 78%, transparent);
-    border-radius: 1.1rem;
-    background:
-      linear-gradient(
-        180deg,
-        color-mix(in srgb, var(--card) 96%, white 4%),
-        color-mix(in srgb, var(--card) 99%, var(--muted) 1%)
-      );
-    box-shadow:
-      inset 0 1px 0 color-mix(in srgb, white 76%, transparent),
-      0 14px 28px -24px color-mix(in srgb, black 18%, transparent);
+    padding: 0.28rem 0.22rem 0.2rem 0;
     overflow: hidden;
     opacity: 0;
     transform: translateY(14px);
@@ -58,27 +47,23 @@
     display: grid;
     grid-template-columns: repeat(2, minmax(0, 1fr));
     gap: 0.45rem;
-    padding: 0 0.1rem 0.65rem;
+    padding: 0 0 0.5rem;
+    border-bottom: 1px solid color-mix(in srgb, var(--border) 84%, transparent);
   }
 
   &__compare-target {
     display: grid;
     gap: 0.18rem;
     min-width: 0;
-    padding: 0.5rem 0.58rem;
-    border: 1px solid color-mix(in srgb, var(--border) 76%, transparent);
-    border-radius: 0.95rem;
-    background: color-mix(in srgb, var(--card) 97%, white 3%);
+    padding: 0 0 0.06rem;
   }
 
   &__compare-target--A {
-    border-color: color-mix(in srgb, var(--foreground) 10%, var(--border));
-    background: color-mix(in srgb, white 82%, var(--card) 18%);
+    border: 0;
   }
 
   &__compare-target--B {
-    border-color: color-mix(in srgb, var(--foreground) 10%, var(--border));
-    background: color-mix(in srgb, white 82%, var(--card) 18%);
+    border: 0;
   }
 
   &__compare-target-label {
@@ -118,15 +103,12 @@
   &__recording-group {
     display: grid;
     gap: 0.35rem;
-    padding: 0.18rem;
-    border: 1px solid color-mix(in srgb, var(--border) 64%, transparent);
-    border-radius: 1rem;
-    background: color-mix(in srgb, var(--card) 96%, white 4%);
+    padding: 0.25rem 0 0.45rem;
+    border-bottom: 1px solid color-mix(in srgb, var(--border) 86%, transparent);
   }
 
   &__recording-group--expanded {
-    border-color: color-mix(in srgb, var(--foreground) 12%, var(--border));
-    box-shadow: 0 14px 28px -26px color-mix(in srgb, black 28%, transparent);
+    border-bottom-color: color-mix(in srgb, var(--foreground) 14%, var(--border));
   }
 
   &__recording-group-header {
@@ -140,27 +122,20 @@
     display: flex;
     align-items: center;
     width: 100%;
-    padding: 0.62rem 0.78rem;
-    border: 1px solid color-mix(in srgb, var(--border) 74%, transparent);
-    border-radius: 1rem;
-    background:
-      linear-gradient(
-        180deg,
-        color-mix(in srgb, var(--card) 95%, white 5%),
-        color-mix(in srgb, var(--card) 99%, var(--muted) 1%)
-      );
+    padding: 0.22rem 0;
+    border: 0;
+    border-radius: 0;
+    background: transparent;
     color: inherit;
     text-align: left;
     cursor: pointer;
     transition:
-      border-color 160ms ease,
-      background-color 160ms ease,
+      color 160ms ease,
       transform 160ms ease;
   }
 
   &__recording-toggle:hover {
-    border-color: color-mix(in srgb, var(--foreground) 10%, var(--border));
-    background: color-mix(in srgb, var(--muted) 16%, var(--card) 84%);
+    color: var(--foreground);
   }
 
   &__recording-heading {
@@ -220,7 +195,7 @@
   &__recording-detail {
     display: grid;
     gap: 0.42rem;
-    padding: 0.08rem 0.16rem 0.18rem;
+    padding: 0.06rem 0 0.06rem 1rem;
   }
 
   &__assignment-panel,
@@ -281,26 +256,25 @@
     align-items: center;
     gap: 0.55rem;
     width: 100%;
-    padding: 0.44rem 0.58rem;
-    border: 1px solid color-mix(in srgb, var(--border) 80%, transparent);
-    border-radius: calc(var(--radius-md) + 2px);
-    background: color-mix(in srgb, var(--muted) 26%, transparent);
+    padding: 0.3rem 0;
+    border: 0;
+    border-bottom: 1px solid color-mix(in srgb, var(--border) 88%, transparent);
+    border-radius: 0;
+    background: transparent;
     color: inherit;
     text-align: left;
     transition:
       border-color 160ms ease,
-      background-color 160ms ease,
+      color 160ms ease,
       transform 160ms ease;
   }
 
   &__signal-row:hover {
-    border-color: color-mix(in srgb, var(--foreground) 16%, var(--border));
-    background: color-mix(in srgb, var(--muted) 58%, white 3%);
+    border-bottom-color: color-mix(in srgb, var(--foreground) 16%, var(--border));
   }
 
   &__signal-row--selected {
-    border-color: color-mix(in srgb, var(--foreground) 20%, var(--border));
-    background: color-mix(in srgb, var(--muted) 44%, white 10%);
+    border-bottom-color: color-mix(in srgb, var(--foreground) 24%, var(--border));
     transform: translateX(2px);
   }
 
@@ -325,8 +299,7 @@
 .time-waveform-workspace--compare {
   .time-waveform-workspace__recording-rail {
     max-height: min(24rem, 100%);
-    padding: 0.54rem 0.58rem 0.42rem;
-    border-radius: 1rem;
+    padding: 0.18rem 0.18rem 0.2rem 0;
   }
 
   .time-waveform-workspace__recording-list {
@@ -345,18 +318,16 @@
   }
 
   .time-waveform-workspace__compare-target {
-    padding: 0.38rem 0.42rem;
-    border-radius: 0.8rem;
+    padding-bottom: 0.05rem;
   }
 
   .time-waveform-workspace__recording-toggle {
-    padding: 0.46rem 0.56rem;
-    border-radius: 0.8rem;
+    padding: 0.18rem 0;
   }
 
   .time-waveform-workspace__recording-group {
     gap: 0.25rem;
-    padding: 0.12rem;
+    padding: 0.18rem 0 0.32rem;
   }
 
   .time-waveform-workspace__recording-heading,
@@ -370,7 +341,7 @@
   }
 
   .time-waveform-workspace__signal-row {
-    padding: 0.3rem 0.42rem;
+    padding: 0.24rem 0;
   }
 
   .time-waveform-workspace__assignment-caption,
