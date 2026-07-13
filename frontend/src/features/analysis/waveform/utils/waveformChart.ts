@@ -1,6 +1,44 @@
 import type { ITimeWaveformAxis, ITimeWaveformSignal } from '../../types'
 
-const getWaveformChartDimensions = (width: number) => {
+type TChartDensity = 'default' | 'compact'
+
+const getWaveformChartDimensions = (width: number, density: TChartDensity) => {
+  if (density === 'compact') {
+    if (width <= 720) {
+      return {
+        chartHeight: 168,
+        chartPadding: {
+          top: 12,
+          right: 12,
+          bottom: 28,
+          left: 42,
+        },
+      }
+    }
+
+    if (width <= 1080) {
+      return {
+        chartHeight: 184,
+        chartPadding: {
+          top: 14,
+          right: 14,
+          bottom: 30,
+          left: 46,
+        },
+      }
+    }
+
+    return {
+      chartHeight: 196,
+      chartPadding: {
+        top: 16,
+        right: 16,
+        bottom: 32,
+        left: 48,
+      },
+    }
+  }
+
   if (width <= 720) {
     return {
       chartHeight: 220,
@@ -39,9 +77,10 @@ const getWaveformChartDimensions = (width: number) => {
 const getWaveformChartModel = (
   signals: ITimeWaveformSignal[],
   yAxis: ITimeWaveformAxis,
-  width: number
+  width: number,
+  density: TChartDensity = 'default'
 ) => {
-  const { chartHeight, chartPadding } = getWaveformChartDimensions(width)
+  const { chartHeight, chartPadding } = getWaveformChartDimensions(width, density)
   const plotWidth = Math.max(1, width - chartPadding.left - chartPadding.right)
   const plotHeight = chartHeight - chartPadding.top - chartPadding.bottom
   const maxDuration = Math.max(...signals.map((signal) => signal.durationSeconds), 1)

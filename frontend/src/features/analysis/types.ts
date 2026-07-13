@@ -76,6 +76,74 @@ export interface ITimeWaveformResponse {
   failedFiles: string[]
 }
 
+export interface IRecordingComparisonSignalPair {
+  signalIdA: string
+  displayNameA: string
+  channelIndexA: number
+  signalIdB: string
+  displayNameB: string
+  channelIndexB: number
+  basis: 'None' | 'DisplayName' | 'ChannelIndex'
+}
+
+export interface IRecordingComparisonSignalObservation {
+  signalIdA: string
+  displayNameA: string
+  channelIndexA: number
+  signalIdB: string
+  displayNameB: string
+  channelIndexB: number
+  basis: 'None' | 'DisplayName' | 'ChannelIndex'
+  peakAmplitudeA: number
+  peakAmplitudeB: number
+  peakAmplitudeDelta: number
+  rmsAmplitudeA: number
+  rmsAmplitudeB: number
+  rmsAmplitudeDelta: number
+  crestFactorA: number
+  crestFactorB: number
+  crestFactorDelta: number
+  clippingSampleCountA: number
+  clippingSampleCountB: number
+  clippingSampleCountDelta: number
+  hasClippingA: boolean
+  hasClippingB: boolean
+}
+
+export interface IRecordingComparisonMetricAggregate {
+  metricKey: 'peakAmplitudeDelta' | 'rmsAmplitudeDelta' | 'crestFactorDelta' | 'clippingSampleCountDelta'
+  unit: string
+  comparedPairCount: number
+  missingValueCount: number
+  meanDifference: number
+  medianDifference: number
+  minimumDifference: number
+  maximumDifference: number
+  spread: number
+}
+
+export interface IRecordingComparisonLimitation {
+  code: string
+  detail: string
+}
+
+export interface IRecordingComparisonRecord {
+  recordingId: string
+  fileName: string
+  channels: number
+  durationSeconds: number
+}
+
+export interface IRecordingComparisonResponse {
+  recordingA: IRecordingComparisonRecord
+  recordingB: IRecordingComparisonRecord
+  alignedSignals: IRecordingComparisonSignalPair[]
+  signalObservations: IRecordingComparisonSignalObservation[]
+  aggregateMetrics: IRecordingComparisonMetricAggregate[]
+  limitations: IRecordingComparisonLimitation[]
+  regionOfInterest: IAnalysisRegionOfInterest | null
+}
+
 export interface IFrequencySpectrumPoint {
   frequencyHz: number
   value: number

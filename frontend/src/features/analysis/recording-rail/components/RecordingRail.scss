@@ -283,27 +283,29 @@
 
 .time-waveform-workspace--compare {
   .time-waveform-workspace__recording-rail {
-    max-height: min(26rem, 100%);
-    padding: 0.5rem 0.55rem 0.4rem;
+    max-height: min(22rem, 100%);
+    padding: 0.42rem 0.48rem 0.35rem;
     border-radius: 0.95rem;
   }
 
   .time-waveform-workspace__recording-list {
-    gap: 0.6rem;
-    padding-bottom: 0.45rem;
+    gap: 0.45rem;
+    padding-bottom: 0.35rem;
   }
 
   .time-waveform-workspace__recording-rail-header {
-    padding-bottom: 0.5rem;
+    gap: 0.08rem;
+    padding-bottom: 0.35rem;
   }
 
   .time-waveform-workspace__recording-toggle {
-    padding: 0.5rem 0.6rem;
+    padding: 0.4rem 0.52rem;
     border-radius: 0.8rem;
   }
 
   .time-waveform-workspace__recording-group {
-    padding: 0.12rem;
+    gap: 0.25rem;
+    padding: 0.1rem;
   }
 
   .time-waveform-workspace__recording-heading,
@@ -311,8 +313,13 @@
     font-size: var(--font-sm);
   }
 
+  .time-waveform-workspace__recording-assignment-badge {
+    min-width: 1.9rem;
+    padding: 0.22rem 0.42rem;
+  }
+
   .time-waveform-workspace__signal-row {
-    padding: 0.38rem 0.5rem;
+    padding: 0.3rem 0.42rem;
   }
 
   .time-waveform-workspace__assignment-caption,
@@ -320,8 +327,13 @@
     font-size: 0.64rem;
   }
 
+  .time-waveform-workspace__assignment-button {
+    min-height: 2rem;
+    padding: 0.34rem 0.4rem;
+  }
+
   .time-waveform-workspace__selection-footprint {
-    padding-top: 0.3rem;
+    padding-top: 0.2rem;
   }
 }
 

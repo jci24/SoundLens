@@ -18,20 +18,18 @@ public sealed class GetRecordingComparisonHandlerTests
         var targetRecordingId = ImportedFileIdentity.BuildRecordingId(targetFile);
         var handler = new GetRecordingComparisonHandler(
             new StubFileStore([sourceFile, targetFile]),
-            new StubWaveformService(new TimeWaveformResponse(
-                64,
-                [
-                    BuildRecording(sourceRecordingId, "source.wav", ("source-a", 0, "Reference")),
-                    BuildRecording(targetRecordingId, "target.wav", ("target-a", 0, "reference"), ("target-b", 1, "Reference"))
-                ],
-                [
-                    BuildSignal("source-a", sourceRecordingId, "source.wav", "Reference", 0, 0.8, 0.5, 1.6, 0, false),
-                    BuildSignal("target-a", targetRecordingId, "target.wav", "reference", 0, 0.7, 0.4, 1.75, 0, false),
-                    BuildSignal("target-b", targetRecordingId, "target.wav", "Reference", 1, 0.9, 0.6, 1.5, 0, false),
-                ],
-                new TimeWaveformAxis("FS", -1, 1, [1, -1]),
-                null,
-                [])),
+            new StubWaveformService([
+                new TimeWaveformResponse(
+                    64,
+                    [
+                        BuildRecording(sourceRecordingId, "source.wav", ("source-a", 0, "Reference")),
+                        BuildRecording(targetRecordingId, "target.wav", ("target-a", 0, "reference"), ("target-b", 1, "Reference"))
+                    ],
+                    [],
+                    new TimeWaveformAxis("FS", -1, 1, [1, -1]),
+                    null,
+                    [])
+            ]),
             new SignalAlignmentService(),
             new RecordingComparisonAggregationService());
 
@@ -54,20 +52,31 @@ public sealed class GetRecordingComparisonHandlerTests
         var targetRecordingId = ImportedFileIdentity.BuildRecordingId(targetFile);
         var handler = new GetRecordingComparisonHandler(
             new StubFileStore([sourceFile, targetFile]),
-            new StubWaveformService(new TimeWaveformResponse(
-                64,
-                [
-                    BuildRecording(sourceRecordingId, "source.wav", ("source-a", 0, "Left"), ("source-b", 1, "Right")),
-                    BuildRecording(targetRecordingId, "target.wav", ("target-a", 0, "Left"))
-                ],
-                [
-                    BuildSignal("source-a", sourceRecordingId, "source.wav", "Left", 0, 0.8, 0.5, 1.6, 0, false),
-                    BuildSignal("source-b", sourceRecordingId, "source.wav", "Right", 1, 0.7, 0.45, 1.55, 2, true),
-                    BuildSignal("target-a", targetRecordingId, "target.wav", "Left", 0, 0.6, 0.35, 1.71, 0, false),
-                ],
-                new TimeWaveformAxis("FS", -1, 1, [1, -1]),
-                null,
-                [])),
+            new StubWaveformService([
+                new TimeWaveformResponse(
+                    64,
+                    [
+                        BuildRecording(sourceRecordingId, "source.wav", ("source-a", 0, "Left"), ("source-b", 1, "Right")),
+                        BuildRecording(targetRecordingId, "target.wav", ("target-a", 0, "Left"))
+                    ],
+                    [],
+                    new TimeWaveformAxis("FS", -1, 1, [1, -1]),
+                    null,
+                    []),
+                new TimeWaveformResponse(
+                    64,
+                    [
+                        BuildRecording(sourceRecordingId, "source.wav", ("source-a", 0, "Left"), ("source-b", 1, "Right")),
+                        BuildRecording(targetRecordingId, "target.wav", ("target-a", 0, "Left"))
+                    ],
+                    [
+                        BuildSignal("source-a", sourceRecordingId, "source.wav", "Left", 0, 0.8, 0.5, 1.6, 0, false),
+                        BuildSignal("target-a", targetRecordingId, "target.wav", "Left", 0, 0.6, 0.35, 1.71, 0, false),
+                    ],
+                    new TimeWaveformAxis("FS", -1, 1, [1, -1]),
+                    null,
+                    [])
+            ]),
             new SignalAlignmentService(),
             new RecordingComparisonAggregationService());
 
@@ -140,8 +149,10 @@ public sealed class GetRecordingComparisonHandlerTests
         public void Replace(IReadOnlyList<ImportedFileSummary> newFiles) { }
     }
 
-    private sealed class StubWaveformService(TimeWaveformResponse response) : IWaveformService
+    private sealed class StubWaveformService(IReadOnlyList<TimeWaveformResponse> responses) : IWaveformService
     {
+        private int _callIndex;
+
         public TimeWaveformResponse BuildTimeWaveforms(
             IReadOnlyList<ImportedFileSummary> files,
             int requestedBinCount,
@@ -150,7 +161,7 @@ public sealed class GetRecordingComparisonHandlerTests
             double? endTimeSeconds,
             CancellationToken cancellationToken)
         {
-            return response;
+            return responses[Math.Min(_callIndex++, responses.Count - 1)];
         }
     }
 }

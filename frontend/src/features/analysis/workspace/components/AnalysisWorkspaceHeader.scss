@@ -272,30 +272,52 @@
 
 .time-waveform-workspace--compare {
   .time-waveform-workspace__header {
-    padding: 0 1rem;
+    height: 4.15rem;
+    padding: 0 0.85rem;
   }
 
   .time-waveform-workspace__surface-shelf {
-    padding: 0.5rem 0.95rem 0.45rem;
+    padding: 0.35rem 0.8rem 0.3rem;
   }
 
   .time-waveform-workspace__view-controls-bar {
-    gap: 0.55rem;
-    padding: 0.35rem 0.95rem;
+    gap: 0.45rem;
+    padding: 0.24rem 0.8rem;
   }
 
   .time-waveform-workspace__view-controls-nav,
   .time-waveform-workspace__surface-controls {
-    gap: 0.45rem;
+    gap: 0.35rem;
+  }
+
+  .time-waveform-workspace__export-button {
+    height: 1.95rem;
+    padding-inline: 0.8rem;
+    font-size: var(--font-xs);
+  }
+
+  .time-waveform-workspace__copilot-toggle {
+    width: 1.95rem;
+    height: 1.95rem;
+  }
+
+  .time-waveform-workspace__layout-tabs {
+    .tabs-list {
+      height: 1.6rem;
+    }
+
+    .tabs-trigger {
+      padding-inline: 0.5rem;
+    }
   }
 
   .time-waveform-workspace__range-badge,
   .time-waveform-workspace__controls-trigger {
-    height: 1.8rem;
+    height: 1.65rem;
   }
 
   .time-waveform-workspace__range-badge {
-    padding-inline: 0.55rem;
+    padding-inline: 0.45rem;
   }
 }
 
