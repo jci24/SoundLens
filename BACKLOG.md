@@ -1,6 +1,6 @@
 # SoundLens Backlog
 
-Last updated: 2026-07-12
+Last updated: 2026-07-13
 
 This backlog reflects the current product direction: focused A/B comparison of repeated recordings with deterministic evidence, drill-down, grounded explanation, and report export.
 
@@ -30,181 +30,30 @@ Turn the current analysis workspace into a focused comparison workflow for repea
 - grounded Copilot over workspace evidence
 - markdown export with AI interpretation guardrails
 
+### Recently Shipped Comparison Slices
+
+- recording-level Compare A / Compare B assignment
+- compare-mode validation and setup guidance
+- deterministic pairwise signal alignment
+- ROI-aware pairwise comparison contract
+- ranked pairwise difference summaries
+- lightweight coverage cues and limitation messaging
+- compare-mode UX cleanup and lower-density layout
+- active-pair plus queued-overflow messaging for multi-assignment states
+
 ## Ordered Thin Tasks
 
-### A1. Recording Group Assignment
+### A8. Drill-Down Completion From Ranked Result
 
 User value:
-- A user can explicitly separate imported recordings into Product or Condition A and B.
+- A user can move from a ranked difference into the underlying waveform and spectrum evidence without losing track of what pair or metric is being inspected.
 
 Thin-slice boundary:
-- Introduce group assignment state and UI without yet computing aggregate comparison results.
+- Tighten the current ranked-result-to-evidence flow before expanding AI or report behavior.
 
 Acceptance criteria:
-- a user can assign each recording to A, B, or unassigned
-- the current comparison scope is visible in the workspace
-- unassigned recordings are clearly distinguished
-
-Test expectations:
-- backend tests only if contracts change
-- frontend state and interaction coverage for assignment behavior
-
-Proposed branch name:
-- `codex/comparison-group-assignment`
-
-Dependencies:
-- current import workspace
-
-### A2. Group Validation And Empty States
-
-User value:
-- A user understands when the comparison setup is incomplete or invalid.
-
-Thin-slice boundary:
-- Add validation, guidance, and empty states for the new group model.
-
-Acceptance criteria:
-- comparison actions are blocked when one side is empty
-- users see actionable guidance for missing or incomplete setup
-- the UI distinguishes valid, partial, and invalid comparison scope
-
-Test expectations:
-- frontend validation coverage
-- backend validation tests if comparison requests are introduced
-
-Proposed branch name:
-- `codex/comparison-group-validation`
-
-Dependencies:
-- `A1`
-
-### A3. Strict Signal-Alignment Rule
-
-User value:
-- A user avoids misleading comparisons between unrelated channels or signals.
-
-Thin-slice boundary:
-- Add the first strict alignment rule without yet introducing ranking UI.
-
-Acceptance criteria:
-- alignment normalizes and matches channel name where possible
-- otherwise alignment falls back to channel index
-- ambiguous or missing matches are reported explicitly
-- unrelated signals are not silently compared
-
-Test expectations:
-- backend contract tests for alignment rules
-- fixtures covering ambiguous and missing matches
-
-Proposed branch name:
-- `codex/comparison-signal-alignment`
-
-Dependencies:
-- `A1`
-
-### A4. ROI-Aware Comparison Contract
-
-User value:
-- A user can compare the same bounded region across aligned signals.
-
-Thin-slice boundary:
-- Introduce the comparison API contract and ROI handling, but not yet ranked UI.
-
-Acceptance criteria:
-- comparison requests accept aligned signals and optional ROI
-- the response preserves effective ROI scope and limitations
-- incompatible requests fail clearly
-
-Test expectations:
-- backend endpoint and handler coverage
-- ROI boundary and invalid-request cases
-
-Proposed branch name:
-- `codex/comparison-roi-contract`
-
-Dependencies:
-- `A2`
-- `A3`
-
-### A5. Aggregate Comparison Calculations
-
-User value:
-- A user can see deterministic aggregate differences between A and B instead of only per-signal inspection.
-
-Thin-slice boundary:
-- Compute aggregates before adding ranking or polished drill-down UX.
-
-Acceptance criteria:
-- response includes count, mean, median, min, max, spread, and missing-value count where applicable
-- limitations stay explicit for small groups and incompatible evidence
-- comparison output remains deterministic and traceable
-
-Test expectations:
-- backend calculation tests
-- synthetic fixtures for unequal groups, missing values, and edge cases
-
-Proposed branch name:
-- `codex/comparison-aggregates`
-
-Dependencies:
-- `A4`
-
-### A6. Ranked Differences UI
-
-User value:
-- A user sees the most meaningful differences first.
-
-Thin-slice boundary:
-- Add ranking presentation for aggregate results without yet deepening AI behavior.
-
-Acceptance criteria:
-- ranked differences are visible in priority order
-- ranking language stays honest for small sample sizes
-- selected ranked items can drive the current evidence focus
-
-Test expectations:
-- frontend render and state coverage
-- ranking contract tests if ranking is backend-owned
-
-Proposed branch name:
-- `codex/comparison-ranked-differences`
-
-Dependencies:
-- `A5`
-
-### A7. Coverage And Missing-Values UI
-
-User value:
-- A user can understand how complete or incomplete the comparison is.
-
-Thin-slice boundary:
-- Surface coverage quality without changing ranking logic.
-
-Acceptance criteria:
-- users can see missing-value counts and incomplete coverage
-- the app distinguishes weak coverage from strong coverage
-- limitations remain visible near ranked results
-
-Test expectations:
-- frontend coverage-state tests
-- backend response coverage if new fields are added
-
-Proposed branch name:
-- `codex/comparison-coverage-ui`
-
-Dependencies:
-- `A5`
-
-### A8. Drill-Down From Ranked Result
-
-User value:
-- A user can move from a ranked difference into the underlying waveform and spectrum evidence.
-
-Thin-slice boundary:
-- Connect ranked results to existing evidence surfaces before adding new AI behavior.
-
-Acceptance criteria:
-- selecting a ranked result focuses the relevant evidence
+- the selected ranked metric is reflected clearly near the evidence surfaces
+- the inspected aligned pair is visible while reading the waveform and spectrum panels
 - drill-down preserves comparison context and ROI scope
 - the user can return to the ranked summary without losing context
 
@@ -213,10 +62,10 @@ Test expectations:
 - integration-style tests for state transitions where practical
 
 Proposed branch name:
-- `codex/comparison-drilldown`
+- `codex/comparison-drilldown-completion`
 
 Dependencies:
-- `A6`
+- shipped pairwise comparison UI
 
 ### A9. Deterministic Factual Comparison Answers
 
@@ -239,7 +88,7 @@ Proposed branch name:
 - `codex/comparison-factual-answers`
 
 Dependencies:
-- `A5`
+- `A8`
 
 ### A10. AI Evidence Explanation
 
@@ -315,6 +164,7 @@ Dependencies:
 
 The following remain intentionally out of the immediate backlog:
 
+- true multi-recording cohort aggregation across several A-side and B-side recordings
 - persistent projects and datasets
 - advanced psychoacoustic metrics beyond the validated wedge
 - generalized batch infrastructure

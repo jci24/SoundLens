@@ -15,10 +15,11 @@ Today SoundLens supports a deterministic analysis workspace for imported recordi
 - select one or more signals for comparison within the workspace
 - switch between focused and compare-oriented chart layouts
 - review ranked pairwise differences for one Compare A recording versus one Compare B recording
+- see which Compare A and Compare B recordings are active now when multiple recordings are assigned, plus which extra recordings are queued
 - export the current workspace state to markdown
 - ask a grounded Copilot about the loaded evidence
 
-The current product is strong as an analysis workspace, but it is not yet a focused A/B comparison workflow.
+The current product is strong as an analysis workspace, but it is not yet a fully comparison-first investigation workflow.
 
 ## Import And Temporary Workspace Model
 
@@ -26,11 +27,11 @@ The current product is strong as an analysis workspace, but it is not yet a focu
 - The backend persists uploaded files into a temporary local workspace.
 - Imported files are also tracked in an in-memory import session used by analysis and Copilot requests.
 - The current model is session-oriented rather than project-oriented or persistent.
-- The frontend now tracks recording-level comparison-target assignment locally so the A/B workflow is visible before broader group-level aggregate comparison contracts exist.
-- Compare A and Compare B currently behave as single recording slots in the UI; assigning a new recording replaces the previous choice on that side.
+- The frontend now tracks recording-level comparison-target assignment locally so the A/B workflow is visible before broader group-level comparison contracts exist.
+- Compare A and Compare B now allow multiple assigned recordings in the workspace, but the current backend comparison slice still uses one active A/B recording pair at a time.
 - The backend now includes a deterministic pairwise signal-alignment contract that classifies matches as name-based, index-based, ambiguous, or missing.
 - The backend now exposes a pairwise recording-comparison contract with optional ROI, aligned-signal pairs, per-pair metric observations, aggregate delta summaries, and explicit limitation reporting.
-- The compare setup UI now presents those assignments as Compare A and Compare B targets rather than raw group-management controls.
+- The compare setup UI now presents those assignments as Compare A and Compare B targets rather than raw group-management controls, and it makes the active pair plus queued overflow explicit.
 
 ## Waveform And Spectrum Behavior
 
@@ -45,6 +46,7 @@ The current product is strong as an analysis workspace, but it is not yet a focu
 - ROI state is visible in the workspace and can be cleared from the shell.
 - The backend validates ROI bounds and echoes the effective analyzed region back in responses.
 - ROI-scoped spectrum and derived evidence are already supported.
+- In compare mode, the active ROI is reflected in the current comparison scope and can be cleared without leaving the workflow.
 
 ## Metrics And Deterministic Findings
 
@@ -100,7 +102,7 @@ Frontend:
 
 - Vitest plus React Testing Library
 - tests around workspace hooks, formatting, panel behavior, services, and selected render paths
-- focused tests for recording-rail compare-builder behavior and ranked-comparison workspace states
+- focused tests for recording-rail compare-builder behavior, ranked-comparison workspace states, and pairwise overflow messaging
 
 Eval harness:
 
@@ -123,8 +125,8 @@ The repo is still intentionally simple: no extra backend projects, no persistenc
 
 - Compare-target assignment is still frontend workspace state; there is no persisted comparison object yet
 - Ranked differences currently support one recording from Compare A versus one recording from Compare B
-- Multi-recording group comparison is not yet available; the current UI enforces one recording per side instead of aggregating larger cohorts
-- No coverage or missing-values comparison UI beyond the current limitation text
+- Multi-recording group comparison is not yet available; when several recordings are assigned to one side, the UI shows the active pair and queued overflow rather than aggregating larger cohorts
+- Coverage visibility is still lightweight: users see evidence-strength cues, limitation counts, and limitation text, but not yet a dedicated coverage breakdown view
 - No persisted project or dataset model
 - Calibration handling remains lightweight and mostly limited to dBFS caveats plus calibrated flags
 - Copilot and report export still operate on workspace context more than comparison objects
@@ -132,10 +134,10 @@ The repo is still intentionally simple: no extra backend projects, no persistenc
 
 ## Immediate Next Product Slice
 
-The next product slice should deepen the comparison wedge from backend summaries into usable product prioritization:
+The next product slice should complete the drill-down path from ranked comparison results into the evidence surfaces:
 
-1. keep weak-coverage and partial-alignment limitations more visible
-2. connect ranked results back to waveform and spectrum evidence more explicitly
-3. continue tightening compare-mode information hierarchy so setup, results, and evidence feel like one workflow
+1. keep the currently selected ranked difference visible near the charts
+2. make the inspected aligned pair and metric feel obviously tied to the waveform and spectrum panels
+3. preserve ROI scope and comparison context while moving between ranked results and chart evidence
 
-That is the next step from a pairwise comparison contract toward a comparison-first product workflow.
+That is the next step from a pairwise comparison summary into a more usable comparison-investigation workflow.

@@ -1,6 +1,6 @@
 # Roadmap
 
-Last updated: 2026-07-12
+Last updated: 2026-07-13
 
 ## Milestone 0 — Documentation And Product-Focus Reset
 
@@ -80,6 +80,10 @@ Dependencies:
 
 Validation gate:
 - users can answer “what changed most between A and B?” faster than with raw charts alone
+
+Current status:
+- ranked differences and basic coverage cues are in `main`
+- drill-down is only partially complete and should be the next product slice
 
 Explicitly deferred work:
 - broad open-ended AI investigation
