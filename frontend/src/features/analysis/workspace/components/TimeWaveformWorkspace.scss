@@ -169,6 +169,13 @@
     min-width: 0;
   }
 
+  &__comparison-guidance-queue {
+    margin: 0;
+    color: var(--muted-foreground);
+    font-size: var(--font-xs);
+    line-height: 1.35;
+  }
+
   &__comparison-guidance-pair-divider {
     color: color-mix(in srgb, var(--muted-foreground) 82%, transparent);
     font-size: 0.72rem;

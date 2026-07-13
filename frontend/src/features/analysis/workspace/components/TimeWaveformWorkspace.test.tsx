@@ -536,12 +536,13 @@ describe('TimeWaveformWorkspace', () => {
     )
 
     expect(screen.getByLabelText('Comparison setup guidance')).toHaveTextContent('Ready')
-    expect(
-      screen.getByText(
-        'One recording per side.'
-      )
-    ).toBeInTheDocument()
-    expect(screen.getByLabelText('Ranked comparison results')).toHaveTextContent('Pairwise compare mode is active')
+    expect(screen.getByText('Using the first recording on each side.')).toBeInTheDocument()
+    expect(screen.getByLabelText('Active comparison pair')).toHaveTextContent('alpha.wav')
+    expect(screen.getByLabelText('Active comparison pair')).toHaveTextContent('gamma.wav')
+    expect(screen.getByLabelText('Queued comparison recordings')).toHaveTextContent('A waiting: beta.wav')
+    expect(screen.getByLabelText('Ranked comparison results')).toHaveTextContent(
+      'This slice compares one pair at a time. Now using alpha.wav vs gamma.wav. A waiting: beta.wav.'
+    )
     expect(mockGetRecordingComparison).not.toHaveBeenCalled()
   })
 
