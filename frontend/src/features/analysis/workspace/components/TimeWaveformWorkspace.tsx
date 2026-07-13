@@ -38,6 +38,7 @@ const TimeWaveformWorkspace = ({ importedFiles, isCopilotOpen, onCopilotToggle }
     requestKey: null,
     results: null,
   })
+  const [isComparisonDetailsOpen, setIsComparisonDetailsOpen] = useState(false)
   const [selectedMetricKey, setSelectedMetricKey] =
     useState<IRecordingComparisonMetricAggregate['metricKey'] | null>(null)
   const {
@@ -222,6 +223,7 @@ const TimeWaveformWorkspace = ({ importedFiles, isCopilotOpen, onCopilotToggle }
           requestKey,
           results: response,
         })
+        setIsComparisonDetailsOpen(false)
         setSelectedMetricKey(null)
       })
       .catch((caughtError) => {
@@ -382,9 +384,19 @@ const TimeWaveformWorkspace = ({ importedFiles, isCopilotOpen, onCopilotToggle }
                       {coverageSummary.label}
                     </span>
                     {coverageSummary.limitationCount > 0 && (
-                      <span className="time-waveform-workspace__comparison-results-summary">
-                        {coverageSummary.limitationCount} limitation{coverageSummary.limitationCount === 1 ? '' : 's'}
-                      </span>
+                      <>
+                        <span className="time-waveform-workspace__comparison-results-summary">
+                          {coverageSummary.limitationCount} limitation{coverageSummary.limitationCount === 1 ? '' : 's'}
+                        </span>
+                        <button
+                          aria-expanded={isComparisonDetailsOpen}
+                          className="time-waveform-workspace__comparison-results-details-toggle"
+                          type="button"
+                          onClick={() => setIsComparisonDetailsOpen((currentValue) => !currentValue)}
+                        >
+                          {isComparisonDetailsOpen ? 'Hide details' : 'Details'}
+                        </button>
+                      </>
                     )}
                   </div>
                 )}
@@ -467,7 +479,7 @@ const TimeWaveformWorkspace = ({ importedFiles, isCopilotOpen, onCopilotToggle }
                     </section>
                   )}
 
-                  {comparisonResults.limitations.length > 0 && (
+                  {comparisonResults.limitations.length > 0 && isComparisonDetailsOpen && (
                     <section className="time-waveform-workspace__comparison-limitations" aria-label="Comparison limitations">
                       <p className="time-waveform-workspace__comparison-limitations-summary">
                         {coverageSummary.copy}

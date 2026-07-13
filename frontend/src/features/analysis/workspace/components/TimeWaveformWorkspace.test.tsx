@@ -412,9 +412,13 @@ describe('TimeWaveformWorkspace', () => {
     expect(screen.getByText('Ranked differences')).toBeInTheDocument()
     expect(screen.getByText('Weak evidence')).toBeInTheDocument()
     expect(screen.getByText('1 limitation')).toBeInTheDocument()
+    expect(screen.queryByLabelText('Comparison limitations')).not.toBeInTheDocument()
     expect(screen.getByRole('button', { name: /Crest factor/i })).toBeInTheDocument()
     expect(screen.getByRole('button', { name: /RMS amplitude/i })).toBeInTheDocument()
     expect(screen.getByLabelText('Selected ranked difference')).toHaveTextContent('Crest factor')
+
+    fireEvent.click(screen.getByRole('button', { name: 'Details' }))
+
     expect(screen.getByLabelText('Comparison limitations')).toHaveTextContent('Low coverage')
   })
 
