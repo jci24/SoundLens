@@ -401,7 +401,7 @@ const TimeWaveformWorkspace = ({ importedFiles, isCopilotOpen, onCopilotToggle }
                     >
                       {coverageSummary.label}
                     </span>
-                    {coverageSummary.limitationCount > 0 && (
+                    {(activeMetric || coverageSummary.limitationCount > 0) && (
                       <>
                         <span className="time-waveform-workspace__comparison-results-summary">
                           {coverageSummary.limitationCount} limitation{coverageSummary.limitationCount === 1 ? '' : 's'}
@@ -460,52 +460,57 @@ const TimeWaveformWorkspace = ({ importedFiles, isCopilotOpen, onCopilotToggle }
                     ))}
                   </div>
 
-                  {activeMetric && activeObservation && (
-                    <section className="time-waveform-workspace__comparison-focus" aria-label="Selected ranked difference">
-                      <div>
-                        <h4 className="time-waveform-workspace__comparison-focus-title">
-                          {formatComparisonMetricLabel(activeMetric.metricKey)}
-                        </h4>
-                      </div>
-                      <div className="time-waveform-workspace__comparison-focus-grid">
-                        <div className="time-waveform-workspace__comparison-focus-stat">
-                          <span>Mean delta A-B</span>
-                          <strong>{formatAggregateValue(activeMetric.meanDifference, activeMetric.unit)}</strong>
-                        </div>
-                        <div className="time-waveform-workspace__comparison-focus-stat">
-                          <span>Median</span>
-                          <strong>{formatAggregateValue(activeMetric.medianDifference, activeMetric.unit)}</strong>
-                        </div>
-                        <div className="time-waveform-workspace__comparison-focus-stat">
-                          <span>Coverage</span>
-                          <strong>
-                            {activeMetric.comparedPairCount} pair{activeMetric.comparedPairCount === 1 ? '' : 's'}
-                          </strong>
-                        </div>
-                        <div className="time-waveform-workspace__comparison-focus-stat">
-                          <span>Missing</span>
-                          <strong>{activeMetric.missingValueCount}</strong>
-                        </div>
-                      </div>
-                      <p className="time-waveform-workspace__comparison-focus-copy">
-                        Strongest aligned pair: {activeObservation.displayNameA} vs {activeObservation.displayNameB} ·
-                        A {formatAggregateValue(getObservationValue(activeObservation, activeMetric.metricKey, 'A'), activeMetric.unit)} ·
-                        B {formatAggregateValue(getObservationValue(activeObservation, activeMetric.metricKey, 'B'), activeMetric.unit)} ·
-                        Delta {formatAggregateValue(getObservationDelta(activeObservation, activeMetric.metricKey), activeMetric.unit)}
-                      </p>
-                    </section>
-                  )}
+                  {isComparisonDetailsOpen && (activeMetric || comparisonResults.limitations.length > 0) && (
+                    <section className="time-waveform-workspace__comparison-details" aria-label="Comparison details">
+                      {activeMetric && activeObservation && (
+                        <section className="time-waveform-workspace__comparison-focus" aria-label="Selected ranked difference">
+                          <div>
+                            <span className="time-waveform-workspace__comparison-focus-kicker">Selected difference</span>
+                            <h4 className="time-waveform-workspace__comparison-focus-title">
+                              {formatComparisonMetricLabel(activeMetric.metricKey)}
+                            </h4>
+                          </div>
+                          <div className="time-waveform-workspace__comparison-focus-grid">
+                            <div className="time-waveform-workspace__comparison-focus-stat">
+                              <span>Mean delta A-B</span>
+                              <strong>{formatAggregateValue(activeMetric.meanDifference, activeMetric.unit)}</strong>
+                            </div>
+                            <div className="time-waveform-workspace__comparison-focus-stat">
+                              <span>Median</span>
+                              <strong>{formatAggregateValue(activeMetric.medianDifference, activeMetric.unit)}</strong>
+                            </div>
+                            <div className="time-waveform-workspace__comparison-focus-stat">
+                              <span>Coverage</span>
+                              <strong>
+                                {activeMetric.comparedPairCount} pair{activeMetric.comparedPairCount === 1 ? '' : 's'}
+                              </strong>
+                            </div>
+                            <div className="time-waveform-workspace__comparison-focus-stat">
+                              <span>Missing</span>
+                              <strong>{activeMetric.missingValueCount}</strong>
+                            </div>
+                          </div>
+                          <p className="time-waveform-workspace__comparison-focus-copy">
+                            Strongest aligned pair: {activeObservation.displayNameA} vs {activeObservation.displayNameB} ·
+                            A {formatAggregateValue(getObservationValue(activeObservation, activeMetric.metricKey, 'A'), activeMetric.unit)} ·
+                            B {formatAggregateValue(getObservationValue(activeObservation, activeMetric.metricKey, 'B'), activeMetric.unit)} ·
+                            Delta {formatAggregateValue(getObservationDelta(activeObservation, activeMetric.metricKey), activeMetric.unit)}
+                          </p>
+                        </section>
+                      )}
 
-                  {comparisonResults.limitations.length > 0 && isComparisonDetailsOpen && (
-                    <section className="time-waveform-workspace__comparison-limitations" aria-label="Comparison limitations">
-                      <p className="time-waveform-workspace__comparison-limitations-summary">
-                        {coverageSummary.copy}
-                      </p>
-                      {comparisonResults.limitations.map((limitation) => (
-                        <p key={`${limitation.code}-${limitation.detail}`}>
-                          <strong>{formatLimitationLabel(limitation.code)}:</strong> {limitation.detail}
-                        </p>
-                      ))}
+                      {comparisonResults.limitations.length > 0 && (
+                        <section className="time-waveform-workspace__comparison-limitations" aria-label="Comparison limitations">
+                          <p className="time-waveform-workspace__comparison-limitations-summary">
+                            {coverageSummary.copy}
+                          </p>
+                          {comparisonResults.limitations.map((limitation) => (
+                            <p key={`${limitation.code}-${limitation.detail}`}>
+                              <strong>{formatLimitationLabel(limitation.code)}:</strong> {limitation.detail}
+                            </p>
+                          ))}
+                        </section>
+                      )}
                     </section>
                   )}
                 </>
