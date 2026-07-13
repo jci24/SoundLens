@@ -1,6 +1,6 @@
 # SoundLens Project Context
 
-Last updated: 2026-07-12
+Last updated: 2026-07-13
 
 ## Product Problem
 
@@ -71,12 +71,13 @@ Build a credible, reviewable demo that can be shown to prospective customers and
 
 ## Immediate Product Milestone
 
-The current milestone is to move from a general analysis workspace into a focused A/B comparison product slice:
+The current milestone is to harden the first focused A/B comparison workflow:
 
-- assign recordings to Group A and Group B
+- assign recordings to Compare A and Compare B
 - validate comparable signals
-- compute deterministic aggregate comparison results
-- rank differences and support drill-down
+- compute deterministic pairwise comparison results with explicit limitations
+- rank differences
+- complete drill-down from ranked results into the underlying evidence
 
 ## In-Scope Boundaries
 
