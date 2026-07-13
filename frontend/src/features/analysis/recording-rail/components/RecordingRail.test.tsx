@@ -64,19 +64,23 @@ describe('RecordingRail', () => {
       />
     )
 
-    expect(screen.getByText('alpha.wav')).toBeInTheDocument()
-    expect(screen.getByText('beta.wav')).toBeInTheDocument()
+    expect(screen.getAllByText('alpha.wav')).toHaveLength(2)
+    expect(screen.getByRole('button', { name: /beta\.wav/i })).toBeInTheDocument()
     expect(screen.getByRole('checkbox', { name: 'Left' })).toHaveAttribute('data-state', 'checked')
     expect(screen.getByRole('checkbox', { name: 'Right' })).toHaveAttribute('data-state', 'unchecked')
     expect(screen.queryByRole('checkbox', { name: 'Mono' })).not.toBeInTheDocument()
-    expect(screen.getByText('Comparison inputs')).toBeInTheDocument()
+    expect(screen.getByText('Compare builder')).toBeInTheDocument()
+    expect(screen.getByText('Choose one recording for Compare A and one for Compare B. Assigning a new one replaces the current choice.')).toBeInTheDocument()
+    expect(screen.getByLabelText('Compare targets')).toHaveTextContent('Compare A')
+    expect(screen.getByLabelText('Compare targets')).toHaveTextContent('alpha.wav')
+    expect(screen.getByLabelText('Compare targets')).toHaveTextContent('Choose a recording')
     expect(screen.getByText('1 selected')).toBeInTheDocument()
     expect(screen.getByTitle('Group A')).toBeInTheDocument()
     expect(screen.getByTitle('Unassigned')).toBeInTheDocument()
-    expect(screen.getByText('Assignment')).toBeInTheDocument()
+    expect(screen.getByText('Send this recording to')).toBeInTheDocument()
 
     fireEvent.click(screen.getByRole('button', { name: /beta\.wav/i }))
-    fireEvent.click(screen.getAllByRole('button', { name: 'Group B' })[0])
+    fireEvent.click(screen.getByRole('button', { name: 'Compare B' }))
     fireEvent.click(screen.getByRole('checkbox', { name: 'Right' }))
 
     expect(onRecordingToggle).toHaveBeenCalledWith('recording-2')

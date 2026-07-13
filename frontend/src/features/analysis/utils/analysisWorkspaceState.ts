@@ -81,6 +81,35 @@ const getNextRecordingGroupAssignments = (
   )
 }
 
+const getNextSingleRecordingGroupAssignment = (
+  currentAssignments: Record<string, TComparisonGroupAssignment>,
+  recordingId: string,
+  assignment: TComparisonGroupAssignment
+) => {
+  const nextAssignments = Object.fromEntries(
+    Object.entries(currentAssignments).filter(([candidateRecordingId, candidateAssignment]) => {
+      if (candidateRecordingId === recordingId) {
+        return false
+      }
+
+      if (assignment === 'unassigned') {
+        return true
+      }
+
+      return candidateAssignment !== assignment
+    })
+  )
+
+  if (assignment === 'unassigned') {
+    return nextAssignments
+  }
+
+  return {
+    ...nextAssignments,
+    [recordingId]: assignment,
+  }
+}
+
 const getComparisonSetupSummary = (
   recordings: ITimeWaveformRecording[],
   recordingGroupAssignments: Record<string, TComparisonGroupAssignment>
@@ -174,6 +203,7 @@ export {
   getComparisonSetupSummary,
   getNextExpandedRecordings,
   getNextRecordingGroupAssignments,
+  getNextSingleRecordingGroupAssignment,
   getNextRequestedSignalIds,
   getNextSpectrumRangeEnd,
   getNextSpectrumRangeStart,

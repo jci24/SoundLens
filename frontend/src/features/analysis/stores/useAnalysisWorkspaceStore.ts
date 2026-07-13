@@ -3,6 +3,7 @@ import {
   areSignalIdsEqual,
   getNextExpandedRecordings,
   getNextRecordingGroupAssignments,
+  getNextSingleRecordingGroupAssignment,
   getNextRequestedSignalIds,
 } from '../utils/analysisWorkspaceState'
 import type {
@@ -56,10 +57,11 @@ const useAnalysisWorkspaceStore = create<IAnalysisWorkspaceStore>((set) => ({
 
   setRecordingGroupAssignment: (recordingId, assignment) =>
     set((state) => ({
-      recordingGroupAssignments: {
-        ...state.recordingGroupAssignments,
-        [recordingId]: assignment,
-      },
+      recordingGroupAssignments: getNextSingleRecordingGroupAssignment(
+        state.recordingGroupAssignments,
+        recordingId,
+        assignment
+      ),
     })),
 
   setActiveSurface: (surface) => set({ activeSurface: surface }),
