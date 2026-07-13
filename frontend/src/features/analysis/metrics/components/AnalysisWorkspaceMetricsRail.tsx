@@ -23,15 +23,13 @@ const AnalysisWorkspaceMetricsRail = ({
 
   return (
     <section className="time-waveform-workspace__metrics-rail" aria-label="Selected signal metrics">
-      <div className="time-waveform-workspace__metrics-rail-header">
-        <span className="time-waveform-workspace__metrics-rail-title">Signal metrics</span>
-        {hasMetricsPending && (
+      {hasMetricsPending && (
+        <div className="time-waveform-workspace__metrics-rail-header">
           <span className="time-waveform-workspace__metrics-rail-hint">
             Restart backend to load live metrics
           </span>
-        )}
-      </div>
-
+        </div>
+      )}
       <div className="time-waveform-workspace__metrics-scroll">
         <table className="time-waveform-workspace__metrics-table" aria-label="Signal metrics table">
           <thead>
