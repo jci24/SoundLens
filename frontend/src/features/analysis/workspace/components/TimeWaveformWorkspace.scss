@@ -566,6 +566,20 @@
     line-height: 1.4;
   }
 
+  &__evidence-bridge-meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.38rem 0.75rem;
+    margin: 0;
+    color: color-mix(in srgb, var(--muted-foreground) 94%, var(--foreground));
+    font-size: 0.7rem;
+    line-height: 1.4;
+  }
+
+  &__evidence-bridge-meta-item {
+    white-space: nowrap;
+  }
+
   &__panel-grid {
     display: grid;
     flex: 1;
@@ -717,6 +731,16 @@
   &--compare &__comparison-results-title,
   &--compare &__comparison-focus-title {
     font-size: 0.95rem;
+  }
+
+  &--compare &__evidence-bridge {
+    gap: 0.12rem;
+    padding: 0.18rem 0 0.08rem;
+  }
+
+  &--compare &__evidence-bridge-meta {
+    gap: 0.3rem 0.65rem;
+    font-size: 0.68rem;
   }
 
   &--compare &__comparison-ranking {
@@ -885,6 +909,10 @@
 
     &__comparison-focus-grid {
       grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    &__evidence-bridge-meta-item {
+      white-space: normal;
     }
 
     &__panel-grid--compare {

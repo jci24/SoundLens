@@ -44,43 +44,30 @@
   }
 
   &__compare-targets {
-    display: grid;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 0.45rem;
-    padding: 0 0 0.5rem;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.65rem;
+    padding: 0 0 0.42rem;
     border-bottom: 1px solid color-mix(in srgb, var(--border) 84%, transparent);
   }
 
-  &__compare-target {
-    display: grid;
-    gap: 0.18rem;
+  &__compare-target-inline {
     min-width: 0;
-    padding: 0 0 0.06rem;
-  }
-
-  &__compare-target--A {
-    border: 0;
-  }
-
-  &__compare-target--B {
-    border: 0;
-  }
-
-  &__compare-target-label {
-    color: var(--muted-foreground);
-    font-size: 0.67rem;
-    font-weight: 700;
-    letter-spacing: 0.08em;
-    text-transform: uppercase;
-  }
-
-  &__compare-target-value {
     overflow: hidden;
-    color: var(--foreground);
+    color: var(--muted-foreground);
     font-size: 0.72rem;
-    font-weight: 650;
+    font-weight: 560;
     text-overflow: ellipsis;
     white-space: nowrap;
+  }
+
+  &__compare-target-inline strong {
+    color: var(--foreground);
+    font-size: 0.68rem;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    margin-right: 0.22rem;
+    text-transform: uppercase;
   }
 
   &__selection-footprint {
@@ -194,42 +181,33 @@
 
   &__recording-detail {
     display: grid;
-    gap: 0.42rem;
+    gap: 0.34rem;
     padding: 0.06rem 0 0.06rem 1rem;
   }
 
   &__assignment-panel,
   &__signal-list {
     display: grid;
-    gap: 0.3rem;
-  }
-
-  &__assignment-caption,
-  &__signal-list-caption {
-    color: var(--muted-foreground);
-    font-size: 0.64rem;
-    font-weight: 700;
-    letter-spacing: 0.08em;
-    text-transform: uppercase;
+    gap: 0.22rem;
   }
 
   &__assignment-picker {
     display: inline-flex;
     align-items: center;
-    gap: 0.3rem;
+    gap: 0.2rem;
     flex-wrap: wrap;
   }
 
   &__assignment-button {
     min-width: 0;
-    min-height: 2rem;
-    padding: 0.34rem 0.48rem;
-    border: 1px solid color-mix(in srgb, var(--border) 85%, transparent);
+    min-height: 1.7rem;
+    padding: 0.22rem 0.42rem;
+    border: 1px solid color-mix(in srgb, var(--border) 82%, transparent);
     border-radius: 999px;
-    background: color-mix(in srgb, var(--muted) 22%, transparent);
+    background: transparent;
     color: var(--muted-foreground);
-    font-size: 0.72rem;
-    font-weight: 650;
+    font-size: 0.68rem;
+    font-weight: 700;
     line-height: 1.15;
     text-align: center;
     cursor: pointer;
@@ -241,13 +219,13 @@
 
   &__assignment-button:hover {
     border-color: color-mix(in srgb, var(--foreground) 16%, var(--border));
-    background: color-mix(in srgb, var(--muted) 48%, white 2%);
+    background: color-mix(in srgb, var(--muted) 22%, white 4%);
     color: var(--foreground);
   }
 
   &__assignment-button--active {
     border-color: color-mix(in srgb, var(--foreground) 22%, var(--border));
-    background: color-mix(in srgb, var(--muted) 64%, white 6%);
+    background: color-mix(in srgb, var(--muted) 50%, white 10%);
     color: var(--foreground);
   }
 
@@ -313,12 +291,8 @@
   }
 
   .time-waveform-workspace__compare-targets {
-    gap: 0.3rem;
-    padding-bottom: 0.35rem;
-  }
-
-  .time-waveform-workspace__compare-target {
-    padding-bottom: 0.05rem;
+    gap: 0.5rem;
+    padding-bottom: 0.3rem;
   }
 
   .time-waveform-workspace__recording-toggle {
@@ -344,14 +318,9 @@
     padding: 0.24rem 0;
   }
 
-  .time-waveform-workspace__assignment-caption,
-  .time-waveform-workspace__signal-list-caption {
-    font-size: 0.64rem;
-  }
-
   .time-waveform-workspace__assignment-button {
-    min-height: 1.8rem;
-    padding: 0.26rem 0.38rem;
+    min-height: 1.55rem;
+    padding: 0.18rem 0.34rem;
   }
 
   .time-waveform-workspace__selection-footprint {

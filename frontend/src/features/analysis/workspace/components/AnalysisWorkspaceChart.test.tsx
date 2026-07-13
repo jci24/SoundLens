@@ -67,7 +67,10 @@ describe('AnalysisWorkspaceChart', () => {
       <AnalysisWorkspaceChart
         chartRef={createRef<HTMLDivElement>()}
         chartWidth={720}
-        compareEvidenceSummary="Aligned pair Channel 1 vs Channel 1 · A 6.784 ratio · B 5.664 ratio"
+        compareEvidenceDetail="Δ -1.121 ratio · A 6.784 ratio · B 5.664 ratio"
+        compareEvidenceKicker="Inspecting evidence for"
+        compareEvidenceScope="ROI 0.84 s to 1.94 s · 1.09 s"
+        compareEvidenceSummary="Channel 1 vs Channel 1"
         compareEvidenceTitle="Crest factor"
         hasMetricsPending={true}
         isCompareMode={true}
@@ -89,8 +92,11 @@ describe('AnalysisWorkspaceChart', () => {
     expect(screen.getByLabelText('Signal findings')).toBeInTheDocument()
     expect(screen.getByText('Clipping detected')).toBeInTheDocument()
     expect(screen.getByText('3 samples clipped')).toBeInTheDocument()
+    expect(screen.getByLabelText('Chart evidence context')).toHaveTextContent('Inspecting evidence for')
     expect(screen.getByLabelText('Chart evidence context')).toHaveTextContent('Crest factor')
-    expect(screen.getByText('Aligned pair Channel 1 vs Channel 1 · A 6.784 ratio · B 5.664 ratio')).toBeInTheDocument()
+    expect(screen.getByText('Channel 1 vs Channel 1')).toBeInTheDocument()
+    expect(screen.getByText('Δ -1.121 ratio · A 6.784 ratio · B 5.664 ratio')).toBeInTheDocument()
+    expect(screen.getByText('ROI 0.84 s to 1.94 s · 1.09 s')).toBeInTheDocument()
     expect(screen.getByTestId('panel-waveform')).toHaveTextContent('Waveform')
   })
 })

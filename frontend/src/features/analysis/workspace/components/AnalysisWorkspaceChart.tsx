@@ -9,6 +9,9 @@ import type { IAnalysisRegionOfInterest, TSignalChartMode, IFrequencySpectrumAxi
 interface IAnalysisWorkspaceChartProps {
   chartRef: RefObject<HTMLDivElement | null>
   chartWidth: number
+  compareEvidenceDetail: string | null
+  compareEvidenceKicker: string | null
+  compareEvidenceScope: string | null
   compareEvidenceSummary: string | null
   compareEvidenceTitle: string | null
   hasMetricsPending: boolean
@@ -28,6 +31,9 @@ interface IAnalysisWorkspaceChartProps {
 const AnalysisWorkspaceChart = ({
   chartRef,
   chartWidth,
+  compareEvidenceDetail,
+  compareEvidenceKicker,
+  compareEvidenceScope,
   compareEvidenceSummary,
   compareEvidenceTitle,
   hasMetricsPending,
@@ -53,9 +59,22 @@ const AnalysisWorkspaceChart = ({
     <FindingsPanel signals={metricSignals} />
     {isCompareMode && compareEvidenceTitle && (
       <section className="time-waveform-workspace__evidence-bridge" aria-label="Chart evidence context">
+        {compareEvidenceKicker && (
+          <span className="time-waveform-workspace__evidence-bridge-kicker">{compareEvidenceKicker}</span>
+        )}
         <strong className="time-waveform-workspace__evidence-bridge-title">{compareEvidenceTitle}</strong>
         {compareEvidenceSummary && (
           <p className="time-waveform-workspace__evidence-bridge-copy">{compareEvidenceSummary}</p>
+        )}
+        {(compareEvidenceDetail || compareEvidenceScope) && (
+          <p className="time-waveform-workspace__evidence-bridge-meta">
+            {compareEvidenceDetail && (
+              <span className="time-waveform-workspace__evidence-bridge-meta-item">{compareEvidenceDetail}</span>
+            )}
+            {compareEvidenceScope && (
+              <span className="time-waveform-workspace__evidence-bridge-meta-item">{compareEvidenceScope}</span>
+            )}
+          </p>
         )}
       </section>
     )}

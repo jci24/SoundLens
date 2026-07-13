@@ -61,18 +61,12 @@ const RecordingRail = ({
       </div>
 
       <section className="time-waveform-workspace__compare-targets" aria-label="Compare targets">
-        <div className="time-waveform-workspace__compare-target time-waveform-workspace__compare-target--A">
-          <span className="time-waveform-workspace__compare-target-label">A</span>
-          <strong className="time-waveform-workspace__compare-target-value">
-            {formatCompareTargetSummary(groupARecordings)}
-          </strong>
-        </div>
-        <div className="time-waveform-workspace__compare-target time-waveform-workspace__compare-target--B">
-          <span className="time-waveform-workspace__compare-target-label">B</span>
-          <strong className="time-waveform-workspace__compare-target-value">
-            {formatCompareTargetSummary(groupBRecordings)}
-          </strong>
-        </div>
+        <span className="time-waveform-workspace__compare-target-inline">
+          <strong>A</strong> {formatCompareTargetSummary(groupARecordings)}
+        </span>
+        <span className="time-waveform-workspace__compare-target-inline">
+          <strong>B</strong> {formatCompareTargetSummary(groupBRecordings)}
+        </span>
       </section>
 
       <div className="time-waveform-workspace__recording-list">
@@ -106,7 +100,6 @@ const RecordingRail = ({
             {expandedRecordings.includes(recording.recordingId) && (
               <div className="time-waveform-workspace__recording-detail">
                 <div className="time-waveform-workspace__assignment-panel">
-                  <span className="time-waveform-workspace__assignment-caption">Assign</span>
                   <div
                     aria-label={`${recording.fileName} comparison group`}
                     className="time-waveform-workspace__assignment-picker"
@@ -123,11 +116,7 @@ const RecordingRail = ({
                           type="button"
                           onClick={() => onRecordingGroupAssignment(recording.recordingId, assignment)}
                         >
-                          {assignment === 'A'
-                            ? 'Compare A'
-                            : assignment === 'B'
-                              ? 'Compare B'
-                              : 'Keep out'}
+                          {assignment === 'A' ? 'A' : assignment === 'B' ? 'B' : 'Out'}
                         </button>
                       )
                     })}
@@ -135,7 +124,6 @@ const RecordingRail = ({
                 </div>
 
                 <div className="time-waveform-workspace__signal-list">
-                  <span className="time-waveform-workspace__signal-list-caption">Channels</span>
                   {recording.signals.map((signal) => {
                     const isSelected = selectedSignalIds.includes(signal.signalId)
 
