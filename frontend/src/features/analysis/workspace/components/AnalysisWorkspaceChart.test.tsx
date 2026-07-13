@@ -67,8 +67,10 @@ describe('AnalysisWorkspaceChart', () => {
       <AnalysisWorkspaceChart
         chartRef={createRef<HTMLDivElement>()}
         chartWidth={720}
+        compareEvidenceSummary="Aligned pair Channel 1 vs Channel 1 · A 6.784 ratio · B 5.664 ratio"
+        compareEvidenceTitle="Crest factor"
         hasMetricsPending={true}
-        isCompareMode={false}
+        isCompareMode={true}
         metricSignals={metricSignals}
         onRegionOfInterestChange={vi.fn()}
         panels={panels}
@@ -88,6 +90,9 @@ describe('AnalysisWorkspaceChart', () => {
     expect(screen.getByText('Deterministic · no AI')).toBeInTheDocument()
     expect(screen.getByText('Clipping detected')).toBeInTheDocument()
     expect(screen.getByText('3 samples clipped')).toBeInTheDocument()
+    expect(screen.getByLabelText('Chart evidence context')).toHaveTextContent('Inspecting evidence for')
+    expect(screen.getByLabelText('Chart evidence context')).toHaveTextContent('Crest factor')
+    expect(screen.getByText('Aligned pair Channel 1 vs Channel 1 · A 6.784 ratio · B 5.664 ratio')).toBeInTheDocument()
     expect(screen.getByTestId('panel-waveform')).toHaveTextContent('Waveform')
   })
 })
