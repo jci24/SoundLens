@@ -72,7 +72,6 @@ public sealed class GetRecordingComparisonHandler(
                 entry.Target.ChannelIndex,
                 entry.Basis))
             .ToList();
-        var signalsById = waveformResponse.SelectedSignals.ToDictionary(signal => signal.SignalId, StringComparer.Ordinal);
 
         if (alignedSignals.Count == 0)
         {
@@ -82,6 +81,28 @@ public sealed class GetRecordingComparisonHandler(
                 .ToArray();
             ThrowError($"The selected recordings could not be compared safely. {string.Join(" ", reasons)}");
         }
+
+        TimeWaveformResponse metricsResponse;
+        try
+        {
+            metricsResponse = waveformService.BuildTimeWaveforms(
+                [fileA!, fileB!],
+                WaveformOptions.MinimumBinCount,
+                alignedSignals
+                    .SelectMany(pair => new[] { pair.SignalIdA, pair.SignalIdB })
+                    .Distinct(StringComparer.Ordinal)
+                    .ToArray(),
+                command.StartTimeSeconds,
+                command.EndTimeSeconds,
+                ct);
+        }
+        catch (ArgumentOutOfRangeException exception)
+        {
+            ThrowError(exception.Message);
+            throw;
+        }
+
+        var signalsById = metricsResponse.SelectedSignals.ToDictionary(signal => signal.SignalId, StringComparer.Ordinal);
 
         var limitations = alignment.Entries
             .Where(entry => entry.Outcome != SignalAlignmentOutcome.Matched)
@@ -151,6 +172,6 @@ public sealed class GetRecordingComparisonHandler(
             observations,
             aggregateMetrics,
             limitations,
-            waveformResponse.RegionOfInterest));
+            metricsResponse.RegionOfInterest));
     }
 }

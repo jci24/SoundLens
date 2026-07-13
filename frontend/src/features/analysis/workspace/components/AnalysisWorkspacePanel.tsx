@@ -25,6 +25,7 @@ interface IAnalysisWorkspacePanelProps {
 interface IAnalysisWorkspacePanelChartFrameProps {
   chartWidth: number
   chartItem: ReturnType<typeof useAnalysisWorkspacePanelCharts>[number]
+  isCompareMode: boolean
   onRegionOfInterestChange: (regionOfInterest: IAnalysisRegionOfInterest | null) => void
   panelSurface: IAnalysisWorkspacePanel['surface']
   regionOfInterest: IAnalysisRegionOfInterest | null
@@ -36,6 +37,7 @@ interface IAnalysisWorkspacePanelChartFrameProps {
 const AnalysisWorkspacePanelChartFrame = ({
   chartWidth,
   chartItem,
+  isCompareMode,
   onRegionOfInterestChange,
   panelSurface,
   regionOfInterest,
@@ -54,6 +56,7 @@ const AnalysisWorkspacePanelChartFrame = ({
         renderedChartWidth > 0 &&
         chartItem.waveformSignals.length > 0 && (
           <WaveformChart
+            density={isCompareMode ? 'compact' : 'default'}
             onRegionOfInterestChange={onRegionOfInterestChange}
             regionOfInterest={regionOfInterest}
             signals={chartItem.waveformSignals}
@@ -70,6 +73,7 @@ const AnalysisWorkspacePanelChartFrame = ({
         renderedChartWidth > 0 &&
         chartItem.spectrumSignals.length > 0 && (
           <SpectrumChart
+            density={isCompareMode ? 'compact' : 'default'}
             signals={chartItem.spectrumSignals}
             width={renderedChartWidth}
             xAxis={spectrumXAxis}
@@ -142,6 +146,7 @@ const AnalysisWorkspacePanel = ({
               <AnalysisWorkspacePanelChartFrame
                 chartItem={chartItem}
                 chartWidth={chartWidth}
+                isCompareMode={isCompareMode}
                 onRegionOfInterestChange={onRegionOfInterestChange}
                 panelSurface={panel.surface}
                 regionOfInterest={regionOfInterest}

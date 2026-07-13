@@ -10,13 +10,20 @@ import type { IFrequencySpectrumAxis, IFrequencySpectrumSignal } from '../../typ
 import './SpectrumChart.scss'
 
 interface ISpectrumChartProps {
+  density?: 'default' | 'compact'
   signals: IFrequencySpectrumSignal[]
   width: number
   xAxis: IFrequencySpectrumAxis
   yAxis: IFrequencySpectrumAxis
 }
 
-const SpectrumChart = ({ signals, width, xAxis, yAxis }: ISpectrumChartProps) => {
+const SpectrumChart = ({
+  density = 'default',
+  signals,
+  width,
+  xAxis,
+  yAxis,
+}: ISpectrumChartProps) => {
   const {
     chartHeight,
     chartPadding,
@@ -27,7 +34,7 @@ const SpectrumChart = ({ signals, width, xAxis, yAxis }: ISpectrumChartProps) =>
     xTicks,
     yForValue,
     yTicks,
-  } = getSpectrumChartModel(xAxis, yAxis, width)
+  } = getSpectrumChartModel(xAxis, yAxis, width, density)
   const {
     hoverState,
     onPointerLeave,

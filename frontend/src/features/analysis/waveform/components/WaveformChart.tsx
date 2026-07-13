@@ -10,6 +10,7 @@ import type { IAnalysisRegionOfInterest, ITimeWaveformAxis, ITimeWaveformSignal 
 import './WaveformChart.scss'
 
 interface IWaveformChartProps {
+  density?: 'default' | 'compact'
   onRegionOfInterestChange?: (regionOfInterest: IAnalysisRegionOfInterest | null) => void
   regionOfInterest?: IAnalysisRegionOfInterest | null
   signals: ITimeWaveformSignal[]
@@ -20,6 +21,7 @@ interface IWaveformChartProps {
 type TRegionDragMode = 'create' | 'resize-start' | 'resize-end'
 
 const WaveformChart = ({
+  density = 'default',
   onRegionOfInterestChange,
   regionOfInterest = null,
   signals,
@@ -37,7 +39,7 @@ const WaveformChart = ({
     xTicks,
     yForAmplitude,
     yTicks,
-  } = getWaveformChartModel(signals, yAxis, width)
+  } = getWaveformChartModel(signals, yAxis, width, density)
   const [draftRegion, setDraftRegion] = useState<IAnalysisRegionOfInterest | null>(null)
   const [dragMode, setDragMode] = useState<TRegionDragMode | null>(null)
   const [dragAnchorTime, setDragAnchorTime] = useState<number | null>(null)

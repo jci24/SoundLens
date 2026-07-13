@@ -4,7 +4,45 @@ import type {
   IFrequencySpectrumSignal,
 } from '../../types'
 
-const getSpectrumChartDimensions = (width: number) => {
+type TChartDensity = 'default' | 'compact'
+
+const getSpectrumChartDimensions = (width: number, density: TChartDensity) => {
+  if (density === 'compact') {
+    if (width <= 720) {
+      return {
+        chartHeight: 168,
+        chartPadding: {
+          top: 12,
+          right: 12,
+          bottom: 28,
+          left: 46,
+        },
+      }
+    }
+
+    if (width <= 1080) {
+      return {
+        chartHeight: 184,
+        chartPadding: {
+          top: 14,
+          right: 14,
+          bottom: 30,
+          left: 54,
+        },
+      }
+    }
+
+    return {
+      chartHeight: 196,
+      chartPadding: {
+        top: 16,
+        right: 16,
+        bottom: 32,
+        left: 58,
+      },
+    }
+  }
+
   if (width <= 720) {
     return {
       chartHeight: 220,
@@ -43,9 +81,10 @@ const getSpectrumChartDimensions = (width: number) => {
 const getSpectrumChartModel = (
   xAxis: IFrequencySpectrumAxis,
   yAxis: IFrequencySpectrumAxis,
-  width: number
+  width: number,
+  density: TChartDensity = 'default'
 ) => {
-  const { chartHeight, chartPadding } = getSpectrumChartDimensions(width)
+  const { chartHeight, chartPadding } = getSpectrumChartDimensions(width, density)
   const plotWidth = Math.max(1, width - chartPadding.left - chartPadding.right)
   const plotHeight = chartHeight - chartPadding.top - chartPadding.bottom
   const minFrequency = xAxis.minimum

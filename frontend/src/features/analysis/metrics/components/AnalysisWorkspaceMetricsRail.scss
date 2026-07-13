@@ -126,29 +126,29 @@
 
 .time-waveform-workspace--compare {
   .time-waveform-workspace__metrics-rail {
-    padding: 0.3rem 0.7rem 0.35rem;
+    padding: 0.24rem 0.55rem 0.28rem;
     border-radius: 0.95rem;
   }
 
   .time-waveform-workspace__metrics-rail-header {
-    margin-bottom: 0.2rem;
+    margin-bottom: 0.14rem;
   }
 
   .time-waveform-workspace__metrics-scroll {
-    max-height: 6.5rem;
+    max-height: 5.5rem;
   }
 
   .time-waveform-workspace__metrics-table {
     th {
-      padding: 0.14rem 0.4rem 0.16rem;
+      padding: 0.1rem 0.34rem 0.12rem;
     }
 
     td {
-      padding: 0.14rem 0.4rem;
+      padding: 0.1rem 0.34rem;
     }
   }
 
   .time-waveform-workspace__metrics-signal-cell {
-    max-width: 9rem;
+    max-width: 8rem;
   }
 }
