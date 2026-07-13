@@ -515,6 +515,12 @@ const TimeWaveformWorkspace = ({ importedFiles, isCopilotOpen, onCopilotToggle }
           <AnalysisWorkspaceChart
             chartRef={chartRef}
             chartWidth={chartWidth}
+            compareEvidenceSummary={
+              activeMetric && activeObservation
+                ? `Aligned pair ${activeObservation.displayNameA} vs ${activeObservation.displayNameB} · A ${formatAggregateValue(getObservationValue(activeObservation, activeMetric.metricKey, 'A'), activeMetric.unit)} · B ${formatAggregateValue(getObservationValue(activeObservation, activeMetric.metricKey, 'B'), activeMetric.unit)}`
+                : null
+            }
+            compareEvidenceTitle={activeMetric ? formatComparisonMetricLabel(activeMetric.metricKey) : null}
             hasMetricsPending={hasMetricsPending}
             isCompareMode={layoutMode === 'compare'}
             metricSignals={metricSignals}

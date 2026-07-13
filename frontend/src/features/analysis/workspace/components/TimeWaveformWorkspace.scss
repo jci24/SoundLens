@@ -494,6 +494,36 @@
     gap: 0.45rem;
   }
 
+  &__evidence-bridge {
+    display: grid;
+    gap: 0.18rem;
+    padding: 0.58rem 0.74rem 0.52rem;
+    border: 1px solid color-mix(in srgb, var(--border) 78%, transparent);
+    border-radius: 0.95rem;
+    background: color-mix(in srgb, white 80%, var(--card) 20%);
+  }
+
+  &__evidence-bridge-kicker {
+    color: var(--muted-foreground);
+    font-size: 0.68rem;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+
+  &__evidence-bridge-title {
+    color: var(--foreground);
+    font-size: var(--font-sm);
+    font-weight: 680;
+  }
+
+  &__evidence-bridge-copy {
+    margin: 0;
+    color: var(--muted-foreground);
+    font-size: var(--font-xs);
+    line-height: 1.4;
+  }
+
   &__panel-grid {
     display: grid;
     flex: 1;
@@ -597,6 +627,12 @@
       overflow: visible;
       gap: 0.22rem;
       padding-bottom: 0.3rem;
+    }
+
+    .time-waveform-workspace__evidence-bridge {
+      gap: 0.12rem;
+      padding: 0.42rem 0.54rem 0.4rem;
+      border-radius: 0.8rem;
     }
 
     .time-waveform-workspace__panel-grid {
