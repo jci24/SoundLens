@@ -101,6 +101,14 @@ public static class AgentToolDefinitions
                       "type": "array",
                       "items": { "type": "string" },
                       "description": "List of signal IDs to compare. Must contain at least 2 signal IDs."
+                    },
+                    "startTimeSeconds": {
+                      "type": "number",
+                      "description": "Optional start of a time region of interest in seconds."
+                    },
+                    "endTimeSeconds": {
+                      "type": "number",
+                      "description": "Optional end of a time region of interest in seconds. Must be provided with startTimeSeconds."
                     }
                   },
                   "required": ["signalIds"],

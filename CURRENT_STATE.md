@@ -72,11 +72,13 @@ These findings are useful first-pass cues, but they should still be treated as b
 ## Current Copilot Behavior
 
 - `POST /api/agent/query` runs an OpenAI tool-calling loop against the current imported-session context.
+- Simple factual multi-signal comparison questions about RMS loudness, peak amplitude, or clipping now bypass the freeform OpenAI path when enough signal IDs are already selected.
+- That deterministic factual path uses backend-owned `compare_signals` evidence directly and still works when the OpenAI API key is missing.
 - The backend exposes compact deterministic tools such as metrics, findings, spectrum summaries, and signal comparison summaries.
 - The response returns structured answer text, cited evidence, limitations, next steps, and tools used.
 - If the OpenAI API key is missing, the endpoint returns a structured unavailable response instead of a bare `503`.
 
-The current Copilot is grounded, but it is still operating over a workspace model rather than a first-class comparison model.
+The current Copilot is more grounded for factual comparison questions, but it is still operating over a workspace model rather than a first-class comparison model.
 
 ## Current Report Export
 
@@ -127,6 +129,7 @@ The repo is still intentionally simple: no extra backend projects, no persistenc
 - Ranked differences currently support one recording from Compare A versus one recording from Compare B
 - Multi-recording group comparison is not yet available; when several recordings are assigned to one side, the UI shows the active pair and queued overflow rather than aggregating larger cohorts
 - Coverage visibility is still lightweight: users see evidence-strength cues, limitation counts, and limitation text, but not yet a dedicated coverage breakdown view
+- Deterministic factual Copilot answers currently cover a narrow comparison question set only: RMS loudness, peak amplitude, and clipping across multiple selected signals
 - No persisted project or dataset model
 - Calibration handling remains lightweight and mostly limited to dBFS caveats plus calibrated flags
 - Copilot and report export still operate on workspace context more than comparison objects
