@@ -15,11 +15,6 @@ const FindingsPanel = ({ signals }: IFindingsPanelProps) => {
 
   return (
     <section className="findings-panel" aria-label="Signal findings">
-      <header className="findings-panel__header">
-        <span className="findings-panel__title">Findings</span>
-        <span className="findings-panel__subtitle">Deterministic · no AI</span>
-      </header>
-
       <div className="findings-panel__body">
         {signalsWithFindings.map((signal) => (
           <div className="findings-panel__signal-group" key={signal.signalId}>

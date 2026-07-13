@@ -32,6 +32,13 @@
     background: color-mix(in srgb, var(--card) 84%, white 16%);
   }
 
+  &__panel-shell[aria-label='Waveform panel'],
+  &__panel-shell[aria-label='Spectrum panel'] {
+    .time-waveform-workspace__panel-header {
+      background: transparent;
+    }
+  }
+
   &__panel-title {
     margin: 0;
     color: var(--muted-foreground);
@@ -114,7 +121,10 @@
 
 .time-waveform-workspace--compare {
   .time-waveform-workspace__panel-shell {
-    border-radius: 1rem;
+    border-radius: 0.95rem;
+    box-shadow:
+      inset 0 1px 0 color-mix(in srgb, white 68%, transparent),
+      0 10px 22px -24px color-mix(in srgb, black 12%, transparent);
   }
 
   .time-waveform-workspace__panel-header {
@@ -128,10 +138,29 @@
   }
 
   .time-waveform-workspace__panel-chart-grid--compare {
-    padding: 0.24rem;
+    padding: 0.18rem 0.12rem 0.16rem;
   }
 
   .time-waveform-workspace__panel-chart-card-header {
     padding: 0.24rem 0.4rem 0.22rem;
+  }
+
+  .time-waveform-workspace__panel-chart-grid--compare .time-waveform-workspace__panel-chart-card {
+    border: 0;
+    border-radius: 0;
+    background: transparent;
+  }
+
+  .time-waveform-workspace__panel-chart-grid--compare .time-waveform-workspace__panel-chart-card-header {
+    padding: 0.14rem 0.22rem 0.08rem;
+    border-bottom: 0;
+    background: transparent;
+  }
+
+  .time-waveform-workspace__panel-chart-grid--compare .time-waveform-workspace__panel-chart-card-title {
+    font-size: 0.7rem;
+    font-weight: 550;
+    letter-spacing: 0.01em;
+    opacity: 0.78;
   }
 }

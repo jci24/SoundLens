@@ -1,40 +1,21 @@
 .time-waveform-workspace {
   &__metrics-rail {
     min-width: 0;
-    padding: 0.45rem 0.9rem 0.5rem;
-    border: 1px solid color-mix(in srgb, var(--border) 82%, transparent);
-    border-radius: 1.2rem;
-    background:
-      linear-gradient(
-        180deg,
-        color-mix(in srgb, var(--card) 98%, white 2%),
-        color-mix(in srgb, var(--card) 94%, var(--muted) 6%)
-      );
-    box-shadow:
-      inset 0 1px 0 color-mix(in srgb, white 76%, transparent),
-      0 14px 30px -26px color-mix(in srgb, black 14%, transparent),
-      0 2px 8px color-mix(in srgb, black 4%, transparent);
+    padding: 0.16rem 0 0.22rem;
+    border-top: 1px solid color-mix(in srgb, var(--border) 84%, transparent);
   }
 
   &__metrics-rail-header {
     display: flex;
     align-items: center;
-    justify-content: space-between;
+    justify-content: flex-end;
     gap: 0.75rem;
-    margin-bottom: 0.3rem;
+    margin-bottom: 0.18rem;
   }
 
-  &__metrics-rail-title,
   &__metrics-rail-hint {
     font-size: var(--font-xs);
     line-height: 1.2;
-  }
-
-  &__metrics-rail-title {
-    color: var(--muted-foreground);
-    font-weight: 500;
-    letter-spacing: 0.01em;
-    opacity: 0.88;
   }
 
   &__metrics-rail-hint {
@@ -59,7 +40,7 @@
       position: sticky;
       top: 0;
       z-index: 1;
-      background: color-mix(in srgb, var(--card) 96%, var(--muted) 4%);
+      background: color-mix(in srgb, var(--card) 98%, transparent);
     }
 
     th {
@@ -126,12 +107,7 @@
 
 .time-waveform-workspace--compare {
   .time-waveform-workspace__metrics-rail {
-    padding: 0.24rem 0.55rem 0.28rem;
-    border-radius: 0.95rem;
-  }
-
-  .time-waveform-workspace__metrics-rail-header {
-    margin-bottom: 0.14rem;
+    padding: 0.12rem 0 0.14rem;
   }
 
   .time-waveform-workspace__metrics-scroll {

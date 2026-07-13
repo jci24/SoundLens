@@ -1,36 +1,11 @@
 .findings-panel {
-  min-height: 3.25rem;
+  min-height: 2.4rem;
   border-top: 1px solid color-mix(in srgb, var(--border) 72%, transparent);
-
-  &--empty {
-    visibility: hidden;
-    pointer-events: none;
-  }
-
-  &__header {
-    display: flex;
-    align-items: baseline;
-    gap: 0.5rem;
-    padding: 0.5rem 0.9rem 0.3rem;
-  }
-
-  &__title {
-    font-size: var(--font-xs);
-    font-weight: 700;
-    text-transform: uppercase;
-    letter-spacing: 0.06em;
-    color: var(--muted-foreground);
-  }
-
-  &__subtitle {
-    font-size: var(--font-xs);
-    color: color-mix(in srgb, var(--muted-foreground) 55%, transparent);
-    font-style: italic;
-  }
 
   &__body {
     display: flex;
     flex-direction: column;
+    padding-top: 0.18rem;
   }
 
   &__signal-group {
@@ -68,12 +43,7 @@
 
 .time-waveform-workspace--compare {
   .findings-panel {
-    min-height: 2.75rem;
-  }
-
-  .findings-panel__header {
-    gap: 0.35rem;
-    padding: 0.35rem 0.7rem 0.2rem;
+    min-height: 2rem;
   }
 
   .findings-panel__signal-label {
