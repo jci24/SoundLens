@@ -40,6 +40,7 @@ Turn the current analysis workspace into a focused comparison workflow for repea
 - lightweight coverage cues and limitation messaging
 - compare-mode UX cleanup and lower-density layout
 - active-pair plus queued-overflow messaging for multi-assignment states
+- deterministic factual Copilot answers for selected-signal RMS, peak, and clipping comparisons
 
 ## Ordered Thin Tasks
 
@@ -67,29 +68,6 @@ Proposed branch name:
 Dependencies:
 - shipped pairwise comparison UI
 
-### A9. Deterministic Factual Comparison Answers
-
-User value:
-- A user gets direct factual comparison answers without paying the cost or risk of an LLM when it is unnecessary.
-
-Thin-slice boundary:
-- Introduce deterministic answer routing for factual comparison questions only.
-
-Acceptance criteria:
-- simple factual comparison queries bypass freeform LLM narration
-- answers cite deterministic comparison evidence
-- unsupported questions are clearly separated from answerable ones
-
-Test expectations:
-- backend routing tests
-- comparison-answer regression cases in the eval harness
-
-Proposed branch name:
-- `codex/comparison-factual-answers`
-
-Dependencies:
-- `A8`
-
 ### A10. AI Evidence Explanation
 
 User value:
@@ -112,7 +90,6 @@ Proposed branch name:
 
 Dependencies:
 - `A8`
-- `A9`
 
 ### A11. Comparison Report
 

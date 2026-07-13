@@ -5,6 +5,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using OpenAI.Chat;
 using SoundLens.Api.Features.Agent.Responses;
+using SoundLens.Api.Features.Waveforms.Common;
 
 namespace SoundLens.Tests;
 
@@ -50,7 +51,7 @@ public sealed class AgentQueryEndpointTests : IClassFixture<WebApplicationFactor
                 "/api/agent/query",
                 new
                 {
-                    question = "Which signal is louder?"
+                    question = "Why does this signal sound sharp?"
                 });
 
             Assert.Equal(HttpStatusCode.OK, response.StatusCode);
@@ -66,6 +67,77 @@ public sealed class AgentQueryEndpointTests : IClassFixture<WebApplicationFactor
         finally
         {
             File.Delete(tempPath);
+        }
+    }
+
+    [Fact]
+    public async Task ReturnsDeterministicComparisonAnswerWithoutApiKeyWhenTwoSignalsAreSelected()
+    {
+        var quietPath = Path.Combine(Path.GetTempPath(), $"soundlens_agent_query_quiet_{Guid.NewGuid():N}.wav");
+        var loudPath = Path.Combine(Path.GetTempPath(), $"soundlens_agent_query_loud_{Guid.NewGuid():N}.wav");
+        await File.WriteAllBytesAsync(quietPath, CreateMono16BitWav(
+            sampleRate: 8,
+            samples: [8192, 8192, 8192, 8192]));
+        await File.WriteAllBytesAsync(loudPath, CreateMono16BitWav(
+            sampleRate: 8,
+            samples: [16384, 16384, 16384, 16384]));
+
+        using var client = _factory.CreateClient();
+        try
+        {
+            var importResponse = await client.PostAsJsonAsync(
+                "/api/import",
+                new
+                {
+                    filePaths = new[] { quietPath, loudPath }
+                });
+
+            importResponse.EnsureSuccessStatusCode();
+
+            var waveformResponse = await client.PostAsJsonAsync(
+                "/api/waveforms/time",
+                new
+                {
+                    binCount = 64,
+                    signalIds = Array.Empty<string>(),
+                    startTimeSeconds = (double?)null,
+                    endTimeSeconds = (double?)null
+                });
+
+            waveformResponse.EnsureSuccessStatusCode();
+
+            var waveformPayload = await waveformResponse.Content.ReadFromJsonAsync<TimeWaveformResponse>();
+            Assert.NotNull(waveformPayload);
+
+            var signalIds = waveformPayload!.Recordings
+                .SelectMany(recording => recording.Signals)
+                .Select(signal => signal.SignalId)
+                .ToArray();
+
+            Assert.Equal(2, signalIds.Length);
+
+            var response = await client.PostAsJsonAsync(
+                "/api/agent/query",
+                new
+                {
+                    question = "Which signal is louder by RMS?",
+                    signalIds
+                });
+
+            Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+
+            var payload = await response.Content.ReadFromJsonAsync<AgentQueryResponse>();
+            Assert.NotNull(payload);
+            Assert.Contains("loudest by RMS", payload!.Answer, StringComparison.OrdinalIgnoreCase);
+            Assert.DoesNotContain("not configured", payload.Answer, StringComparison.OrdinalIgnoreCase);
+            Assert.Equal(new[] { "compare_signals" }, payload.ToolsUsed);
+            Assert.NotEmpty(payload.CitedEvidence);
+            Assert.Contains(payload.Limitations, item => item.Contains("dBFS", StringComparison.OrdinalIgnoreCase));
+        }
+        finally
+        {
+            File.Delete(quietPath);
+            File.Delete(loudPath);
         }
     }
 

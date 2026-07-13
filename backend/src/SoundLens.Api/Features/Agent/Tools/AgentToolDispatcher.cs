@@ -216,6 +216,7 @@ public sealed class AgentToolDispatcher(
             .Where(e => e.ValueKind == JsonValueKind.String)
             .Select(e => e.GetString()!)
             .ToList();
+        var (startSec, endSec) = ParseRoi(argumentsJson);
 
         if (signalIds.Count < 2)
         {
@@ -232,8 +233,8 @@ public sealed class AgentToolDispatcher(
             files,
             requestedBinCount: 512,
             selectedSignalIds: signalIds,
-            startTimeSeconds: null,
-            endTimeSeconds: null,
+            startTimeSeconds: startSec,
+            endTimeSeconds: endSec,
             cancellationToken: ct);
 
         var rows = response.SelectedSignals.Select(s => new
