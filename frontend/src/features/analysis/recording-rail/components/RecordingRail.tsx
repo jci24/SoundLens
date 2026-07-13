@@ -26,6 +26,18 @@ const assignmentBadgeLabels: Record<TComparisonGroupAssignment, string> = {
   B: 'B',
 }
 
+const formatCompareTargetSummary = (recordings: ITimeWaveformRecording[]) => {
+  if (recordings.length === 0) {
+    return 'Choose a recording'
+  }
+
+  if (recordings.length === 1) {
+    return recordings[0].fileName
+  }
+
+  return `${recordings.length} recordings selected`
+}
+
 const RecordingRail = ({
   expandedRecordings,
   onRecordingGroupAssignment,
@@ -34,108 +46,138 @@ const RecordingRail = ({
   recordings,
   recordingGroupAssignments,
   selectedSignalIds,
-}: IRecordingRailProps) => (
-  <aside className="time-waveform-workspace__recording-rail" aria-label="Imported recordings and channels">
-    <div className="time-waveform-workspace__recording-rail-header">
-      <span className="time-waveform-workspace__recording-rail-title">Comparison inputs</span>
-      <span className="time-waveform-workspace__recording-rail-hint">Open a recording to assign it to A or B.</span>
-    </div>
+}: IRecordingRailProps) => {
+  const groupARecordings = recordings.filter(
+    (recording) => (recordingGroupAssignments[recording.recordingId] ?? 'unassigned') === 'A'
+  )
+  const groupBRecordings = recordings.filter(
+    (recording) => (recordingGroupAssignments[recording.recordingId] ?? 'unassigned') === 'B'
+  )
 
-    <div className="time-waveform-workspace__recording-list">
-      {recordings.map((recording) => (
-        <section
-          className={`time-waveform-workspace__recording-group${expandedRecordings.includes(recording.recordingId) ? ' time-waveform-workspace__recording-group--expanded' : ''}`}
-          key={recording.recordingId}
-        >
-          <div className="time-waveform-workspace__recording-group-header">
-            <button
-              className="time-waveform-workspace__recording-toggle"
-              type="button"
-              onClick={() => onRecordingToggle(recording.recordingId)}
-            >
-              <span className="time-waveform-workspace__recording-heading">
-                <ChevronRight
-                  className={`time-waveform-workspace__recording-chevron${expandedRecordings.includes(recording.recordingId) ? ' time-waveform-workspace__recording-chevron--open' : ''}`}
-                  size={14}
-                />
-                <span className="time-waveform-workspace__recording-name">{recording.fileName}</span>
+  return (
+    <aside className="time-waveform-workspace__recording-rail" aria-label="Imported recordings and channels">
+      <div className="time-waveform-workspace__recording-rail-header">
+        <span className="time-waveform-workspace__recording-rail-title">Compare builder</span>
+        <span className="time-waveform-workspace__recording-rail-hint">
+          Choose one recording for Compare A and one for Compare B. Assigning a new one replaces the current choice.
+        </span>
+      </div>
+
+      <section className="time-waveform-workspace__compare-targets" aria-label="Compare targets">
+        <div className="time-waveform-workspace__compare-target time-waveform-workspace__compare-target--A">
+          <span className="time-waveform-workspace__compare-target-label">Compare A</span>
+          <strong className="time-waveform-workspace__compare-target-value">
+            {formatCompareTargetSummary(groupARecordings)}
+          </strong>
+        </div>
+        <div className="time-waveform-workspace__compare-target time-waveform-workspace__compare-target--B">
+          <span className="time-waveform-workspace__compare-target-label">Compare B</span>
+          <strong className="time-waveform-workspace__compare-target-value">
+            {formatCompareTargetSummary(groupBRecordings)}
+          </strong>
+        </div>
+      </section>
+
+      <div className="time-waveform-workspace__recording-list">
+        {recordings.map((recording) => (
+          <section
+            className={`time-waveform-workspace__recording-group${expandedRecordings.includes(recording.recordingId) ? ' time-waveform-workspace__recording-group--expanded' : ''}`}
+            key={recording.recordingId}
+          >
+            <div className="time-waveform-workspace__recording-group-header">
+              <button
+                className="time-waveform-workspace__recording-toggle"
+                type="button"
+                onClick={() => onRecordingToggle(recording.recordingId)}
+              >
+                <span className="time-waveform-workspace__recording-heading">
+                  <ChevronRight
+                    className={`time-waveform-workspace__recording-chevron${expandedRecordings.includes(recording.recordingId) ? ' time-waveform-workspace__recording-chevron--open' : ''}`}
+                    size={14}
+                  />
+                  <span className="time-waveform-workspace__recording-name">{recording.fileName}</span>
+                </span>
+              </button>
+              <span
+                className={`time-waveform-workspace__recording-assignment-badge time-waveform-workspace__recording-assignment-badge--${recordingGroupAssignments[recording.recordingId] ?? 'unassigned'}`}
+                title={assignmentLabels[recordingGroupAssignments[recording.recordingId] ?? 'unassigned']}
+              >
+                {assignmentBadgeLabels[recordingGroupAssignments[recording.recordingId] ?? 'unassigned']}
               </span>
-            </button>
-            <span
-              className={`time-waveform-workspace__recording-assignment-badge time-waveform-workspace__recording-assignment-badge--${recordingGroupAssignments[recording.recordingId] ?? 'unassigned'}`}
-              title={assignmentLabels[recordingGroupAssignments[recording.recordingId] ?? 'unassigned']}
-            >
-              {assignmentBadgeLabels[recordingGroupAssignments[recording.recordingId] ?? 'unassigned']}
-            </span>
-          </div>
+            </div>
 
-          {expandedRecordings.includes(recording.recordingId) && (
-            <div className="time-waveform-workspace__recording-detail">
-              <div className="time-waveform-workspace__assignment-panel">
-                <span className="time-waveform-workspace__assignment-caption">Assignment</span>
-                <div
-                  aria-label={`${recording.fileName} comparison group`}
-                  className="time-waveform-workspace__assignment-picker"
-                  role="group"
-                >
-                  {(['A', 'B', 'unassigned'] as const).map((assignment) => {
-                    const isActive = (recordingGroupAssignments[recording.recordingId] ?? 'unassigned') === assignment
+            {expandedRecordings.includes(recording.recordingId) && (
+              <div className="time-waveform-workspace__recording-detail">
+                <div className="time-waveform-workspace__assignment-panel">
+                  <span className="time-waveform-workspace__assignment-caption">Send this recording to</span>
+                  <div
+                    aria-label={`${recording.fileName} comparison group`}
+                    className="time-waveform-workspace__assignment-picker"
+                    role="group"
+                  >
+                    {(['A', 'B', 'unassigned'] as const).map((assignment) => {
+                      const isActive = (recordingGroupAssignments[recording.recordingId] ?? 'unassigned') === assignment
+
+                      return (
+                        <button
+                          key={assignment}
+                          aria-pressed={isActive}
+                          className={`time-waveform-workspace__assignment-button${isActive ? ' time-waveform-workspace__assignment-button--active' : ''}`}
+                          type="button"
+                          onClick={() => onRecordingGroupAssignment(recording.recordingId, assignment)}
+                        >
+                          {assignment === 'A'
+                            ? 'Compare A'
+                            : assignment === 'B'
+                              ? 'Compare B'
+                              : 'Keep out'}
+                        </button>
+                      )
+                    })}
+                  </div>
+                </div>
+
+                <div className="time-waveform-workspace__signal-list">
+                  <span className="time-waveform-workspace__signal-list-caption">Signals</span>
+                  {recording.signals.map((signal) => {
+                    const isSelected = selectedSignalIds.includes(signal.signalId)
 
                     return (
-                      <button
-                        key={assignment}
-                        aria-pressed={isActive}
-                        className={`time-waveform-workspace__assignment-button${isActive ? ' time-waveform-workspace__assignment-button--active' : ''}`}
-                        type="button"
-                        onClick={() => onRecordingGroupAssignment(recording.recordingId, assignment)}
+                      <Field
+                        className={`time-waveform-workspace__signal-row${isSelected ? ' time-waveform-workspace__signal-row--selected' : ''}`}
+                        data-selected={isSelected}
+                        key={signal.signalId}
+                        orientation="horizontal"
                       >
-                        {assignmentLabels[assignment]}
-                      </button>
+                        <Checkbox
+                          checked={isSelected}
+                          className="time-waveform-workspace__signal-checkbox"
+                          id={signal.signalId}
+                          onCheckedChange={() => onSignalSelection(signal.signalId)}
+                        />
+                        <FieldLabel
+                          className="time-waveform-workspace__signal-label"
+                          htmlFor={signal.signalId}
+                        >
+                          {signal.displayName}
+                        </FieldLabel>
+                      </Field>
                     )
                   })}
                 </div>
               </div>
+            )}
+          </section>
+        ))}
+      </div>
 
-              <div className="time-waveform-workspace__signal-list">
-                <span className="time-waveform-workspace__signal-list-caption">Signals</span>
-                {recording.signals.map((signal) => {
-                  const isSelected = selectedSignalIds.includes(signal.signalId)
-
-                  return (
-                    <Field
-                      className={`time-waveform-workspace__signal-row${isSelected ? ' time-waveform-workspace__signal-row--selected' : ''}`}
-                      data-selected={isSelected}
-                      key={signal.signalId}
-                      orientation="horizontal"
-                    >
-                      <Checkbox
-                        checked={isSelected}
-                        className="time-waveform-workspace__signal-checkbox"
-                        id={signal.signalId}
-                        onCheckedChange={() => onSignalSelection(signal.signalId)}
-                      />
-                      <FieldLabel
-                        className="time-waveform-workspace__signal-label"
-                        htmlFor={signal.signalId}
-                      >
-                        {signal.displayName}
-                      </FieldLabel>
-                    </Field>
-                  )
-                })}
-              </div>
-            </div>
-          )}
-        </section>
-      ))}
-    </div>
-
-    <footer className="time-waveform-workspace__selection-footprint" aria-label="Selection summary">
-      <span className="time-waveform-workspace__selection-footprint-label">
-        {selectedSignalIds.length} selected
-      </span>
-    </footer>
-  </aside>
-)
+      <footer className="time-waveform-workspace__selection-footprint" aria-label="Selection summary">
+        <span className="time-waveform-workspace__selection-footprint-label">
+          {selectedSignalIds.length} selected
+        </span>
+      </footer>
+    </aside>
+  )
+}
 
 export { RecordingRail }

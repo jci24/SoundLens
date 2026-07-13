@@ -120,9 +120,17 @@
   &__comparison-guidance {
     display: flex;
     align-items: center;
-    gap: 0.7rem;
+    justify-content: space-between;
+    gap: 0.9rem;
     min-height: 2.8rem;
-    padding: 0 0.15rem;
+    padding: 0.15rem 0.2rem;
+  }
+
+  &__comparison-guidance-main {
+    display: flex;
+    align-items: center;
+    gap: 0.7rem;
+    min-width: 0;
   }
 
   &__comparison-guidance-label {
@@ -142,22 +150,74 @@
     margin: 0;
     color: var(--muted-foreground);
     font-size: var(--font-sm);
-    line-height: 1.45;
+    line-height: 1.35;
+  }
+
+  &__comparison-guidance-pair {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.45rem;
+    flex-shrink: 0;
+  }
+
+  &__comparison-guidance-pair-divider {
+    color: color-mix(in srgb, var(--muted-foreground) 82%, transparent);
+    font-size: 0.72rem;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+
+  &__comparison-guidance-pair-pill {
+    display: inline-flex;
+    align-items: flex-start;
+    gap: 0.35rem;
+    min-width: 0;
+    padding: 0.4rem 0.62rem;
+    border: 1px solid color-mix(in srgb, var(--border) 78%, transparent);
+    border-radius: 0.8rem;
+    background: color-mix(in srgb, var(--card) 96%, white 4%);
+    color: var(--foreground);
+    font-size: var(--font-xs);
+  }
+
+  &__comparison-guidance-pair-pill strong {
+    flex-shrink: 0;
+    font-size: 0.66rem;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+
+  &__comparison-guidance-pair-pill span {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  &__comparison-guidance-pair-pill--A {
+    border-color: color-mix(in srgb, var(--foreground) 10%, var(--border));
+    background: color-mix(in srgb, white 84%, var(--card) 16%);
+  }
+
+  &__comparison-guidance-pair-pill--B {
+    border-color: color-mix(in srgb, var(--foreground) 10%, var(--border));
+    background: color-mix(in srgb, white 84%, var(--card) 16%);
   }
 
   &__comparison-guidance--valid .time-waveform-workspace__comparison-guidance-label {
-    background: color-mix(in srgb, oklch(0.9 0.04 155) 82%, white 18%);
-    color: color-mix(in srgb, oklch(0.42 0.11 155) 88%, black 12%);
+    background: color-mix(in srgb, var(--muted) 74%, white 26%);
+    color: var(--foreground);
   }
 
   &__comparison-guidance--incomplete .time-waveform-workspace__comparison-guidance-label {
-    background: color-mix(in srgb, oklch(0.94 0.04 92) 84%, white 16%);
-    color: color-mix(in srgb, oklch(0.5 0.11 80) 88%, black 12%);
+    background: color-mix(in srgb, var(--muted) 74%, white 26%);
+    color: var(--foreground);
   }
 
   &__comparison-guidance--invalid .time-waveform-workspace__comparison-guidance-label {
-    background: color-mix(in srgb, oklch(0.95 0.03 25) 84%, white 16%);
-    color: color-mix(in srgb, oklch(0.5 0.14 25) 88%, black 12%);
+    background: color-mix(in srgb, var(--muted) 74%, white 26%);
+    color: var(--foreground);
   }
 
   &__comparison-results {
@@ -217,7 +277,7 @@
 
   &__comparison-ranking {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(11rem, 1fr));
+    grid-template-columns: repeat(auto-fit, minmax(13rem, 1fr));
     gap: 0.7rem;
   }
 
@@ -235,8 +295,8 @@
   }
 
   &__comparison-ranking-card--active {
-    border-color: color-mix(in srgb, oklch(0.56 0.11 190) 48%, var(--border));
-    background: color-mix(in srgb, oklch(0.96 0.02 190) 76%, white 24%);
+    border-color: color-mix(in srgb, var(--foreground) 14%, var(--border));
+    background: color-mix(in srgb, var(--muted) 38%, white 10%);
     box-shadow: inset 0 1px 0 color-mix(in srgb, white 80%, transparent);
   }
 
@@ -263,9 +323,17 @@
     flex-direction: column;
     gap: 0.7rem;
     padding: 0.9rem 0.95rem;
-    border: 1px solid color-mix(in srgb, var(--border) 84%, transparent);
+    border: 1px solid color-mix(in srgb, var(--foreground) 10%, var(--border));
     border-radius: 0.95rem;
-    background: color-mix(in srgb, var(--card) 90%, white 10%);
+    background:
+      linear-gradient(
+        135deg,
+        color-mix(in srgb, white 90%, var(--card) 10%),
+        color-mix(in srgb, var(--card) 92%, white 8%)
+      );
+    box-shadow:
+      inset 0 1px 0 color-mix(in srgb, white 82%, transparent),
+      0 16px 26px -24px color-mix(in srgb, black 24%, transparent);
   }
 
   &__comparison-focus-grid {
@@ -278,6 +346,10 @@
     display: flex;
     flex-direction: column;
     gap: 0.2rem;
+    padding: 0.35rem 0.4rem;
+    border: 1px solid color-mix(in srgb, var(--border) 74%, transparent);
+    border-radius: 0.75rem;
+    background: color-mix(in srgb, white 72%, var(--card) 28%);
   }
 
   &__comparison-focus-stat span {
@@ -296,7 +368,7 @@
 
   &__comparison-focus-copy {
     margin: 0;
-    color: var(--muted-foreground);
+    color: color-mix(in srgb, var(--muted-foreground) 92%, var(--foreground));
     font-size: var(--font-sm);
     line-height: 1.5;
   }
@@ -455,13 +527,13 @@
 
   &--compare {
     .time-waveform-workspace__body {
-      grid-template-columns: minmax(11rem, 13.25rem) minmax(0, 1fr);
-      padding: 0.38rem 0.52rem 0.52rem;
-      gap: 0.4rem;
+      grid-template-columns: minmax(13.5rem, 15.5rem) minmax(0, 1fr);
+      padding: 0.46rem 0.62rem 0.58rem;
+      gap: 0.52rem;
     }
 
     .time-waveform-workspace__main-pane {
-      gap: 0.22rem;
+      gap: 0.34rem;
     }
 
     .time-waveform-workspace__visual-stack {
@@ -486,12 +558,18 @@
     }
 
     .time-waveform-workspace__comparison-guidance {
-      min-height: 2.05rem;
+      min-height: 2.65rem;
+      padding: 0.48rem 0.64rem;
+      border: 1px solid color-mix(in srgb, var(--border) 80%, transparent);
+      border-radius: 0.95rem;
+      background:
+        linear-gradient(135deg, color-mix(in srgb, var(--card) 97%, white 3%), color-mix(in srgb, oklch(0.97 0.01 190) 12%, white 88%));
+      box-shadow: 0 14px 28px -26px color-mix(in srgb, black 24%, transparent);
     }
 
     .time-waveform-workspace__comparison-results {
-      gap: 0.5rem;
-      padding: 0.62rem 0.68rem;
+      gap: 0.62rem;
+      padding: 0.7rem 0.8rem;
     }
 
     .time-waveform-workspace__roi-summary {
@@ -510,13 +588,45 @@
   }
 
   &--compare &__comparison-ranking {
-    gap: 0.45rem;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.5rem;
   }
 
   &--compare &__comparison-ranking-card {
     gap: 0.22rem;
-    padding: 0.58rem 0.62rem;
+    min-height: 5.25rem;
+    padding: 0.62rem 0.66rem;
     border-radius: 0.8rem;
+  }
+
+  &--compare &__comparison-guidance-main {
+    gap: 0.55rem;
+  }
+
+  &--compare &__comparison-guidance-copy {
+    font-size: var(--font-xs);
+  }
+
+  &--compare &__comparison-guidance-pair {
+    gap: 0.32rem;
+  }
+
+  &--compare &__comparison-guidance-pair-pill {
+    padding: 0.3rem 0.46rem;
+    border-radius: 0.72rem;
+  }
+
+  &--compare &__comparison-focus {
+    gap: 0.52rem;
+    padding: 0.7rem 0.76rem;
+  }
+
+  &--compare &__comparison-focus-grid {
+    gap: 0.42rem;
+  }
+
+  &--compare &__comparison-focus-stat {
+    padding: 0.28rem 0.32rem;
   }
 
   &--compare &__comparison-ranking-value {
@@ -601,6 +711,11 @@
       flex-direction: column;
     }
 
+    &__comparison-guidance-main,
+    &__comparison-guidance-pair {
+      width: 100%;
+    }
+
     &__comparison-guidance-label {
       min-width: auto;
     }
@@ -620,6 +735,10 @@
     }
 
     &__panel-grid--compare {
+      grid-template-columns: minmax(0, 1fr);
+    }
+
+    &__comparison-ranking {
       grid-template-columns: minmax(0, 1fr);
     }
 

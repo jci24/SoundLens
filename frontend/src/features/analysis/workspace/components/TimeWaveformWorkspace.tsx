@@ -116,19 +116,24 @@ const TimeWaveformWorkspace = ({ importedFiles, isCopilotOpen, onCopilotToggle }
   const needsPairwiseReduction =
     layoutMode === 'compare' && comparisonSetup.state === 'valid' && !canRequestPairwiseComparison
   const comparisonGuidance =
-    comparisonSetup.state === 'valid'
+    canRequestPairwiseComparison
       ? {
           label: 'Ready',
-          copy: 'Both groups are populated. Compare mode is ready.',
+          copy: 'Pair selected. Select a region to narrow the evidence if needed.',
+        }
+      : comparisonSetup.state === 'valid'
+      ? {
+          label: 'Ready',
+          copy: `Compare A has ${groupARecordings.length} recording${groupARecordings.length === 1 ? '' : 's'} and Compare B has ${groupBRecordings.length} recording${groupBRecordings.length === 1 ? '' : 's'}.`,
         }
       : comparisonSetup.state === 'incomplete'
         ? {
             label: 'Incomplete',
-            copy: 'Assign at least one recording to the empty group to unlock compare mode.',
+            copy: 'Choose one recording for the empty compare target to unlock compare mode.',
           }
         : {
           label: 'Not ready',
-          copy: 'Assign recordings to Group A and Group B to begin a valid comparison.',
+          copy: 'Choose one recording for Compare A and one for Compare B to begin.',
         }
   const rankedMetrics = useMemo(
     () =>
@@ -304,37 +309,36 @@ const TimeWaveformWorkspace = ({ importedFiles, isCopilotOpen, onCopilotToggle }
         />
         <div className="time-waveform-workspace__main-pane">
           <section
-            className={`time-waveform-workspace__comparison-scope time-waveform-workspace__comparison-scope--${comparisonSetup.state}`}
-            aria-label="Comparison scope"
-          >
-            <div className="time-waveform-workspace__comparison-scope-meta">
-              <span className="time-waveform-workspace__comparison-scope-kicker">Setup</span>
-              <span className="time-waveform-workspace__comparison-scope-title">Comparison scope</span>
-            </div>
-            <div className="time-waveform-workspace__comparison-scope-metrics">
-              <span className="time-waveform-workspace__comparison-scope-pill time-waveform-workspace__comparison-scope-pill--A">
-                A <strong>{comparisonSetup.counts.A}</strong>
-              </span>
-              <span className="time-waveform-workspace__comparison-scope-pill time-waveform-workspace__comparison-scope-pill--B">
-                B <strong>{comparisonSetup.counts.B}</strong>
-              </span>
-              <span className="time-waveform-workspace__comparison-scope-pill time-waveform-workspace__comparison-scope-pill--unassigned">
-                Unassigned <strong>{comparisonSetup.counts.unassigned}</strong>
-              </span>
-            </div>
-          </section>
-          <section
             className={`time-waveform-workspace__comparison-guidance time-waveform-workspace__comparison-guidance--${comparisonSetup.state}`}
             aria-label="Comparison setup guidance"
           >
-            <span className="time-waveform-workspace__comparison-guidance-label">
-              {comparisonGuidance.label}
-            </span>
-            <p className="time-waveform-workspace__comparison-guidance-copy">
-              {needsPairwiseReduction
-                ? 'Ranked differences currently support one recording in Group A and one in Group B. Reduce each group to one recording to review deterministic deltas.'
-                : comparisonGuidance.copy}
-            </p>
+            <div className="time-waveform-workspace__comparison-guidance-main">
+              <span className="time-waveform-workspace__comparison-guidance-label">
+                {comparisonGuidance.label}
+              </span>
+              <p className="time-waveform-workspace__comparison-guidance-copy">
+                {needsPairwiseReduction
+                  ? 'Ranked differences currently support one recording from Compare A and one from Compare B. Reduce each side to one recording to review deterministic deltas.'
+                  : comparisonGuidance.copy}
+              </p>
+            </div>
+            {comparisonSetup.state === 'valid' && (
+              <div className="time-waveform-workspace__comparison-guidance-pair" aria-label="Active comparison pair">
+                <span className="time-waveform-workspace__comparison-guidance-pair-pill time-waveform-workspace__comparison-guidance-pair-pill--A">
+                  <strong>Compare A</strong>
+                  <span>
+                    {groupARecordings.length === 1 ? groupARecordings[0].fileName : `${groupARecordings.length} recordings`}
+                  </span>
+                </span>
+                <span className="time-waveform-workspace__comparison-guidance-pair-divider">vs</span>
+                <span className="time-waveform-workspace__comparison-guidance-pair-pill time-waveform-workspace__comparison-guidance-pair-pill--B">
+                  <strong>Compare B</strong>
+                  <span>
+                    {groupBRecordings.length === 1 ? groupBRecordings[0].fileName : `${groupBRecordings.length} recordings`}
+                  </span>
+                </span>
+              </div>
+            )}
           </section>
           {layoutMode === 'compare' && (
             <section className="time-waveform-workspace__comparison-results" aria-label="Ranked comparison results">
@@ -343,7 +347,7 @@ const TimeWaveformWorkspace = ({ importedFiles, isCopilotOpen, onCopilotToggle }
                   <span className="time-waveform-workspace__comparison-results-kicker">Results</span>
                   <h3 className="time-waveform-workspace__comparison-results-title">Ranked differences</h3>
                 </div>
-                {comparisonResults && (
+                {comparisonResults && !canRequestPairwiseComparison && (
                   <span className="time-waveform-workspace__comparison-results-summary">
                     {comparisonResults.recordingA.fileName} vs {comparisonResults.recordingB.fileName}
                   </span>

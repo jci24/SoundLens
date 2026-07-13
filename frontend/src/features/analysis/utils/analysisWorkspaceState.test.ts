@@ -5,6 +5,7 @@ import {
   getComparisonSetupSummary,
   getNextExpandedRecordings,
   getNextRecordingGroupAssignments,
+  getNextSingleRecordingGroupAssignment,
   getNextRequestedSignalIds,
   getNextSpectrumRangeEnd,
   getNextSpectrumRangeStart,
@@ -35,6 +36,37 @@ describe('analysisWorkspaceState', () => {
     ).toEqual({
       'recording-1': 'A',
       'recording-3': 'B',
+    })
+  })
+
+  it('keeps only one recording per compare target when assigning A or B', () => {
+    expect(
+      getNextSingleRecordingGroupAssignment(
+        {
+          'recording-1': 'A',
+          'recording-2': 'B',
+          'recording-3': 'A',
+        },
+        'recording-2',
+        'A'
+      )
+    ).toEqual({
+      'recording-2': 'A',
+    })
+  })
+
+  it('removes a recording assignment when it is set back to unassigned', () => {
+    expect(
+      getNextSingleRecordingGroupAssignment(
+        {
+          'recording-1': 'A',
+          'recording-2': 'B',
+        },
+        'recording-1',
+        'unassigned'
+      )
+    ).toEqual({
+      'recording-2': 'B',
     })
   })
 

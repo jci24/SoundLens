@@ -311,16 +311,8 @@ describe('TimeWaveformWorkspace', () => {
       />
     )
 
-    const comparisonScope = screen.getByLabelText('Comparison scope')
-
-    expect(comparisonScope).toBeInTheDocument()
-    expect(screen.getByText('Setup')).toBeInTheDocument()
-    expect(screen.getByText('Comparison scope')).toBeInTheDocument()
-    expect(comparisonScope).toHaveTextContent('A 1')
-    expect(comparisonScope).toHaveTextContent('B 0')
-    expect(comparisonScope).toHaveTextContent('Unassigned 1')
     expect(screen.getByLabelText('Comparison setup guidance')).toHaveTextContent('Incomplete')
-    expect(screen.getByText('Assign at least one recording to the empty group to unlock compare mode.')).toBeInTheDocument()
+    expect(screen.getByText('Choose one recording for the empty compare target to unlock compare mode.')).toBeInTheDocument()
     expect(screen.getByText('Compare disabled')).toBeInTheDocument()
 
     fireEvent.click(screen.getByRole('button', { name: 'Assign recording' }))
@@ -368,7 +360,7 @@ describe('TimeWaveformWorkspace', () => {
     )
 
     expect(screen.getByLabelText('Comparison setup guidance')).toHaveTextContent('Ready')
-    expect(screen.getByText('Both groups are populated. Compare mode is ready.')).toBeInTheDocument()
+    expect(screen.getByText('Compare A has 1 recording and Compare B has 1 recording.')).toBeInTheDocument()
     expect(screen.getByText('Compare enabled')).toBeInTheDocument()
   })
 
@@ -478,7 +470,7 @@ describe('TimeWaveformWorkspace', () => {
     expect(screen.getByLabelText('Comparison setup guidance')).toHaveTextContent('Ready')
     expect(
       screen.getByText(
-        'Ranked differences currently support one recording in Group A and one in Group B. Reduce each group to one recording to review deterministic deltas.'
+        'Ranked differences currently support one recording from Compare A and one from Compare B. Reduce each side to one recording to review deterministic deltas.'
       )
     ).toBeInTheDocument()
     expect(screen.getByLabelText('Ranked comparison results')).toHaveTextContent('Pairwise compare mode is active')
@@ -511,7 +503,7 @@ describe('TimeWaveformWorkspace', () => {
     )
 
     expect(screen.getByLabelText('Comparison setup guidance')).toHaveTextContent('Not ready')
-    expect(screen.getByText('Assign recordings to Group A and Group B to begin a valid comparison.')).toBeInTheDocument()
+    expect(screen.getByText('Choose one recording for Compare A and one for Compare B to begin.')).toBeInTheDocument()
     expect(screen.getByText('Compare disabled')).toBeInTheDocument()
   })
 

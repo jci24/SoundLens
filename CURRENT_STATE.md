@@ -1,6 +1,6 @@
 # Current State
 
-Last updated: 2026-07-12
+Last updated: 2026-07-13
 
 ## What Users Can Currently Do
 
@@ -9,11 +9,12 @@ Today SoundLens supports a deterministic analysis workspace for imported recordi
 - import WAV recordings from the browser
 - persist uploaded files into a temporary local backend workspace
 - browse recordings and channels in a left rail
-- assign imported recordings to Group A, Group B, or unassigned
+- assign imported recordings to Compare A, Compare B, or leave them out of compare
 - inspect backend-computed waveform evidence
 - inspect backend-computed spectrum evidence
 - select one or more signals for comparison within the workspace
 - switch between focused and compare-oriented chart layouts
+- review ranked pairwise differences for one Compare A recording versus one Compare B recording
 - export the current workspace state to markdown
 - ask a grounded Copilot about the loaded evidence
 
@@ -25,9 +26,11 @@ The current product is strong as an analysis workspace, but it is not yet a focu
 - The backend persists uploaded files into a temporary local workspace.
 - Imported files are also tracked in an in-memory import session used by analysis and Copilot requests.
 - The current model is session-oriented rather than project-oriented or persistent.
-- The frontend now tracks recording-level comparison-group assignment locally so the A/B workflow is visible before group-level aggregate comparison contracts exist.
+- The frontend now tracks recording-level comparison-target assignment locally so the A/B workflow is visible before broader group-level aggregate comparison contracts exist.
+- Compare A and Compare B currently behave as single recording slots in the UI; assigning a new recording replaces the previous choice on that side.
 - The backend now includes a deterministic pairwise signal-alignment contract that classifies matches as name-based, index-based, ambiguous, or missing.
 - The backend now exposes a pairwise recording-comparison contract with optional ROI, aligned-signal pairs, per-pair metric observations, aggregate delta summaries, and explicit limitation reporting.
+- The compare setup UI now presents those assignments as Compare A and Compare B targets rather than raw group-management controls.
 
 ## Waveform And Spectrum Behavior
 
@@ -97,6 +100,7 @@ Frontend:
 
 - Vitest plus React Testing Library
 - tests around workspace hooks, formatting, panel behavior, services, and selected render paths
+- focused tests for recording-rail compare-builder behavior and ranked-comparison workspace states
 
 Eval harness:
 
@@ -117,10 +121,10 @@ The repo is still intentionally simple: no extra backend projects, no persistenc
 
 ## Known Limitations
 
-- Group assignment exists only as frontend workspace state; no comparison validation or backend contract uses it yet
-- No group-level aggregate comparison result contract exists yet
-- No ranked-differences surface
-- No coverage or missing-values comparison UI
+- Compare-target assignment is still frontend workspace state; there is no persisted comparison object yet
+- Ranked differences currently support one recording from Compare A versus one recording from Compare B
+- Multi-recording group comparison is not yet available; the current UI enforces one recording per side instead of aggregating larger cohorts
+- No coverage or missing-values comparison UI beyond the current limitation text
 - No persisted project or dataset model
 - Calibration handling remains lightweight and mostly limited to dBFS caveats plus calibrated flags
 - Copilot and report export still operate on workspace context more than comparison objects
@@ -130,8 +134,8 @@ The repo is still intentionally simple: no extra backend projects, no persistenc
 
 The next product slice should deepen the comparison wedge from backend summaries into usable product prioritization:
 
-1. rank the most meaningful aggregate differences
-2. keep weak-coverage and partial-alignment limitations visible
-3. connect ranked results back to waveform and spectrum evidence
+1. keep weak-coverage and partial-alignment limitations more visible
+2. connect ranked results back to waveform and spectrum evidence more explicitly
+3. continue tightening compare-mode information hierarchy so setup, results, and evidence feel like one workflow
 
 That is the next step from a pairwise comparison contract toward a comparison-first product workflow.
