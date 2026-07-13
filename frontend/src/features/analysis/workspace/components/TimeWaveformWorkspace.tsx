@@ -25,11 +25,19 @@ interface ITimeWaveformWorkspaceProps {
   onCopilotToggle: () => void
 }
 
+interface IComparisonRequestState {
+  error: string | null
+  requestKey: string | null
+  results: IRecordingComparisonResponse | null
+}
+
 const TimeWaveformWorkspace = ({ importedFiles, isCopilotOpen, onCopilotToggle }: ITimeWaveformWorkspaceProps) => {
   const [isExporting, setIsExporting] = useState(false)
-  const [comparisonResults, setComparisonResults] = useState<IRecordingComparisonResponse | null>(null)
-  const [comparisonError, setComparisonError] = useState<string | null>(null)
-  const [isComparisonLoading, setIsComparisonLoading] = useState(false)
+  const [comparisonRequestState, setComparisonRequestState] = useState<IComparisonRequestState>({
+    error: null,
+    requestKey: null,
+    results: null,
+  })
   const [selectedMetricKey, setSelectedMetricKey] =
     useState<IRecordingComparisonMetricAggregate['metricKey'] | null>(null)
   const {
@@ -115,6 +123,24 @@ const TimeWaveformWorkspace = ({ importedFiles, isCopilotOpen, onCopilotToggle }
     layoutMode === 'compare' && comparisonSetup.state === 'valid' && groupARecordings.length === 1 && groupBRecordings.length === 1
   const needsPairwiseReduction =
     layoutMode === 'compare' && comparisonSetup.state === 'valid' && !canRequestPairwiseComparison
+  const activeComparisonRequestKey = canRequestPairwiseComparison
+    ? [
+        groupARecordings[0].recordingId,
+        groupBRecordings[0].recordingId,
+        regionOfInterest?.startTimeSeconds ?? 'full',
+        regionOfInterest?.endTimeSeconds ?? 'full',
+      ].join(':')
+    : null
+  const comparisonResults =
+    activeComparisonRequestKey !== null && comparisonRequestState.requestKey === activeComparisonRequestKey
+      ? comparisonRequestState.results
+      : null
+  const comparisonError =
+    activeComparisonRequestKey !== null && comparisonRequestState.requestKey === activeComparisonRequestKey
+      ? comparisonRequestState.error
+      : null
+  const isComparisonLoading =
+    activeComparisonRequestKey !== null && comparisonRequestState.requestKey !== activeComparisonRequestKey
   const comparisonGuidance =
     canRequestPairwiseComparison
       ? {
@@ -158,19 +184,23 @@ const TimeWaveformWorkspace = ({ importedFiles, isCopilotOpen, onCopilotToggle }
         Math.abs(getObservationDelta(left, activeMetric.metricKey))
     )[0] ?? null
   }, [activeMetric, comparisonResults])
+  const coverageSummary = useMemo(
+    () => getComparisonCoverageSummary(comparisonResults, activeMetric),
+    [activeMetric, comparisonResults]
+  )
 
   useEffect(() => {
     if (!canRequestPairwiseComparison) {
-      setComparisonResults(null)
-      setComparisonError(null)
-      setIsComparisonLoading(false)
-      setSelectedMetricKey(null)
       return
     }
 
     let isCurrent = true
-
-    setIsComparisonLoading(true)
+    const requestKey = [
+      groupARecordings[0].recordingId,
+      groupBRecordings[0].recordingId,
+      regionOfInterest?.startTimeSeconds ?? 'full',
+      regionOfInterest?.endTimeSeconds ?? 'full',
+    ].join(':')
 
     void getRecordingComparison(
       groupARecordings[0].recordingId,
@@ -187,8 +217,11 @@ const TimeWaveformWorkspace = ({ importedFiles, isCopilotOpen, onCopilotToggle }
           return
         }
 
-        setComparisonResults(response)
-        setComparisonError(null)
+        setComparisonRequestState({
+          error: null,
+          requestKey,
+          results: response,
+        })
         setSelectedMetricKey(null)
       })
       .catch((caughtError) => {
@@ -196,17 +229,11 @@ const TimeWaveformWorkspace = ({ importedFiles, isCopilotOpen, onCopilotToggle }
           return
         }
 
-        setComparisonResults(null)
-        setComparisonError(
-          caughtError instanceof Error ? caughtError.message : 'Comparison results could not be prepared.'
-        )
-      })
-      .finally(() => {
-        if (!isCurrent) {
-          return
-        }
-
-        setIsComparisonLoading(false)
+        setComparisonRequestState({
+          error: caughtError instanceof Error ? caughtError.message : 'Comparison results could not be prepared.',
+          requestKey,
+          results: null,
+        })
       })
 
     return () => {
@@ -347,10 +374,19 @@ const TimeWaveformWorkspace = ({ importedFiles, isCopilotOpen, onCopilotToggle }
                   <span className="time-waveform-workspace__comparison-results-kicker">Results</span>
                   <h3 className="time-waveform-workspace__comparison-results-title">Ranked differences</h3>
                 </div>
-                {comparisonResults && !canRequestPairwiseComparison && (
-                  <span className="time-waveform-workspace__comparison-results-summary">
-                    {comparisonResults.recordingA.fileName} vs {comparisonResults.recordingB.fileName}
-                  </span>
+                {comparisonResults && (
+                  <div className="time-waveform-workspace__comparison-results-summary-group">
+                    <span
+                      className={`time-waveform-workspace__comparison-results-badge time-waveform-workspace__comparison-results-badge--${coverageSummary.tone}`}
+                    >
+                      {coverageSummary.label}
+                    </span>
+                    {coverageSummary.limitationCount > 0 && (
+                      <span className="time-waveform-workspace__comparison-results-summary">
+                        {coverageSummary.limitationCount} limitation{coverageSummary.limitationCount === 1 ? '' : 's'}
+                      </span>
+                    )}
+                  </div>
                 )}
               </div>
 
@@ -388,6 +424,7 @@ const TimeWaveformWorkspace = ({ importedFiles, isCopilotOpen, onCopilotToggle }
                         </strong>
                         <span className="time-waveform-workspace__comparison-ranking-meta">
                           Spread {formatAggregateValue(metric.spread, metric.unit)} · Pairs {metric.comparedPairCount}
+                          {metric.missingValueCount > 0 ? ` · Missing ${metric.missingValueCount}` : ''}
                         </span>
                       </button>
                     ))}
@@ -432,6 +469,9 @@ const TimeWaveformWorkspace = ({ importedFiles, isCopilotOpen, onCopilotToggle }
 
                   {comparisonResults.limitations.length > 0 && (
                     <section className="time-waveform-workspace__comparison-limitations" aria-label="Comparison limitations">
+                      <p className="time-waveform-workspace__comparison-limitations-summary">
+                        {coverageSummary.copy}
+                      </p>
                       {comparisonResults.limitations.map((limitation) => (
                         <p key={`${limitation.code}-${limitation.detail}`}>
                           <strong>{formatLimitationLabel(limitation.code)}:</strong> {limitation.detail}
@@ -548,5 +588,77 @@ const formatLimitationLabel = (code: string) => {
       return 'Ambiguous match'
     default:
       return code
+  }
+}
+
+type TComparisonCoverageTone = 'strong' | 'partial' | 'weak'
+
+interface IComparisonCoverageSummary {
+  alignedPairCount: number
+  comparedPairCount: number
+  copy: string
+  label: string
+  limitationCount: number
+  missingValueCount: number
+  tone: TComparisonCoverageTone
+}
+
+const getComparisonCoverageSummary = (
+  comparisonResults: IRecordingComparisonResponse | null,
+  activeMetric: IRecordingComparisonMetricAggregate | null
+): IComparisonCoverageSummary => {
+  if (!comparisonResults || !activeMetric) {
+    return {
+      alignedPairCount: 0,
+      comparedPairCount: 0,
+      copy: 'Coverage will appear once a ranked comparison is available.',
+      label: 'Coverage pending',
+      limitationCount: 0,
+      missingValueCount: 0,
+      tone: 'weak',
+    }
+  }
+
+  const alignedPairCount = comparisonResults.alignedSignals.length
+  const comparedPairCount = activeMetric.comparedPairCount
+  const missingValueCount = activeMetric.missingValueCount
+  const limitationCount = comparisonResults.limitations.length
+  const hasLowCoverageLimitation = comparisonResults.limitations.some((limitation) => limitation.code === 'LowCoverage')
+  const hasMissingOrAmbiguousLimitation = comparisonResults.limitations.some(
+    (limitation) => limitation.code === 'Missing' || limitation.code === 'Ambiguous'
+  )
+
+  if (hasLowCoverageLimitation || comparedPairCount <= 1) {
+    return {
+      alignedPairCount,
+      comparedPairCount,
+      copy: 'Interpret these ranked deltas carefully. The current comparison rests on a very small amount of aligned evidence.',
+      label: 'Weak evidence',
+      limitationCount,
+      missingValueCount,
+      tone: 'weak',
+    }
+  }
+
+  if (missingValueCount > 0 || hasMissingOrAmbiguousLimitation) {
+    return {
+      alignedPairCount,
+      comparedPairCount,
+      copy: 'The ranking is usable, but some aligned evidence is incomplete or missing for this metric.',
+      label: 'Partial evidence',
+      limitationCount,
+      missingValueCount,
+      tone: 'partial',
+    }
+  }
+
+  return {
+    alignedPairCount,
+    comparedPairCount,
+    copy: 'The selected metric is supported by the currently aligned evidence set.',
+    label: 'Stronger evidence',
+    limitationCount,
+    missingValueCount,
+    tone: 'strong',
   }
 }
