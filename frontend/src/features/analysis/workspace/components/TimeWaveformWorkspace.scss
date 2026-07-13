@@ -300,6 +300,14 @@
     font-weight: 680;
   }
 
+  &__comparison-details {
+    display: flex;
+    flex-direction: column;
+    gap: 0.7rem;
+    padding-top: 0.1rem;
+    border-top: 1px solid color-mix(in srgb, var(--border) 86%, transparent);
+  }
+
   &__comparison-results-summary {
     color: var(--muted-foreground);
     font-size: var(--font-xs);
@@ -411,8 +419,8 @@
     display: flex;
     flex-direction: column;
     gap: 0.7rem;
-    padding: 0.1rem 0 0;
-    border-top: 1px solid color-mix(in srgb, var(--border) 86%, transparent);
+    padding: 0;
+    border-top: 0;
   }
 
   &__comparison-focus-grid {
@@ -745,6 +753,10 @@
     border-radius: 0.72rem;
   }
 
+  &--compare &__comparison-details {
+    gap: 0.55rem;
+  }
+
   &--compare &__comparison-focus {
     gap: 0.52rem;
     padding: 0.08rem 0 0;
@@ -764,7 +776,7 @@
 
   &--compare &__comparison-focus {
     gap: 0.45rem;
-    padding: 0.08rem 0 0;
+    padding: 0;
   }
 
   &--compare &__comparison-focus-grid {
