@@ -120,10 +120,27 @@ const TimeWaveformWorkspace = ({ importedFiles, isCopilotOpen, onCopilotToggle }
       recordings.filter((recording) => (recordingGroupAssignments[recording.recordingId] ?? 'unassigned') === 'B'),
     [recordingGroupAssignments, recordings]
   )
+  const activePairRecordingA = groupARecordings[0] ?? null
+  const activePairRecordingB = groupBRecordings[0] ?? null
+  const queuedGroupARecordings = activePairRecordingA ? groupARecordings.slice(1) : groupARecordings
+  const queuedGroupBRecordings = activePairRecordingB ? groupBRecordings.slice(1) : groupBRecordings
   const canRequestPairwiseComparison =
     layoutMode === 'compare' && comparisonSetup.state === 'valid' && groupARecordings.length === 1 && groupBRecordings.length === 1
   const needsPairwiseReduction =
     layoutMode === 'compare' && comparisonSetup.state === 'valid' && !canRequestPairwiseComparison
+  const queuedComparisonCopy = useMemo(() => {
+    const queuedSegments: string[] = []
+
+    if (queuedGroupARecordings.length > 0) {
+      queuedSegments.push(`A waiting: ${queuedGroupARecordings.map((recording) => recording.fileName).join(', ')}`)
+    }
+
+    if (queuedGroupBRecordings.length > 0) {
+      queuedSegments.push(`B waiting: ${queuedGroupBRecordings.map((recording) => recording.fileName).join(', ')}`)
+    }
+
+    return queuedSegments.join(' · ')
+  }, [queuedGroupARecordings, queuedGroupBRecordings])
   const activeComparisonRequestKey = canRequestPairwiseComparison
     ? [
         groupARecordings[0].recordingId,
@@ -162,6 +179,10 @@ const TimeWaveformWorkspace = ({ importedFiles, isCopilotOpen, onCopilotToggle }
           label: 'Not ready',
           copy: 'Choose A and B.',
         }
+  const pairwiseReductionMessage =
+    activePairRecordingA && activePairRecordingB
+      ? `This slice compares one pair at a time. Now using ${activePairRecordingA.fileName} vs ${activePairRecordingB.fileName}.${queuedComparisonCopy ? ` ${queuedComparisonCopy}.` : ''}`
+      : 'This slice compares one pair at a time.'
   const rankedMetrics = useMemo(
     () =>
       [...(comparisonResults?.aggregateMetrics ?? [])].sort(
@@ -349,9 +370,7 @@ const TimeWaveformWorkspace = ({ importedFiles, isCopilotOpen, onCopilotToggle }
                 {comparisonGuidance.label}
               </span>
               <p className="time-waveform-workspace__comparison-guidance-copy">
-                {needsPairwiseReduction
-                  ? 'One recording per side.'
-                  : comparisonGuidance.copy}
+                {needsPairwiseReduction ? 'Using the first recording on each side.' : comparisonGuidance.copy}
               </p>
             </div>
             {comparisonSetup.state === 'valid' && (
@@ -359,18 +378,19 @@ const TimeWaveformWorkspace = ({ importedFiles, isCopilotOpen, onCopilotToggle }
                 <div className="time-waveform-workspace__comparison-guidance-pair" aria-label="Active comparison pair">
                   <span className="time-waveform-workspace__comparison-guidance-pair-pill time-waveform-workspace__comparison-guidance-pair-pill--A">
                     <strong>Compare A</strong>
-                    <span>
-                      {groupARecordings.length === 1 ? groupARecordings[0].fileName : `${groupARecordings.length} recordings`}
-                    </span>
+                    <span>{activePairRecordingA ? activePairRecordingA.fileName : `${groupARecordings.length} recordings`}</span>
                   </span>
                   <span className="time-waveform-workspace__comparison-guidance-pair-divider">vs</span>
                   <span className="time-waveform-workspace__comparison-guidance-pair-pill time-waveform-workspace__comparison-guidance-pair-pill--B">
                     <strong>Compare B</strong>
-                    <span>
-                      {groupBRecordings.length === 1 ? groupBRecordings[0].fileName : `${groupBRecordings.length} recordings`}
-                    </span>
+                    <span>{activePairRecordingB ? activePairRecordingB.fileName : `${groupBRecordings.length} recordings`}</span>
                   </span>
                 </div>
+                {needsPairwiseReduction && queuedComparisonCopy && (
+                  <p className="time-waveform-workspace__comparison-guidance-queue" aria-label="Queued comparison recordings">
+                    {queuedComparisonCopy}
+                  </p>
+                )}
                 {layoutMode === 'compare' && regionOfInterest && roiScopeLabel && (
                   <div className="time-waveform-workspace__comparison-guidance-scope" aria-label="Comparison scope">
                     <span className="time-waveform-workspace__comparison-guidance-scope-kicker">ROI</span>
@@ -422,7 +442,7 @@ const TimeWaveformWorkspace = ({ importedFiles, isCopilotOpen, onCopilotToggle }
 
               {needsPairwiseReduction && (
                 <p className="time-waveform-workspace__comparison-results-empty">
-                  Pairwise compare mode is active, but the current backend slice only ranks one recording from Group A against one recording from Group B.
+                  {pairwiseReductionMessage}
                 </p>
               )}
 
