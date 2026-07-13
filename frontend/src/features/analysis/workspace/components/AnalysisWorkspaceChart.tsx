@@ -53,7 +53,6 @@ const AnalysisWorkspaceChart = ({
     <FindingsPanel signals={metricSignals} />
     {isCompareMode && compareEvidenceTitle && (
       <section className="time-waveform-workspace__evidence-bridge" aria-label="Chart evidence context">
-        <span className="time-waveform-workspace__evidence-bridge-kicker">Inspecting evidence for</span>
         <strong className="time-waveform-workspace__evidence-bridge-title">{compareEvidenceTitle}</strong>
         {compareEvidenceSummary && (
           <p className="time-waveform-workspace__evidence-bridge-copy">{compareEvidenceSummary}</p>

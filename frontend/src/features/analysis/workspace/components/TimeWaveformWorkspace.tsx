@@ -146,21 +146,21 @@ const TimeWaveformWorkspace = ({ importedFiles, isCopilotOpen, onCopilotToggle }
     canRequestPairwiseComparison
       ? {
           label: 'Ready',
-          copy: 'Pair selected. Select a region to narrow the evidence if needed.',
+          copy: 'Pair selected.',
         }
       : comparisonSetup.state === 'valid'
       ? {
           label: 'Ready',
-          copy: `Compare A has ${groupARecordings.length} recording${groupARecordings.length === 1 ? '' : 's'} and Compare B has ${groupBRecordings.length} recording${groupBRecordings.length === 1 ? '' : 's'}.`,
+          copy: `A ${groupARecordings.length} · B ${groupBRecordings.length}`,
         }
       : comparisonSetup.state === 'incomplete'
         ? {
             label: 'Incomplete',
-            copy: 'Choose one recording for the empty compare target to unlock compare mode.',
+            copy: 'Choose the empty target.',
           }
         : {
           label: 'Not ready',
-          copy: 'Choose one recording for Compare A and one for Compare B to begin.',
+          copy: 'Choose A and B.',
         }
   const rankedMetrics = useMemo(
     () =>
@@ -189,6 +189,9 @@ const TimeWaveformWorkspace = ({ importedFiles, isCopilotOpen, onCopilotToggle }
     () => getComparisonCoverageSummary(comparisonResults, activeMetric),
     [activeMetric, comparisonResults]
   )
+  const roiScopeLabel = regionOfInterest
+    ? `${formatCompactDuration(regionOfInterest.startTimeSeconds)} to ${formatCompactDuration(regionOfInterest.endTimeSeconds)} · ${formatCompactDuration(regionOfInterest.durationSeconds)}`
+    : null
 
   useEffect(() => {
     if (!canRequestPairwiseComparison) {
@@ -347,25 +350,41 @@ const TimeWaveformWorkspace = ({ importedFiles, isCopilotOpen, onCopilotToggle }
               </span>
               <p className="time-waveform-workspace__comparison-guidance-copy">
                 {needsPairwiseReduction
-                  ? 'Ranked differences currently support one recording from Compare A and one from Compare B. Reduce each side to one recording to review deterministic deltas.'
+                  ? 'One recording per side.'
                   : comparisonGuidance.copy}
               </p>
             </div>
             {comparisonSetup.state === 'valid' && (
-              <div className="time-waveform-workspace__comparison-guidance-pair" aria-label="Active comparison pair">
-                <span className="time-waveform-workspace__comparison-guidance-pair-pill time-waveform-workspace__comparison-guidance-pair-pill--A">
-                  <strong>Compare A</strong>
-                  <span>
-                    {groupARecordings.length === 1 ? groupARecordings[0].fileName : `${groupARecordings.length} recordings`}
+              <div className="time-waveform-workspace__comparison-guidance-context">
+                <div className="time-waveform-workspace__comparison-guidance-pair" aria-label="Active comparison pair">
+                  <span className="time-waveform-workspace__comparison-guidance-pair-pill time-waveform-workspace__comparison-guidance-pair-pill--A">
+                    <strong>Compare A</strong>
+                    <span>
+                      {groupARecordings.length === 1 ? groupARecordings[0].fileName : `${groupARecordings.length} recordings`}
+                    </span>
                   </span>
-                </span>
-                <span className="time-waveform-workspace__comparison-guidance-pair-divider">vs</span>
-                <span className="time-waveform-workspace__comparison-guidance-pair-pill time-waveform-workspace__comparison-guidance-pair-pill--B">
-                  <strong>Compare B</strong>
-                  <span>
-                    {groupBRecordings.length === 1 ? groupBRecordings[0].fileName : `${groupBRecordings.length} recordings`}
+                  <span className="time-waveform-workspace__comparison-guidance-pair-divider">vs</span>
+                  <span className="time-waveform-workspace__comparison-guidance-pair-pill time-waveform-workspace__comparison-guidance-pair-pill--B">
+                    <strong>Compare B</strong>
+                    <span>
+                      {groupBRecordings.length === 1 ? groupBRecordings[0].fileName : `${groupBRecordings.length} recordings`}
+                    </span>
                   </span>
-                </span>
+                </div>
+                {layoutMode === 'compare' && regionOfInterest && roiScopeLabel && (
+                  <div className="time-waveform-workspace__comparison-guidance-scope" aria-label="Comparison scope">
+                    <span className="time-waveform-workspace__comparison-guidance-scope-kicker">ROI</span>
+                    <span className="time-waveform-workspace__comparison-guidance-scope-values">{roiScopeLabel}</span>
+                    <button
+                      aria-label="Clear selected comparison region"
+                      className="time-waveform-workspace__comparison-guidance-scope-clear"
+                      type="button"
+                      onClick={() => onRegionOfInterestChange(null)}
+                    >
+                      Clear
+                    </button>
+                  </div>
+                )}
               </div>
             )}
           </section>
@@ -373,7 +392,6 @@ const TimeWaveformWorkspace = ({ importedFiles, isCopilotOpen, onCopilotToggle }
             <section className="time-waveform-workspace__comparison-results" aria-label="Ranked comparison results">
               <div className="time-waveform-workspace__comparison-results-header">
                 <div>
-                  <span className="time-waveform-workspace__comparison-results-kicker">Results</span>
                   <h3 className="time-waveform-workspace__comparison-results-title">Ranked differences</h3>
                 </div>
                 {comparisonResults && (
@@ -445,7 +463,6 @@ const TimeWaveformWorkspace = ({ importedFiles, isCopilotOpen, onCopilotToggle }
                   {activeMetric && activeObservation && (
                     <section className="time-waveform-workspace__comparison-focus" aria-label="Selected ranked difference">
                       <div>
-                        <span className="time-waveform-workspace__comparison-focus-kicker">Evidence focus</span>
                         <h4 className="time-waveform-workspace__comparison-focus-title">
                           {formatComparisonMetricLabel(activeMetric.metricKey)}
                         </h4>
@@ -495,12 +512,12 @@ const TimeWaveformWorkspace = ({ importedFiles, isCopilotOpen, onCopilotToggle }
               )}
             </section>
           )}
-          {regionOfInterest && (
+          {regionOfInterest && layoutMode !== 'compare' && roiScopeLabel && (
             <section className="time-waveform-workspace__roi-summary" aria-label="Selected time region">
               <div className="time-waveform-workspace__roi-copy">
                 <span className="time-waveform-workspace__roi-title">Selected region</span>
                 <span className="time-waveform-workspace__roi-values">
-                  {`${formatCompactDuration(regionOfInterest.startTimeSeconds)} to ${formatCompactDuration(regionOfInterest.endTimeSeconds)} · ${formatCompactDuration(regionOfInterest.durationSeconds)}`}
+                  {roiScopeLabel}
                 </span>
               </div>
               <button
