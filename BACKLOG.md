@@ -47,30 +47,18 @@ Turn the current analysis workspace into a focused comparison workflow for repea
 - explicit excluded-recording, limitation, AI fallback, and traceability sections in comparison reports
 - direct metric-card evidence drill-down with explicit evidence and limitation controls
 - explicit Compare A and Compare B recording slots with accessible pickers, replace, clear, duplicate prevention, and atomic swap
+- comparison trust evals for ambiguity, zero difference, missing alignment, ROI-bounded causal uncertainty, and uncalibrated SPL refusal
+- diagnostic live-eval artifacts plus CI-tested dataset and grading logic
 
 ## Ordered Thin Tasks
 
-### A13. Comparison Eval Cases
+### Trust follow-up. Real calibration-state mismatch
 
-User value:
-- A user can trust that the comparison workflow refuses unsupported claims and handles edge cases consistently.
+Priority: normal.
 
-Thin-slice boundary:
-- Expand eval coverage without broad platform changes.
-
-Acceptance criteria:
-- evals cover undefined criteria, no meaningful difference, calibration mismatch, missing evidence, and unsupported causal claims
-- failures retain enough detail to diagnose routing or grounding problems
-
-Test expectations:
-- new eval cases under `scripts/copilot-evals/`
-- documentation update for running and interpreting comparison evals
-
-Proposed branch name:
-- `codex/comparison-evals`
-
-Dependencies:
-- shipped comparison report and bounded comparison explanation
+Reason for deferral:
+- imported evidence is currently uncalibrated, so a calibrated fixture would fabricate unsupported state
+- schedule after the product introduces a real calibration-state contract and validation path
 
 ### A14. Comparison Report PDF
 
@@ -99,6 +87,8 @@ Dependencies:
 
 High priority:
 
+- reject calibrated dB SPL requests explicitly in selected-comparison answers; the A13 live baseline showed repeated wording that mislabeled an uncalibrated FS delta as a calibrated SPL difference despite returning the correct limitation
+- make unsupported causal questions consistently state that selected comparison evidence cannot establish a cause; the A13 live baseline showed nondeterministic refusal wording over ROI evidence
 - ensure malformed or non-JSON model output cannot surface raw structured payloads in the Copilot UI
 - split comparison-explanation orchestration and prompt construction out of the oversized `AgentQueryHandler` before adding another broad agent capability
 

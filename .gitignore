@@ -8,6 +8,7 @@ backend/src/SoundLens.Api/Logs/
 
 # Frontend
 node_modules/
+artifacts/copilot-evals/
 dist/
 coverage/
 *.tsbuildinfo

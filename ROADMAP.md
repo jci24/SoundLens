@@ -112,10 +112,13 @@ Current status:
 - deterministic factual answers are available for RMS, peak, and clipping comparisons
 - bounded explanation is available for the selected metric and aligned pair
 - comparison measurements, findings, units, coverage, and limitations are reconstructed by the backend before they are sent to the model
+- live trust evals now cover ambiguity, zero difference, missing aligned evidence, ROI-bounded causal uncertainty, and refusal of calibrated SPL claims from uncalibrated evidence
+- pure dataset and grader tests run in CI; live repeated runs remain local and produce diagnostic artifacts
 
 Explicitly deferred work:
 - complex planning over many comparison objects
 - speculative causal reasoning
+- calibrated-versus-uncalibrated mismatch testing until a real calibration-state contract exists
 
 ## Milestone 5 — Comparison Report
 
