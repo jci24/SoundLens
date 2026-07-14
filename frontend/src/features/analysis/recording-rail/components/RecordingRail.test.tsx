@@ -46,12 +46,14 @@ const recordings: ITimeWaveformRecording[] = [
 describe('RecordingRail', () => {
   it('renders expanded signals and dispatches recording and signal actions', () => {
     const onRecordingGroupAssignment = vi.fn()
+    const onComparisonTargetsSwap = vi.fn()
     const onRecordingToggle = vi.fn()
     const onSignalSelection = vi.fn()
 
     render(
       <RecordingRail
         expandedRecordings={['recording-1']}
+        onComparisonTargetsSwap={onComparisonTargetsSwap}
         onRecordingGroupAssignment={onRecordingGroupAssignment}
         onRecordingToggle={onRecordingToggle}
         onSignalSelection={onSignalSelection}
@@ -69,22 +71,20 @@ describe('RecordingRail', () => {
     expect(screen.getByRole('checkbox', { name: 'Left' })).toHaveAttribute('data-state', 'checked')
     expect(screen.getByRole('checkbox', { name: 'Right' })).toHaveAttribute('data-state', 'unchecked')
     expect(screen.queryByRole('checkbox', { name: 'Mono' })).not.toBeInTheDocument()
-    expect(screen.getByText('Compare')).toBeInTheDocument()
-    expect(screen.getByLabelText('Compare targets')).toHaveTextContent('alpha.wav')
-    expect(screen.getByLabelText('Compare targets')).toHaveTextContent('None')
+    expect(screen.getByText('Compare pair')).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Replace Compare A recording' })).toHaveTextContent('alpha.wav')
+    expect(screen.getByRole('button', { name: 'Choose Compare B recording' })).toBeInTheDocument()
     expect(screen.getByText('1 selected')).toBeInTheDocument()
-    expect(screen.getByTitle('Group A')).toBeInTheDocument()
-    expect(screen.getByTitle('Unassigned')).toBeInTheDocument()
-    expect(screen.getByRole('button', { name: 'A' })).toBeInTheDocument()
-    expect(screen.getByRole('button', { name: 'B' })).toBeInTheDocument()
-    expect(screen.getByRole('button', { name: 'Out' })).toBeInTheDocument()
+    expect(screen.getByLabelText('Compare A')).toBeInTheDocument()
+    expect(screen.queryByText('Out')).not.toBeInTheDocument()
 
     fireEvent.click(screen.getByRole('button', { name: /beta\.wav/i }))
-    fireEvent.click(screen.getByRole('button', { name: 'B' }))
+    fireEvent.click(screen.getByRole('button', { name: 'Choose Compare B recording' }))
+    fireEvent.click(screen.getByRole('button', { name: /beta\.wav.*0\.80 s.*1 channel/i }))
     fireEvent.click(screen.getByRole('checkbox', { name: 'Right' }))
 
     expect(onRecordingToggle).toHaveBeenCalledWith('recording-2')
-    expect(onRecordingGroupAssignment).toHaveBeenCalledWith('recording-1', 'B')
+    expect(onRecordingGroupAssignment).toHaveBeenCalledWith('recording-2', 'B')
     expect(onSignalSelection).toHaveBeenCalledWith('signal-right')
   })
 })

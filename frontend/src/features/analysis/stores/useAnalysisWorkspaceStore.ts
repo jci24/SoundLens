@@ -5,6 +5,7 @@ import {
   getNextRecordingGroupAssignments,
   getNextSingleRecordingGroupAssignment,
   getNextRequestedSignalIds,
+  getSwappedRecordingGroupAssignments,
 } from '../utils/analysisWorkspaceState'
 import type {
   IAnalysisRegionOfInterest,
@@ -29,6 +30,7 @@ interface IAnalysisWorkspaceStore {
   selectSignal: (signalId: string) => void
   toggleRecording: (recordingId: string) => void
   setRecordingGroupAssignment: (recordingId: string, assignment: TComparisonGroupAssignment) => void
+  swapComparisonTargets: () => void
   setActiveSurface: (surface: TAnalysisSurface) => void
   setLayoutMode: (mode: TAnalysisLayoutMode) => void
   setSignalChartMode: (mode: TSignalChartMode) => void
@@ -66,6 +68,11 @@ const useAnalysisWorkspaceStore = create<IAnalysisWorkspaceStore>((set) => ({
         recordingId,
         assignment
       ),
+    })),
+
+  swapComparisonTargets: () =>
+    set((state) => ({
+      recordingGroupAssignments: getSwappedRecordingGroupAssignments(state.recordingGroupAssignments),
     })),
 
   setActiveSurface: (surface) => set({ activeSurface: surface }),

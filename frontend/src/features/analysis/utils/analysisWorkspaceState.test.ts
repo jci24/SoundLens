@@ -9,6 +9,7 @@ import {
   getNextRequestedSignalIds,
   getNextSpectrumRangeEnd,
   getNextSpectrumRangeStart,
+  getSwappedRecordingGroupAssignments,
   getWaveformRequestedBinCount,
 } from './analysisWorkspaceState'
 
@@ -67,6 +68,51 @@ describe('analysisWorkspaceState', () => {
       )
     ).toEqual({
       'recording-2': 'B',
+    })
+  })
+
+  it('swaps compare targets without an intermediate duplicate assignment', () => {
+    expect(
+      getSwappedRecordingGroupAssignments({
+        'recording-1': 'A',
+        'recording-2': 'B',
+      })
+    ).toEqual({
+      'recording-1': 'B',
+      'recording-2': 'A',
+    })
+  })
+
+  it('marks multiple recordings on either target as a conflict', () => {
+    expect(
+      getComparisonSetupSummary(
+        [
+          {
+            recordingId: 'recording-1',
+            fileName: 'alpha.wav',
+            sizeBytes: 1024,
+            durationSeconds: 1,
+            sampleRate: 44_100,
+            channels: 1,
+            channelMode: 'Mono',
+            signals: [],
+          },
+          {
+            recordingId: 'recording-2',
+            fileName: 'beta.wav',
+            sizeBytes: 1024,
+            durationSeconds: 1,
+            sampleRate: 44_100,
+            channels: 1,
+            channelMode: 'Mono',
+            signals: [],
+          },
+        ],
+        { 'recording-1': 'A', 'recording-2': 'A' }
+      )
+    ).toEqual({
+      counts: { A: 2, B: 0, unassigned: 0 },
+      state: 'conflict',
     })
   })
 

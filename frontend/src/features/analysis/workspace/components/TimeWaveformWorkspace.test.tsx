@@ -67,15 +67,20 @@ vi.mock('./AnalysisWorkspaceHeader', () => ({
 
 vi.mock('../../recording-rail/components/RecordingRail', () => ({
   RecordingRail: ({
+    onComparisonTargetsSwap,
     onRecordingGroupAssignment,
     recordingGroupAssignments,
   }: {
+    onComparisonTargetsSwap: () => void
     onRecordingGroupAssignment: (recordingId: string, assignment: 'A' | 'B' | 'unassigned') => void
     recordingGroupAssignments: Record<string, 'A' | 'B' | 'unassigned'>
   }) => (
     <div data-testid="recording-rail">
       <button onClick={() => onRecordingGroupAssignment('recording-1', 'A')} type="button">
         Assign recording
+      </button>
+      <button onClick={onComparisonTargetsSwap} type="button">
+        Swap pair
       </button>
       <span>{recordingGroupAssignments['recording-1'] ?? 'unassigned'}</span>
     </div>
@@ -237,6 +242,7 @@ const createWorkspaceState = () => ({
       ticks: [-1, 0, 1],
     },
   },
+  onComparisonTargetsSwap: vi.fn(),
   onLayoutModeChange: vi.fn(),
   onRecordingGroupAssignment: vi.fn(),
   onRecordingToggle: vi.fn(),
@@ -453,8 +459,84 @@ describe('TimeWaveformWorkspace', () => {
     )
 
     expect(screen.getByLabelText('Comparison setup guidance')).toHaveTextContent('Ready')
-    expect(screen.getByText('A 1 · B 1')).toBeInTheDocument()
+    expect(screen.getByText('Pair selected.')).toBeInTheDocument()
     expect(screen.getByText('Compare enabled')).toBeInTheDocument()
+  })
+
+  it('forwards an atomic pair swap and requests the reversed pair with the same ROI', async () => {
+    const workspaceState = createWorkspaceState()
+    workspaceState.layoutMode = 'compare'
+    workspaceState.regionOfInterest = {
+      startTimeSeconds: 0.2,
+      endTimeSeconds: 0.8,
+      durationSeconds: 0.6,
+    }
+    workspaceState.recordings = [
+      {
+        recordingId: 'recording-1',
+        fileName: 'alpha.wav',
+        sizeBytes: 1024,
+        durationSeconds: 1,
+        sampleRate: 44_100,
+        channels: 1,
+        channelMode: 'Mono',
+        signals: [],
+      },
+      {
+        recordingId: 'recording-2',
+        fileName: 'beta.wav',
+        sizeBytes: 2_048,
+        durationSeconds: 1,
+        sampleRate: 44_100,
+        channels: 1,
+        channelMode: 'Mono',
+        signals: [],
+      },
+    ]
+    workspaceState.recordingGroupAssignments = {
+      'recording-1': 'A',
+      'recording-2': 'B',
+    }
+
+    mockUseTimeWaveformWorkspace.mockReturnValue(workspaceState)
+
+    const { rerender } = render(
+      <TimeWaveformWorkspace
+        importedFiles={importedFiles}
+        isCopilotOpen={false}
+        onCopilotToggle={vi.fn()}
+      />
+    )
+
+    await waitFor(() => {
+      expect(mockGetRecordingComparison).toHaveBeenCalledWith('recording-1', 'recording-2', {
+        startTimeSeconds: 0.2,
+        endTimeSeconds: 0.8,
+      })
+    })
+
+    fireEvent.click(screen.getByRole('button', { name: 'Swap pair' }))
+    expect(workspaceState.onComparisonTargetsSwap).toHaveBeenCalledOnce()
+
+    workspaceState.recordingGroupAssignments = {
+      'recording-1': 'B',
+      'recording-2': 'A',
+    }
+    mockUseTimeWaveformWorkspace.mockReturnValue(workspaceState)
+    rerender(
+      <TimeWaveformWorkspace
+        importedFiles={importedFiles}
+        isCopilotOpen={false}
+        onCopilotToggle={vi.fn()}
+      />
+    )
+
+    await waitFor(() => {
+      expect(mockGetRecordingComparison).toHaveBeenCalledWith('recording-2', 'recording-1', {
+        startTimeSeconds: 0.2,
+        endTimeSeconds: 0.8,
+      })
+    })
   })
 
   it('renders comparison metrics in backend order and preserves the selected metric across ROI refreshes', async () => {
@@ -551,7 +633,7 @@ describe('TimeWaveformWorkspace', () => {
     expect(screen.getByLabelText('Selected metric evidence')).toHaveTextContent('Crest factor')
   })
 
-  it('shows a pairwise-only state when more than one recording is assigned to a group', () => {
+  it('blocks comparison when inconsistent state assigns more than one recording to a target', () => {
     const workspaceState = createWorkspaceState()
     workspaceState.layoutMode = 'compare'
     workspaceState.recordings = [
@@ -602,14 +684,10 @@ describe('TimeWaveformWorkspace', () => {
       />
     )
 
-    expect(screen.getByLabelText('Comparison setup guidance')).toHaveTextContent('Ready')
-    expect(screen.getByText('Using the first recording on each side.')).toBeInTheDocument()
-    expect(screen.getByLabelText('Active comparison pair')).toHaveTextContent('alpha.wav')
-    expect(screen.getByLabelText('Active comparison pair')).toHaveTextContent('gamma.wav')
-    expect(screen.getByLabelText('Queued comparison recordings')).toHaveTextContent('A waiting: beta.wav')
-    expect(screen.getByLabelText('Comparison metrics')).toHaveTextContent(
-      'This slice compares one pair at a time. Now using alpha.wav vs gamma.wav. A waiting: beta.wav.'
-    )
+    expect(screen.getByLabelText('Comparison setup guidance')).toHaveTextContent('Resolve pair')
+    expect(screen.getByText('Choose exactly one recording for each target.')).toBeInTheDocument()
+    expect(screen.queryByLabelText('Active comparison pair')).not.toBeInTheDocument()
+    expect(screen.getByText('Compare disabled')).toBeInTheDocument()
     expect(mockGetRecordingComparison).not.toHaveBeenCalled()
   })
 

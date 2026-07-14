@@ -145,6 +145,14 @@ Current report-export guidance:
 - Comparison metric cards preserve backend response order and never sort heterogeneous units by frontend-computed magnitude. Selection changes evidence focus without moving cards.
 - Metric-card activation opens the selected evidence directly. The compact default view retains a clearly labeled `Evidence & limitations` disclosure, and the expanded section owns its `Hide evidence` action.
 
+Current comparison-pair guidance:
+
+- Pair assignment uses two explicit single-recording slots rather than repeated controls on every recording row.
+- Each slot owns an accessible anchored Radix picker plus replace and clear behavior; a recording already used by the opposite slot is unavailable.
+- Swapping Compare A and Compare B is one atomic Zustand update so no intermediate duplicate or empty pair can trigger a request.
+- Imported recordings remain browsable below the pair builder, with only a subtle A or B status beside assigned rows; channel selection remains independent.
+- Inconsistent multi-assignment state must block comparison and require resolution. The frontend must never silently choose the first recording from either side.
+
 Current import workflow guidance:
 
 - Prefer browser-based file picking as the primary demo flow.

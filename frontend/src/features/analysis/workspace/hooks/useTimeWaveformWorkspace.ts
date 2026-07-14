@@ -68,6 +68,7 @@ interface IUseTimeWaveformWorkspaceResult {
   waveforms: ITimeWaveformResponse | null
   onLayoutModeChange: (mode: TAnalysisLayoutMode) => void
   onRecordingGroupAssignment: (recordingId: string, assignment: TComparisonGroupAssignment) => void
+  onComparisonTargetsSwap: () => void
   onRecordingToggle: (recordingId: string) => void
   onSignalSelection: (signalId: string) => void
   onSignalChartModeChange: (mode: TSignalChartMode) => void
@@ -249,6 +250,7 @@ const useTimeWaveformWorkspace = (
   const onRecordingGroupAssignment = useAnalysisWorkspaceStore(
     (state) => state.setRecordingGroupAssignment
   )
+  const onComparisonTargetsSwap = useAnalysisWorkspaceStore((state) => state.swapComparisonTargets)
   const onLayoutModeChange = useAnalysisWorkspaceStore((state) => state.setLayoutMode)
   const onSignalSelection = useAnalysisWorkspaceStore((state) => state.selectSignal)
   const onSignalChartModeChange = useAnalysisWorkspaceStore((state) => state.setSignalChartMode)
@@ -321,6 +323,7 @@ const useTimeWaveformWorkspace = (
     waveformSignals,
     waveforms,
     onLayoutModeChange,
+    onComparisonTargetsSwap,
     onRecordingGroupAssignment,
     onRecordingToggle,
     onSignalSelection,

@@ -9,7 +9,7 @@ Today SoundLens supports a deterministic analysis workspace for imported recordi
 - import WAV recordings from the browser
 - persist uploaded files into a temporary local backend workspace
 - browse recordings and channels in a left rail
-- assign imported recordings to Compare A, Compare B, or leave them out of compare
+- choose one imported recording for each explicit Compare A and Compare B slot
 - inspect backend-computed waveform evidence
 - inspect backend-computed spectrum evidence
 - select one or more signals for comparison within the workspace
@@ -29,11 +29,11 @@ The current product is strong as an analysis workspace, but it is not yet a full
 - The backend persists uploaded files into a temporary local workspace.
 - Imported files are also tracked in an in-memory import session used by analysis and Copilot requests.
 - The current model is session-oriented rather than project-oriented or persistent.
-- The frontend now tracks recording-level comparison-target assignment locally so the A/B workflow is visible before broader group-level comparison contracts exist.
-- Compare A and Compare B currently hold at most one recording each in normal workspace interaction, matching the backend's active pairwise comparison contract.
+- The frontend tracks the two recording-level comparison targets locally so the A/B workflow is visible before a persisted comparison object exists.
+- Compare A and Compare B use explicit accessible recording pickers with replace, clear, duplicate prevention, and atomic swap behavior.
 - The backend now includes a deterministic pairwise signal-alignment contract that classifies matches as name-based, index-based, ambiguous, or missing.
 - The backend now exposes a pairwise recording-comparison contract with optional ROI, aligned-signal pairs, per-pair metric observations, aggregate delta summaries, and explicit limitation reporting.
-- The compare setup UI presents those assignments as Compare A and Compare B targets; defensive overflow messaging remains for inconsistent or legacy multi-assignment state.
+- Inconsistent or legacy multi-assignment state blocks comparison and asks the user to resolve the pair instead of silently selecting the first recording.
 
 ## Waveform And Spectrum Behavior
 
@@ -111,7 +111,7 @@ Frontend:
 
 - Vitest plus React Testing Library
 - tests around workspace hooks, formatting, panel behavior, report services and preview, and selected render paths
-- focused tests for recording-rail compare-builder behavior, stable comparison-metric ordering and selection, and pairwise overflow messaging
+- focused tests for explicit pair selection, replacement, clearing, swapping, conflict handling, stable comparison-metric ordering, and selection
 
 Eval harness:
 
@@ -147,4 +147,4 @@ The repo is still intentionally simple: no extra backend projects, no persistenc
 
 ## Immediate Next Product Slice
 
-The next product slice should replace repeated per-recording A/B controls with an explicit two-slot pair builder while preserving the current pairwise backend contract. Comparison trust evals and PDF comparison export remain separate follow-ups.
+The next product slice should expand comparison trust evals for ambiguity, missing evidence, calibration mismatch, no meaningful difference, and unsupported causal claims. PDF comparison export remains a separate follow-up.
