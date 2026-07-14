@@ -141,7 +141,8 @@ Current report-export guidance:
 - Focused-mode export remains an immediate workspace Markdown download.
 - Compare-mode export requires a valid backend comparison result and opens an accessible Radix preview before download.
 - Report side effects and request construction belong in the report feature hook and service; workspace components should only provide current identifiers and render the preview.
-- The preview may show UI-owned assignments and filenames, but must never manufacture or submit DSP measurements, rankings, units, findings, coverage, or limitations.
+- The preview may show UI-owned assignments and filenames, but must never manufacture or submit DSP measurements, metric order, units, findings, coverage, or limitations.
+- Comparison metric cards preserve backend response order and never sort heterogeneous units by frontend-computed magnitude. Selection changes evidence focus without moving cards.
 
 Current import workflow guidance:
 

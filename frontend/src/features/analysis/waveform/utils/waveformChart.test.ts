@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { buildWaveformPath } from './waveformChart'
+import { buildWaveformPath, getSharedRegionMaximumDuration } from './waveformChart'
 import type { ITimeWaveformSignal } from '../../types'
 
 const signal: ITimeWaveformSignal = {
@@ -36,5 +36,20 @@ describe('waveformChart', () => {
     )
 
     expect(path).toBe('M0 -50 L0 25 M10 -25 L10 75 M20 -75 L20 50')
+  })
+
+  it('limits shared ROI selection to the shortest visible signal', () => {
+    const longerSignal = {
+      ...signal,
+      signalId: 'signal-2',
+      recordingId: 'recording-2',
+      durationSeconds: 4,
+    }
+    const shorterSignal = {
+      ...signal,
+      durationSeconds: 2.5350113378684807,
+    }
+
+    expect(getSharedRegionMaximumDuration([longerSignal, shorterSignal])).toBe(2.5350113378684807)
   })
 })

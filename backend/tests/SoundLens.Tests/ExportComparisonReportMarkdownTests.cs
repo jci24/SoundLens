@@ -52,8 +52,13 @@ public sealed class ExportComparisonReportMarkdownTests : IClassFixture<WebAppli
         Assert.Contains("- Compare A: alpha.wav", payload.Markdown);
         Assert.Contains("- Compare B: beta.wav", payload.Markdown);
         Assert.Contains(useRoi ? "- Region: 0 s to 0.5 s (0.5 s)" : "- Region: full duration", payload.Markdown);
-        Assert.Contains("## Ranked Differences", payload.Markdown);
-        Assert.Contains("| 1 |", payload.Markdown);
+        Assert.Contains("## Comparison Metrics", payload.Markdown);
+        Assert.DoesNotContain("| Rank |", payload.Markdown);
+        var peakIndex = payload.Markdown.IndexOf("| Peak amplitude |", StringComparison.Ordinal);
+        var rmsIndex = payload.Markdown.IndexOf("| RMS amplitude |", StringComparison.Ordinal);
+        var crestIndex = payload.Markdown.IndexOf("| Crest factor |", StringComparison.Ordinal);
+        var clippingIndex = payload.Markdown.IndexOf("| Clipping samples |", StringComparison.Ordinal);
+        Assert.True(peakIndex < rmsIndex && rmsIndex < crestIndex && crestIndex < clippingIndex);
         Assert.Contains("## Selected Evidence", payload.Markdown);
         Assert.Contains("### RMS amplitude", payload.Markdown);
         Assert.Contains("A-B", payload.Markdown);
@@ -154,35 +159,49 @@ public sealed class ExportComparisonReportMarkdownTests : IClassFixture<WebAppli
         response.EnsureSuccessStatusCode();
         var payload = await response.Content.ReadFromJsonAsync<ExportReportMarkdownResponse>();
         Assert.NotNull(payload);
-        Assert.Contains("The aggregate evidence prioritizes", payload!.Markdown);
-        Assert.Contains("AI prioritization was unavailable or invalid", payload.Markdown);
+        Assert.Contains("This interpretation describes the selected RMS amplitude evidence.", payload!.Markdown);
+        Assert.Contains("AI fact selection was unavailable or invalid", payload.Markdown);
         Assert.Contains("rely on the deterministic comparison evidence", payload.Markdown);
         Assert.DoesNotContain("API key test failure", payload.Markdown);
     }
 
     [Fact]
-    public void StructuredNarrative_UsesOnlySelectedBackendFacts()
+    public void StructuredNarrative_UsesOnlyTheUserSelectedMetric()
     {
-        var context = CreateNarrativeContext();
+        var context = CreateNarrativeContext(selectedMetricKey: "rmsAmplitudeDelta");
         var response = JsonSerializer.Serialize(new
         {
-            selectedFactIds = new[]
-            {
-                "aggregate.crestFactorDelta.compare-b-higher",
-                "aggregate.peakAmplitudeDelta.compare-b-higher"
-            }
+            selectedFactIds = new[] { "aggregate.rmsAmplitudeDelta.compare-b-higher" }
         });
 
         var result = OpenAiComparisonReportNarrativeService.BuildNarrativeFromSelection(context, response);
         var narrative = string.Join(' ', new[] { result.Overview }.Concat(result.KeyTakeaways).Concat(result.Cautions));
 
         Assert.False(result.IsFallback);
-        Assert.Contains("Aggregate crest factor evidence is numerically higher for Compare B.", result.KeyTakeaways);
-        Assert.Contains("Aggregate peak amplitude evidence is numerically higher for Compare B.", result.KeyTakeaways);
-        Assert.Contains("selected aligned pair supports the same crest factor direction", result.Overview);
-        Assert.DoesNotContain("RMS amplitude", narrative);
+        Assert.Contains("Aggregate RMS amplitude evidence is numerically higher for Compare B.", result.KeyTakeaways);
+        Assert.Contains("selected aligned pair supports the same RMS amplitude direction", result.Overview);
+        Assert.DoesNotContain("Crest factor", narrative);
+        Assert.DoesNotContain("Peak amplitude", narrative);
+        Assert.DoesNotContain("priorit", narrative, StringComparison.OrdinalIgnoreCase);
+        Assert.DoesNotContain("rank", narrative, StringComparison.OrdinalIgnoreCase);
         Assert.DoesNotContain("selected aligned pair", string.Join(' ', result.KeyTakeaways), StringComparison.OrdinalIgnoreCase);
         Assert.DoesNotContain("limitation", narrative, StringComparison.OrdinalIgnoreCase);
+    }
+
+    [Fact]
+    public void ComparisonReport_PreservesBackendDomainOrderAcrossIncompatibleUnits()
+    {
+        var context = CreateNarrativeContext();
+        var narrative = OpenAiComparisonReportNarrativeService.BuildInvalidResponseFallback(context);
+
+        var markdown = ComparisonReportMarkdownWriter.Write(context, narrative);
+
+        var peakIndex = markdown.IndexOf("| Peak amplitude |", StringComparison.Ordinal);
+        var rmsIndex = markdown.IndexOf("| RMS amplitude |", StringComparison.Ordinal);
+        var crestIndex = markdown.IndexOf("| Crest factor |", StringComparison.Ordinal);
+        var clippingIndex = markdown.IndexOf("| Clipping samples |", StringComparison.Ordinal);
+        Assert.True(peakIndex < rmsIndex && rmsIndex < crestIndex && crestIndex < clippingIndex);
+        Assert.DoesNotContain("| Rank |", markdown);
     }
 
     [Theory]
@@ -201,9 +220,9 @@ public sealed class ExportComparisonReportMarkdownTests : IClassFixture<WebAppli
 
         Assert.True(result.IsFallback);
         Assert.Contains(result.Cautions, caution =>
-            caution.Contains("AI prioritization was unavailable or invalid", StringComparison.Ordinal));
+            caution.Contains("AI fact selection was unavailable or invalid", StringComparison.Ordinal));
         Assert.Contains("Aggregate crest factor evidence is numerically higher for Compare B.", result.KeyTakeaways);
-        Assert.Contains("Aggregate peak amplitude evidence is numerically higher for Compare B.", result.KeyTakeaways);
+        Assert.DoesNotContain("Aggregate peak amplitude", string.Join(' ', result.KeyTakeaways));
         Assert.DoesNotContain("RMS amplitude", string.Join(' ', result.KeyTakeaways));
         Assert.DoesNotContain("clipping", result.Overview, StringComparison.OrdinalIgnoreCase);
     }
@@ -230,9 +249,26 @@ public sealed class ExportComparisonReportMarkdownTests : IClassFixture<WebAppli
         Assert.DoesNotContain("confirm", result.Overview, StringComparison.OrdinalIgnoreCase);
     }
 
+    [Fact]
+    public void StructuredNarrative_DescribesAnEqualSelectedMetricWithoutImportanceClaims()
+    {
+        var context = CreateNarrativeContext(selectedMetricKey: "clippingSampleCountDelta");
+        var response = "{\"selectedFactIds\":[\"aggregate.clippingSampleCountDelta.equal\"]}";
+
+        var result = OpenAiComparisonReportNarrativeService.BuildNarrativeFromSelection(context, response);
+        var narrative = string.Join(' ', new[] { result.Overview }.Concat(result.KeyTakeaways));
+
+        Assert.False(result.IsFallback);
+        Assert.Contains("Aggregate clipping samples evidence is equal for Compare A and Compare B.", result.KeyTakeaways);
+        Assert.DoesNotContain("priorit", narrative, StringComparison.OrdinalIgnoreCase);
+        Assert.DoesNotContain("rank", narrative, StringComparison.OrdinalIgnoreCase);
+        Assert.DoesNotContain("important", narrative, StringComparison.OrdinalIgnoreCase);
+    }
+
     private static ComparisonReportContext CreateNarrativeContext(
         double selectedCrestFactorDelta = -1.121,
-        bool includeLimitation = false)
+        bool includeLimitation = false,
+        string selectedMetricKey = "crestFactorDelta")
     {
         var observation = new RecordingComparisonSignalObservation(
             "recording-a:ch:0",
@@ -258,9 +294,9 @@ public sealed class ExportComparisonReportMarkdownTests : IClassFixture<WebAppli
             false);
         var aggregates = new[]
         {
-            new RecordingComparisonMetricAggregate("crestFactorDelta", "ratio", 2, 0, -0.742, -0.742, -1.121, -0.363, 0.758),
             new RecordingComparisonMetricAggregate("peakAmplitudeDelta", "FS", 2, 0, -0.113, -0.113, -0.156, -0.071, 0.085),
             new RecordingComparisonMetricAggregate("rmsAmplitudeDelta", "FS", 2, 0, -0.001, -0.001, -0.003, 0.001, 0.004),
+            new RecordingComparisonMetricAggregate("crestFactorDelta", "ratio", 2, 0, -0.742, -0.742, -1.121, -0.363, 0.758),
             new RecordingComparisonMetricAggregate("clippingSampleCountDelta", "samples", 2, 0, 0, 0, 0, 0, 0)
         };
         var limitations = includeLimitation
@@ -275,11 +311,13 @@ public sealed class ExportComparisonReportMarkdownTests : IClassFixture<WebAppli
             limitations,
             null);
 
+        var selectedMetric = aggregates.Single(metric => metric.MetricKey == selectedMetricKey);
+
         return new ComparisonReportContext(
             "Alpha vs beta comparison",
             DateTimeOffset.UtcNow,
             comparison,
-            aggregates[0],
+            selectedMetric,
             observation,
             []);
     }

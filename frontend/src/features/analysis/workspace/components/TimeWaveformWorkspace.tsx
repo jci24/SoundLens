@@ -184,18 +184,9 @@ const TimeWaveformWorkspace = ({ importedFiles, isCopilotOpen, onCopilotToggle }
     activePairRecordingA && activePairRecordingB
       ? `This slice compares one pair at a time. Now using ${activePairRecordingA.fileName} vs ${activePairRecordingB.fileName}.${queuedComparisonCopy ? ` ${queuedComparisonCopy}.` : ''}`
       : 'This slice compares one pair at a time.'
-  const rankedMetrics = useMemo(
-    () =>
-      [...(comparisonResults?.aggregateMetrics ?? [])].sort(
-        (left, right) => Math.abs(right.meanDifference) - Math.abs(left.meanDifference)
-      ),
-    [comparisonResults?.aggregateMetrics]
-  )
-  const activeMetric = useMemo(
-    () =>
-      rankedMetrics.find((metric) => metric.metricKey === selectedMetricKey) ?? rankedMetrics[0] ?? null,
-    [rankedMetrics, selectedMetricKey]
-  )
+  const comparisonMetrics = comparisonResults?.aggregateMetrics ?? []
+  const activeMetric =
+    comparisonMetrics.find((metric) => metric.metricKey === selectedMetricKey) ?? comparisonMetrics[0] ?? null
   const activeObservation = useMemo(() => {
     if (!comparisonResults || !activeMetric) {
       return null
@@ -299,7 +290,6 @@ const TimeWaveformWorkspace = ({ importedFiles, isCopilotOpen, onCopilotToggle }
           results: response,
         })
         setIsComparisonDetailsOpen(false)
-        setSelectedMetricKey(null)
       })
       .catch((caughtError) => {
         if (!isCurrent) {
@@ -432,10 +422,10 @@ const TimeWaveformWorkspace = ({ importedFiles, isCopilotOpen, onCopilotToggle }
             )}
           </section>
           {layoutMode === 'compare' && (
-            <section className="time-waveform-workspace__comparison-results" aria-label="Ranked comparison results">
+            <section className="time-waveform-workspace__comparison-results" aria-label="Comparison metrics">
               <div className="time-waveform-workspace__comparison-results-header">
                 <div>
-                  <h3 className="time-waveform-workspace__comparison-results-title">Ranked differences</h3>
+                  <h3 className="time-waveform-workspace__comparison-results-title">Comparison metrics</h3>
                 </div>
                 {comparisonResults && (
                   <div className="time-waveform-workspace__comparison-results-summary-group">
@@ -471,7 +461,7 @@ const TimeWaveformWorkspace = ({ importedFiles, isCopilotOpen, onCopilotToggle }
 
               {!needsPairwiseReduction && isComparisonLoading && (
                 <p className="time-waveform-workspace__comparison-results-empty">
-                  Preparing ranked differences from the current comparison pair.
+                  Preparing comparison metrics from the current comparison pair.
                 </p>
               )}
 
@@ -481,21 +471,21 @@ const TimeWaveformWorkspace = ({ importedFiles, isCopilotOpen, onCopilotToggle }
 
               {!needsPairwiseReduction && !isComparisonLoading && !comparisonError && comparisonResults && (
                 <>
-                  <div className="time-waveform-workspace__comparison-ranking">
-                    {rankedMetrics.map((metric) => (
+                  <div className="time-waveform-workspace__comparison-metrics">
+                    {comparisonMetrics.map((metric) => (
                       <button
                         key={metric.metricKey}
-                        className={`time-waveform-workspace__comparison-ranking-card${activeMetric?.metricKey === metric.metricKey ? ' time-waveform-workspace__comparison-ranking-card--active' : ''}`}
+                        className={`time-waveform-workspace__comparison-metric-card${activeMetric?.metricKey === metric.metricKey ? ' time-waveform-workspace__comparison-metric-card--active' : ''}`}
                         type="button"
                         onClick={() => setSelectedMetricKey(metric.metricKey)}
                       >
-                        <span className="time-waveform-workspace__comparison-ranking-label">
+                        <span className="time-waveform-workspace__comparison-metric-label">
                           {formatComparisonMetricLabel(metric.metricKey)}
                         </span>
-                        <strong className="time-waveform-workspace__comparison-ranking-value">
+                        <strong className="time-waveform-workspace__comparison-metric-value">
                           {formatAggregateValue(metric.meanDifference, metric.unit)}
                         </strong>
-                        <span className="time-waveform-workspace__comparison-ranking-meta">
+                        <span className="time-waveform-workspace__comparison-metric-meta">
                           Spread {formatAggregateValue(metric.spread, metric.unit)} · Pairs {metric.comparedPairCount}
                           {metric.missingValueCount > 0 ? ` · Missing ${metric.missingValueCount}` : ''}
                         </span>
@@ -506,9 +496,9 @@ const TimeWaveformWorkspace = ({ importedFiles, isCopilotOpen, onCopilotToggle }
                   {isComparisonDetailsOpen && (activeMetric || comparisonResults.limitations.length > 0) && (
                     <section className="time-waveform-workspace__comparison-details" aria-label="Comparison details">
                       {activeMetric && activeObservation && (
-                        <section className="time-waveform-workspace__comparison-focus" aria-label="Selected ranked difference">
+                        <section className="time-waveform-workspace__comparison-focus" aria-label="Selected metric evidence">
                           <div>
-                            <span className="time-waveform-workspace__comparison-focus-kicker">Selected difference</span>
+                            <span className="time-waveform-workspace__comparison-focus-kicker">Selected metric</span>
                             <h4 className="time-waveform-workspace__comparison-focus-title">
                               {formatComparisonMetricLabel(activeMetric.metricKey)}
                             </h4>
@@ -534,7 +524,7 @@ const TimeWaveformWorkspace = ({ importedFiles, isCopilotOpen, onCopilotToggle }
                             </div>
                           </div>
                           <p className="time-waveform-workspace__comparison-focus-copy">
-                            Strongest aligned pair: {activeObservation.displayNameA} vs {activeObservation.displayNameB} ·
+                            Largest absolute aligned-pair delta: {activeObservation.displayNameA} vs {activeObservation.displayNameB} ·
                             A {formatAggregateValue(getObservationValue(activeObservation, activeMetric.metricKey, 'A'), activeMetric.unit)} ·
                             B {formatAggregateValue(getObservationValue(activeObservation, activeMetric.metricKey, 'B'), activeMetric.unit)} ·
                             Delta {formatAggregateValue(getObservationDelta(activeObservation, activeMetric.metricKey), activeMetric.unit)}
@@ -701,7 +691,7 @@ const getComparisonCoverageSummary = (
     return {
       alignedPairCount: 0,
       comparedPairCount: 0,
-      copy: 'Coverage will appear once a ranked comparison is available.',
+      copy: 'Coverage will appear once comparison metrics are available.',
       label: 'Coverage pending',
       limitationCount: 0,
       missingValueCount: 0,
@@ -722,7 +712,7 @@ const getComparisonCoverageSummary = (
     return {
       alignedPairCount,
       comparedPairCount,
-      copy: 'Interpret these ranked deltas carefully. The current comparison rests on a very small amount of aligned evidence.',
+      copy: 'Interpret these metric deltas carefully. The current comparison rests on a very small amount of aligned evidence.',
       label: 'Weak evidence',
       limitationCount,
       missingValueCount,
@@ -734,7 +724,7 @@ const getComparisonCoverageSummary = (
     return {
       alignedPairCount,
       comparedPairCount,
-      copy: 'The ranking is usable, but some aligned evidence is incomplete or missing for this metric.',
+      copy: 'Some aligned evidence is incomplete or missing for the selected metric.',
       label: 'Partial evidence',
       limitationCount,
       missingValueCount,

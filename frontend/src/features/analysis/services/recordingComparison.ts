@@ -45,6 +45,12 @@ const readComparisonError = async (response: Response) => {
         .join('. ') || fallback
     }
 
+    if (Array.isArray(body?.errors?.generalErrors)) {
+      return body.errors.generalErrors
+        .filter((error: unknown): error is string => typeof error === 'string')
+        .join('. ') || fallback
+    }
+
     if (typeof body?.message === 'string') {
       return body.message
     }

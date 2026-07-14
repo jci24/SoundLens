@@ -52,9 +52,9 @@ The current application is still organized around an analysis workspace rather t
 ### Comparison Report Context
 
 - A transient backend-owned report model reconstructed from active recording IDs, selected metric and aligned signal IDs, optional ROI, and resolved excluded recordings.
-- The frontend may provide an editable title and session-owned comparison assignments, but not measurements, rankings, units, coverage, findings, or limitations.
+- The frontend may provide an editable title and session-owned comparison assignments, but not measurements, metric order, units, coverage, findings, or limitations.
 - The report contains deterministic comparison evidence whether or not an AI narrative can be produced.
-- Report narrative facts are backend-generated statements derived from ranked aggregates, the selected aligned pair, and actual limitations. AI may prioritize eligible fact IDs, but final prose is rendered by backend templates.
+- Report narrative facts are backend-generated statements derived from the user-selected aggregate metric, selected aligned pair, and actual limitations. AI may validate only that selected-metric fact ID, while final prose is rendered by backend templates.
 
 ## Current Pairwise Comparison Model
 
@@ -78,7 +78,7 @@ The current product includes the minimum session-scoped model needed for focused
 
 - The assigned condition target for a recording, initially `A` or `B`.
 - Unassigned recordings should remain visible and excluded rather than silently included.
-- Several recordings may be assigned, but the current comparison contract resolves one active A/B recording pair at a time.
+- Normal workspace interaction assigns at most one recording to each target, and the current comparison contract resolves that active A/B pair.
 
 ### RegionSelection
 
@@ -97,7 +97,7 @@ The current product includes the minimum session-scoped model needed for focused
 ### Pairwise Comparison Result
 
 - The deterministic output for one active Compare A recording versus one active Compare B recording.
-- Includes aligned observations, aggregate values, ranked differences, coverage inputs, missing values, and limitations.
+- Includes aligned observations, aggregate values in the fixed Peak, RMS, crest-factor, and clipping order, coverage inputs, missing values, and limitations.
 
 ### Comparison Explanation Selection
 
@@ -107,7 +107,7 @@ The current product includes the minimum session-scoped model needed for focused
 
 ### EvidenceReference
 
-- A stable reference from a Copilot answer, ranked result, or report back to the specific observation or comparison result it relies on.
+- A stable reference from a Copilot answer, selected metric, or report back to the specific observation or comparison result it relies on.
 
 ## First Strict Signal-Alignment Rule
 

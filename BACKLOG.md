@@ -36,7 +36,7 @@ Turn the current analysis workspace into a focused comparison workflow for repea
 - compare-mode validation and setup guidance
 - deterministic pairwise signal alignment
 - ROI-aware pairwise comparison contract
-- ranked pairwise difference summaries
+- pairwise comparison metrics in a fixed backend-owned domain order
 - lightweight coverage cues and limitation messaging
 - compare-mode UX cleanup and lower-density layout
 - active-pair plus queued-overflow messaging for multi-assignment states
@@ -48,7 +48,31 @@ Turn the current analysis workspace into a focused comparison workflow for repea
 
 ## Ordered Thin Tasks
 
-### A12. Comparison Eval Cases
+### A12. Explicit Compare Pair Builder
+
+User value:
+- A user can choose the active Compare A and Compare B recordings without interpreting repeated per-file A/B/Out controls.
+
+Thin-slice boundary:
+- Replace assignment controls with two explicit single-recording slots without changing the pairwise backend contract or channel selection.
+
+Acceptance criteria:
+- Compare A and Compare B each expose an accessible anchored recording picker
+- selecting a recording already used by the other slot cannot create duplicate occupancy
+- each slot supports replace and clear actions
+- unselected recordings remain visible without repeated assignment controls
+
+Test expectations:
+- frontend interaction and accessibility tests for choose, replace, clear, duplicate prevention, and narrow layouts
+- no backend contract changes expected
+
+Proposed branch name:
+- `codex/compare-pair-builder`
+
+Dependencies:
+- stable comparison metric ordering
+
+### A13. Comparison Eval Cases
 
 User value:
 - A user can trust that the comparison workflow refuses unsupported claims and handles edge cases consistently.
@@ -70,7 +94,7 @@ Proposed branch name:
 Dependencies:
 - shipped comparison report and bounded comparison explanation
 
-### A13. Comparison Report PDF
+### A14. Comparison Report PDF
 
 User value:
 - A user can export the validated comparison report as a portable PDF.
@@ -99,7 +123,6 @@ High priority:
 
 - ensure malformed or non-JSON model output cannot surface raw structured payloads in the Copilot UI
 - split comparison-explanation orchestration and prompt construction out of the oversized `AgentQueryHandler` before adding another broad agent capability
-- replace absolute cross-unit comparison ranking with an explicit, validated relevance policy before presenting rank as cross-metric importance
 
 Normal priority:
 

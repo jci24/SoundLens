@@ -26,7 +26,7 @@ The immediate product direction is a focused A/B comparison workflow:
 2. Assign recordings to Product or Condition A and B.
 3. Enforce explicit signal alignment before comparison.
 4. Compute deterministic aggregate differences.
-5. Rank the most relevant differences.
+5. Review comparison metrics in a stable domain order and choose an evidence focus.
 6. Drill down into waveform and spectrum evidence.
 7. Generate a grounded explanation and report over selected evidence.
 
@@ -76,8 +76,8 @@ The current milestone is to harden the first focused A/B comparison workflow:
 - assign recordings to Compare A and Compare B
 - validate comparable signals
 - compute deterministic pairwise comparison results with explicit limitations
-- rank differences
-- complete drill-down from ranked results into the underlying evidence
+- present comparison metrics without unsupported cross-unit importance claims
+- complete drill-down from the selected metric into the underlying evidence
 
 ## In-Scope Boundaries
 
@@ -106,7 +106,7 @@ The immediate roadmap should not expand into:
 - The product may still feel like a general multi-file analyzer instead of a comparison tool.
 - A/B comparison needs a strict signal-alignment rule to avoid misleading results.
 - Current findings and AI explanations can appear more mature than their validation level if wording is not tightly controlled.
-- Report export may add limited value until it is grounded in ranked comparison evidence rather than raw workspace state.
+- Report export may add limited value until it is grounded in selected comparison evidence rather than raw workspace state.
 - Cloud/privacy concerns may block adoption unless the deployment model remains explicit and credible.
 
 ## Key Repository Documents

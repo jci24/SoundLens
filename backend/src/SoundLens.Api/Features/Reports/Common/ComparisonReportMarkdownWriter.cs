@@ -24,18 +24,14 @@ public static class ComparisonReportMarkdownWriter
             : $"- Region: {FormatSeconds(comparison.RegionOfInterest.StartTimeSeconds)} to {FormatSeconds(comparison.RegionOfInterest.EndTimeSeconds)} ({FormatSeconds(comparison.RegionOfInterest.DurationSeconds)})");
         builder.AppendLine();
 
-        builder.AppendLine("## Ranked Differences");
+        builder.AppendLine("## Comparison Metrics");
         builder.AppendLine();
-        builder.AppendLine("| Rank | Metric | Mean A-B | Median | Spread | Pairs | Missing |");
-        builder.AppendLine("| ---: | --- | ---: | ---: | ---: | ---: | ---: |");
-        var rankedMetrics = comparison.AggregateMetrics
-            .OrderByDescending(metric => Math.Abs(metric.MeanDifference))
-            .ToArray();
-        for (var index = 0; index < rankedMetrics.Length; index++)
+        builder.AppendLine("| Metric | Mean A-B | Median | Spread | Pairs | Missing |");
+        builder.AppendLine("| --- | ---: | ---: | ---: | ---: | ---: |");
+        foreach (var metric in comparison.AggregateMetrics)
         {
-            var metric = rankedMetrics[index];
             builder.AppendLine(
-                $"| {index + 1} | {FormatMetricLabel(metric.MetricKey)} | {FormatValue(metric.MeanDifference, metric.Unit)} | {FormatValue(metric.MedianDifference, metric.Unit)} | {FormatValue(metric.Spread, metric.Unit)} | {metric.ComparedPairCount} | {metric.MissingValueCount} |");
+                $"| {FormatMetricLabel(metric.MetricKey)} | {FormatValue(metric.MeanDifference, metric.Unit)} | {FormatValue(metric.MedianDifference, metric.Unit)} | {FormatValue(metric.Spread, metric.Unit)} | {metric.ComparedPairCount} | {metric.MissingValueCount} |");
         }
         builder.AppendLine();
 
