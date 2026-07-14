@@ -116,7 +116,9 @@ Frontend:
 Eval harness:
 
 - `scripts/copilot-evals/` runs repeated grounded Copilot questions against known fixtures
-- current grading emphasizes structural regressions and grounding hygiene more than deep domain usefulness
+- comparison evals resolve recording and aligned-signal identifiers from backend responses and reconstruct deterministic comparison evidence before querying Copilot
+- strict graders cover ambiguous overall criteria, zero difference, missing aligned evidence, ROI-bounded causal uncertainty, and uncalibrated SPL refusal
+- every live run writes a diagnostic JSON artifact; pure dataset, grading, and summary tests run in CI without OpenAI
 
 ## Current Technical Architecture
 
@@ -143,8 +145,8 @@ The repo is still intentionally simple: no extra backend projects, no persistenc
 - Copilot and comparison export reconstruct evidence from session-scoped identifiers rather than a persisted comparison object
 - Comparison report export is Markdown-only and does not include waveform or spectrum images; PDF is deferred
 - Heterogeneous comparison metrics use a fixed backend-owned presentation order: Peak amplitude, RMS amplitude, crest factor, then clipping samples. The order does not claim normalized importance or severity.
-- Current evals do not yet cover the full set of refusal, ambiguity, calibration, and no-difference cases needed for trust
+- A true calibrated-versus-uncalibrated comparison eval remains deferred because imported evidence currently has no real calibrated state
 
 ## Immediate Next Product Slice
 
-The next product slice should expand comparison trust evals for ambiguity, missing evidence, calibration mismatch, no meaningful difference, and unsupported causal claims. PDF comparison export remains a separate follow-up.
+The next product slice should add PDF as a format over the validated backend-owned comparison report model. A real calibration-state model and calibrated-versus-uncalibrated eval remain later trust work.

@@ -1,68 +1,93 @@
 # Copilot Answer Evals
 
-This branch introduces the first automated eval harness for grounded Copilot answers.
+The live Copilot eval harness exercises grounded answers against deterministic audio fixtures and records enough evidence to diagnose trust regressions.
 
-## Goal
+## Trust Boundary
 
-The Copilot output is nondeterministic, so manual review of one answer at a time is not enough. The eval harness is intended to catch regressions in:
+Generic cases may select signals by fixture filename and display name. Comparison cases select:
 
-- tool choice
-- numeric grounding
-- evidence presence
-- wording constraints
-- hallucinated ordinal references such as "first signal"
-- leakage of internal tool names in `nextSteps`
+- Compare A and Compare B fixture filenames
+- one supported comparison metric key
+- one aligned signal display name on each side
+- optional ROI boundaries
 
-## First Slice
+The runner resolves session-scoped recording and signal IDs from backend responses, calls `/api/comparisons/recordings`, and verifies the selected metric, aligned pair, deterministic value, and expected limitation codes. It then sends only identifiers through `comparisonContext`. Dataset cases never supply measurements, units, coverage, findings, or limitations to the agent.
 
-The first slice is intentionally simple:
+## Dataset Schema
 
-- import a known set of files into the running local backend
-- discover signal IDs from the waveform response
-- submit fixed Copilot questions repeatedly
-- grade the returned `AgentQueryResponse`
+The dataset remains compatible with generic `signals` cases. A comparison case adds:
 
-The runner lives at `scripts/copilot-evals/run-copilot-evals.mjs`.
-
-The initial dataset lives at `scripts/copilot-evals/copilot-eval-cases.json`.
-
-## Usage
-
-Start the backend first so the local API is reachable:
-
-```bash
-dotnet run --project backend/src/SoundLens.Api/SoundLens.Api.csproj
+```json
+{
+  "comparison": {
+    "recordingAFileName": "eval-quiet.wav",
+    "recordingBFileName": "eval-loud.wav",
+    "metricKey": "rmsAmplitudeDelta",
+    "signalDisplayNameA": "Channel 1",
+    "signalDisplayNameB": "Channel 1"
+  },
+  "expectedComparison": {
+    "meanDifference": -0.25,
+    "tolerance": 0.000001,
+    "limitationCodes": ["LowCoverage"]
+  }
+}
 ```
 
-Then update `filePaths` in `scripts/copilot-evals/copilot-eval-cases.json` so they point to real local WAV files.
-The repo now owns deterministic eval WAV fixtures under `scripts/copilot-evals/fixtures/`.
-If they are missing locally, regenerate them with:
+Supported response assertions are:
+
+- `requiredAnswerPhrases`: every phrase must occur
+- `requiredAnswerAnyPhraseGroups`: at least one phrase from every group must occur
+- `forbiddenAnswerPhrases` and `forbiddenAnswerPatterns`
+- `requiredLimitationPhrases`
+- `expectedTools`, `forbiddenTools`, and `requiredEvidenceTools`
+- `expectedComparison.limitationCodes`
+- deterministic `meanDifference` with an explicit tolerance
+
+Datasets are validated before fixture access or network calls. Duplicate IDs, unsupported metrics, incomplete selectors, invalid ROIs, malformed assertions, and non-positive run counts are fatal configuration errors.
+
+## Running Evals
+
+Regenerate the deterministic fixtures and start the backend with OpenAI configured:
 
 ```bash
 node scripts/copilot-evals/generate-fixtures.mjs
+dotnet run --project backend/src/SoundLens.Api/SoundLens.Api.csproj
 ```
 
-Run the evals:
+Run all cases or target one case:
 
 ```bash
 node scripts/copilot-evals/run-copilot-evals.mjs
+node scripts/copilot-evals/run-copilot-evals.mjs --case comparison-zero-rms-difference
 ```
 
-Optional flags:
+Available options:
+
+```text
+--runs <positive integer>
+--dataset <path>
+--api-base-url <url>
+--case <case-id>
+--output <json-path>
+```
+
+Every run is persisted by default to ignored timestamped JSON under `artifacts/copilot-evals/`. Artifacts contain case metadata, resolved identifier context, deterministic setup checks, complete agent responses, grading failures, and summary counts. They do not contain API keys or raw waveform data.
+
+## Pass Policy
+
+Every repeated run and deterministic setup must pass. A failed run, request, or comparison setup produces exit code 1, while remaining cases continue so the artifact retains the complete baseline. Dataset parsing, fixture import, and initial backend-session failures remain fatal.
+
+Fast pure grader tests run in CI without OpenAI or a backend:
 
 ```bash
-node scripts/copilot-evals/run-copilot-evals.mjs --runs 5 --api-base-url http://localhost:5123
-node scripts/copilot-evals/run-copilot-evals.mjs --dataset scripts/copilot-evals/copilot-eval-cases.json
+node --test scripts/copilot-evals/*.test.mjs
 ```
 
-## Current Limits
+Live model failures are production-behavior evidence, not harness defects. Record them as separate follow-up work rather than changing production prompts inside an eval-only slice.
 
-- Evidence grading currently checks structure and anti-regressions, not exact numeric evidence rows.
-- The runner depends on a live backend with a valid OpenAI API key.
-- There is no CI wiring yet.
+## Current Coverage And Limits
 
-## Recommended Next Steps
+Comparison cases cover an undefined overall criterion, zero RMS difference, missing aligned evidence with low coverage, unsupported causal explanation over an ROI, and refusal of calibrated dB SPL conclusions from uncalibrated evidence.
 
-- Add exact graders for cited evidence summaries and expected signal IDs.
-- Persist run artifacts to JSON for diffing across prompt or backend changes.
-- Add a CI-friendly mode that runs against a controlled environment instead of a developer machine.
+A true calibrated-versus-uncalibrated mismatch is deferred. Imported evidence currently remains uncalibrated, so adding such a fixture would invent unsupported product state rather than test the real contract.

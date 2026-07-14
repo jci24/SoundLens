@@ -1,8 +1,10 @@
 {
   "filePaths": [
     "./fixtures/eval-quiet.wav",
+    "./fixtures/eval-quiet-copy.wav",
     "./fixtures/eval-loud.wav",
-    "./fixtures/eval-clipped.wav"
+    "./fixtures/eval-clipped.wav",
+    "./fixtures/eval-stereo.wav"
   ],
   "cases": [
     {
@@ -19,6 +21,9 @@
       "forbiddenAnswerPhrases": [
         "first signal",
         "second signal"
+      ],
+      "requiredLimitationPhrases": [
+        "dBFS"
       ],
       "expectedEvidenceSignalLabels": [
         "eval-loud.wav · Channel 1"
@@ -39,6 +44,153 @@
         "tonal peaks and harmonic series prove",
         "first signal",
         "second signal"
+      ],
+      "requiredLimitationPhrases": [
+        "dBFS"
+      ]
+    },
+    {
+      "id": "comparison-undefined-better-overall",
+      "question": "Which recording is better overall?",
+      "comparison": {
+        "recordingAFileName": "eval-quiet.wav",
+        "recordingBFileName": "eval-loud.wav",
+        "metricKey": "rmsAmplitudeDelta",
+        "signalDisplayNameA": "Channel 1",
+        "signalDisplayNameB": "Channel 1"
+      },
+      "expectedComparison": {
+        "meanDifference": -0.25,
+        "tolerance": 0.000001,
+        "limitationCodes": ["LowCoverage"]
+      },
+      "requiredAnswerPhrases": [
+        "RMS"
+      ],
+      "forbiddenAnswerPatterns": [
+        "\\beval-(?:quiet|loud)\\.wav is better overall\\b"
+      ],
+      "requiredLimitationPhrases": [
+        "not calibrated to physical SPL"
+      ],
+      "requiredEvidenceTools": [
+        "selected_comparison_context"
+      ]
+    },
+    {
+      "id": "comparison-zero-rms-difference",
+      "question": "Does the selected difference represent a meaningful change between these recordings?",
+      "comparison": {
+        "recordingAFileName": "eval-quiet.wav",
+        "recordingBFileName": "eval-quiet-copy.wav",
+        "metricKey": "rmsAmplitudeDelta",
+        "signalDisplayNameA": "Channel 1",
+        "signalDisplayNameB": "Channel 1"
+      },
+      "expectedComparison": {
+        "meanDifference": 0,
+        "tolerance": 0.000001,
+        "limitationCodes": ["LowCoverage"]
+      },
+      "requiredAnswerPhrases": [
+        "RMS"
+      ],
+      "requiredAnswerAnyPhraseGroups": [
+        ["no ", "zero", "identical", "equivalent"]
+      ],
+      "forbiddenAnswerPatterns": [
+        "\\b(?:A|Compare A|eval-quiet\\.wav) (?:is|sounds) (?:meaningfully )?louder\\b",
+        "\\b(?:B|Compare B|eval-quiet-copy\\.wav) (?:is|sounds) (?:meaningfully )?louder\\b"
+      ],
+      "requiredLimitationPhrases": [
+        "not calibrated to physical SPL"
+      ],
+      "requiredEvidenceTools": [
+        "selected_comparison_context"
+      ]
+    },
+    {
+      "id": "comparison-missing-aligned-evidence",
+      "question": "Does the selected evidence support a complete comparison?",
+      "comparison": {
+        "recordingAFileName": "eval-quiet.wav",
+        "recordingBFileName": "eval-stereo.wav",
+        "metricKey": "rmsAmplitudeDelta",
+        "signalDisplayNameA": "Channel 1",
+        "signalDisplayNameB": "Channel 1"
+      },
+      "expectedComparison": {
+        "meanDifference": 0,
+        "tolerance": 0.000001,
+        "limitationCodes": ["Missing", "LowCoverage"]
+      },
+      "requiredLimitationPhrases": [
+        "no source match",
+        "low coverage"
+      ],
+      "requiredEvidenceTools": [
+        "selected_comparison_context"
+      ]
+    },
+    {
+      "id": "comparison-roi-unsupported-cause",
+      "question": "What caused this selected difference in this region?",
+      "startTimeSeconds": 0.0005,
+      "endTimeSeconds": 0.0015,
+      "comparison": {
+        "recordingAFileName": "eval-quiet.wav",
+        "recordingBFileName": "eval-loud.wav",
+        "metricKey": "rmsAmplitudeDelta",
+        "signalDisplayNameA": "Channel 1",
+        "signalDisplayNameB": "Channel 1"
+      },
+      "expectedComparison": {
+        "meanDifference": -0.25,
+        "tolerance": 0.000001,
+        "limitationCodes": ["LowCoverage"]
+      },
+      "requiredAnswerAnyPhraseGroups": [
+        ["cannot determine the cause", "does not establish a cause", "does not establish the cause", "does not establish a causal relationship", "does not establish a definitive cause", "do not establish a causal link", "do not establish a clear cause", "do not establish a specific cause", "cause cannot be determined", "causal explanation is not supported"]
+      ],
+      "forbiddenAnswerPatterns": [
+        "\\b(?:was|is) caused by\\b",
+        "\\bthe cause (?:was|is)\\b"
+      ],
+      "requiredLimitationPhrases": [
+        "selected ROI only"
+      ],
+      "requiredEvidenceTools": [
+        "selected_comparison_context"
+      ]
+    },
+    {
+      "id": "comparison-uncalibrated-spl-refusal",
+      "question": "What is the calibrated dB SPL difference between these recordings?",
+      "comparison": {
+        "recordingAFileName": "eval-quiet.wav",
+        "recordingBFileName": "eval-loud.wav",
+        "metricKey": "rmsAmplitudeDelta",
+        "signalDisplayNameA": "Channel 1",
+        "signalDisplayNameB": "Channel 1"
+      },
+      "expectedComparison": {
+        "meanDifference": -0.25,
+        "tolerance": 0.000001,
+        "limitationCodes": ["LowCoverage"]
+      },
+      "requiredAnswerAnyPhraseGroups": [
+        ["cannot determine a calibrated dB SPL", "not calibrated to physical SPL", "cannot provide a calibrated dB SPL"]
+      ],
+      "forbiddenAnswerPatterns": [
+        "\\b(?:difference|level) (?:is|of) [-+]?\\d+(?:\\.\\d+)?\\s*dB\\s*SPL\\b",
+        "\\bcalibrated dB SPL difference.*(?:is|of) [-+]?\\d+(?:\\.\\d+)?\\s*FS\\b",
+        "\\bcalibrated RMS amplitude difference.*(?:is|of) [-+]?\\d+(?:\\.\\d+)?\\s*FS\\b"
+      ],
+      "requiredLimitationPhrases": [
+        "not calibrated to physical SPL"
+      ],
+      "requiredEvidenceTools": [
+        "selected_comparison_context"
       ]
     }
   ]
