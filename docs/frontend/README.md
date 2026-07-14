@@ -143,6 +143,7 @@ Current report-export guidance:
 - Report side effects and request construction belong in the report feature hook and service; workspace components should only provide current identifiers and render the preview.
 - The preview may show UI-owned assignments and filenames, but must never manufacture or submit DSP measurements, metric order, units, findings, coverage, or limitations.
 - Comparison metric cards preserve backend response order and never sort heterogeneous units by frontend-computed magnitude. Selection changes evidence focus without moving cards.
+- Metric-card activation opens the selected evidence directly. The compact default view retains a clearly labeled `Evidence & limitations` disclosure, and the expanded section owns its `Hide evidence` action.
 
 Current import workflow guidance:
 

@@ -45,6 +45,7 @@ Turn the current analysis workspace into a focused comparison workflow for repea
 - backend-owned resolution of comparison evidence before Copilot explanation
 - comparison-specific Markdown preview and export over backend-reconstructed evidence
 - explicit excluded-recording, limitation, AI fallback, and traceability sections in comparison reports
+- direct metric-card evidence drill-down with explicit evidence and limitation controls
 
 ## Ordered Thin Tasks
 
