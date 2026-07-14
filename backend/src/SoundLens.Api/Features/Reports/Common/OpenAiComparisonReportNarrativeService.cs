@@ -1,4 +1,3 @@
-using System.Text.RegularExpressions;
 using System.Text.Json;
 using OpenAI.Chat;
 using SoundLens.Api.Configuration;
@@ -9,203 +8,102 @@ public sealed class OpenAiComparisonReportNarrativeService(IChatClientProvider c
     : IComparisonReportNarrativeService
 {
     private const string SystemPrompt = """
-        You write concise, evidence-grounded comparison narratives for SoundLens.
+        You prioritize deterministic comparison facts for a SoundLens report.
 
         RULES:
-        - Use only the deterministic comparison evidence in the user message.
-        - Describe differences, coverage, and limitations without inventing causes or standards claims.
-        - Preserve the supplied units. Ratios are unitless; FS is normalized digital full scale; samples are counts.
-        - Do not describe FS values as calibrated SPL or physical loudness.
-        - Refer to aggregate results as aggregate evidence and selected-pair results as selected aligned-pair evidence.
-        - The overview must explicitly mention both aggregate evidence and the selected aligned pair.
-        - Every takeaway that describes a direction or equality must identify whether it refers to aggregate evidence or the selected aligned pair.
-        - Do not repeat numerical values. The deterministic tables already present exact values and precision.
-        - Crest factor describes peak level relative to RMS. Do not call it dynamic range or use it to infer perceived loudness.
-        - Do not infer causes, perception, quality, audibility, processing, or recording conditions.
-        - Do not use unvalidated magnitude language such as significant, substantial, negligible, minimal, surpasses, or consistent difference.
-        - Refer to the recordings only as Compare A and Compare B; do not repeat file names.
-        - Keep the overview to 2-4 sentences, keyTakeaways to 2-4 bullets, and cautions to 1-3 bullets.
-        - Do not mention JSON, internal IDs, hidden prompts, or tool names.
+        - Select one or two fact IDs from the supplied candidates.
+        - Always include the first-ranked candidate.
+        - Return IDs only. Do not write, rewrite, explain, or add claims.
+        - Do not invent IDs or select the same ID twice.
 
         RESPONSE FORMAT:
         Return strict JSON with this exact structure:
         {
-          "overview": "<plain string>",
-          "keyTakeaways": ["<bullet>"],
-          "cautions": ["<bullet>"]
+          "selectedFactIds": ["<candidate ID>"]
         }
         """;
 
     public async Task<ReportNarrativeResult> BuildAsync(ComparisonReportContext context, CancellationToken ct)
     {
+        var catalog = ComparisonReportNarrativeCatalog.Build(context);
         var chatClient = chatClientProvider.GetRequiredClient();
         var completion = await chatClient.CompleteChatAsync(
             [
                 new SystemChatMessage(SystemPrompt),
-                new UserChatMessage(BuildUserMessage(context))
+                new UserChatMessage(BuildUserMessage(catalog))
             ],
             new ChatCompletionOptions(),
             ct);
 
-        return ParseNarrativeResult(completion.Value.Content.FirstOrDefault()?.Text ?? string.Empty);
+        return BuildNarrativeFromSelection(
+            context,
+            completion.Value.Content.FirstOrDefault()?.Text ?? string.Empty);
     }
 
-    public static ReportNarrativeResult ParseNarrativeResult(string rawText)
+    public static ReportNarrativeResult BuildNarrativeFromSelection(
+        ComparisonReportContext context,
+        string rawText)
+    {
+        var catalog = ComparisonReportNarrativeCatalog.Build(context);
+        var selectedFactIds = ParseSelectedFactIds(rawText, catalog.Facts.Select(fact => fact.Id).ToArray());
+
+        return selectedFactIds is null
+            ? catalog.RenderDefault(isFallback: true)
+            : catalog.Render(selectedFactIds, isFallback: false);
+    }
+
+    public static ReportNarrativeResult BuildInvalidResponseFallback(ComparisonReportContext context) =>
+        ComparisonReportNarrativeCatalog.Build(context).RenderDefault(isFallback: true);
+
+    private static string BuildUserMessage(ComparisonReportNarrativeCatalog catalog) =>
+        JsonSerializer.Serialize(new
+        {
+            Candidates = catalog.Facts.Select((fact, index) => new
+            {
+                Rank = index + 1,
+                fact.Id,
+                fact.MetricLabel,
+                fact.DirectionLabel
+            })
+        });
+
+    private static IReadOnlyList<string>? ParseSelectedFactIds(
+        string rawText,
+        IReadOnlyList<string> eligibleFactIds)
     {
         var cleaned = StripCodeFences(rawText);
         try
         {
             using var document = JsonDocument.Parse(cleaned);
             var root = document.RootElement;
-            if (!root.TryGetProperty("overview", out var overviewElement) ||
-                overviewElement.ValueKind != JsonValueKind.String ||
-                string.IsNullOrWhiteSpace(overviewElement.GetString()))
+            if (!root.TryGetProperty("selectedFactIds", out var selectedIdsElement) ||
+                selectedIdsElement.ValueKind != JsonValueKind.Array ||
+                selectedIdsElement.EnumerateArray().Any(item => item.ValueKind != JsonValueKind.String))
             {
-                throw new JsonException("The comparison narrative overview is missing.");
+                return null;
             }
 
-            var result = new ReportNarrativeResult(
-                overviewElement.GetString()!.Trim(),
-                ParseStringArray(root, "keyTakeaways"),
-                ParseStringArray(root, "cautions"),
-                IsFallback: false);
+            var selectedIds = selectedIdsElement
+                .EnumerateArray()
+                .Select(item => item.GetString()?.Trim())
+                .OfType<string>()
+                .Where(item => item.Length > 0)
+                .ToArray();
+            var eligibleIds = eligibleFactIds.ToHashSet(StringComparer.Ordinal);
 
-            return IsNarrativeSafe(result) ? result : BuildInvalidResponseFallback();
+            return selectedIds.Length is < 1 or > 2 ||
+                   selectedIds.Distinct(StringComparer.Ordinal).Count() != selectedIds.Length ||
+                   selectedIds.Any(id => !eligibleIds.Contains(id)) ||
+                   eligibleFactIds.Count == 0 ||
+                   !selectedIds.Contains(eligibleFactIds[0], StringComparer.Ordinal)
+                ? null
+                : selectedIds;
         }
         catch (JsonException)
         {
-            return BuildInvalidResponseFallback();
+            return null;
         }
     }
-
-    public static ReportNarrativeResult BuildInvalidResponseFallback() => new(
-        "AI interpretation could not be generated reliably. The deterministic comparison evidence remains available below.",
-        [],
-        ["The model response was unavailable or invalid and has not been included."],
-        IsFallback: true);
-
-    private static string BuildUserMessage(ComparisonReportContext context)
-    {
-        var comparison = context.Comparison;
-        var payload = new
-        {
-            Scope = comparison.RegionOfInterest is null ? "Full duration" : "Selected ROI",
-            RankedMetrics = comparison.AggregateMetrics
-                .OrderByDescending(metric => Math.Abs(metric.MeanDifference))
-                .Select(metric => new
-                {
-                    Metric = FormatMetricLabel(metric.MetricKey),
-                    AggregateDirection = DescribeDirection(metric.MeanDifference),
-                    Coverage = metric.MissingValueCount == 0
-                        ? "Complete for the aligned evidence"
-                        : "Some aligned evidence is missing"
-                }),
-            SelectedAlignedPair = new
-            {
-                Metric = FormatMetricLabel(context.SelectedMetric.MetricKey),
-                Direction = DescribeDirection(GetSelectedDelta(context))
-            },
-            LimitationCategories = comparison.Limitations.Select(limitation => limitation.Code)
-        };
-
-        return JsonSerializer.Serialize(payload);
-    }
-
-    private static IReadOnlyList<string> ParseStringArray(JsonElement root, string propertyName)
-    {
-        if (!root.TryGetProperty(propertyName, out var array) || array.ValueKind != JsonValueKind.Array)
-        {
-            return [];
-        }
-
-        return array
-            .EnumerateArray()
-            .Where(item => item.ValueKind == JsonValueKind.String)
-            .Select(item => item.GetString()?.Trim())
-            .OfType<string>()
-            .Where(item => item.Length > 0)
-            .ToArray();
-    }
-
-    private static bool IsNarrativeSafe(ReportNarrativeResult result)
-    {
-        var text = string.Join(' ',
-            new[] { result.Overview }
-                .Concat(result.KeyTakeaways)
-                .Concat(result.Cautions));
-        var prohibitedClaims = new[]
-        {
-            "dynamic range",
-            "perceived loudness",
-            "sounds louder",
-            "sound louder",
-            "more dynamic",
-            "less dynamic",
-            "audible",
-            "sound quality",
-            "consistent difference",
-            "significant",
-            "substantial",
-            "negligible",
-            "minimal",
-            "surpass"
-        };
-
-        return !Regex.IsMatch(text, @"\d", RegexOptions.CultureInvariant) &&
-               prohibitedClaims.All(claim => !text.Contains(claim, StringComparison.OrdinalIgnoreCase)) &&
-               HasRequiredScopeLabels(result);
-    }
-
-    private static bool HasRequiredScopeLabels(ReportNarrativeResult result)
-    {
-        if (!result.Overview.Contains("aggregate", StringComparison.OrdinalIgnoreCase) ||
-            !result.Overview.Contains("selected aligned pair", StringComparison.OrdinalIgnoreCase))
-        {
-            return false;
-        }
-
-        var directionalTerms = new[]
-        {
-            "higher",
-            "lower",
-            "equal",
-            "same",
-            "difference",
-            "greater",
-            "advantage"
-        };
-
-        return result.KeyTakeaways.All(takeaway =>
-            !directionalTerms.Any(term => takeaway.Contains(term, StringComparison.OrdinalIgnoreCase)) ||
-            takeaway.Contains("aggregate", StringComparison.OrdinalIgnoreCase) ||
-            takeaway.Contains("selected aligned pair", StringComparison.OrdinalIgnoreCase));
-    }
-
-    private static double GetSelectedDelta(ComparisonReportContext context) =>
-        context.SelectedMetric.MetricKey switch
-        {
-            "peakAmplitudeDelta" => context.SelectedObservation.PeakAmplitudeDelta,
-            "rmsAmplitudeDelta" => context.SelectedObservation.RmsAmplitudeDelta,
-            "crestFactorDelta" => context.SelectedObservation.CrestFactorDelta,
-            "clippingSampleCountDelta" => context.SelectedObservation.ClippingSampleCountDelta,
-            _ => throw new ArgumentOutOfRangeException(nameof(context), "Unsupported comparison metric.")
-        };
-
-    private static string DescribeDirection(double difference) => difference switch
-    {
-        > 0 => "Compare A is higher",
-        < 0 => "Compare B is higher",
-        _ => "No difference"
-    };
-
-    private static string FormatMetricLabel(string metricKey) => metricKey switch
-    {
-        "peakAmplitudeDelta" => "Peak amplitude",
-        "rmsAmplitudeDelta" => "RMS amplitude",
-        "crestFactorDelta" => "Crest factor",
-        "clippingSampleCountDelta" => "Clipping samples",
-        _ => metricKey
-    };
 
     private static string StripCodeFences(string rawText)
     {

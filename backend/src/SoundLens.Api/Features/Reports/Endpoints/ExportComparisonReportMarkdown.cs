@@ -55,7 +55,7 @@ public sealed class ExportComparisonReportMarkdown(
         catch (Exception exception)
         {
             logger.LogWarning(exception, "Comparison report AI interpretation was unavailable; using deterministic fallback.");
-            return OpenAiComparisonReportNarrativeService.BuildInvalidResponseFallback();
+            return OpenAiComparisonReportNarrativeService.BuildInvalidResponseFallback(context);
         }
     }
 

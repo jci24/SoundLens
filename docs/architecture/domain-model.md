@@ -54,6 +54,7 @@ The current application is still organized around an analysis workspace rather t
 - A transient backend-owned report model reconstructed from active recording IDs, selected metric and aligned signal IDs, optional ROI, and resolved excluded recordings.
 - The frontend may provide an editable title and session-owned comparison assignments, but not measurements, rankings, units, coverage, findings, or limitations.
 - The report contains deterministic comparison evidence whether or not an AI narrative can be produced.
+- Report narrative facts are backend-generated statements derived from ranked aggregates, the selected aligned pair, and actual limitations. AI may prioritize eligible fact IDs, but final prose is rendered by backend templates.
 
 ## Current Pairwise Comparison Model
 

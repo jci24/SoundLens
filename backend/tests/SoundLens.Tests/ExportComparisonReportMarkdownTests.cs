@@ -4,6 +4,7 @@ using System.Text.Json;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
+using SoundLens.Api.Features.Comparisons.Common;
 using SoundLens.Api.Features.Reports.Commands;
 using SoundLens.Api.Features.Reports.Common;
 
@@ -153,89 +154,134 @@ public sealed class ExportComparisonReportMarkdownTests : IClassFixture<WebAppli
         response.EnsureSuccessStatusCode();
         var payload = await response.Content.ReadFromJsonAsync<ExportReportMarkdownResponse>();
         Assert.NotNull(payload);
-        Assert.Contains("AI interpretation could not be generated reliably.", payload!.Markdown);
+        Assert.Contains("The aggregate evidence prioritizes", payload!.Markdown);
+        Assert.Contains("AI prioritization was unavailable or invalid", payload.Markdown);
         Assert.Contains("rely on the deterministic comparison evidence", payload.Markdown);
         Assert.DoesNotContain("API key test failure", payload.Markdown);
     }
 
     [Fact]
-    public void ComparisonNarrativeParser_RejectsMalformedRawModelOutput()
+    public void StructuredNarrative_UsesOnlySelectedBackendFacts()
     {
-        const string rawModelOutput = "Here is internal raw output that must never reach the report.";
-
-        var result = OpenAiComparisonReportNarrativeService.ParseNarrativeResult(rawModelOutput);
-
-        Assert.True(result.IsFallback);
-        Assert.DoesNotContain(rawModelOutput, result.Overview);
-        Assert.Contains("could not be generated reliably", result.Overview);
-    }
-
-    [Theory]
-    [InlineData("Compare B has a crest factor that is 1.1207 higher than Compare A.")]
-    [InlineData("Compare B has more dynamic range than Compare A.")]
-    [InlineData("The crest factor difference may influence perceived loudness.")]
-    [InlineData("Compare B exhibits higher crest factor, peak amplitude, and RMS amplitude compared to Compare A, indicating a consistent difference across these metrics.")]
-    public void ComparisonNarrativeParser_RejectsUnboundedOrPrecisionDriftingClaims(string overview)
-    {
-        var rawModelOutput = JsonSerializer.Serialize(new
+        var context = CreateNarrativeContext();
+        var response = JsonSerializer.Serialize(new
         {
-            overview,
-            keyTakeaways = new[] { "Aggregate crest-factor evidence is higher for Compare B." },
-            cautions = new[] { "Crest factor describes peak level relative to RMS." }
+            selectedFactIds = new[]
+            {
+                "aggregate.crestFactorDelta.compare-b-higher",
+                "aggregate.peakAmplitudeDelta.compare-b-higher"
+            }
         });
 
-        var result = OpenAiComparisonReportNarrativeService.ParseNarrativeResult(rawModelOutput);
-
-        Assert.True(result.IsFallback);
-        Assert.DoesNotContain(overview, result.Overview);
-    }
-
-    [Fact]
-    public void ComparisonNarrativeParser_AcceptsBoundedAggregateAndSelectedPairLanguage()
-    {
-        var rawModelOutput = JsonSerializer.Serialize(new
-        {
-            overview = "Aggregate crest-factor and peak evidence is higher for Compare B, while aggregate RMS evidence is similar. The selected aligned pair supports the crest-factor direction.",
-            keyTakeaways = new[] { "Aggregate clipping-sample evidence is equal for Compare A and Compare B." },
-            cautions = new[] { "Crest factor describes peak level relative to RMS and does not establish perception or cause." }
-        });
-
-        var result = OpenAiComparisonReportNarrativeService.ParseNarrativeResult(rawModelOutput);
+        var result = OpenAiComparisonReportNarrativeService.BuildNarrativeFromSelection(context, response);
+        var narrative = string.Join(' ', new[] { result.Overview }.Concat(result.KeyTakeaways).Concat(result.Cautions));
 
         Assert.False(result.IsFallback);
-        Assert.Contains("Aggregate crest-factor", result.Overview);
+        Assert.Contains("Aggregate crest factor evidence is numerically higher for Compare B.", result.KeyTakeaways);
+        Assert.Contains("Aggregate peak amplitude evidence is numerically higher for Compare B.", result.KeyTakeaways);
+        Assert.Contains("selected aligned pair supports the same crest factor direction", result.Overview);
+        Assert.DoesNotContain("RMS amplitude", narrative);
+        Assert.DoesNotContain("selected aligned pair", string.Join(' ', result.KeyTakeaways), StringComparison.OrdinalIgnoreCase);
+        Assert.DoesNotContain("limitation", narrative, StringComparison.OrdinalIgnoreCase);
     }
 
     [Theory]
-    [InlineData("Aggregate evidence is higher for Compare B.")]
-    [InlineData("The selected aligned pair supports the selected metric direction.")]
-    public void ComparisonNarrativeParser_RequiresBothScopesInTheOverview(string overview)
+    [InlineData("not-json")]
+    [InlineData("{\"selectedFactIds\":[]}")]
+    [InlineData("{\"selectedFactIds\":[\"aggregate.peakAmplitudeDelta.compare-b-higher\"]}")]
+    [InlineData("{\"selectedFactIds\":[\"aggregate.crestFactorDelta.compare-b-higher\",\"aggregate.crestFactorDelta.compare-b-higher\"]}")]
+    [InlineData("{\"selectedFactIds\":[\"aggregate.rmsAmplitudeDelta.compare-b-higher\"]}")]
+    [InlineData("{\"selectedFactIds\":[\"invented.selected.clipping\"]}")]
+    [InlineData("{\"selectedFactIds\":[\"aggregate.crestFactorDelta.compare-b-higher\",42]}")]
+    public void StructuredNarrative_FallsBackForInvalidFactSelection(string response)
     {
-        var rawModelOutput = JsonSerializer.Serialize(new
-        {
-            overview,
-            keyTakeaways = Array.Empty<string>(),
-            cautions = Array.Empty<string>()
-        });
-
-        var result = OpenAiComparisonReportNarrativeService.ParseNarrativeResult(rawModelOutput);
+        var result = OpenAiComparisonReportNarrativeService.BuildNarrativeFromSelection(
+            CreateNarrativeContext(),
+            response);
 
         Assert.True(result.IsFallback);
+        Assert.Contains(result.Cautions, caution =>
+            caution.Contains("AI prioritization was unavailable or invalid", StringComparison.Ordinal));
+        Assert.Contains("Aggregate crest factor evidence is numerically higher for Compare B.", result.KeyTakeaways);
+        Assert.Contains("Aggregate peak amplitude evidence is numerically higher for Compare B.", result.KeyTakeaways);
+        Assert.DoesNotContain("RMS amplitude", string.Join(' ', result.KeyTakeaways));
+        Assert.DoesNotContain("clipping", result.Overview, StringComparison.OrdinalIgnoreCase);
     }
 
     [Fact]
-    public void ComparisonNarrativeParser_RejectsUnscopedDirectionalTakeaways()
+    public void StructuredNarrative_RendersOnlyRealLimitations()
     {
-        var rawModelOutput = JsonSerializer.Serialize(new
+        var result = OpenAiComparisonReportNarrativeService.BuildInvalidResponseFallback(
+            CreateNarrativeContext(includeLimitation: true));
+
+        Assert.Contains(result.Cautions, caution => caution.Contains("reports limitations", StringComparison.Ordinal));
+    }
+
+    [Fact]
+    public void StructuredNarrative_DoesNotOverstateAnOpposingSelectedPair()
+    {
+        var context = CreateNarrativeContext(selectedCrestFactorDelta: 0.25);
+        var response = "{\"selectedFactIds\":[\"aggregate.crestFactorDelta.compare-b-higher\"]}";
+
+        var result = OpenAiComparisonReportNarrativeService.BuildNarrativeFromSelection(context, response);
+
+        Assert.False(result.IsFallback);
+        Assert.Contains("selected aligned pair differs from the aggregate crest factor direction", result.Overview);
+        Assert.DoesNotContain("confirm", result.Overview, StringComparison.OrdinalIgnoreCase);
+    }
+
+    private static ComparisonReportContext CreateNarrativeContext(
+        double selectedCrestFactorDelta = -1.121,
+        bool includeLimitation = false)
+    {
+        var observation = new RecordingComparisonSignalObservation(
+            "recording-a:ch:0",
+            "Channel 1",
+            0,
+            "recording-b:ch:0",
+            "Channel 1",
+            0,
+            SignalAlignmentBasis.DisplayName,
+            0.65,
+            0.81,
+            -0.16,
+            0.142,
+            0.143,
+            -0.001,
+            5.664,
+            6.784,
+            selectedCrestFactorDelta,
+            0,
+            0,
+            0,
+            false,
+            false);
+        var aggregates = new[]
         {
-            overview = "Aggregate evidence is directionally different between Compare A and Compare B. The selected aligned pair supports the selected metric direction.",
-            keyTakeaways = new[] { "Compare B has a higher crest factor." },
-            cautions = Array.Empty<string>()
-        });
+            new RecordingComparisonMetricAggregate("crestFactorDelta", "ratio", 2, 0, -0.742, -0.742, -1.121, -0.363, 0.758),
+            new RecordingComparisonMetricAggregate("peakAmplitudeDelta", "FS", 2, 0, -0.113, -0.113, -0.156, -0.071, 0.085),
+            new RecordingComparisonMetricAggregate("rmsAmplitudeDelta", "FS", 2, 0, -0.001, -0.001, -0.003, 0.001, 0.004),
+            new RecordingComparisonMetricAggregate("clippingSampleCountDelta", "samples", 2, 0, 0, 0, 0, 0, 0)
+        };
+        var limitations = includeLimitation
+            ? new[] { new RecordingComparisonLimitation("LowCoverage", "Only limited aligned evidence is available.") }
+            : [];
+        var comparison = new RecordingComparisonResponse(
+            new RecordingComparisonRecording("recording-a", "alpha.wav", 1, 2.5),
+            new RecordingComparisonRecording("recording-b", "beta.wav", 1, 2.5),
+            [],
+            [observation],
+            aggregates,
+            limitations,
+            null);
 
-        var result = OpenAiComparisonReportNarrativeService.ParseNarrativeResult(rawModelOutput);
-
-        Assert.True(result.IsFallback);
+        return new ComparisonReportContext(
+            "Alpha vs beta comparison",
+            DateTimeOffset.UtcNow,
+            comparison,
+            aggregates[0],
+            observation,
+            []);
     }
 
     private sealed class StubComparisonNarrativeService : IComparisonReportNarrativeService

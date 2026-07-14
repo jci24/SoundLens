@@ -99,6 +99,7 @@ High priority:
 
 - ensure malformed or non-JSON model output cannot surface raw structured payloads in the Copilot UI
 - split comparison-explanation orchestration and prompt construction out of the oversized `AgentQueryHandler` before adding another broad agent capability
+- replace absolute cross-unit comparison ranking with an explicit, validated relevance policy before presenting rank as cross-metric importance
 
 Normal priority:
 
