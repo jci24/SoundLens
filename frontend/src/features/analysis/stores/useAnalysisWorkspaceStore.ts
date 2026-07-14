@@ -8,7 +8,7 @@ import {
 } from '../utils/analysisWorkspaceState'
 import type {
   IAnalysisRegionOfInterest,
-  IComparisonCopilotContext,
+  IComparisonCopilotSelection,
   ITimeWaveformRecording,
   TAnalysisLayoutMode,
   TAnalysisSurface,
@@ -25,7 +25,7 @@ interface IAnalysisWorkspaceStore {
   signalChartMode: TSignalChartMode
   regionOfInterest: IAnalysisRegionOfInterest | null
   recordings: ITimeWaveformRecording[]
-  comparisonCopilotContext: IComparisonCopilotContext | null
+  comparisonCopilotContext: IComparisonCopilotSelection | null
   selectSignal: (signalId: string) => void
   toggleRecording: (recordingId: string) => void
   setRecordingGroupAssignment: (recordingId: string, assignment: TComparisonGroupAssignment) => void
@@ -34,7 +34,7 @@ interface IAnalysisWorkspaceStore {
   setSignalChartMode: (mode: TSignalChartMode) => void
   setRegionOfInterest: (regionOfInterest: IAnalysisRegionOfInterest | null) => void
   setRecordings: (recordings: ITimeWaveformRecording[]) => void
-  setComparisonCopilotContext: (comparisonCopilotContext: IComparisonCopilotContext | null) => void
+  setComparisonCopilotContext: (comparisonCopilotContext: IComparisonCopilotSelection | null) => void
   syncSignalIds: (responseSignalIds: string[]) => void
 }
 

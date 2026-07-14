@@ -12,7 +12,7 @@ import { useAnalysisWorkspaceStore } from '../../stores/useAnalysisWorkspaceStor
 import { getComparisonSetupSummary } from '../../utils/analysisWorkspaceState'
 import type { IImportedFileSummary } from '../../../../common/contracts/import'
 import type {
-  IComparisonCopilotContext,
+  IComparisonCopilotSelection,
   IRecordingComparisonMetricAggregate,
   IRecordingComparisonResponse,
   IRecordingComparisonSignalObservation,
@@ -213,7 +213,7 @@ const TimeWaveformWorkspace = ({ importedFiles, isCopilotOpen, onCopilotToggle }
     () => getComparisonCoverageSummary(comparisonResults, activeMetric),
     [activeMetric, comparisonResults]
   )
-  const comparisonCopilotContext = useMemo<IComparisonCopilotContext | null>(() => {
+  const comparisonCopilotContext = useMemo<IComparisonCopilotSelection | null>(() => {
     if (
       layoutMode !== 'compare' ||
       !comparisonResults ||
@@ -225,45 +225,12 @@ const TimeWaveformWorkspace = ({ importedFiles, isCopilotOpen, onCopilotToggle }
       return null
     }
 
-    const relevantFindings = metricSignals
-      .filter(
-        (signal) =>
-          signal.signalId === activeObservation.signalIdA || signal.signalId === activeObservation.signalIdB
-      )
-      .flatMap((signal) =>
-        signal.findings.map((finding) => ({
-          signalId: signal.signalId,
-          label: finding.label,
-          detail: finding.detail,
-        }))
-      )
-
     return {
       recordingIdA: activePairRecordingA.recordingId,
-      recordingFileNameA: activePairRecordingA.fileName,
       recordingIdB: activePairRecordingB.recordingId,
-      recordingFileNameB: activePairRecordingB.fileName,
       metricKey: activeMetric.metricKey,
-      metricLabel: formatComparisonMetricLabel(activeMetric.metricKey),
-      unit: activeMetric.unit,
-      comparedPairCount: activeMetric.comparedPairCount,
-      missingValueCount: activeMetric.missingValueCount,
-      meanDifference: activeMetric.meanDifference,
-      medianDifference: activeMetric.medianDifference,
-      spread: activeMetric.spread,
-      coverageLabel: coverageSummary.label,
-      coverageCopy: coverageSummary.copy,
-      limitations: comparisonResults.limitations,
-      observation: {
-        signalIdA: activeObservation.signalIdA,
-        displayNameA: activeObservation.displayNameA,
-        signalIdB: activeObservation.signalIdB,
-        displayNameB: activeObservation.displayNameB,
-        valueA: getObservationValue(activeObservation, activeMetric.metricKey, 'A'),
-        valueB: getObservationValue(activeObservation, activeMetric.metricKey, 'B'),
-        delta: getObservationDelta(activeObservation, activeMetric.metricKey),
-      },
-      findings: relevantFindings,
+      signalIdA: activeObservation.signalIdA,
+      signalIdB: activeObservation.signalIdB,
     }
   }, [
     activeMetric,
@@ -271,10 +238,7 @@ const TimeWaveformWorkspace = ({ importedFiles, isCopilotOpen, onCopilotToggle }
     activePairRecordingA,
     activePairRecordingB,
     comparisonResults,
-    coverageSummary.copy,
-    coverageSummary.label,
     layoutMode,
-    metricSignals,
   ])
   const roiScopeLabel = regionOfInterest
     ? `${formatCompactDuration(regionOfInterest.startTimeSeconds)} to ${formatCompactDuration(regionOfInterest.endTimeSeconds)} · ${formatCompactDuration(regionOfInterest.durationSeconds)}`

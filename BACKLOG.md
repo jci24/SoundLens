@@ -1,6 +1,6 @@
 # SoundLens Backlog
 
-Last updated: 2026-07-13
+Last updated: 2026-07-14
 
 This backlog reflects the current product direction: focused A/B comparison of repeated recordings with deterministic evidence, drill-down, grounded explanation, and report export.
 
@@ -42,32 +42,9 @@ Turn the current analysis workspace into a focused comparison workflow for repea
 - active-pair plus queued-overflow messaging for multi-assignment states
 - deterministic factual Copilot answers for selected-signal RMS, peak, and clipping comparisons
 - bounded Copilot explanation for the currently selected comparison evidence, aligned pair, findings, and ROI
+- backend-owned resolution of comparison evidence before Copilot explanation
 
 ## Ordered Thin Tasks
-
-### A8. Drill-Down Completion From Ranked Result
-
-User value:
-- A user can move from a ranked difference into the underlying waveform and spectrum evidence without losing track of what pair or metric is being inspected.
-
-Thin-slice boundary:
-- Tighten the current ranked-result-to-evidence flow before expanding AI or report behavior.
-
-Acceptance criteria:
-- the selected ranked metric is reflected clearly near the evidence surfaces
-- the inspected aligned pair is visible while reading the waveform and spectrum panels
-- drill-down preserves comparison context and ROI scope
-- the user can return to the ranked summary without losing context
-
-Test expectations:
-- frontend interaction coverage
-- integration-style tests for state transitions where practical
-
-Proposed branch name:
-- `codex/comparison-drilldown-completion`
-
-Dependencies:
-- shipped pairwise comparison UI
 
 ### A11. Comparison Report
 
@@ -112,8 +89,21 @@ Proposed branch name:
 - `codex/comparison-evals`
 
 Dependencies:
-- `A9`
-- `A10`
+- shipped deterministic factual comparison answers
+- shipped backend-owned bounded comparison explanation
+
+## Engineering Follow-Ups
+
+High priority:
+
+- add `npm run test:run` to frontend CI so pull requests run the existing Vitest suite
+- ensure malformed or non-JSON model output cannot surface raw structured payloads in the Copilot UI
+- split comparison-explanation orchestration and prompt construction out of the oversized `AgentQueryHandler` before adding another broad agent capability
+
+Normal priority:
+
+- add an end-to-end comparison-selection-to-explanation regression test when the browser workflow stabilizes
+- replace the reflection-based OpenAI SDK test stub if the SDK exposes a stable testing seam
 
 ## Deferred Work
 

@@ -3,6 +3,7 @@ using System.Text.Json;
 using System.Text.Json.Serialization;
 using FastEndpoints;
 using OpenAI.Chat;
+using SoundLens.Api.Features.Agent.Common;
 using SoundLens.Api.Configuration;
 using SoundLens.Api.Features.Agent.Commands;
 using SoundLens.Api.Features.Agent.Responses;
@@ -21,7 +22,8 @@ public sealed class AgentQueryHandler(
     IChatClientProvider chatClientProvider,
     AgentToolDispatcher toolDispatcher,
     IImportedFileStore importedFileStore,
-    IWaveformService waveformService) : CommandHandler<AgentQueryCommand, AgentQueryResponse>
+    IWaveformService waveformService,
+    ComparisonExplanationContextResolver comparisonContextResolver) : CommandHandler<AgentQueryCommand, AgentQueryResponse>
 {
     private sealed record AgentAvailableSignal(string SignalId, string DisplayName, string FileName);
     private sealed record CompareWinnerEvidence(string SignalId, string Summary);
@@ -140,7 +142,6 @@ public sealed class AgentQueryHandler(
 
         var comparisonExplanationResponse = await TryBuildComparisonExplanationResponseAsync(
             command,
-            availableSignals,
             chatClient,
             ct);
         if (comparisonExplanationResponse is not null)
@@ -352,7 +353,6 @@ public sealed class AgentQueryHandler(
 
     private async Task<AgentQueryResponse?> TryBuildComparisonExplanationResponseAsync(
         AgentQueryCommand command,
-        IReadOnlyList<AgentAvailableSignal> availableSignals,
         ChatClient chatClient,
         CancellationToken ct)
     {
@@ -361,16 +361,29 @@ public sealed class AgentQueryHandler(
             return null;
         }
 
+        ResolvedComparisonExplanationContext comparisonContext;
+        try
+        {
+            comparisonContext = await comparisonContextResolver.ResolveAsync(
+                command.ComparisonContext,
+                command.StartTimeSeconds,
+                command.EndTimeSeconds,
+                ct);
+        }
+        catch (ArgumentException exception)
+        {
+            ThrowError(exception.Message);
+            throw;
+        }
+
         var messages = new List<ChatMessage>
         {
             new SystemChatMessage(ComparisonExplanationSystemPrompt),
-            new UserChatMessage(BuildComparisonExplanationUserMessage(command, availableSignals))
+            new UserChatMessage(BuildComparisonExplanationUserMessage(command, comparisonContext))
         };
 
         var completion = await chatClient.CompleteChatAsync(messages, new ChatCompletionOptions(), ct);
         var parsed = ParseStructuredAnswer(completion.Value.Content.FirstOrDefault()?.Text ?? string.Empty, []);
-        var comparisonContext = command.ComparisonContext;
-
         return parsed with
         {
             CitedEvidence = BuildComparisonExplanationEvidence(comparisonContext),
@@ -559,24 +572,17 @@ public sealed class AgentQueryHandler(
 
     private static string BuildComparisonExplanationUserMessage(
         AgentQueryCommand command,
-        IReadOnlyList<AgentAvailableSignal> availableSignals)
+        ResolvedComparisonExplanationContext comparisonContext)
     {
-        var comparisonContext = command.ComparisonContext!;
-        var signalLookup = availableSignals.ToDictionary(signal => signal.SignalId, StringComparer.Ordinal);
         var observation = comparisonContext.Observation;
-
-        var displayNameA = signalLookup.TryGetValue(observation.SignalIdA, out var signalA)
-            ? $"{signalA.FileName} · {signalA.DisplayName}"
-            : $"{comparisonContext.RecordingFileNameA} · {observation.DisplayNameA}";
-        var displayNameB = signalLookup.TryGetValue(observation.SignalIdB, out var signalB)
-            ? $"{signalB.FileName} · {signalB.DisplayName}"
-            : $"{comparisonContext.RecordingFileNameB} · {observation.DisplayNameB}";
+        var displayNameA = $"{comparisonContext.RecordingFileNameA} · {observation.DisplayNameA}";
+        var displayNameB = $"{comparisonContext.RecordingFileNameB} · {observation.DisplayNameB}";
 
         var findingsText = comparisonContext.Findings is { Count: > 0 }
             ? string.Join(
                 "\n",
                 comparisonContext.Findings.Select(finding =>
-                    $"- {ResolveFindingSignalDisplay(finding.SignalId, signalLookup)}: {finding.Label}{(string.IsNullOrWhiteSpace(finding.Detail) ? string.Empty : $" — {finding.Detail}")}"))
+                    $"- {ResolveFindingSignalDisplay(finding, comparisonContext)}: {finding.Label}{(string.IsNullOrWhiteSpace(finding.Detail) ? string.Empty : $" — {finding.Detail}")}"))
             : "None";
 
         var limitationText = comparisonContext.Limitations.Count > 0
@@ -621,16 +627,24 @@ public sealed class AgentQueryHandler(
     }
 
     private static string ResolveFindingSignalDisplay(
-        string signalId,
-        IReadOnlyDictionary<string, AgentAvailableSignal> signalLookup)
+        ResolvedComparisonFinding finding,
+        ResolvedComparisonExplanationContext comparisonContext)
     {
-        return signalLookup.TryGetValue(signalId, out var signal)
-            ? $"{signal.FileName} · {signal.DisplayName}"
-            : signalId;
+        if (string.Equals(finding.SignalId, comparisonContext.Observation.SignalIdA, StringComparison.Ordinal))
+        {
+            return $"{comparisonContext.RecordingFileNameA} · {comparisonContext.Observation.DisplayNameA}";
+        }
+
+        if (string.Equals(finding.SignalId, comparisonContext.Observation.SignalIdB, StringComparison.Ordinal))
+        {
+            return $"{comparisonContext.RecordingFileNameB} · {comparisonContext.Observation.DisplayNameB}";
+        }
+
+        return finding.SignalId;
     }
 
     private static IReadOnlyList<AgentEvidenceItem> BuildComparisonExplanationEvidence(
-        AgentComparisonContext comparisonContext)
+        ResolvedComparisonExplanationContext comparisonContext)
     {
         var evidence = new List<AgentEvidenceItem>
         {
@@ -653,7 +667,7 @@ public sealed class AgentQueryHandler(
     }
 
     private static IReadOnlyList<string> BuildComparisonExplanationLimitations(
-        AgentComparisonContext comparisonContext,
+        ResolvedComparisonExplanationContext comparisonContext,
         bool isRoiScoped)
     {
         var limitations = new List<string>();
@@ -685,7 +699,7 @@ public sealed class AgentQueryHandler(
     }
 
     private static IReadOnlyList<string> BuildComparisonExplanationNextSteps(
-        AgentComparisonContext comparisonContext)
+        ResolvedComparisonExplanationContext comparisonContext)
     {
         return comparisonContext.MetricKey switch
         {
