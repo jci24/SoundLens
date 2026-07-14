@@ -39,6 +39,7 @@ public static class DependencyInjection
         services.AddSingleton<IChatClientProvider, ChatClientProvider>();
         services.AddSingleton<AgentToolDispatcher>();
         services.AddSingleton<IReportNarrativeService, OpenAiReportNarrativeService>();
+        services.AddSingleton<IComparisonReportNarrativeService, OpenAiComparisonReportNarrativeService>();
 
         return services;
     }

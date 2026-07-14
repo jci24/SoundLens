@@ -16,7 +16,8 @@ Today SoundLens supports a deterministic analysis workspace for imported recordi
 - switch between focused and compare-oriented chart layouts
 - review ranked pairwise differences for one Compare A recording versus one Compare B recording
 - see which Compare A and Compare B recordings are active now when multiple recordings are assigned, plus which extra recordings are queued
-- export the current workspace state to markdown
+- export the focused workspace state directly to markdown
+- preview and export a grounded comparison-specific markdown report for a valid active A/B pair
 - ask a grounded Copilot about the loaded evidence
 
 The current product is strong as an analysis workspace, but it is not yet a fully comparison-first investigation workflow.
@@ -87,11 +88,11 @@ The current Copilot is more grounded for both factual comparison questions and s
 
 - `POST /api/report/export` creates a normalized deterministic workspace snapshot.
 - `POST /api/report/export/markdown` turns that snapshot into a markdown artifact.
-- The markdown export now includes an AI-written interpretation section.
-- Export still succeeds without an API key by falling back to deterministic evidence plus a clear unavailable note.
-- Narrative guardrails currently improve wording around selection scope, stereo labeling, and filler phrases.
-
-The export is readable, but it is still based on current workspace context, not yet on ranked A/B comparison evidence.
+- Focused-mode export keeps the existing immediate workspace markdown behavior.
+- Compare-mode export opens a preview for the active A/B pair, ROI or full-duration scope, editable title, and explicitly excluded recordings.
+- `POST /api/report/export/comparison/markdown` accepts identifiers and UI-owned assignment labels only. The backend re-runs the deterministic comparison and validates the selected metric and aligned pair before writing evidence.
+- The comparison report includes ranked differences, selected evidence, AI interpretation, exclusions, limitations, and traceability.
+- Comparison export still succeeds without a usable AI response by including deterministic evidence plus a clear fallback notice; malformed model output is not exposed.
 
 ## Current Tests And Eval Harness
 
@@ -101,12 +102,12 @@ Backend:
 - import and validation tests
 - findings tests
 - Copilot endpoint and tool-dispatch tests
-- report export tests, including fallback behavior
+- focused and comparison report export tests, including reconstruction, validation, AI success, and fallback behavior
 
 Frontend:
 
 - Vitest plus React Testing Library
-- tests around workspace hooks, formatting, panel behavior, services, and selected render paths
+- tests around workspace hooks, formatting, panel behavior, report services and preview, and selected render paths
 - focused tests for recording-rail compare-builder behavior, ranked-comparison workspace states, and pairwise overflow messaging
 
 Eval harness:
@@ -133,18 +134,13 @@ The repo is still intentionally simple: no extra backend projects, no persistenc
 - Multi-recording group comparison is not yet available; when several recordings are assigned to one side, the UI shows the active pair and queued overflow rather than aggregating larger cohorts
 - Coverage visibility is still lightweight: users see evidence-strength cues, limitation counts, and limitation text, but not yet a dedicated coverage breakdown view
 - Deterministic factual Copilot answers currently cover a narrow comparison question set only: RMS loudness, peak amplitude, and clipping across multiple selected signals
-- Comparison explanation is bounded to the current selected ranked metric and active aligned pair; it is not yet a report-grade narrative over the full comparison
+- Comparison explanation remains bounded to the current selected ranked metric and active aligned pair
 - No persisted project or dataset model
 - Calibration handling remains lightweight and mostly limited to dBFS caveats plus calibrated flags
-- Copilot and report export still operate on workspace context more than comparison objects
+- Copilot and comparison export reconstruct evidence from session-scoped identifiers rather than a persisted comparison object
+- Comparison report export is Markdown-only and does not include waveform or spectrum images; PDF is deferred
 - Current evals do not yet cover the full set of refusal, ambiguity, calibration, and no-difference cases needed for trust
 
 ## Immediate Next Product Slice
 
-The next product slice should turn the current comparison evidence into a shareable comparison report:
-
-1. structure export around the active A/B comparison rather than the broader workspace
-2. include ranked deltas, selected evidence context, and explicit limitations
-3. keep export safe when AI narrative is unavailable
-
-That is the next step from a usable comparison-investigation workflow into a demo-ready artifact.
+The next product slice should expand comparison trust evals for undefined criteria, no meaningful difference, calibration mismatch, missing evidence, and unsupported causal claims. PDF comparison export remains a separate follow-up after the Markdown report contract is manually validated.

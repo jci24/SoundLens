@@ -17,6 +17,7 @@ const mockUseTimeWaveformWorkspace = vi.fn()
 const mockUseAnalysisWorkspacePanels = vi.fn()
 const mockUseAnalysisWorkspaceMetrics = vi.fn()
 const mockExportReportMarkdown = vi.fn()
+const mockExportComparisonReportMarkdown = vi.fn()
 const mockDownloadTextFile = vi.fn()
 const mockGetRecordingComparison = vi.fn()
 
@@ -33,6 +34,7 @@ vi.mock('../../metrics/hooks/useAnalysisWorkspaceMetrics', () => ({
 }))
 
 vi.mock('../../report/services/exportReportMarkdown', () => ({
+  exportComparisonReportMarkdown: (...args: unknown[]) => mockExportComparisonReportMarkdown(...args),
   exportReportMarkdown: (...args: unknown[]) => mockExportReportMarkdown(...args),
 }))
 
@@ -46,14 +48,16 @@ vi.mock('../../services/recordingComparison', () => ({
 
 vi.mock('./AnalysisWorkspaceHeader', () => ({
   AnalysisWorkspaceHeader: ({
+    canExportReport,
     canEnterCompareMode,
     onExportReport,
   }: {
+    canExportReport: boolean
     canEnterCompareMode: boolean
     onExportReport: () => void
   }) => (
     <div>
-      <button data-testid="workspace-header" onClick={onExportReport} type="button">
+      <button data-testid="workspace-header" disabled={!canExportReport} onClick={onExportReport} type="button">
         Export report
       </button>
       <span>{canEnterCompareMode ? 'Compare enabled' : 'Compare disabled'}</span>
@@ -228,6 +232,8 @@ const createWorkspaceState = () => ({
 describe('TimeWaveformWorkspace', () => {
   beforeEach(() => {
     mockGetRecordingComparison.mockReset()
+    mockExportComparisonReportMarkdown.mockReset()
+    mockDownloadTextFile.mockReset()
     mockUseAnalysisWorkspacePanels.mockReturnValue({
       hasActiveChart: true,
       panels,
@@ -241,6 +247,10 @@ describe('TimeWaveformWorkspace', () => {
     mockExportReportMarkdown.mockResolvedValue({
       fileName: 'soundlens-export-1-recording-20260710-120000.md',
       markdown: '# SoundLens export - 1 recording',
+    })
+    mockExportComparisonReportMarkdown.mockResolvedValue({
+      fileName: 'alpha-vs-beta-comparison.md',
+      markdown: '# Alpha vs beta comparison',
     })
     mockGetRecordingComparison.mockResolvedValue(comparisonResponse)
 
@@ -692,4 +702,110 @@ describe('TimeWaveformWorkspace', () => {
       )
     })
   })
+
+  it('previews and exports a valid comparison with scope and exclusions', async () => {
+    const workspaceState = createWorkspaceState()
+    workspaceState.layoutMode = 'compare'
+    workspaceState.recordings = [
+      createRecording('recording-1', 'alpha.wav'),
+      createRecording('recording-2', 'beta.wav'),
+      createRecording('recording-3', 'gamma.wav'),
+    ]
+    workspaceState.recordingGroupAssignments = {
+      'recording-1': 'A',
+      'recording-2': 'B',
+      'recording-3': 'unassigned',
+    }
+    workspaceState.regionOfInterest = {
+      startTimeSeconds: 0.2,
+      endTimeSeconds: 0.8,
+      durationSeconds: 0.6,
+    }
+    mockUseTimeWaveformWorkspace.mockReturnValue(workspaceState)
+
+    render(
+      <TimeWaveformWorkspace importedFiles={importedFiles} isCopilotOpen={false} onCopilotToggle={vi.fn()} />
+    )
+
+    await waitFor(() => expect(screen.getByRole('button', { name: 'Export report' })).toBeEnabled())
+    fireEvent.click(screen.getByRole('button', { name: 'Export report' }))
+
+    expect(screen.getByRole('dialog', { name: 'Export comparison report' })).toBeInTheDocument()
+    expect(screen.getByRole('textbox', { name: 'Report title' })).toHaveValue('alpha.wav vs beta.wav comparison')
+    expect(screen.getByText('gamma.wav')).toBeInTheDocument()
+    expect(screen.getByText('0.20 s to 0.80 s')).toBeInTheDocument()
+
+    fireEvent.change(screen.getByRole('textbox', { name: 'Report title' }), {
+      target: { value: 'Edited comparison title' },
+    })
+    fireEvent.click(screen.getByRole('button', { name: 'Export Markdown' }))
+
+    await waitFor(() => {
+      expect(mockExportComparisonReportMarkdown).toHaveBeenCalledWith({
+        reportTitle: 'Edited comparison title',
+        recordingIdA: 'recording-1',
+        recordingIdB: 'recording-2',
+        metricKey: 'crestFactorDelta',
+        signalIdA: 'signal-a',
+        signalIdB: 'signal-b',
+        excludedRecordings: [{ recordingId: 'recording-3', assignment: 'unassigned' }],
+        startTimeSeconds: 0.2,
+        endTimeSeconds: 0.8,
+      })
+      expect(mockDownloadTextFile).toHaveBeenCalledWith(
+        'alpha-vs-beta-comparison.md',
+        '# Alpha vs beta comparison'
+      )
+    })
+    expect(screen.queryByRole('dialog', { name: 'Export comparison report' })).not.toBeInTheDocument()
+  })
+
+  it('keeps compare export unavailable until valid comparison evidence exists', () => {
+    const workspaceState = createWorkspaceState()
+    workspaceState.layoutMode = 'compare'
+    workspaceState.recordings = [createRecording('recording-1', 'alpha.wav')]
+    mockUseTimeWaveformWorkspace.mockReturnValue(workspaceState)
+
+    render(
+      <TimeWaveformWorkspace importedFiles={importedFiles} isCopilotOpen={false} onCopilotToggle={vi.fn()} />
+    )
+
+    expect(screen.getByRole('button', { name: 'Export report' })).toBeDisabled()
+    expect(screen.queryByRole('dialog', { name: 'Export comparison report' })).not.toBeInTheDocument()
+  })
+
+  it('keeps the comparison preview open when export fails', async () => {
+    const workspaceState = createWorkspaceState()
+    workspaceState.layoutMode = 'compare'
+    workspaceState.recordings = [
+      createRecording('recording-1', 'alpha.wav'),
+      createRecording('recording-2', 'beta.wav'),
+    ]
+    workspaceState.recordingGroupAssignments = { 'recording-1': 'A', 'recording-2': 'B' }
+    mockUseTimeWaveformWorkspace.mockReturnValue(workspaceState)
+    mockExportComparisonReportMarkdown.mockRejectedValue(new Error('Export failed'))
+
+    render(
+      <TimeWaveformWorkspace importedFiles={importedFiles} isCopilotOpen={false} onCopilotToggle={vi.fn()} />
+    )
+
+    await waitFor(() => expect(screen.getByRole('button', { name: 'Export report' })).toBeEnabled())
+    fireEvent.click(screen.getByRole('button', { name: 'Export report' }))
+    fireEvent.click(screen.getByRole('button', { name: 'Export Markdown' }))
+
+    await waitFor(() => expect(mockExportComparisonReportMarkdown).toHaveBeenCalled())
+    expect(screen.getByRole('dialog', { name: 'Export comparison report' })).toBeInTheDocument()
+    expect(mockDownloadTextFile).not.toHaveBeenCalled()
+  })
+})
+
+const createRecording = (recordingId: string, fileName: string): ITimeWaveformRecording => ({
+  recordingId,
+  fileName,
+  sizeBytes: 1024,
+  durationSeconds: 1,
+  sampleRate: 44_100,
+  channels: 1,
+  channelMode: 'Mono',
+  signals: [],
 })

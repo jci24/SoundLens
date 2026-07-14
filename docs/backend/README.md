@@ -87,6 +87,8 @@ The OpenAI-powered agent should receive structured evidence by default, not raw 
 
 For selected comparison explanations, clients send only recording IDs, a supported metric key, aligned signal IDs, and optional ROI. The backend must resolve the comparison contract and deterministic findings again before packaging evidence for OpenAI. Client-provided measurements, units, coverage summaries, or limitations must never be treated as numerical truth.
 
+Comparison report export follows the same trust boundary. The client may send an editable title, active recording IDs, selected metric and aligned signal IDs, optional ROI, and excluded recording IDs with UI-owned assignment labels. The backend re-runs the comparison, validates the selected evidence, resolves recording metadata from the import session, and writes ranked evidence, limitations, and traceability. AI narrative failure must degrade to an explicit deterministic fallback without exposing malformed model output.
+
 Expected backend flow:
 
 ```text
