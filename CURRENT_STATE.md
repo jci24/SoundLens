@@ -93,6 +93,7 @@ The current Copilot is more grounded for both factual comparison questions and s
 - `POST /api/report/export/comparison/markdown` accepts identifiers and UI-owned assignment labels only. The backend re-runs the deterministic comparison and validates the selected metric and aligned pair before writing evidence.
 - The comparison report includes ranked differences, selected evidence, AI interpretation, exclusions, limitations, and traceability.
 - Comparison export still succeeds without a usable AI response by including deterministic evidence plus a clear fallback notice; malformed model output is not exposed.
+- Comparison-report AI prose distinguishes aggregate evidence from selected aligned-pair evidence and does not repeat exact measurements or infer perception, cause, quality, or dynamic range; the deterministic report sections retain the authoritative values.
 
 ## Current Tests And Eval Harness
 

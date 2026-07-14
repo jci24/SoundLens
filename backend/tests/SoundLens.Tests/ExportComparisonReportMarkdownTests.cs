@@ -1,5 +1,6 @@
 using System.Net;
 using System.Net.Http.Json;
+using System.Text.Json;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
@@ -167,6 +168,41 @@ public sealed class ExportComparisonReportMarkdownTests : IClassFixture<WebAppli
         Assert.True(result.IsFallback);
         Assert.DoesNotContain(rawModelOutput, result.Overview);
         Assert.Contains("could not be generated reliably", result.Overview);
+    }
+
+    [Theory]
+    [InlineData("Compare B has a crest factor that is 1.1207 higher than Compare A.")]
+    [InlineData("Compare B has more dynamic range than Compare A.")]
+    [InlineData("The crest factor difference may influence perceived loudness.")]
+    public void ComparisonNarrativeParser_RejectsUnboundedOrPrecisionDriftingClaims(string overview)
+    {
+        var rawModelOutput = JsonSerializer.Serialize(new
+        {
+            overview,
+            keyTakeaways = new[] { "Aggregate crest-factor evidence is higher for Compare B." },
+            cautions = new[] { "Crest factor describes peak level relative to RMS." }
+        });
+
+        var result = OpenAiComparisonReportNarrativeService.ParseNarrativeResult(rawModelOutput);
+
+        Assert.True(result.IsFallback);
+        Assert.DoesNotContain(overview, result.Overview);
+    }
+
+    [Fact]
+    public void ComparisonNarrativeParser_AcceptsBoundedAggregateAndSelectedPairLanguage()
+    {
+        var rawModelOutput = JsonSerializer.Serialize(new
+        {
+            overview = "Aggregate crest-factor and peak evidence is higher for Compare B, while aggregate RMS evidence is similar. The selected aligned pair supports the crest-factor direction.",
+            keyTakeaways = new[] { "Neither side has a clipping-sample advantage in the current scope." },
+            cautions = new[] { "Crest factor describes peak level relative to RMS and does not establish perception or cause." }
+        });
+
+        var result = OpenAiComparisonReportNarrativeService.ParseNarrativeResult(rawModelOutput);
+
+        Assert.False(result.IsFallback);
+        Assert.Contains("Aggregate crest-factor", result.Overview);
     }
 
     private sealed class StubComparisonNarrativeService : IComparisonReportNarrativeService
