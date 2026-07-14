@@ -1,6 +1,6 @@
 # Product Validation
 
-Last updated: 2026-07-12
+Last updated: 2026-07-14
 
 ## Current Validation Hypothesis
 
@@ -73,8 +73,41 @@ Negative signals:
 | Report export is shared or reused | Users say they send or reuse comparison summaries | Users treat exports as disposable artifacts |
 | Cloud privacy is a meaningful blocker | Users raise data-handling concerns early and repeatedly | Users are comfortable with hosted workflows for this data |
 
+## Future Agentic Copilot Hypothesis
+
+The strategic follow-on hypothesis is that target engineers will value a Copilot that can turn an acoustic question into a reviewable investigation, not only explain evidence that the user configured manually.
+
+This hypothesis must not displace validation of the current A/B comparison wedge. Research should first determine which parts of the workflow users would delegate, which actions require approval, and whether reusable investigation recipes create more value than one-off chat assistance.
+
+Additional interview questions:
+
+- Which setup, analysis, inspection, and reporting steps would you trust a Copilot to perform?
+- Which actions must always be previewed or confirmed?
+- Would you rather receive a finished answer, an editable investigation, or a reusable procedure?
+- How do you currently verify that an automated analysis used the correct files, channels, regions, parameters, and calibration?
+- Which repeated workflow would be most valuable to describe once and rerun safely?
+- What would make an agent-generated chart or conclusion auditable enough for engineering review?
+- Which external systems would an approved result need to reach?
+
+Agentic validation signals:
+
+- users prefer an editable investigation over prose-only answers
+- users complete representative work faster without losing confidence
+- users can predict, review, cancel, and undo Copilot actions
+- generated investigations remain numerically faithful and reproducible
+- users reuse approved recipes on real work
+
+Agentic disconfirming evidence:
+
+- users want explanation but not action
+- reviewing the Copilot's work takes as long as manual operation
+- users cannot understand or trust the action trace
+- the workflow is too variable to benefit from reusable investigations
+- privacy, latency, or cost makes agent operation impractical
+
 ## Decision Gates
 
 - Continue investing in the comparison wedge if users repeatedly confirm the pain and the selected-evidence workflow feels materially faster.
 - Narrow or change the wedge if users value the analysis workspace but not the comparison workflow.
 - Delay larger persistence or platform work until users demonstrate that session-only behavior is a real blocker.
+- Start agentic capability work only after the A/B wedge is validated; expand autonomy only when the preceding trust and usability gate passes.
