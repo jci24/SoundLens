@@ -15,6 +15,7 @@ Today SoundLens supports a deterministic analysis workspace for imported recordi
 - select one or more signals for comparison within the workspace
 - switch between focused and compare-oriented chart layouts
 - review pairwise comparison metrics in a stable domain order for one Compare A recording versus one Compare B recording
+- select a comparison metric card to reveal its evidence and limitations directly, without locating a separate generic details control
 - see the active Compare A and Compare B recording pair
 - export the focused workspace state directly to markdown
 - preview and export a grounded comparison-specific markdown report for a valid active A/B pair

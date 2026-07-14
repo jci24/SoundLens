@@ -17,6 +17,7 @@ import type {
   IRecordingComparisonResponse,
   IRecordingComparisonSignalObservation,
 } from '../../types'
+import { ChevronDown, ChevronUp } from 'lucide-react'
 import { useEffect, useMemo, useState } from 'react'
 import './TimeWaveformWorkspace.scss'
 
@@ -439,14 +440,18 @@ const TimeWaveformWorkspace = ({ importedFiles, isCopilotOpen, onCopilotToggle }
                         <span className="time-waveform-workspace__comparison-results-summary">
                           {coverageSummary.limitationCount} limitation{coverageSummary.limitationCount === 1 ? '' : 's'}
                         </span>
-                        <button
-                          aria-expanded={isComparisonDetailsOpen}
-                          className="time-waveform-workspace__comparison-results-details-toggle"
-                          type="button"
-                          onClick={() => setIsComparisonDetailsOpen((currentValue) => !currentValue)}
-                        >
-                          {isComparisonDetailsOpen ? 'Hide details' : 'Details'}
-                        </button>
+                        {!isComparisonDetailsOpen && (
+                          <button
+                            aria-controls="comparison-metric-evidence"
+                            aria-expanded="false"
+                            className="time-waveform-workspace__comparison-results-details-toggle"
+                            type="button"
+                            onClick={() => setIsComparisonDetailsOpen(true)}
+                          >
+                            Evidence &amp; limitations
+                            <ChevronDown aria-hidden="true" size={14} />
+                          </button>
+                        )}
                       </>
                     )}
                   </div>
@@ -474,10 +479,16 @@ const TimeWaveformWorkspace = ({ importedFiles, isCopilotOpen, onCopilotToggle }
                   <div className="time-waveform-workspace__comparison-metrics">
                     {comparisonMetrics.map((metric) => (
                       <button
+                        aria-controls="comparison-metric-evidence"
+                        aria-expanded={activeMetric?.metricKey === metric.metricKey && isComparisonDetailsOpen}
+                        aria-pressed={activeMetric?.metricKey === metric.metricKey}
                         key={metric.metricKey}
                         className={`time-waveform-workspace__comparison-metric-card${activeMetric?.metricKey === metric.metricKey ? ' time-waveform-workspace__comparison-metric-card--active' : ''}`}
                         type="button"
-                        onClick={() => setSelectedMetricKey(metric.metricKey)}
+                        onClick={() => {
+                          setSelectedMetricKey(metric.metricKey)
+                          setIsComparisonDetailsOpen(true)
+                        }}
                       >
                         <span className="time-waveform-workspace__comparison-metric-label">
                           {formatComparisonMetricLabel(metric.metricKey)}
@@ -494,7 +505,23 @@ const TimeWaveformWorkspace = ({ importedFiles, isCopilotOpen, onCopilotToggle }
                   </div>
 
                   {isComparisonDetailsOpen && (activeMetric || comparisonResults.limitations.length > 0) && (
-                    <section className="time-waveform-workspace__comparison-details" aria-label="Comparison details">
+                    <section
+                      aria-label="Comparison details"
+                      className="time-waveform-workspace__comparison-details"
+                      id="comparison-metric-evidence"
+                    >
+                      <div className="time-waveform-workspace__comparison-details-toolbar">
+                        <button
+                          aria-controls="comparison-metric-evidence"
+                          aria-expanded="true"
+                          className="time-waveform-workspace__comparison-details-hide"
+                          type="button"
+                          onClick={() => setIsComparisonDetailsOpen(false)}
+                        >
+                          Hide evidence
+                          <ChevronUp aria-hidden="true" size={14} />
+                        </button>
+                      </div>
                       {activeMetric && activeObservation && (
                         <section className="time-waveform-workspace__comparison-focus" aria-label="Selected metric evidence">
                           <div>

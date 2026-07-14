@@ -507,6 +507,7 @@ describe('TimeWaveformWorkspace', () => {
     expect(screen.getByText('1 limitation')).toBeInTheDocument()
     expect(screen.queryByLabelText('Selected metric evidence')).not.toBeInTheDocument()
     expect(screen.queryByLabelText('Comparison limitations')).not.toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Evidence & limitations' })).toHaveAttribute('aria-expanded', 'false')
     const peakButton = screen.getByRole('button', { name: /Peak amplitude/i })
     const rmsButton = screen.getByRole('button', { name: /RMS amplitude/i })
     const crestButton = screen.getByRole('button', { name: /Crest factor/i })
@@ -516,11 +517,15 @@ describe('TimeWaveformWorkspace', () => {
     expect(crestButton.compareDocumentPosition(clippingButton) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy()
 
     fireEvent.click(crestButton)
-    fireEvent.click(screen.getByRole('button', { name: 'Details' }))
 
     expect(screen.getByLabelText('Selected metric evidence')).toHaveTextContent('Crest factor')
+    expect(crestButton).toHaveAttribute('aria-expanded', 'true')
     expect(peakButton.compareDocumentPosition(rmsButton) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy()
     expect(screen.getByLabelText('Comparison limitations')).toHaveTextContent('Low coverage')
+    fireEvent.click(screen.getByRole('button', { name: 'Hide evidence' }))
+    expect(screen.queryByLabelText('Selected metric evidence')).not.toBeInTheDocument()
+    fireEvent.click(screen.getByRole('button', { name: 'Evidence & limitations' }))
+    expect(screen.getByLabelText('Selected metric evidence')).toHaveTextContent('Crest factor')
 
     workspaceState.regionOfInterest = {
       startTimeSeconds: 0.2,
@@ -542,7 +547,7 @@ describe('TimeWaveformWorkspace', () => {
         endTimeSeconds: 0.8,
       })
     })
-    fireEvent.click(screen.getByRole('button', { name: 'Details' }))
+    fireEvent.click(screen.getByRole('button', { name: 'Evidence & limitations' }))
     expect(screen.getByLabelText('Selected metric evidence')).toHaveTextContent('Crest factor')
   })
 
