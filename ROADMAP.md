@@ -187,3 +187,133 @@ Explicitly deferred work:
 - microservices
 - distributed workers
 - generalized platform infrastructure
+
+## Milestone 8 — Agent Capability And Action Foundation
+
+User outcome:
+- A user can ask the Copilot to propose a small acoustic investigation and understand exactly which supported actions and evidence it would use.
+
+Major capabilities:
+- typed, versioned capability catalog
+- investigation plan preview
+- action policy and risk classes
+- workspace revision checks
+- progress, cancellation, failure, and trace contracts
+- read-only context and deterministic analysis capabilities
+
+Dependencies:
+- validated A/B workflow
+- stable evidence contracts
+- enough persistence to retain an investigation trace where validation requires it
+
+Validation gate:
+- realistic planning evals select only valid capabilities, preserve scope and units, request clarification for ambiguity, and never place model-authored measurements into an action
+
+Explicitly deferred work:
+- autonomous workspace modification
+- multi-agent orchestration
+- external integrations
+
+## Milestone 9 — Reversible Workspace-Operating Copilot
+
+User outcome:
+- A user can ask the Copilot to configure and navigate a comparison while retaining visibility, control, and undo.
+
+Major capabilities:
+- recording, channel, A/B pair, ROI, metric, and evidence-navigation actions
+- visible activity and action status
+- atomic reversible workspace changes
+- stale-state rejection and idempotent retries
+- deep links from Copilot evidence to the workspace
+
+Dependencies:
+- Milestone 8
+
+Validation gate:
+- users complete representative setup and drill-down tasks faster than manually, with no hidden changes, duplicate assignments, stale actions, or failed undo paths
+
+Explicitly deferred work:
+- arbitrary UI manipulation
+- background autonomy
+- destructive actions
+
+## Milestone 10 — Agentic Analysis And Evidence Composition
+
+User outcome:
+- A user can describe an acoustic question and receive a reviewable workspace investigation containing deterministic analyses, charts, tables, and bounded interpretation.
+
+Major capabilities:
+- multi-step deterministic analysis orchestration
+- investigation as a first-class product object
+- allowlisted declarative evidence-view specifications
+- editable and reorderable evidence blocks
+- selected-evidence interpretation and next-measurement guidance
+- partial-failure, retry, and cancellation behavior
+
+Dependencies:
+- Milestone 9
+- validated visualization and investigation-state architecture
+
+Validation gate:
+- generated investigations are numerically faithful, correctly scoped, reproducible, materially faster than the manual workflow, and trusted by target engineers
+
+Explicitly deferred work:
+- arbitrary model-generated code or chart data
+- unbounded batch execution
+- specialist subagents without benchmark evidence
+
+## Milestone 11 — Reusable Investigation Recipes And Batch Workflows
+
+User outcome:
+- A user can turn a successful investigation into a controlled recipe and rerun it across compatible product variants or conditions.
+
+Major capabilities:
+- save, inspect, edit, and version recipes
+- compatibility and prerequisite checks
+- bounded batch execution
+- per-item progress, cancellation, retry, and failure isolation
+- comparison of investigation runs
+- reproducible report generation
+
+Dependencies:
+- Milestone 10
+- customer evidence that repeated workflows justify persistence and batch investment
+
+Validation gate:
+- target teams successfully reuse recipes on real repeated work, understand every step, and reduce setup and reporting time without losing traceability
+
+Explicitly deferred work:
+- generalized no-code automation platform
+- distributed execution without demonstrated scale need
+
+## Milestone 12 — Collaborative And Extensible Acoustic Agent
+
+User outcome:
+- A team can review, govern, and extend trusted SoundLens investigations across its existing engineering workflow.
+
+Major capabilities:
+- annotations, review, approvals, and shared investigation history
+- organization-level capability and model policies
+- constrained external integrations
+- validated domain capability and recipe packs
+- production monitoring, feedback, and incident review
+- specialist agents only where benchmarked bounded contexts justify them
+
+Dependencies:
+- Milestone 11
+- validated collaboration and integration demand
+- security, privacy, deployment, and operational requirements from target customers
+
+Validation gate:
+- teams adopt shared investigations in production-like reviews while permission, provenance, privacy, reliability, latency, and cost targets remain within agreed limits
+
+Explicitly deferred work:
+- open-ended computer control
+- unsupported standards decisions
+- autonomy beyond the organization's explicit policy
+
+## Agentic Copilot Delivery Rule
+
+The Copilot initiative must progress from observation to suggestion, reversible action, reproducible workflow, and only then guarded autonomy. Each milestone must pass numerical-fidelity, scope, safety, usability, latency, cost, and trust evaluations before autonomy expands.
+
+See [docs/product/agentic-copilot-strategy.md](docs/product/agentic-copilot-strategy.md) for the capability model, architecture direction, research synthesis, risks, and validation framework.

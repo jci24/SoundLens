@@ -2,7 +2,7 @@
 
 Last updated: 2026-07-14
 
-This backlog reflects the current product direction: focused A/B comparison of repeated recordings with deterministic evidence, drill-down, grounded explanation, and report export.
+This backlog reflects the immediate product direction: focused A/B comparison of repeated recordings with deterministic evidence, drill-down, grounded explanation, and report export. The later agentic Copilot initiative is sequenced in `ROADMAP.md` and is not yet part of the ordered implementation queue.
 
 ## Working Rules
 
@@ -106,4 +106,4 @@ The following remain intentionally out of the immediate backlog:
 - advanced psychoacoustic metrics beyond the validated wedge
 - generalized batch infrastructure
 - enterprise deployment concerns
-- broad open-ended investigation features unrelated to repeated-recording comparison
+- agent-operated investigations, recipes, and broader workspace automation until the current comparison wedge and trust gates are validated

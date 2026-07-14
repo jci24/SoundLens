@@ -1,6 +1,6 @@
 # SoundLens Project Context
 
-Last updated: 2026-07-13
+Last updated: 2026-07-14
 
 ## Product Problem
 
@@ -32,13 +32,15 @@ The immediate product direction is a focused A/B comparison workflow:
 
 ## North Star
 
-SoundLens helps engineers understand, compare, and improve product sound faster by combining deterministic acoustic evidence, comparison-first workflows, and grounded AI explanation.
+SoundLens helps engineers understand, compare, and improve product sound faster by combining deterministic acoustic evidence, comparison-first workflows, and an agentic Copilot that can build reviewable investigations.
 
 ## Product Positioning
 
 SoundLens should be positioned as an AI-assisted acoustic investigation and product-sound benchmarking application.
 
 It is not a generic chatbot, DAW, audio editor, or freeform dashboard builder.
+
+The long-term Copilot direction is an agentic acoustic investigation workspace: users state an acoustic question, the Copilot proposes and operates a traceable investigation, the backend remains the numerical authority, and the resulting evidence stays editable and reviewable in the workspace. This direction is staged after validation of the current A/B comparison wedge and is detailed in [docs/product/agentic-copilot-strategy.md](docs/product/agentic-copilot-strategy.md).
 
 ## Core Product Principles
 
@@ -99,7 +101,7 @@ The immediate roadmap should not expand into:
 - microservices or distributed infrastructure
 - speculative ML anomaly detection
 - multi-model routing or local coding models in-product
-- broad persistence/platform work before workflow validation
+- broad persistence/platform or autonomous-agent work before workflow validation
 
 ## Active Strategic Risks
 
