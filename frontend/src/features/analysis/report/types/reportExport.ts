@@ -1,4 +1,10 @@
-import type { IAnalysisRegionOfInterest, TAnalysisLayoutMode, TAnalysisSurface, TSignalChartMode } from '../../types'
+import type {
+  IAnalysisRegionOfInterest,
+  TAnalysisLayoutMode,
+  TAnalysisSurface,
+  TComparisonGroupAssignment,
+  TSignalChartMode,
+} from '../../types'
 import type { ISignalDerivedMetrics, ISignalFinding } from '../../types'
 
 export interface IReportExportRecording {
@@ -58,4 +64,22 @@ export interface IReportExportResponse {
   selectedSignals: IReportExportSignal[]
   selectedSignalEvidence: IReportExportSignalEvidence[]
   summary: IReportExportSummary
+}
+
+export interface IComparisonReportExcludedRecording {
+  assignment: TComparisonGroupAssignment
+  fileName: string
+  recordingId: string
+}
+
+export interface IComparisonReportMarkdownRequest {
+  endTimeSeconds?: number
+  excludedRecordings: Array<Pick<IComparisonReportExcludedRecording, 'assignment' | 'recordingId'>>
+  metricKey: string
+  recordingIdA: string
+  recordingIdB: string
+  reportTitle: string
+  signalIdA: string
+  signalIdB: string
+  startTimeSeconds?: number
 }

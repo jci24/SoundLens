@@ -136,6 +136,13 @@ frontend/
 
 The `features/` folder uses vertical slice architecture: each feature has `components/`, `hooks/`, `services/`, `utils/`, and `types.ts`.
 
+Current report-export guidance:
+
+- Focused-mode export remains an immediate workspace Markdown download.
+- Compare-mode export requires a valid backend comparison result and opens an accessible Radix preview before download.
+- Report side effects and request construction belong in the report feature hook and service; workspace components should only provide current identifiers and render the preview.
+- The preview may show UI-owned assignments and filenames, but must never manufacture or submit DSP measurements, rankings, units, findings, coverage, or limitations.
+
 Current import workflow guidance:
 
 - Prefer browser-based file picking as the primary demo flow.

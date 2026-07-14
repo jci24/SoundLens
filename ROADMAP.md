@@ -124,6 +124,11 @@ Major capabilities:
 - drill-down traceability
 - grounded AI narrative over comparison evidence
 
+Current status:
+- compare mode previews the active pair, scope, exclusions, title, and Markdown format before export
+- the backend reconstructs ranked and selected evidence from identifiers rather than accepting frontend measurements
+- deterministic Markdown export remains complete when AI is unavailable or malformed
+
 Dependencies:
 - Milestone 4
 
@@ -131,7 +136,7 @@ Validation gate:
 - exported reports are reused in customer or internal review workflows rather than treated as disposable markdown dumps
 
 Explicitly deferred work:
-- polished enterprise reporting workflows
+- PDF export, chart images, and polished enterprise reporting workflows
 
 ## Milestone 6 — Trust, Calibration Compatibility, And Stronger Evals
 

@@ -11,6 +11,7 @@ import './AnalysisWorkspaceHeader.scss'
 interface IAnalysisWorkspaceHeaderProps {
   activeSurface: TAnalysisSurface
   canEnterCompareMode: boolean
+  canExportReport: boolean
   isCopilotOpen: boolean
   isExporting: boolean
   layoutMode: TAnalysisLayoutMode
@@ -37,6 +38,7 @@ interface IAnalysisWorkspaceHeaderProps {
 const AnalysisWorkspaceHeader = ({
   activeSurface,
   canEnterCompareMode,
+  canExportReport,
   isCopilotOpen,
   isExporting,
   layoutMode,
@@ -89,7 +91,7 @@ const AnalysisWorkspaceHeader = ({
         <div className="time-waveform-workspace__header-actions">
           <Button
             className="time-waveform-workspace__export-button"
-            disabled={isExporting}
+            disabled={!canExportReport || isExporting}
             onClick={onExportReport}
             type="button"
             variant="outline"

@@ -1,13 +1,13 @@
 import { AnalysisWorkspaceChart } from './AnalysisWorkspaceChart'
 import { AnalysisWorkspaceHeader } from './AnalysisWorkspaceHeader'
+import { ComparisonReportDialog } from '../../report/components/ComparisonReportDialog'
 import { RecordingRail } from '../../recording-rail/components/RecordingRail'
 import { useAnalysisWorkspaceMetrics } from '../../metrics/hooks/useAnalysisWorkspaceMetrics'
+import { useReportExport } from '../../report/hooks/useReportExport'
 import { formatCompactDuration } from '../../utils/analysisWorkspaceFormatting'
 import { useAnalysisWorkspacePanels } from '../hooks/useAnalysisWorkspacePanels'
 import { useTimeWaveformWorkspace } from '../hooks/useTimeWaveformWorkspace'
-import { exportReportMarkdown } from '../../report/services/exportReportMarkdown'
 import { getRecordingComparison } from '../../services/recordingComparison'
-import { downloadTextFile } from '../../report/utils/reportDownload'
 import { useAnalysisWorkspaceStore } from '../../stores/useAnalysisWorkspaceStore'
 import { getComparisonSetupSummary } from '../../utils/analysisWorkspaceState'
 import type { IImportedFileSummary } from '../../../../common/contracts/import'
@@ -18,7 +18,6 @@ import type {
   IRecordingComparisonSignalObservation,
 } from '../../types'
 import { useEffect, useMemo, useState } from 'react'
-import { toast } from 'sonner'
 import './TimeWaveformWorkspace.scss'
 
 interface ITimeWaveformWorkspaceProps {
@@ -34,7 +33,6 @@ interface IComparisonRequestState {
 }
 
 const TimeWaveformWorkspace = ({ importedFiles, isCopilotOpen, onCopilotToggle }: ITimeWaveformWorkspaceProps) => {
-  const [isExporting, setIsExporting] = useState(false)
   const setComparisonCopilotContext = useAnalysisWorkspaceStore((state) => state.setComparisonCopilotContext)
   const [comparisonRequestState, setComparisonRequestState] = useState<IComparisonRequestState>({
     error: null,
@@ -243,6 +241,29 @@ const TimeWaveformWorkspace = ({ importedFiles, isCopilotOpen, onCopilotToggle }
   const roiScopeLabel = regionOfInterest
     ? `${formatCompactDuration(regionOfInterest.startTimeSeconds)} to ${formatCompactDuration(regionOfInterest.endTimeSeconds)} · ${formatCompactDuration(regionOfInterest.durationSeconds)}`
     : null
+  const {
+    canExportReport,
+    comparisonReportTitle,
+    excludedRecordings,
+    handleComparisonReportExport,
+    handleExportReport,
+    isComparisonReportOpen,
+    isExporting,
+    setComparisonReportTitle,
+    setIsComparisonReportOpen,
+  } = useReportExport({
+    activePairRecordingA,
+    activePairRecordingB,
+    activeSurface,
+    comparisonSelection: comparisonCopilotContext,
+    layoutMode,
+    metricSignals,
+    recordingGroupAssignments,
+    recordings,
+    regionOfInterest,
+    selectedSignalIds,
+    signalChartMode,
+  })
 
   useEffect(() => {
     if (!canRequestPairwiseComparison) {
@@ -305,58 +326,6 @@ const TimeWaveformWorkspace = ({ importedFiles, isCopilotOpen, onCopilotToggle }
     }
   }, [comparisonCopilotContext, setComparisonCopilotContext])
 
-  const handleExportReport = async () => {
-    try {
-      setIsExporting(true)
-
-      const response = await exportReportMarkdown({
-        activeSurface,
-        layoutMode,
-        signalChartMode,
-        recordings: recordings.map((recording) => ({
-          recordingId: recording.recordingId,
-          fileName: recording.fileName,
-          sizeBytes: recording.sizeBytes,
-          durationSeconds: recording.durationSeconds,
-          sampleRate: recording.sampleRate,
-          channels: recording.channels,
-          channelMode: recording.channelMode,
-          signals: recording.signals.map((signal) => ({
-            signalId: signal.signalId,
-            channelIndex: signal.channelIndex,
-            displayName: signal.displayName,
-            fileName: recording.fileName,
-          })),
-        })),
-        selectedSignalEvidence: metricSignals.map((signal) => ({
-          signalId: signal.signalId,
-          fileName: signal.recordingFileName,
-          displayName: signal.displayName,
-          durationSeconds: signal.durationSeconds,
-          sampleRate: signal.sampleRate,
-          metrics: {
-            peakAmplitude: signal.peakAmplitude,
-            rmsAmplitude: signal.rmsAmplitude,
-            crestFactor: signal.crestFactor,
-            clippingSampleCount: signal.clippingSampleCount,
-            hasClipping: signal.hasClipping,
-          },
-          findings: signal.findings,
-        })),
-        selectedSignalIds: selectedSignalIds.length > 0 ? selectedSignalIds : undefined,
-        startTimeSeconds: regionOfInterest?.startTimeSeconds,
-        endTimeSeconds: regionOfInterest?.endTimeSeconds,
-      })
-
-      downloadTextFile(response.fileName, response.markdown)
-      toast.success(`Downloaded ${response.fileName}.`)
-    } catch {
-      toast.error('The markdown report could not be prepared.')
-    } finally {
-      setIsExporting(false)
-    }
-  }
-
   return (
     <section
       className={`time-waveform-workspace${hasActiveChart ? ' time-waveform-workspace--revealed' : ''}${layoutMode === 'compare' ? ' time-waveform-workspace--compare' : ''}`}
@@ -365,6 +334,7 @@ const TimeWaveformWorkspace = ({ importedFiles, isCopilotOpen, onCopilotToggle }
       <AnalysisWorkspaceHeader
         activeSurface={activeSurface}
         canEnterCompareMode={comparisonSetup.state === 'valid'}
+        canExportReport={canExportReport}
         isCopilotOpen={isCopilotOpen}
         isExporting={isExporting}
         layoutMode={layoutMode}
@@ -387,6 +357,21 @@ const TimeWaveformWorkspace = ({ importedFiles, isCopilotOpen, onCopilotToggle }
         spectrumRangeStartHz={spectrumRangeStartHz}
         spectrumViewport={spectrumViewport}
       />
+
+      {activePairRecordingA && activePairRecordingB && (
+        <ComparisonReportDialog
+          excludedRecordings={excludedRecordings}
+          fileNameA={activePairRecordingA.fileName}
+          fileNameB={activePairRecordingB.fileName}
+          isExporting={isExporting}
+          isOpen={isComparisonReportOpen}
+          onExport={handleComparisonReportExport}
+          onOpenChange={setIsComparisonReportOpen}
+          onTitleChange={setComparisonReportTitle}
+          regionOfInterest={regionOfInterest}
+          title={comparisonReportTitle}
+        />
+      )}
 
       <div className="time-waveform-workspace__body">
         <RecordingRail

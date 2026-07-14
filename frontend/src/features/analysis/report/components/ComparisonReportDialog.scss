@@ -1,0 +1,204 @@
+.comparison-report-dialog {
+  &__overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 50;
+    background: rgb(0 0 0 / 28%);
+    backdrop-filter: blur(2px);
+    animation: comparison-report-overlay-in 160ms ease-out;
+  }
+
+  &__content {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    z-index: 51;
+    display: grid;
+    width: min(92vw, 620px);
+    max-height: min(84vh, 720px);
+    transform: translate(-50%, -50%);
+    overflow: hidden;
+    border: 1px solid var(--border);
+    border-radius: 18px;
+    background: var(--background);
+    box-shadow: 0 24px 70px rgb(0 0 0 / 18%);
+    color: var(--foreground);
+    animation: comparison-report-content-in 180ms ease-out;
+  }
+
+  &__header,
+  &__footer {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    padding: 18px 20px;
+  }
+
+  &__header {
+    align-items: flex-start;
+    border-bottom: 1px solid var(--border);
+  }
+
+  &__title {
+    margin: 0;
+    font-size: 1.05rem;
+    font-weight: 650;
+    letter-spacing: -0.015em;
+  }
+
+  &__description,
+  &__excluded p {
+    margin: 4px 0 0;
+    color: var(--muted-foreground);
+    font-size: 0.82rem;
+  }
+
+  &__body {
+    display: grid;
+    gap: 20px;
+    padding: 20px;
+    overflow-y: auto;
+  }
+
+  &__field {
+    display: grid;
+    gap: 7px;
+    color: var(--muted-foreground);
+    font-size: 0.72rem;
+    font-weight: 650;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+
+    input {
+      width: 100%;
+      height: 38px;
+      border: 1px solid var(--border);
+      border-radius: 9px;
+      background: var(--background);
+      padding: 0 11px;
+      color: var(--foreground);
+      font: inherit;
+      font-size: 0.88rem;
+      font-weight: 500;
+      letter-spacing: normal;
+      text-transform: none;
+      outline: none;
+
+      &:focus-visible {
+        border-color: var(--foreground);
+        box-shadow: 0 0 0 2px var(--ring);
+      }
+    }
+  }
+
+  &__summary {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    margin: 0;
+    border-top: 1px solid var(--border);
+
+    div {
+      min-width: 0;
+      padding: 13px 12px 13px 0;
+      border-bottom: 1px solid var(--border);
+
+      &:nth-child(even) {
+        padding-right: 0;
+        padding-left: 16px;
+        border-left: 1px solid var(--border);
+      }
+    }
+
+    dt {
+      color: var(--muted-foreground);
+      font-size: 0.7rem;
+      font-weight: 650;
+      letter-spacing: 0.075em;
+      text-transform: uppercase;
+    }
+
+    dd {
+      margin: 5px 0 0;
+      overflow-wrap: anywhere;
+      font-size: 0.84rem;
+      font-weight: 560;
+    }
+  }
+
+  &__section-heading {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 12px;
+
+    h3 {
+      margin: 0;
+      font-size: 0.86rem;
+      font-weight: 650;
+    }
+
+    span {
+      color: var(--muted-foreground);
+      font-size: 0.75rem;
+    }
+  }
+
+  &__excluded {
+    ul {
+      margin: 8px 0 0;
+      padding: 0;
+      list-style: none;
+      border-top: 1px solid var(--border);
+    }
+
+    li {
+      display: flex;
+      justify-content: space-between;
+      gap: 16px;
+      padding: 9px 0;
+      border-bottom: 1px solid var(--border);
+      font-size: 0.82rem;
+
+      span:last-child {
+        flex: 0 0 auto;
+        color: var(--muted-foreground);
+      }
+    }
+  }
+
+  &__footer {
+    justify-content: flex-end;
+    border-top: 1px solid var(--border);
+  }
+}
+
+@keyframes comparison-report-overlay-in {
+  from { opacity: 0; }
+}
+
+@keyframes comparison-report-content-in {
+  from {
+    opacity: 0;
+    transform: translate(-50%, calc(-50% + 8px)) scale(0.985);
+  }
+}
+
+@media (max-width: 600px) {
+  .comparison-report-dialog {
+    &__content {
+      width: calc(100vw - 24px);
+      max-height: calc(100vh - 24px);
+      border-radius: 14px;
+    }
+
+    &__summary {
+      grid-template-columns: 1fr;
+
+      div:nth-child(even) {
+        padding-left: 0;
+        border-left: 0;
+      }
+    }
+  }
+}

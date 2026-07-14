@@ -49,6 +49,12 @@ The current application is still organized around an analysis workspace rather t
 
 - A normalized export snapshot built from current workspace state, selected signals, and optional ROI.
 
+### Comparison Report Context
+
+- A transient backend-owned report model reconstructed from active recording IDs, selected metric and aligned signal IDs, optional ROI, and resolved excluded recordings.
+- The frontend may provide an editable title and session-owned comparison assignments, but not measurements, rankings, units, coverage, findings, or limitations.
+- The report contains deterministic comparison evidence whether or not an AI narrative can be produced.
+
 ## Current Pairwise Comparison Model
 
 The current product includes the minimum session-scoped model needed for focused pairwise A/B comparison.

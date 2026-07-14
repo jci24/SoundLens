@@ -43,31 +43,10 @@ Turn the current analysis workspace into a focused comparison workflow for repea
 - deterministic factual Copilot answers for selected-signal RMS, peak, and clipping comparisons
 - bounded Copilot explanation for the currently selected comparison evidence, aligned pair, findings, and ROI
 - backend-owned resolution of comparison evidence before Copilot explanation
+- comparison-specific Markdown preview and export over backend-reconstructed evidence
+- explicit excluded-recording, limitation, AI fallback, and traceability sections in comparison reports
 
 ## Ordered Thin Tasks
-
-### A11. Comparison Report
-
-User value:
-- A user can export a shareable grounded comparison report.
-
-Thin-slice boundary:
-- Build comparison-specific reporting over ranked and selected comparison evidence.
-
-Acceptance criteria:
-- export structure reflects A/B comparison rather than raw workspace state
-- report cites comparison evidence and limitations clearly
-- fallback behavior remains safe when AI narrative is unavailable
-
-Test expectations:
-- backend export tests
-- frontend export interaction coverage if the UX changes
-
-Proposed branch name:
-- `codex/comparison-report`
-
-Dependencies:
-- shipped bounded comparison explanation
 
 ### A12. Comparison Eval Cases
 
@@ -89,8 +68,30 @@ Proposed branch name:
 - `codex/comparison-evals`
 
 Dependencies:
-- shipped deterministic factual comparison answers
-- shipped backend-owned bounded comparison explanation
+- shipped comparison report and bounded comparison explanation
+
+### A13. Comparison Report PDF
+
+User value:
+- A user can export the validated comparison report as a portable PDF.
+
+Thin-slice boundary:
+- Reuse the backend-owned comparison report model and existing preview without adding chart images.
+
+Acceptance criteria:
+- PDF is selectable from the existing comparison report preview
+- PDF content preserves the same evidence, units, limitations, exclusions, and AI fallback semantics as Markdown
+- the selected PDF library is reviewed for licensing, maintenance, accessibility, and deployment compatibility before implementation
+
+Test expectations:
+- backend PDF generation and content tests
+- frontend format-selection and download tests
+
+Proposed branch name:
+- `codex/comparison-report-pdf`
+
+Dependencies:
+- manual validation of the shipped Markdown comparison report contract
 
 ## Engineering Follow-Ups
 

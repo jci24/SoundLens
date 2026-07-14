@@ -5,6 +5,7 @@ import { AnalysisWorkspaceHeader } from './AnalysisWorkspaceHeader'
 const createProps = () => ({
   activeSurface: 'waveform' as const,
   canEnterCompareMode: true,
+  canExportReport: true,
   isCopilotOpen: false,
   isExporting: false,
   layoutMode: 'focused' as const,
@@ -69,6 +70,12 @@ describe('AnalysisWorkspaceHeader', () => {
     render(<AnalysisWorkspaceHeader {...createProps()} isExporting />)
 
     expect(screen.getByRole('button', { name: 'Preparing export...' })).toBeDisabled()
+  })
+
+  it('disables export when the current view has no valid report context', () => {
+    render(<AnalysisWorkspaceHeader {...createProps()} canExportReport={false} />)
+
+    expect(screen.getByRole('button', { name: 'Export report' })).toBeDisabled()
   })
 
   it('keeps compare mode unavailable until both groups are ready', () => {
