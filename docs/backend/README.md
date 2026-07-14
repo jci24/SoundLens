@@ -89,7 +89,7 @@ For selected comparison explanations, clients send only recording IDs, a support
 
 Comparison report export follows the same trust boundary. The client may send an editable title, active recording IDs, selected metric and aligned signal IDs, optional ROI, and excluded recording IDs with UI-owned assignment labels. The backend re-runs the comparison, validates the selected evidence, resolves recording metadata from the import session, and writes ranked evidence, limitations, and traceability. AI narrative failure must degrade to an explicit deterministic fallback without exposing malformed model output.
 
-Comparison-report AI prose is intentionally qualitative. Exact measurements and precision remain in deterministic tables, while the model may describe only labeled aggregate direction and the selected aligned-pair direction. Narrative output containing repeated numbers or unsupported dynamic-range, perception, audibility, quality, or causal claims must be rejected in favor of the deterministic fallback.
+Comparison-report AI prose is intentionally qualitative. Exact measurements and precision remain in deterministic tables, while the model may describe only labeled aggregate direction and the selected aligned-pair direction. The overview must name both scopes, and directional takeaways must name the scope they describe. Narrative output containing repeated numbers, unvalidated magnitude language, or unsupported dynamic-range, perception, audibility, quality, or causal claims must be rejected in favor of the deterministic fallback.
 
 Expected backend flow:
 
