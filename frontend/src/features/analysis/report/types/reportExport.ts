@@ -72,7 +72,9 @@ export interface IComparisonReportExcludedRecording {
   recordingId: string
 }
 
-export interface IComparisonReportMarkdownRequest {
+export type TComparisonReportFormat = 'markdown' | 'pdf'
+
+export interface IComparisonReportRequest {
   endTimeSeconds?: number
   excludedRecordings: Array<Pick<IComparisonReportExcludedRecording, 'assignment' | 'recordingId'>>
   metricKey: string

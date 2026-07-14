@@ -91,6 +91,10 @@ Comparison report export follows the same trust boundary. The client may send an
 
 Comparison-report narrative generation uses a closed deterministic fact catalog. The model receives only the backend-generated fact ID for the user-selected metric and cannot author report prose. The backend validates that exact selection and renders selected aggregate evidence, aligned-pair direction, real limitation state, and cautions from fixed templates. Unknown, duplicate, malformed, or non-selected IDs fall back to deterministic selected-metric evidence.
 
+Comparison Markdown and PDF endpoints execute the same format-independent report command and shared preparation service. That service reconstructs the comparison context and resolves the grounded narrative or deterministic fallback once per export; format writers only render the prepared document. `POST /api/report/export/comparison/pdf` returns `application/pdf` bytes and an exposed safe filename while the existing Markdown response remains unchanged.
+
+PDF generation uses MIT-licensed PDFsharp-MigraDoc 6.2.4 and embedded Noto Sans regular and bold assets. The API owns these fonts and their OFL license so PDF output does not depend on fonts installed on the host. Apache-2.0-licensed PdfPig 0.1.10 is test-only and extracts generated content for contract assertions. The current PDF is a readable A4 textual and tabular artifact with selectable text, repeated table headers where tables cross pages, page numbers, metadata, limitations, and traceability. It does not claim PDF/UA conformance and does not contain chart images.
+
 Expected backend flow:
 
 ```text

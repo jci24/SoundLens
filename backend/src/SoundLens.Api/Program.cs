@@ -69,7 +69,8 @@ try
         LocalFrontendCorsPolicy,
         policy => policy.WithOrigins(allowedCorsOrigins)
             .AllowAnyHeader()
-            .AllowAnyMethod()));
+            .AllowAnyMethod()
+            .WithExposedHeaders("Content-Disposition")));
 
     builder.Services.AddApplication();
     builder.Services.AddInfrastructure(builder.Configuration);

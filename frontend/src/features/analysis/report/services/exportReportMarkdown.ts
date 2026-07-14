@@ -1,5 +1,5 @@
 import { API_BASE_URL } from '../../../../common/api/config'
-import type { IComparisonReportMarkdownRequest, IReportExportRequest } from '../types/reportExport'
+import type { IComparisonReportRequest, IReportExportRequest } from '../types/reportExport'
 
 interface IReportMarkdownResponse {
   fileName: string
@@ -21,7 +21,7 @@ export const exportReportMarkdown = async (request: IReportExportRequest): Promi
 }
 
 export const exportComparisonReportMarkdown = async (
-  request: IComparisonReportMarkdownRequest
+  request: IComparisonReportRequest
 ): Promise<IReportMarkdownResponse> => {
   const response = await fetch(`${API_BASE_URL}/api/report/export/comparison/markdown`, {
     method: 'POST',

@@ -220,6 +220,7 @@ const TimeWaveformWorkspace = ({ importedFiles, isCopilotOpen, onCopilotToggle }
     : null
   const {
     canExportReport,
+    comparisonReportFormat,
     comparisonReportTitle,
     excludedRecordings,
     handleComparisonReportExport,
@@ -227,6 +228,7 @@ const TimeWaveformWorkspace = ({ importedFiles, isCopilotOpen, onCopilotToggle }
     isComparisonReportOpen,
     isExporting,
     setComparisonReportTitle,
+    setComparisonReportFormat,
     setIsComparisonReportOpen,
   } = useReportExport({
     activePairRecordingA,
@@ -339,9 +341,11 @@ const TimeWaveformWorkspace = ({ importedFiles, isCopilotOpen, onCopilotToggle }
           excludedRecordings={excludedRecordings}
           fileNameA={activePairRecordingA.fileName}
           fileNameB={activePairRecordingB.fileName}
+          format={comparisonReportFormat}
           isExporting={isExporting}
           isOpen={isComparisonReportOpen}
           onExport={handleComparisonReportExport}
+          onFormatChange={setComparisonReportFormat}
           onOpenChange={setIsComparisonReportOpen}
           onTitleChange={setComparisonReportTitle}
           regionOfInterest={regionOfInterest}

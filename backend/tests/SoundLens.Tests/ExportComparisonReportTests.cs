@@ -7,14 +7,15 @@ using Microsoft.Extensions.DependencyInjection.Extensions;
 using SoundLens.Api.Features.Comparisons.Common;
 using SoundLens.Api.Features.Reports.Commands;
 using SoundLens.Api.Features.Reports.Common;
+using UglyToad.PdfPig;
 
 namespace SoundLens.Tests;
 
-public sealed class ExportComparisonReportMarkdownTests : IClassFixture<WebApplicationFactory<Program>>
+public sealed class ExportComparisonReportTests : IClassFixture<WebApplicationFactory<Program>>
 {
     private readonly WebApplicationFactory<Program> _factory;
 
-    public ExportComparisonReportMarkdownTests(WebApplicationFactory<Program> factory)
+    public ExportComparisonReportTests(WebApplicationFactory<Program> factory)
     {
         _factory = factory.WithWebHostBuilder(builder => builder.ConfigureServices(services =>
         {
@@ -72,25 +73,84 @@ public sealed class ExportComparisonReportMarkdownTests : IClassFixture<WebAppli
         Assert.Contains(fixture.Recordings[1].RecordingId, payload.Markdown);
     }
 
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public async Task POST_ComparisonReport_ReconstructsEvidenceAndExportsPdf(bool useRoi)
+    {
+        await using var fixture = await ImportComparisonFixture.CreateAsync(_factory);
+        var response = await fixture.Client.PostAsJsonAsync(
+            "/api/report/export/comparison/pdf",
+            fixture.BuildRequest(useRoi: useRoi));
+
+        response.EnsureSuccessStatusCode();
+        var pdf = await response.Content.ReadAsByteArrayAsync();
+        var text = ExtractPdfText(pdf);
+
+        Assert.Equal("application/pdf", response.Content.Headers.ContentType?.MediaType);
+        Assert.EndsWith(".pdf", response.Content.Headers.ContentDisposition?.FileNameStar ?? response.Content.Headers.ContentDisposition?.FileName?.Trim('"'), StringComparison.OrdinalIgnoreCase);
+        Assert.True(pdf.AsSpan().StartsWith("%PDF-"u8));
+        Assert.Contains("alpha.wav vs beta.wav comparison", text);
+        Assert.Contains("Comparison Scope", text);
+        Assert.Contains("Compare A alpha.wav", text);
+        Assert.Contains("Compare B beta.wav", text);
+        Assert.Contains(useRoi ? "0 s to 0.5 s (0.5 s)" : "Full duration", text);
+        Assert.Contains("Comparison Metrics", text);
+        AssertMetricOrder(text);
+        Assert.Contains("RMS amplitude", text);
+        Assert.Contains("Selected Evidence", text);
+        Assert.Contains("Channel 1 vs Channel 1", text);
+        Assert.Contains("gamma.wav - Unassigned", text);
+        Assert.Contains("not calibrated physical SPL", text);
+        Assert.Contains("Traceability", text);
+        Assert.Contains(fixture.Recordings[0].RecordingId, text);
+        Assert.Contains(fixture.Recordings[1].RecordingId, text);
+    }
+
     [Fact]
-    public async Task POST_ComparisonReport_RejectsInvalidSelectionAndExclusions()
+    public async Task POST_ComparisonReportPdf_UsesDeterministicFallbackWhenAiFails()
+    {
+        var factory = _factory.WithWebHostBuilder(builder => builder.ConfigureServices(services =>
+        {
+            services.RemoveAll<IComparisonReportNarrativeService>();
+            services.AddSingleton<IComparisonReportNarrativeService>(new FailingComparisonNarrativeService());
+        }));
+        await using var fixture = await ImportComparisonFixture.CreateAsync(factory);
+
+        var response = await fixture.Client.PostAsJsonAsync(
+            "/api/report/export/comparison/pdf",
+            fixture.BuildRequest());
+
+        response.EnsureSuccessStatusCode();
+        var text = ExtractPdfText(await response.Content.ReadAsByteArrayAsync());
+        Assert.Contains("This interpretation describes the selected RMS amplitude evidence.", text);
+        Assert.Contains("AI fact selection was unavailable or invalid", text);
+        Assert.Contains("rely on the deterministic comparison evidence", text);
+        Assert.DoesNotContain("API key test failure", text);
+    }
+
+    [Theory]
+    [InlineData("markdown")]
+    [InlineData("pdf")]
+    public async Task POST_ComparisonReport_RejectsInvalidSelectionAndExclusions(string format)
     {
         await using var fixture = await ImportComparisonFixture.CreateAsync(_factory);
         var activeId = fixture.Recordings[0].RecordingId;
         var excludedId = fixture.Recordings[2].RecordingId;
+        var endpoint = $"/api/report/export/comparison/{format}";
 
         var invalidMetric = await fixture.Client.PostAsJsonAsync(
-            "/api/report/export/comparison/markdown",
+            endpoint,
             fixture.BuildRequest(metricKey: "inventedMetric"));
         Assert.Equal(HttpStatusCode.BadRequest, invalidMetric.StatusCode);
 
         var invalidPair = await fixture.Client.PostAsJsonAsync(
-            "/api/report/export/comparison/markdown",
+            endpoint,
             fixture.BuildRequest(signalIdB: "not-an-aligned-signal"));
         Assert.Equal(HttpStatusCode.BadRequest, invalidPair.StatusCode);
 
         var duplicateExclusion = await fixture.Client.PostAsJsonAsync(
-            "/api/report/export/comparison/markdown",
+            endpoint,
             fixture.BuildRequest(excludedRecordings:
             [
                 new { recordingId = excludedId, assignment = "A" },
@@ -99,7 +159,7 @@ public sealed class ExportComparisonReportMarkdownTests : IClassFixture<WebAppli
         Assert.Equal(HttpStatusCode.BadRequest, duplicateExclusion.StatusCode);
 
         var activeExclusion = await fixture.Client.PostAsJsonAsync(
-            "/api/report/export/comparison/markdown",
+            endpoint,
             fixture.BuildRequest(excludedRecordings:
             [
                 new { recordingId = activeId, assignment = "A" }
@@ -107,7 +167,7 @@ public sealed class ExportComparisonReportMarkdownTests : IClassFixture<WebAppli
         Assert.Equal(HttpStatusCode.BadRequest, activeExclusion.StatusCode);
 
         var unknownExclusion = await fixture.Client.PostAsJsonAsync(
-            "/api/report/export/comparison/markdown",
+            endpoint,
             fixture.BuildRequest(excludedRecordings:
             [
                 new { recordingId = "missing-recording", assignment = "unassigned" }
@@ -115,7 +175,7 @@ public sealed class ExportComparisonReportMarkdownTests : IClassFixture<WebAppli
         Assert.Equal(HttpStatusCode.BadRequest, unknownExclusion.StatusCode);
 
         var malformedAssignment = await fixture.Client.PostAsJsonAsync(
-            "/api/report/export/comparison/markdown",
+            endpoint,
             fixture.BuildRequest(excludedRecordings:
             [
                 new { recordingId = excludedId, assignment = "ignored" }
@@ -123,12 +183,12 @@ public sealed class ExportComparisonReportMarkdownTests : IClassFixture<WebAppli
         Assert.Equal(HttpStatusCode.BadRequest, malformedAssignment.StatusCode);
 
         var missingExclusion = await fixture.Client.PostAsJsonAsync(
-            "/api/report/export/comparison/markdown",
+            endpoint,
             fixture.BuildRequest(excludedRecordings: []));
         Assert.Equal(HttpStatusCode.BadRequest, missingExclusion.StatusCode);
 
         var missingTitle = await fixture.Client.PostAsJsonAsync(
-            "/api/report/export/comparison/markdown",
+            endpoint,
             new
             {
                 reportTitle = (string?)null,
@@ -140,6 +200,21 @@ public sealed class ExportComparisonReportMarkdownTests : IClassFixture<WebAppli
                 excludedRecordings = Array.Empty<object>()
             });
         Assert.Equal(HttpStatusCode.BadRequest, missingTitle.StatusCode);
+
+        var unknownActiveRecording = await fixture.Client.PostAsJsonAsync(
+            endpoint,
+            fixture.BuildRequest(recordingIdA: "missing-recording"));
+        Assert.Equal(HttpStatusCode.BadRequest, unknownActiveRecording.StatusCode);
+
+        var malformedRoi = await fixture.Client.PostAsJsonAsync(
+            endpoint,
+            fixture.BuildRequest(startTimeSeconds: 0.5, endTimeSeconds: 0.25));
+        Assert.Equal(HttpStatusCode.BadRequest, malformedRoi.StatusCode);
+
+        var unsafeTitle = await fixture.Client.PostAsJsonAsync(
+            endpoint,
+            fixture.BuildRequest(reportTitle: "unsafe\u0001title"));
+        Assert.Equal(HttpStatusCode.BadRequest, unsafeTitle.StatusCode);
     }
 
     [Fact]
@@ -202,6 +277,33 @@ public sealed class ExportComparisonReportMarkdownTests : IClassFixture<WebAppli
         var clippingIndex = markdown.IndexOf("| Clipping samples |", StringComparison.Ordinal);
         Assert.True(peakIndex < rmsIndex && rmsIndex < crestIndex && crestIndex < clippingIndex);
         Assert.DoesNotContain("| Rank |", markdown);
+    }
+
+    [Fact]
+    public void ComparisonReportPdf_RendersUnicodeAndPaginatesLongContent()
+    {
+        var baseContext = CreateNarrativeContext(
+            reportTitle: "Måling Ø vs højttaler écho",
+            fileNameA: "måling-ø.wav",
+            fileNameB: "højttaler-écho.wav");
+        var exclusions = Enumerable.Range(1, 80)
+            .Select(index => new ComparisonReportExcludedRecording(
+                $"excluded-{index}",
+                $"måling-{index}-écho.wav",
+                "Unassigned"))
+            .ToArray();
+        var context = baseContext with { ExcludedRecordings = exclusions };
+        var pdf = ComparisonReportPdfWriter.Write(
+            context,
+            OpenAiComparisonReportNarrativeService.BuildInvalidResponseFallback(context));
+
+        using var document = PdfDocument.Open(pdf);
+        var text = string.Join('\n', document.GetPages().Select(ExtractPageText));
+        Assert.True(document.NumberOfPages > 1);
+        Assert.Contains("Måling Ø vs højttaler écho", text);
+        Assert.Contains("måling-ø.wav", text);
+        Assert.Contains("højttaler-écho.wav", text);
+        Assert.Contains("Metric", text);
     }
 
     [Theory]
@@ -268,7 +370,10 @@ public sealed class ExportComparisonReportMarkdownTests : IClassFixture<WebAppli
     private static ComparisonReportContext CreateNarrativeContext(
         double selectedCrestFactorDelta = -1.121,
         bool includeLimitation = false,
-        string selectedMetricKey = "crestFactorDelta")
+        string selectedMetricKey = "crestFactorDelta",
+        string reportTitle = "Alpha vs beta comparison",
+        string fileNameA = "alpha.wav",
+        string fileNameB = "beta.wav")
     {
         var observation = new RecordingComparisonSignalObservation(
             "recording-a:ch:0",
@@ -303,8 +408,8 @@ public sealed class ExportComparisonReportMarkdownTests : IClassFixture<WebAppli
             ? new[] { new RecordingComparisonLimitation("LowCoverage", "Only limited aligned evidence is available.") }
             : [];
         var comparison = new RecordingComparisonResponse(
-            new RecordingComparisonRecording("recording-a", "alpha.wav", 1, 2.5),
-            new RecordingComparisonRecording("recording-b", "beta.wav", 1, 2.5),
+            new RecordingComparisonRecording("recording-a", fileNameA, 1, 2.5),
+            new RecordingComparisonRecording("recording-b", fileNameB, 1, 2.5),
             [],
             [observation],
             aggregates,
@@ -314,12 +419,30 @@ public sealed class ExportComparisonReportMarkdownTests : IClassFixture<WebAppli
         var selectedMetric = aggregates.Single(metric => metric.MetricKey == selectedMetricKey);
 
         return new ComparisonReportContext(
-            "Alpha vs beta comparison",
+            reportTitle,
             DateTimeOffset.UtcNow,
             comparison,
             selectedMetric,
             observation,
             []);
+    }
+
+    private static string ExtractPdfText(byte[] pdf)
+    {
+        using var document = PdfDocument.Open(pdf);
+        return string.Join('\n', document.GetPages().Select(ExtractPageText));
+    }
+
+    private static string ExtractPageText(UglyToad.PdfPig.Content.Page page) =>
+        string.Join(' ', page.GetWords().Select(word => word.Text));
+
+    private static void AssertMetricOrder(string text)
+    {
+        var peakIndex = text.IndexOf("Peak amplitude", StringComparison.Ordinal);
+        var rmsIndex = text.IndexOf("RMS amplitude", StringComparison.Ordinal);
+        var crestIndex = text.IndexOf("Crest factor", StringComparison.Ordinal);
+        var clippingIndex = text.IndexOf("Clipping samples", StringComparison.Ordinal);
+        Assert.True(peakIndex >= 0 && peakIndex < rmsIndex && rmsIndex < crestIndex && crestIndex < clippingIndex);
     }
 
     private sealed class StubComparisonNarrativeService : IComparisonReportNarrativeService
@@ -386,10 +509,14 @@ public sealed class ExportComparisonReportMarkdownTests : IClassFixture<WebAppli
             string metricKey = "rmsAmplitudeDelta",
             string? signalIdB = null,
             object[]? excludedRecordings = null,
-            bool useRoi = false) => new
+            bool useRoi = false,
+            string? recordingIdA = null,
+            string reportTitle = "alpha.wav vs beta.wav comparison",
+            double? startTimeSeconds = null,
+            double? endTimeSeconds = null) => new
         {
-            reportTitle = "alpha.wav vs beta.wav comparison",
-            recordingIdA = Recordings[0].RecordingId,
+            reportTitle,
+            recordingIdA = recordingIdA ?? Recordings[0].RecordingId,
             recordingIdB = Recordings[1].RecordingId,
             metricKey,
             signalIdA = Recordings[0].Signals[0].SignalId,
@@ -402,8 +529,8 @@ public sealed class ExportComparisonReportMarkdownTests : IClassFixture<WebAppli
                     assignment = "unassigned"
                 }
             ],
-            startTimeSeconds = useRoi ? 0.0 : (double?)null,
-            endTimeSeconds = useRoi ? 0.5 : (double?)null
+            startTimeSeconds = useRoi ? 0.0 : startTimeSeconds,
+            endTimeSeconds = useRoi ? 0.5 : endTimeSeconds
         };
 
         public ValueTask DisposeAsync()
