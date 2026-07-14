@@ -2,10 +2,12 @@ import { ChevronRight } from 'lucide-react'
 import { Checkbox } from '@/components/ui/checkbox'
 import { Field, FieldLabel } from '@/components/ui/field'
 import type { ITimeWaveformRecording, TComparisonGroupAssignment } from '../../types'
+import { ComparePairBuilder } from './ComparePairBuilder'
 import './RecordingRail.scss'
 
 interface IRecordingRailProps {
   expandedRecordings: string[]
+  onComparisonTargetsSwap: () => void
   onRecordingGroupAssignment: (recordingId: string, assignment: TComparisonGroupAssignment) => void
   onRecordingToggle: (recordingId: string) => void
   onSignalSelection: (signalId: string) => void
@@ -14,32 +16,9 @@ interface IRecordingRailProps {
   selectedSignalIds: string[]
 }
 
-const assignmentLabels: Record<TComparisonGroupAssignment, string> = {
-  unassigned: 'Unassigned',
-  A: 'Group A',
-  B: 'Group B',
-}
-
-const assignmentBadgeLabels: Record<TComparisonGroupAssignment, string> = {
-  unassigned: 'Unassigned',
-  A: 'A',
-  B: 'B',
-}
-
-const formatCompareTargetSummary = (recordings: ITimeWaveformRecording[]) => {
-  if (recordings.length === 0) {
-    return 'None'
-  }
-
-  if (recordings.length === 1) {
-    return recordings[0].fileName
-  }
-
-  return `${recordings.length} selected`
-}
-
 const RecordingRail = ({
   expandedRecordings,
+  onComparisonTargetsSwap,
   onRecordingGroupAssignment,
   onRecordingToggle,
   onSignalSelection,
@@ -47,27 +26,18 @@ const RecordingRail = ({
   recordingGroupAssignments,
   selectedSignalIds,
 }: IRecordingRailProps) => {
-  const groupARecordings = recordings.filter(
-    (recording) => (recordingGroupAssignments[recording.recordingId] ?? 'unassigned') === 'A'
-  )
-  const groupBRecordings = recordings.filter(
-    (recording) => (recordingGroupAssignments[recording.recordingId] ?? 'unassigned') === 'B'
-  )
-
   return (
     <aside className="time-waveform-workspace__recording-rail" aria-label="Imported recordings and channels">
-      <div className="time-waveform-workspace__recording-rail-header">
-        <span className="time-waveform-workspace__recording-rail-title">Compare</span>
-      </div>
+      <ComparePairBuilder
+        onRecordingGroupAssignment={onRecordingGroupAssignment}
+        onSwap={onComparisonTargetsSwap}
+        recordings={recordings}
+        recordingGroupAssignments={recordingGroupAssignments}
+      />
 
-      <section className="time-waveform-workspace__compare-targets" aria-label="Compare targets">
-        <span className="time-waveform-workspace__compare-target-inline">
-          <strong>A</strong> {formatCompareTargetSummary(groupARecordings)}
-        </span>
-        <span className="time-waveform-workspace__compare-target-inline">
-          <strong>B</strong> {formatCompareTargetSummary(groupBRecordings)}
-        </span>
-      </section>
+      <div className="time-waveform-workspace__recording-rail-header">
+        <span className="time-waveform-workspace__recording-rail-title">Recordings</span>
+      </div>
 
       <div className="time-waveform-workspace__recording-list">
         {recordings.map((recording) => (
@@ -89,40 +59,19 @@ const RecordingRail = ({
                   <span className="time-waveform-workspace__recording-name">{recording.fileName}</span>
                 </span>
               </button>
-              <span
-                className={`time-waveform-workspace__recording-assignment-badge time-waveform-workspace__recording-assignment-badge--${recordingGroupAssignments[recording.recordingId] ?? 'unassigned'}`}
-                title={assignmentLabels[recordingGroupAssignments[recording.recordingId] ?? 'unassigned']}
-              >
-                {assignmentBadgeLabels[recordingGroupAssignments[recording.recordingId] ?? 'unassigned']}
-              </span>
+              {recordingGroupAssignments[recording.recordingId] !== undefined &&
+                recordingGroupAssignments[recording.recordingId] !== 'unassigned' && (
+                  <span
+                    aria-label={`Compare ${recordingGroupAssignments[recording.recordingId]}`}
+                    className="time-waveform-workspace__recording-assignment-badge"
+                  >
+                    {recordingGroupAssignments[recording.recordingId]}
+                  </span>
+                )}
             </div>
 
             {expandedRecordings.includes(recording.recordingId) && (
               <div className="time-waveform-workspace__recording-detail">
-                <div className="time-waveform-workspace__assignment-panel">
-                  <div
-                    aria-label={`${recording.fileName} comparison group`}
-                    className="time-waveform-workspace__assignment-picker"
-                    role="group"
-                  >
-                    {(['A', 'B', 'unassigned'] as const).map((assignment) => {
-                      const isActive = (recordingGroupAssignments[recording.recordingId] ?? 'unassigned') === assignment
-
-                      return (
-                        <button
-                          key={assignment}
-                          aria-pressed={isActive}
-                          className={`time-waveform-workspace__assignment-button${isActive ? ' time-waveform-workspace__assignment-button--active' : ''}`}
-                          type="button"
-                          onClick={() => onRecordingGroupAssignment(recording.recordingId, assignment)}
-                        >
-                          {assignment === 'A' ? 'A' : assignment === 'B' ? 'B' : 'Out'}
-                        </button>
-                      )
-                    })}
-                  </div>
-                </div>
-
                 <div className="time-waveform-workspace__signal-list">
                   {recording.signals.map((signal) => {
                     const isSelected = selectedSignalIds.includes(signal.signalId)

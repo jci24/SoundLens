@@ -39,6 +39,10 @@ Dependencies:
 Validation gate:
 - users understand which recordings belong to each condition without manual note-taking outside the app
 
+Current status:
+- explicit Compare A and Compare B slots are in `main`, with accessible anchored pickers, replace and clear actions, duplicate prevention, and atomic swap
+- recording and channel browsing remains separate from pair assignment
+
 Explicitly deferred work:
 - aggregate comparison metrics
 - report generation from groups

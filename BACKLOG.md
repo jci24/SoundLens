@@ -46,32 +46,9 @@ Turn the current analysis workspace into a focused comparison workflow for repea
 - comparison-specific Markdown preview and export over backend-reconstructed evidence
 - explicit excluded-recording, limitation, AI fallback, and traceability sections in comparison reports
 - direct metric-card evidence drill-down with explicit evidence and limitation controls
+- explicit Compare A and Compare B recording slots with accessible pickers, replace, clear, duplicate prevention, and atomic swap
 
 ## Ordered Thin Tasks
-
-### A12. Explicit Compare Pair Builder
-
-User value:
-- A user can choose the active Compare A and Compare B recordings without interpreting repeated per-file A/B/Out controls.
-
-Thin-slice boundary:
-- Replace assignment controls with two explicit single-recording slots without changing the pairwise backend contract or channel selection.
-
-Acceptance criteria:
-- Compare A and Compare B each expose an accessible anchored recording picker
-- selecting a recording already used by the other slot cannot create duplicate occupancy
-- each slot supports replace and clear actions
-- unselected recordings remain visible without repeated assignment controls
-
-Test expectations:
-- frontend interaction and accessibility tests for choose, replace, clear, duplicate prevention, and narrow layouts
-- no backend contract changes expected
-
-Proposed branch name:
-- `codex/compare-pair-builder`
-
-Dependencies:
-- stable comparison metric ordering
 
 ### A13. Comparison Eval Cases
 

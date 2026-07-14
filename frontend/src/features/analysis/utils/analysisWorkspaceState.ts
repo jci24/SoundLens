@@ -110,6 +110,16 @@ const getNextSingleRecordingGroupAssignment = (
   }
 }
 
+const getSwappedRecordingGroupAssignments = (
+  currentAssignments: Record<string, TComparisonGroupAssignment>
+): Record<string, TComparisonGroupAssignment> =>
+  Object.fromEntries(
+    Object.entries(currentAssignments).map(([recordingId, assignment]) => [
+      recordingId,
+      assignment === 'A' ? 'B' : assignment === 'B' ? 'A' : assignment,
+    ])
+  ) as Record<string, TComparisonGroupAssignment>
+
 const getComparisonSetupSummary = (
   recordings: ITimeWaveformRecording[],
   recordingGroupAssignments: Record<string, TComparisonGroupAssignment>
@@ -123,7 +133,14 @@ const getComparisonSetupSummary = (
     { unassigned: 0, A: 0, B: 0 }
   )
 
-  if (counts.A > 0 && counts.B > 0) {
+  if (counts.A > 1 || counts.B > 1) {
+    return {
+      counts,
+      state: 'conflict',
+    }
+  }
+
+  if (counts.A === 1 && counts.B === 1) {
     return {
       counts,
       state: 'valid',
@@ -204,6 +221,7 @@ export {
   getNextExpandedRecordings,
   getNextRecordingGroupAssignments,
   getNextSingleRecordingGroupAssignment,
+  getSwappedRecordingGroupAssignments,
   getNextRequestedSignalIds,
   getNextSpectrumRangeEnd,
   getNextSpectrumRangeStart,
