@@ -146,31 +146,25 @@ public sealed class AgentQueryEndpointTests : IClassFixture<WebApplicationFactor
     }
 
     [Fact]
-    public async Task ReturnsBoundedComparisonExplanationWhenComparisonContextIsProvided()
+    public async Task ResolvesBoundedComparisonExplanationFromBackendEvidence()
     {
+        var chatClientProvider = new StubChatClientProvider(
+            """
+            {
+              "answer": "Within the selected ROI, the current crest-factor difference is small and the comparison evidence alone does not establish the cause.",
+              "citedEvidence": [
+                { "toolName": "selected_comparison_context", "signalId": "", "summary": "Mean delta A-B: 0 ratio across 1 aligned pair." }
+              ],
+              "limitations": [],
+              "nextSteps": []
+            }
+            """);
         var explanationFactory = _factory.WithWebHostBuilder(builder =>
         {
             builder.ConfigureServices(services =>
             {
                 services.RemoveAll<IChatClientProvider>();
-                services.AddSingleton<IChatClientProvider>(new StubChatClientProvider(
-                    """
-                    {
-                      "answer": "Within the selected ROI, the current crest-factor difference is small and the comparison evidence alone does not establish the cause.",
-                      "citedEvidence": [
-                        { "toolName": "selected_comparison_context", "signalId": "", "summary": "Mean delta A-B: -0.075 ratio across 2 aligned pairs." },
-                        { "toolName": "selected_signal_findings", "signalId": "signal-a", "summary": "Dominant tonal component near 257 Hz in the inspected signal." }
-                      ],
-                      "limitations": [
-                        "Values are in dBFS, not calibrated to physical SPL.",
-                        "Answer reflects the selected ROI only."
-                      ],
-                      "nextSteps": [
-                        "Inspect the waveform and spectrum around the selected ROI.",
-                        "Compare another metric if you need a broader explanation."
-                      ]
-                    }
-                    """));
+                services.AddSingleton<IChatClientProvider>(chatClientProvider);
             });
         });
 
@@ -223,44 +217,17 @@ public sealed class AgentQueryEndpointTests : IClassFixture<WebApplicationFactor
                 {
                     question = "Explain the selected comparison evidence.",
                     signalIds,
-                    startTimeSeconds = 0.25,
-                    endTimeSeconds = 0.75,
+                    startTimeSeconds = 0.0,
+                    endTimeSeconds = 0.25,
                     comparisonContext = new
                     {
                         recordingIdA = waveformPayload.Recordings[0].RecordingId,
-                        recordingFileNameA = waveformPayload.Recordings[0].FileName,
                         recordingIdB = waveformPayload.Recordings[1].RecordingId,
-                        recordingFileNameB = waveformPayload.Recordings[1].FileName,
                         metricKey = "crestFactorDelta",
-                        metricLabel = "Crest factor",
-                        unit = "ratio",
-                        comparedPairCount = 2,
-                        missingValueCount = 0,
-                        meanDifference = -0.075,
-                        medianDifference = -0.075,
-                        spread = 0.284,
-                        coverageLabel = "Stronger evidence",
-                        coverageCopy = "The selected metric is supported by the currently aligned evidence set.",
-                        limitations = Array.Empty<object>(),
-                        observation = new
-                        {
-                            signalIdA = signalIds[0],
-                            displayNameA = "Channel 1",
-                            signalIdB = signalIds[1],
-                            displayNameB = "Channel 1",
-                            valueA = 5.062,
-                            valueB = 5.279,
-                            delta = -0.217
-                        },
-                        findings = new[]
-                        {
-                            new
-                            {
-                                signalId = signalIds[0],
-                                label = "Dominant tonal component",
-                                detail = "Peak around 257 Hz."
-                            }
-                        }
+                        signalIdA = signalIds[0],
+                        signalIdB = signalIds[1],
+                        meanDifference = 999,
+                        unit = "invented-unit"
                     }
                 });
 
@@ -274,9 +241,35 @@ public sealed class AgentQueryEndpointTests : IClassFixture<WebApplicationFactor
             Assert.DoesNotContain("<displayName>", payload.Answer, StringComparison.OrdinalIgnoreCase);
             Assert.Empty(payload.ToolsUsed);
             Assert.Contains(payload.CitedEvidence, item => item.ToolName == "selected_comparison_context");
-            Assert.Contains(payload.CitedEvidence, item => item.ToolName == "selected_signal_findings");
             Assert.Contains(payload.Limitations, item => item.Contains("unitless ratios", StringComparison.OrdinalIgnoreCase));
             Assert.DoesNotContain(payload.Limitations, item => item.Contains("dBFS", StringComparison.OrdinalIgnoreCase));
+            Assert.NotNull(chatClientProvider.LastUserMessage);
+            Assert.Contains("Compared pairs: 1", chatClientProvider.LastUserMessage, StringComparison.Ordinal);
+            Assert.Contains("Mean delta A-B: 0 ratio", chatClientProvider.LastUserMessage, StringComparison.Ordinal);
+            Assert.DoesNotContain("999", chatClientProvider.LastUserMessage, StringComparison.Ordinal);
+            Assert.DoesNotContain("invented-unit", chatClientProvider.LastUserMessage, StringComparison.Ordinal);
+
+            var invalidPairResponse = await client.PostAsJsonAsync(
+                "/api/agent/query",
+                new
+                {
+                    question = "Explain the selected comparison evidence.",
+                    signalIds,
+                    comparisonContext = new
+                    {
+                        recordingIdA = waveformPayload.Recordings[0].RecordingId,
+                        recordingIdB = waveformPayload.Recordings[1].RecordingId,
+                        metricKey = "crestFactorDelta",
+                        signalIdA = signalIds[0],
+                        signalIdB = "not-an-aligned-signal"
+                    }
+                });
+
+            Assert.Equal(HttpStatusCode.BadRequest, invalidPairResponse.StatusCode);
+            Assert.Contains(
+                "not an aligned pair",
+                await invalidPairResponse.Content.ReadAsStringAsync(),
+                StringComparison.OrdinalIgnoreCase);
         }
         finally
         {
@@ -323,16 +316,28 @@ public sealed class AgentQueryEndpointTests : IClassFixture<WebApplicationFactor
 
     private sealed class StubChatClientProvider(string responseJson) : IChatClientProvider
     {
-        public ChatClient GetRequiredClient() => new StubChatClient(responseJson);
+        public string? LastUserMessage { get; private set; }
+
+        public ChatClient GetRequiredClient() => new StubChatClient(
+            responseJson,
+            messages => LastUserMessage = messages
+                .OfType<UserChatMessage>()
+                .LastOrDefault()?
+                .Content
+                .FirstOrDefault()?
+                .Text);
     }
 
-    private sealed class StubChatClient(string responseJson) : ChatClient
+    private sealed class StubChatClient(
+        string responseJson,
+        Action<IEnumerable<ChatMessage>>? captureMessages = null) : ChatClient
     {
         public override Task<ClientResult<ChatCompletion>> CompleteChatAsync(
             IEnumerable<ChatMessage> messages,
             ChatCompletionOptions options,
             CancellationToken cancellationToken = default)
         {
+            captureMessages?.Invoke(messages);
             return Task.FromResult(ClientResult.FromValue(CreateChatCompletion(responseJson), new StubPipelineResponse()));
         }
 

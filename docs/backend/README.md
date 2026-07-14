@@ -85,6 +85,8 @@ When using external tools for comparison, match the window, FFT size, overlap, s
 
 The OpenAI-powered agent should receive structured evidence by default, not raw audio.
 
+For selected comparison explanations, clients send only recording IDs, a supported metric key, aligned signal IDs, and optional ROI. The backend must resolve the comparison contract and deterministic findings again before packaging evidence for OpenAI. Client-provided measurements, units, coverage summaries, or limitations must never be treated as numerical truth.
+
 Expected backend flow:
 
 ```text

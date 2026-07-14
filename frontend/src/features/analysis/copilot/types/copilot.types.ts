@@ -1,11 +1,11 @@
-import type { IComparisonCopilotContext } from '../../types'
+import type { IComparisonCopilotSelection } from '../../types'
 
 export interface IAgentQueryRequest {
   question: string
   signalIds?: string[]
   startTimeSeconds?: number
   endTimeSeconds?: number
-  comparisonContext?: IComparisonCopilotContext
+  comparisonContext?: IComparisonCopilotSelection
 }
 
 export interface IAgentEvidenceItem {

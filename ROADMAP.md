@@ -1,6 +1,6 @@
 # Roadmap
 
-Last updated: 2026-07-13
+Last updated: 2026-07-14
 
 ## Milestone 0 — Documentation And Product-Focus Reset
 
@@ -82,8 +82,8 @@ Validation gate:
 - users can answer “what changed most between A and B?” faster than with raw charts alone
 
 Current status:
-- ranked differences and basic coverage cues are in `main`
-- drill-down is only partially complete and should be the next product slice
+- ranked differences, coverage cues, and selected-result drill-down are in `main`
+- the selected metric, aligned pair, and ROI remain visible while inspecting waveform and spectrum evidence
 
 Explicitly deferred work:
 - broad open-ended AI investigation
@@ -103,6 +103,11 @@ Dependencies:
 
 Validation gate:
 - users report that the explanation adds value beyond the ranked table and charts
+
+Current status:
+- deterministic factual answers are available for RMS, peak, and clipping comparisons
+- bounded explanation is available for the selected metric and aligned pair
+- comparison measurements, findings, units, coverage, and limitations are reconstructed by the backend before they are sent to the model
 
 Explicitly deferred work:
 - complex planning over many comparison objects

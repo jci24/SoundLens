@@ -17,14 +17,11 @@ const TOOL_LABELS: Record<string, string> = {
 
 const CopilotEvidenceBadge = ({ item }: ICopilotEvidenceBadgeProps) => {
   const recordings = useAnalysisWorkspaceStore((state) => state.recordings)
-  const comparisonContext = useAnalysisWorkspaceStore((state) => state.comparisonCopilotContext)
   const normalizedToolName = item.toolName.replace(/^functions\./, '')
   const label = TOOL_LABELS[normalizedToolName] ?? normalizedToolName
-
-  const comparisonDisplay =
-    normalizedToolName === 'selected_comparison_context' && comparisonContext
-      ? `${comparisonContext.recordingFileNameA} vs ${comparisonContext.recordingFileNameB}`
-      : null
+  const comparisonDisplay = normalizedToolName === 'selected_comparison_context'
+    ? item.summary.split(' · ').slice(1).join(' · ') || item.summary
+    : null
 
   const signal = item.signalId
     ? recordings.flatMap((r) =>

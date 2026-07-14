@@ -1,6 +1,6 @@
 # Domain Model
 
-Last updated: 2026-07-12
+Last updated: 2026-07-14
 
 ## Current Model
 
@@ -42,20 +42,21 @@ The current application is still organized around an analysis workspace rather t
 ### Copilot Evidence
 
 - Structured evidence returned by backend tools and cited in the Copilot response.
-- Still grounded in the current imported-session workspace rather than a comparison object model.
+- Generic questions are grounded in the current imported-session workspace.
+- Selected comparison explanations carry only selection identifiers from the frontend; the backend resolves the current pairwise comparison evidence before invoking the model.
 
 ### Report Snapshot
 
 - A normalized export snapshot built from current workspace state, selected signals, and optional ROI.
 
-## Next Comparison Model
+## Current Pairwise Comparison Model
 
-The next product slice should introduce the minimum conceptual set needed for focused A/B comparison.
+The current product includes the minimum session-scoped model needed for focused pairwise A/B comparison.
 
-### ComparisonWorkspace
+### Comparison Workspace State
 
-- The active comparison context for the current user session.
-- Holds the imported recordings, group assignments, selected scope, and active comparison parameters.
+- Frontend session state holds imported recordings, Compare A/B assignments, selected metric, aligned pair, and ROI.
+- It is not yet a persisted backend comparison object.
 
 ### Recording
 
@@ -66,10 +67,11 @@ The next product slice should introduce the minimum conceptual set needed for fo
 - A comparable signal within a recording.
 - Must be explicitly aligned before it can be used in group comparison.
 
-### ComparisonGroup
+### Comparison Target
 
-- The assigned condition bucket for a recording, initially `A` or `B`.
+- The assigned condition target for a recording, initially `A` or `B`.
 - Unassigned recordings should remain visible and excluded rather than silently included.
+- Several recordings may be assigned, but the current comparison contract resolves one active A/B recording pair at a time.
 
 ### RegionSelection
 
@@ -85,10 +87,16 @@ The next product slice should introduce the minimum conceptual set needed for fo
 - A deterministic measured result for one aligned signal under one analysis specification.
 - Examples: per-signal RMS, clipping state, or ROI-scoped spectrum summary.
 
-### ComparisonResult
+### Pairwise Comparison Result
 
-- The deterministic aggregate output for Group A versus Group B.
-- Expected to include aggregate values, ranked differences, coverage, missing values, and limitations.
+- The deterministic output for one active Compare A recording versus one active Compare B recording.
+- Includes aligned observations, aggregate values, ranked differences, coverage inputs, missing values, and limitations.
+
+### Comparison Explanation Selection
+
+- Contains only recording IDs, a supported metric key, and the selected aligned signal IDs.
+- The backend uses those identifiers plus the request ROI to reconstruct comparison observations, aggregate values, findings, units, and limitations.
+- Client-supplied numerical evidence is not accepted as the source of truth.
 
 ### EvidenceReference
 

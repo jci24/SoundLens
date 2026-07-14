@@ -48,17 +48,35 @@ public sealed class AgentQuery : Endpoint<AgentQueryCommand, AgentQueryResponse>
 
             When(q => q.ComparisonContext is not null, () =>
             {
+                RuleFor(q => q.ComparisonContext!.RecordingIdA)
+                    .NotEmpty()
+                    .WithMessage("ComparisonContext.RecordingIdA is required.");
+
+                RuleFor(q => q.ComparisonContext!.RecordingIdB)
+                    .NotEmpty()
+                    .WithMessage("ComparisonContext.RecordingIdB is required.");
+
+                RuleFor(q => q.ComparisonContext!)
+                    .Must(context => !string.Equals(context.RecordingIdA, context.RecordingIdB, StringComparison.Ordinal))
+                    .WithMessage("ComparisonContext recording IDs must refer to different recordings.");
+
                 RuleFor(q => q.ComparisonContext!.MetricKey)
                     .NotEmpty()
-                    .WithMessage("ComparisonContext.MetricKey is required.");
+                    .WithMessage("ComparisonContext.MetricKey is required.")
+                    .Must(metricKey => metricKey is
+                        "peakAmplitudeDelta" or
+                        "rmsAmplitudeDelta" or
+                        "crestFactorDelta" or
+                        "clippingSampleCountDelta")
+                    .WithMessage("ComparisonContext.MetricKey is not supported.");
 
-                RuleFor(q => q.ComparisonContext!.MetricLabel)
+                RuleFor(q => q.ComparisonContext!.SignalIdA)
                     .NotEmpty()
-                    .WithMessage("ComparisonContext.MetricLabel is required.");
+                    .WithMessage("ComparisonContext.SignalIdA is required.");
 
-                RuleFor(q => q.ComparisonContext!.Observation)
-                    .NotNull()
-                    .WithMessage("ComparisonContext.Observation is required.");
+                RuleFor(q => q.ComparisonContext!.SignalIdB)
+                    .NotEmpty()
+                    .WithMessage("ComparisonContext.SignalIdB is required.");
             });
         }
     }

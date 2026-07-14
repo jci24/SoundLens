@@ -28,36 +28,10 @@ describe('CopilotPanel', () => {
     useAnalysisWorkspaceStore.setState({
       comparisonCopilotContext: {
         recordingIdA: 'recording-a',
-        recordingFileNameA: 'alpha.wav',
         recordingIdB: 'recording-b',
-        recordingFileNameB: 'beta.wav',
         metricKey: 'crestFactorDelta',
-        metricLabel: 'Crest factor',
-        unit: 'ratio',
-        comparedPairCount: 2,
-        missingValueCount: 0,
-        meanDifference: -0.075,
-        medianDifference: -0.075,
-        spread: 0.284,
-        coverageLabel: 'Stronger evidence',
-        coverageCopy: 'The selected metric is supported by the currently aligned evidence set.',
-        limitations: [],
-        observation: {
-          signalIdA: 'signal-a',
-          displayNameA: 'Channel 1',
-          signalIdB: 'signal-b',
-          displayNameB: 'Channel 1',
-          valueA: 5.062,
-          valueB: 5.279,
-          delta: -0.217,
-        },
-        findings: [
-          {
-            signalId: 'signal-a',
-            label: 'Dominant tonal component',
-            detail: 'Peak around 257 Hz.',
-          },
-        ],
+        signalIdA: 'signal-a',
+        signalIdB: 'signal-b',
       },
     })
   })
@@ -82,11 +56,13 @@ describe('CopilotPanel', () => {
       signalIds: ['signal-a', 'signal-b'],
       startTimeSeconds: 0.25,
       endTimeSeconds: 0.75,
-      comparisonContext: expect.objectContaining({
+      comparisonContext: {
         metricKey: 'crestFactorDelta',
-        recordingFileNameA: 'alpha.wav',
-        recordingFileNameB: 'beta.wav',
-      }),
+        recordingIdA: 'recording-a',
+        recordingIdB: 'recording-b',
+        signalIdA: 'signal-a',
+        signalIdB: 'signal-b',
+      },
     })
   })
 })

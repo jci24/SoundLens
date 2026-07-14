@@ -1,6 +1,6 @@
 # Current State
 
-Last updated: 2026-07-13
+Last updated: 2026-07-14
 
 ## What Users Can Currently Do
 
@@ -75,7 +75,8 @@ These findings are useful first-pass cues, but they should still be treated as b
 - Simple factual multi-signal comparison questions about RMS loudness, peak amplitude, or clipping now bypass the freeform OpenAI path when enough signal IDs are already selected.
 - That deterministic factual path uses backend-owned `compare_signals` evidence directly and still works when the OpenAI API key is missing.
 - In compare mode, Copilot now also accepts a bounded selected-comparison context from the current ranked metric, active aligned pair, visible findings, and ROI scope.
-- That explanation path asks the model to explain only the selected comparison evidence instead of rediscovering or widening the workspace scope.
+- The frontend sends only comparison selection identifiers. The backend re-runs the deterministic recording comparison, validates the aligned pair, resolves the selected metric, and rebuilds findings and limitations before asking the model to explain anything.
+- That explanation path asks the model to explain only backend-owned selected comparison evidence instead of rediscovering or widening the workspace scope.
 - The backend exposes compact deterministic tools such as metrics, findings, spectrum summaries, and signal comparison summaries.
 - The response returns structured answer text, cited evidence, limitations, next steps, and tools used.
 - If the OpenAI API key is missing, the endpoint returns a structured unavailable response instead of a bare `503`.

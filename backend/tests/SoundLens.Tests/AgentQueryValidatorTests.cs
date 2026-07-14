@@ -93,4 +93,48 @@ public sealed class AgentQueryValidatorTests
 
         Assert.True(result.IsValid);
     }
+
+    [Fact]
+    public async Task ComparisonSelectionWithSameRecordings_FailsValidation()
+    {
+        var validator = CreateValidator();
+        var command = new AgentQueryCommand(
+            "Explain this comparison.",
+            null,
+            null,
+            null,
+            new AgentComparisonSelection(
+                "recording-a",
+                "recording-a",
+                "crestFactorDelta",
+                "signal-a",
+                "signal-b"));
+
+        var result = await validator.ValidateAsync(command);
+
+        Assert.False(result.IsValid);
+        Assert.Contains(result.Errors, error => error.ErrorMessage.Contains("different recordings", StringComparison.Ordinal));
+    }
+
+    [Fact]
+    public async Task ComparisonSelectionWithUnsupportedMetric_FailsValidation()
+    {
+        var validator = CreateValidator();
+        var command = new AgentQueryCommand(
+            "Explain this comparison.",
+            null,
+            null,
+            null,
+            new AgentComparisonSelection(
+                "recording-a",
+                "recording-b",
+                "inventedMetric",
+                "signal-a",
+                "signal-b"));
+
+        var result = await validator.ValidateAsync(command);
+
+        Assert.False(result.IsValid);
+        Assert.Contains(result.Errors, error => error.ErrorMessage.Contains("not supported", StringComparison.Ordinal));
+    }
 }
