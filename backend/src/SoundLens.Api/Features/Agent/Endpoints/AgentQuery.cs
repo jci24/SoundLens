@@ -45,6 +45,21 @@ public sealed class AgentQuery : Endpoint<AgentQueryCommand, AgentQueryResponse>
                     .GreaterThan(q => q.StartTimeSeconds!.Value)
                     .WithMessage("EndTimeSeconds must be greater than StartTimeSeconds.");
             });
+
+            When(q => q.ComparisonContext is not null, () =>
+            {
+                RuleFor(q => q.ComparisonContext!.MetricKey)
+                    .NotEmpty()
+                    .WithMessage("ComparisonContext.MetricKey is required.");
+
+                RuleFor(q => q.ComparisonContext!.MetricLabel)
+                    .NotEmpty()
+                    .WithMessage("ComparisonContext.MetricLabel is required.");
+
+                RuleFor(q => q.ComparisonContext!.Observation)
+                    .NotNull()
+                    .WithMessage("ComparisonContext.Observation is required.");
+            });
         }
     }
 

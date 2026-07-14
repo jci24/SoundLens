@@ -3,6 +3,7 @@ import { Loader2 } from 'lucide-react'
 import { CopilotInput } from './CopilotInput'
 import { CopilotResponse } from './CopilotResponse'
 import { useCopilotQuery } from '../hooks/useCopilotQuery'
+import { useAnalysisWorkspaceStore } from '../../stores/useAnalysisWorkspaceStore'
 import type { IAnalysisRegionOfInterest, ITimeWaveformRecording } from '../../types'
 import './CopilotPanel.scss'
 
@@ -16,6 +17,7 @@ const CopilotPanel = ({ selectedSignalIds, regionOfInterest, recordings }: ICopi
   const { turns, isLoading, submit, retry } = useCopilotQuery()
   const threadRef = useRef<HTMLDivElement | null>(null)
   const hasConversation = turns.length > 0
+  const comparisonContext = useAnalysisWorkspaceStore((state) => state.comparisonCopilotContext)
 
   useEffect(() => {
     if (threadRef.current) {
@@ -35,6 +37,7 @@ const CopilotPanel = ({ selectedSignalIds, regionOfInterest, recordings }: ICopi
       signalIds: resolvedIds,
       startTimeSeconds: regionOfInterest?.startTimeSeconds,
       endTimeSeconds: regionOfInterest?.endTimeSeconds,
+      comparisonContext: comparisonContext ?? undefined,
     })
   }
 

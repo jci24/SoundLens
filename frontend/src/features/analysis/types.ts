@@ -144,6 +144,42 @@ export interface IRecordingComparisonResponse {
   regionOfInterest: IAnalysisRegionOfInterest | null
 }
 
+export interface IComparisonCopilotObservation {
+  signalIdA: string
+  displayNameA: string
+  signalIdB: string
+  displayNameB: string
+  valueA: number
+  valueB: number
+  delta: number
+}
+
+export interface IComparisonCopilotFinding {
+  signalId: string
+  label: string
+  detail?: string
+}
+
+export interface IComparisonCopilotContext {
+  recordingIdA: string
+  recordingFileNameA: string
+  recordingIdB: string
+  recordingFileNameB: string
+  metricKey: IRecordingComparisonMetricAggregate['metricKey']
+  metricLabel: string
+  unit: string
+  comparedPairCount: number
+  missingValueCount: number
+  meanDifference: number
+  medianDifference: number
+  spread: number
+  coverageLabel: string
+  coverageCopy: string
+  limitations: IRecordingComparisonLimitation[]
+  observation: IComparisonCopilotObservation
+  findings: IComparisonCopilotFinding[]
+}
+
 export interface IFrequencySpectrumPoint {
   frequencyHz: number
   value: number

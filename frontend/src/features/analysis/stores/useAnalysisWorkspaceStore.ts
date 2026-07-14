@@ -8,6 +8,7 @@ import {
 } from '../utils/analysisWorkspaceState'
 import type {
   IAnalysisRegionOfInterest,
+  IComparisonCopilotContext,
   ITimeWaveformRecording,
   TAnalysisLayoutMode,
   TAnalysisSurface,
@@ -24,6 +25,7 @@ interface IAnalysisWorkspaceStore {
   signalChartMode: TSignalChartMode
   regionOfInterest: IAnalysisRegionOfInterest | null
   recordings: ITimeWaveformRecording[]
+  comparisonCopilotContext: IComparisonCopilotContext | null
   selectSignal: (signalId: string) => void
   toggleRecording: (recordingId: string) => void
   setRecordingGroupAssignment: (recordingId: string, assignment: TComparisonGroupAssignment) => void
@@ -32,6 +34,7 @@ interface IAnalysisWorkspaceStore {
   setSignalChartMode: (mode: TSignalChartMode) => void
   setRegionOfInterest: (regionOfInterest: IAnalysisRegionOfInterest | null) => void
   setRecordings: (recordings: ITimeWaveformRecording[]) => void
+  setComparisonCopilotContext: (comparisonCopilotContext: IComparisonCopilotContext | null) => void
   syncSignalIds: (responseSignalIds: string[]) => void
 }
 
@@ -44,6 +47,7 @@ const useAnalysisWorkspaceStore = create<IAnalysisWorkspaceStore>((set) => ({
   signalChartMode: 'overlay',
   regionOfInterest: null,
   recordings: [],
+  comparisonCopilotContext: null,
 
   selectSignal: (signalId) =>
     set((state) => ({
@@ -75,6 +79,8 @@ const useAnalysisWorkspaceStore = create<IAnalysisWorkspaceStore>((set) => ({
   setSignalChartMode: (mode) => set({ signalChartMode: mode }),
 
   setRegionOfInterest: (regionOfInterest) => set({ regionOfInterest }),
+
+  setComparisonCopilotContext: (comparisonCopilotContext) => set({ comparisonCopilotContext }),
 
   setRecordings: (recordings) =>
     set((state) => ({

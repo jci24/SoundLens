@@ -1,8 +1,11 @@
+import type { IComparisonCopilotContext } from '../../types'
+
 export interface IAgentQueryRequest {
   question: string
   signalIds?: string[]
   startTimeSeconds?: number
   endTimeSeconds?: number
+  comparisonContext?: IComparisonCopilotContext
 }
 
 export interface IAgentEvidenceItem {
