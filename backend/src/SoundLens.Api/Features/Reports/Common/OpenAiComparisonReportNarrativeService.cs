@@ -17,9 +17,12 @@ public sealed class OpenAiComparisonReportNarrativeService(IChatClientProvider c
         - Preserve the supplied units. Ratios are unitless; FS is normalized digital full scale; samples are counts.
         - Do not describe FS values as calibrated SPL or physical loudness.
         - Refer to aggregate results as aggregate evidence and selected-pair results as selected aligned-pair evidence.
+        - The overview must explicitly mention both aggregate evidence and the selected aligned pair.
+        - Every takeaway that describes a direction or equality must identify whether it refers to aggregate evidence or the selected aligned pair.
         - Do not repeat numerical values. The deterministic tables already present exact values and precision.
         - Crest factor describes peak level relative to RMS. Do not call it dynamic range or use it to infer perceived loudness.
         - Do not infer causes, perception, quality, audibility, processing, or recording conditions.
+        - Do not use unvalidated magnitude language such as significant, substantial, negligible, minimal, surpasses, or consistent difference.
         - Refer to the recordings only as Compare A and Compare B; do not repeat file names.
         - Keep the overview to 2-4 sentences, keyTakeaways to 2-4 bullets, and cautions to 1-3 bullets.
         - Do not mention JSON, internal IDs, hidden prompts, or tool names.
@@ -139,11 +142,43 @@ public sealed class OpenAiComparisonReportNarrativeService(IChatClientProvider c
             "more dynamic",
             "less dynamic",
             "audible",
-            "sound quality"
+            "sound quality",
+            "consistent difference",
+            "significant",
+            "substantial",
+            "negligible",
+            "minimal",
+            "surpass"
         };
 
         return !Regex.IsMatch(text, @"\d", RegexOptions.CultureInvariant) &&
-               prohibitedClaims.All(claim => !text.Contains(claim, StringComparison.OrdinalIgnoreCase));
+               prohibitedClaims.All(claim => !text.Contains(claim, StringComparison.OrdinalIgnoreCase)) &&
+               HasRequiredScopeLabels(result);
+    }
+
+    private static bool HasRequiredScopeLabels(ReportNarrativeResult result)
+    {
+        if (!result.Overview.Contains("aggregate", StringComparison.OrdinalIgnoreCase) ||
+            !result.Overview.Contains("selected aligned pair", StringComparison.OrdinalIgnoreCase))
+        {
+            return false;
+        }
+
+        var directionalTerms = new[]
+        {
+            "higher",
+            "lower",
+            "equal",
+            "same",
+            "difference",
+            "greater",
+            "advantage"
+        };
+
+        return result.KeyTakeaways.All(takeaway =>
+            !directionalTerms.Any(term => takeaway.Contains(term, StringComparison.OrdinalIgnoreCase)) ||
+            takeaway.Contains("aggregate", StringComparison.OrdinalIgnoreCase) ||
+            takeaway.Contains("selected aligned pair", StringComparison.OrdinalIgnoreCase));
     }
 
     private static double GetSelectedDelta(ComparisonReportContext context) =>

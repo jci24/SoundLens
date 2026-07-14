@@ -57,7 +57,7 @@ public sealed class ExportComparisonReportMarkdownTests : IClassFixture<WebAppli
         Assert.Contains("### RMS amplitude", payload.Markdown);
         Assert.Contains("A-B", payload.Markdown);
         Assert.Contains("## AI Interpretation", payload.Markdown);
-        Assert.Contains("Compare A has lower RMS evidence than Compare B in the selected scope.", payload.Markdown);
+        Assert.Contains("Aggregate RMS evidence is lower for Compare A. The selected aligned pair supports that direction.", payload.Markdown);
         Assert.Contains("gamma.wav - Unassigned; excluded because this report covers only the active A/B pair.", payload.Markdown);
         Assert.Contains("## Limitations", payload.Markdown);
         Assert.Contains("not calibrated physical SPL", payload.Markdown);
@@ -174,6 +174,7 @@ public sealed class ExportComparisonReportMarkdownTests : IClassFixture<WebAppli
     [InlineData("Compare B has a crest factor that is 1.1207 higher than Compare A.")]
     [InlineData("Compare B has more dynamic range than Compare A.")]
     [InlineData("The crest factor difference may influence perceived loudness.")]
+    [InlineData("Compare B exhibits higher crest factor, peak amplitude, and RMS amplitude compared to Compare A, indicating a consistent difference across these metrics.")]
     public void ComparisonNarrativeParser_RejectsUnboundedOrPrecisionDriftingClaims(string overview)
     {
         var rawModelOutput = JsonSerializer.Serialize(new
@@ -195,7 +196,7 @@ public sealed class ExportComparisonReportMarkdownTests : IClassFixture<WebAppli
         var rawModelOutput = JsonSerializer.Serialize(new
         {
             overview = "Aggregate crest-factor and peak evidence is higher for Compare B, while aggregate RMS evidence is similar. The selected aligned pair supports the crest-factor direction.",
-            keyTakeaways = new[] { "Neither side has a clipping-sample advantage in the current scope." },
+            keyTakeaways = new[] { "Aggregate clipping-sample evidence is equal for Compare A and Compare B." },
             cautions = new[] { "Crest factor describes peak level relative to RMS and does not establish perception or cause." }
         });
 
@@ -205,12 +206,44 @@ public sealed class ExportComparisonReportMarkdownTests : IClassFixture<WebAppli
         Assert.Contains("Aggregate crest-factor", result.Overview);
     }
 
+    [Theory]
+    [InlineData("Aggregate evidence is higher for Compare B.")]
+    [InlineData("The selected aligned pair supports the selected metric direction.")]
+    public void ComparisonNarrativeParser_RequiresBothScopesInTheOverview(string overview)
+    {
+        var rawModelOutput = JsonSerializer.Serialize(new
+        {
+            overview,
+            keyTakeaways = Array.Empty<string>(),
+            cautions = Array.Empty<string>()
+        });
+
+        var result = OpenAiComparisonReportNarrativeService.ParseNarrativeResult(rawModelOutput);
+
+        Assert.True(result.IsFallback);
+    }
+
+    [Fact]
+    public void ComparisonNarrativeParser_RejectsUnscopedDirectionalTakeaways()
+    {
+        var rawModelOutput = JsonSerializer.Serialize(new
+        {
+            overview = "Aggregate evidence is directionally different between Compare A and Compare B. The selected aligned pair supports the selected metric direction.",
+            keyTakeaways = new[] { "Compare B has a higher crest factor." },
+            cautions = Array.Empty<string>()
+        });
+
+        var result = OpenAiComparisonReportNarrativeService.ParseNarrativeResult(rawModelOutput);
+
+        Assert.True(result.IsFallback);
+    }
+
     private sealed class StubComparisonNarrativeService : IComparisonReportNarrativeService
     {
         public Task<ReportNarrativeResult> BuildAsync(ComparisonReportContext context, CancellationToken ct) =>
             Task.FromResult(new ReportNarrativeResult(
-                "Compare A has lower RMS evidence than Compare B in the selected scope.",
-                ["The selected metric is reconstructed from the active comparison."],
+                "Aggregate RMS evidence is lower for Compare A. The selected aligned pair supports that direction.",
+                ["Aggregate evidence is reconstructed from the active comparison."],
                 ["Values are normalized to digital full scale."],
                 IsFallback: false));
     }
