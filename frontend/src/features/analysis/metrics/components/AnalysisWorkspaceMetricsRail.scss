@@ -32,6 +32,7 @@
 
   &__metrics-table {
     width: 100%;
+    min-width: 42rem;
     border-collapse: collapse;
     font-size: var(--font-xs);
     font-variant-numeric: tabular-nums;
@@ -45,6 +46,7 @@
 
     th {
       padding: 0.18rem 0.55rem 0.22rem;
+      border-bottom: 1px solid color-mix(in srgb, var(--border) 58%, transparent);
       color: var(--muted-foreground);
       font-weight: 500;
       font-size: var(--font-xs);
@@ -54,6 +56,10 @@
 
       &:first-child {
         text-align: left;
+      }
+
+      & + th {
+        border-inline-start: 1px solid color-mix(in srgb, var(--border) 34%, transparent);
       }
     }
 
@@ -67,6 +73,10 @@
 
       &:first-child {
         text-align: left;
+      }
+
+      & + td {
+        border-inline-start: 1px solid color-mix(in srgb, var(--border) 34%, transparent);
       }
     }
 
