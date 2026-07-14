@@ -11,12 +11,20 @@ const TOOL_LABELS: Record<string, string> = {
   get_signal_findings: 'Findings',
   get_spectrum_summary: 'Spectrum',
   compare_signals: 'Compare',
+  selected_comparison_context: 'Compare view',
+  selected_signal_findings: 'Visible findings',
 }
 
 const CopilotEvidenceBadge = ({ item }: ICopilotEvidenceBadgeProps) => {
   const recordings = useAnalysisWorkspaceStore((state) => state.recordings)
+  const comparisonContext = useAnalysisWorkspaceStore((state) => state.comparisonCopilotContext)
   const normalizedToolName = item.toolName.replace(/^functions\./, '')
   const label = TOOL_LABELS[normalizedToolName] ?? normalizedToolName
+
+  const comparisonDisplay =
+    normalizedToolName === 'selected_comparison_context' && comparisonContext
+      ? `${comparisonContext.recordingFileNameA} vs ${comparisonContext.recordingFileNameB}`
+      : null
 
   const signal = item.signalId
     ? recordings.flatMap((r) =>
@@ -30,7 +38,7 @@ const CopilotEvidenceBadge = ({ item }: ICopilotEvidenceBadgeProps) => {
 
   const signalDisplay = signal
     ? `${signal.fileName} · ${signal.displayName}`
-    : item.signalId || null
+    : (comparisonDisplay ?? item.signalId ?? null)
 
   return (
     <span className="copilot-evidence-badge" title={item.summary}>

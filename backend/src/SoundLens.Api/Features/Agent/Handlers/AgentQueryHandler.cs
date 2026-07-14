@@ -81,6 +81,39 @@ public sealed class AgentQueryHandler(
         nextSteps should suggest 1–3 follow-up analyses or actions that would deepen the investigation.
         """;
 
+    private const string ComparisonExplanationSystemPrompt = """
+        You are SoundLens, an acoustic investigation copilot.
+        You are explaining already selected comparison evidence, not discovering new evidence.
+
+        RULES:
+        - Use only the structured comparison context provided in this request.
+        - Do not widen scope beyond the selected metric, selected aligned pair, current A/B recording pair, and optional ROI.
+        - Do not invent new measurements, psychoacoustic claims, calibration state, standards claims, or root causes.
+        - Do not make user-perception claims such as "sound quality", "loudness perception", "sharper", "harsher", or "listener impact" unless the user explicitly asks for perception and the provided findings directly support it.
+        - If the evidence is weak, sparse, low-coverage, or shows only a very small delta, say so directly.
+        - Prefer interpretation language such as "suggests", "is consistent with", "within this selected ROI", or "does not establish".
+        - If the user asks "why" and the provided findings do not support a causal explanation, say that the current comparison evidence shows the difference but does not establish the cause.
+        - Explain the metric in measured terms only. For crest factor, talk about the relationship between peaks and RMS level, not broader perceptual or product conclusions.
+        - Keep the answer concise and engineering-focused.
+        - Refer to signals using the exact resolved names provided in the context, such as "motor-a.wav · Channel 1".
+        - Never repeat placeholder tokens such as "<file name>", "<displayName>", or similar template text.
+        - Use only unit language that matches the selected metric. Do not say dBFS for ratio or sample-count metrics.
+
+        RESPONSE FORMAT:
+        You must respond with a JSON object that matches this exact structure:
+        {
+          "answer": "<grounded explanation as a plain string>",
+          "citedEvidence": [
+            { "toolName": "<selected_comparison_context or selected_signal_findings>", "signalId": "<signal id or empty string>", "summary": "<summary you cited>" }
+          ],
+          "limitations": ["<limitation 1>", "<limitation 2>"],
+          "nextSteps": ["<suggested next step 1>", "<suggested next step 2>"]
+        }
+
+        citedEvidence must include the selected comparison context if you cite any comparison value.
+        nextSteps should suggest 1–3 follow-up analyses or actions that stay within the current workflow.
+        """;
+
     public override async Task<AgentQueryResponse> ExecuteAsync(AgentQueryCommand command, CancellationToken ct = default)
     {
         var availableSignals = importedFileStore.CurrentFiles.Count > 0
@@ -104,6 +137,16 @@ public sealed class AgentQueryHandler(
         }
 
         var chatClient = chatClientProvider.GetRequiredClient();
+
+        var comparisonExplanationResponse = await TryBuildComparisonExplanationResponseAsync(
+            command,
+            availableSignals,
+            chatClient,
+            ct);
+        if (comparisonExplanationResponse is not null)
+        {
+            return comparisonExplanationResponse;
+        }
 
         var messages = new List<ChatMessage>
         {
@@ -307,6 +350,37 @@ public sealed class AgentQueryHandler(
             ToolsUsed: [AgentToolDefinitions.CompareSignals]);
     }
 
+    private async Task<AgentQueryResponse?> TryBuildComparisonExplanationResponseAsync(
+        AgentQueryCommand command,
+        IReadOnlyList<AgentAvailableSignal> availableSignals,
+        ChatClient chatClient,
+        CancellationToken ct)
+    {
+        if (command.ComparisonContext is null)
+        {
+            return null;
+        }
+
+        var messages = new List<ChatMessage>
+        {
+            new SystemChatMessage(ComparisonExplanationSystemPrompt),
+            new UserChatMessage(BuildComparisonExplanationUserMessage(command, availableSignals))
+        };
+
+        var completion = await chatClient.CompleteChatAsync(messages, new ChatCompletionOptions(), ct);
+        var parsed = ParseStructuredAnswer(completion.Value.Content.FirstOrDefault()?.Text ?? string.Empty, []);
+        var comparisonContext = command.ComparisonContext;
+
+        return parsed with
+        {
+            CitedEvidence = BuildComparisonExplanationEvidence(comparisonContext),
+            Limitations = BuildComparisonExplanationLimitations(
+                comparisonContext,
+                command.StartTimeSeconds.HasValue && command.EndTimeSeconds.HasValue),
+            NextSteps = BuildComparisonExplanationNextSteps(comparisonContext)
+        };
+    }
+
     private static bool TryClassifyDeterministicComparisonIntent(
         string question,
         out DeterministicComparisonIntent intent)
@@ -394,8 +468,18 @@ public sealed class AgentQueryHandler(
         IReadOnlyList<string> toolsUsed,
         IReadOnlyList<CompareEvidence> compareEvidence)
     {
-        var rawText = completion.Content.FirstOrDefault()?.Text ?? string.Empty;
+        var parsed = ParseStructuredAnswer(completion.Content.FirstOrDefault()?.Text ?? string.Empty, toolsUsed);
 
+        return parsed with
+        {
+            CitedEvidence = NormalizeCompareEvidence(parsed.CitedEvidence, compareEvidence)
+        };
+    }
+
+    private static AgentQueryResponse ParseStructuredAnswer(
+        string rawText,
+        IReadOnlyList<string> toolsUsed)
+    {
         // Strip markdown code fences if the model wraps JSON in ```json ... ```
         var cleaned = rawText.Trim();
         if (cleaned.StartsWith("```"))
@@ -425,7 +509,7 @@ public sealed class AgentQueryHandler(
 
             return new AgentQueryResponse(
                 answer,
-                NormalizeCompareEvidence(citedEvidence, compareEvidence),
+                citedEvidence,
                 limitations,
                 nextSteps,
                 toolsUsed);
@@ -471,6 +555,166 @@ public sealed class AgentQueryHandler(
             }
         }
         return items;
+    }
+
+    private static string BuildComparisonExplanationUserMessage(
+        AgentQueryCommand command,
+        IReadOnlyList<AgentAvailableSignal> availableSignals)
+    {
+        var comparisonContext = command.ComparisonContext!;
+        var signalLookup = availableSignals.ToDictionary(signal => signal.SignalId, StringComparer.Ordinal);
+        var observation = comparisonContext.Observation;
+
+        var displayNameA = signalLookup.TryGetValue(observation.SignalIdA, out var signalA)
+            ? $"{signalA.FileName} · {signalA.DisplayName}"
+            : $"{comparisonContext.RecordingFileNameA} · {observation.DisplayNameA}";
+        var displayNameB = signalLookup.TryGetValue(observation.SignalIdB, out var signalB)
+            ? $"{signalB.FileName} · {signalB.DisplayName}"
+            : $"{comparisonContext.RecordingFileNameB} · {observation.DisplayNameB}";
+
+        var findingsText = comparisonContext.Findings is { Count: > 0 }
+            ? string.Join(
+                "\n",
+                comparisonContext.Findings.Select(finding =>
+                    $"- {ResolveFindingSignalDisplay(finding.SignalId, signalLookup)}: {finding.Label}{(string.IsNullOrWhiteSpace(finding.Detail) ? string.Empty : $" — {finding.Detail}")}"))
+            : "None";
+
+        var limitationText = comparisonContext.Limitations.Count > 0
+            ? string.Join("\n", comparisonContext.Limitations.Select(limitation => $"- {limitation.Code}: {limitation.Detail}"))
+            : "- None";
+
+        var roiText = command.StartTimeSeconds.HasValue && command.EndTimeSeconds.HasValue
+            ? $"{command.StartTimeSeconds.Value:F2}s to {command.EndTimeSeconds.Value:F2}s"
+            : "Full selected duration";
+
+        return $"""
+            User question:
+            {command.Question}
+
+            Selected comparison scope:
+            - Compare A: {comparisonContext.RecordingFileNameA}
+            - Compare B: {comparisonContext.RecordingFileNameB}
+            - Metric: {comparisonContext.MetricLabel} ({comparisonContext.MetricKey})
+            - Coverage label: {comparisonContext.CoverageLabel}
+            - Coverage summary: {comparisonContext.CoverageCopy}
+            - Compared pairs: {comparisonContext.ComparedPairCount}
+            - Missing values: {comparisonContext.MissingValueCount}
+            - ROI: {roiText}
+
+            Aggregate values:
+            - Mean delta A-B: {comparisonContext.MeanDifference.ToString("0.###", CultureInfo.InvariantCulture)} {comparisonContext.Unit}
+            - Median delta A-B: {comparisonContext.MedianDifference.ToString("0.###", CultureInfo.InvariantCulture)} {comparisonContext.Unit}
+            - Spread: {comparisonContext.Spread.ToString("0.###", CultureInfo.InvariantCulture)} {comparisonContext.Unit}
+
+            Strongest aligned pair for the selected metric:
+            - Pair: {displayNameA} vs {displayNameB}
+            - A value: {observation.ValueA.ToString("0.###", CultureInfo.InvariantCulture)} {comparisonContext.Unit}
+            - B value: {observation.ValueB.ToString("0.###", CultureInfo.InvariantCulture)} {comparisonContext.Unit}
+            - Delta A-B: {observation.Delta.ToString("0.###", CultureInfo.InvariantCulture)} {comparisonContext.Unit}
+
+            Visible findings for the currently inspected evidence:
+            {findingsText}
+
+            Explicit limitations:
+            {limitationText}
+            """;
+    }
+
+    private static string ResolveFindingSignalDisplay(
+        string signalId,
+        IReadOnlyDictionary<string, AgentAvailableSignal> signalLookup)
+    {
+        return signalLookup.TryGetValue(signalId, out var signal)
+            ? $"{signal.FileName} · {signal.DisplayName}"
+            : signalId;
+    }
+
+    private static IReadOnlyList<AgentEvidenceItem> BuildComparisonExplanationEvidence(
+        AgentComparisonContext comparisonContext)
+    {
+        var evidence = new List<AgentEvidenceItem>
+        {
+            new(
+                "selected_comparison_context",
+                string.Empty,
+                $"{comparisonContext.MetricLabel} · {comparisonContext.RecordingFileNameA} vs {comparisonContext.RecordingFileNameB}")
+        };
+
+        evidence.AddRange(
+            (comparisonContext.Findings ?? [])
+                .Where(finding => !string.IsNullOrWhiteSpace(finding.Label))
+                .Take(2)
+                .Select(finding => new AgentEvidenceItem(
+                    "selected_signal_findings",
+                    finding.SignalId,
+                    string.IsNullOrWhiteSpace(finding.Detail) ? finding.Label : $"{finding.Label}: {finding.Detail}")));
+
+        return evidence;
+    }
+
+    private static IReadOnlyList<string> BuildComparisonExplanationLimitations(
+        AgentComparisonContext comparisonContext,
+        bool isRoiScoped)
+    {
+        var limitations = new List<string>();
+
+        if (string.Equals(comparisonContext.Unit, "FS", StringComparison.OrdinalIgnoreCase))
+        {
+            limitations.Add("Values are in dBFS, not calibrated to physical SPL.");
+        }
+        else if (string.Equals(comparisonContext.Unit, "ratio", StringComparison.OrdinalIgnoreCase))
+        {
+            limitations.Add("Crest factor values here are unitless ratios, not calibrated physical SPL.");
+        }
+        else if (string.Equals(comparisonContext.Unit, "samples", StringComparison.OrdinalIgnoreCase))
+        {
+            limitations.Add("Clipping values here are sample counts, not calibrated physical SPL.");
+        }
+
+        if (isRoiScoped)
+        {
+            limitations.Add("Answer reflects the selected ROI only.");
+        }
+
+        if (comparisonContext.Limitations.Count > 0)
+        {
+            limitations.AddRange(comparisonContext.Limitations.Select(limitation => limitation.Detail));
+        }
+
+        return limitations.Distinct(StringComparer.Ordinal).ToList();
+    }
+
+    private static IReadOnlyList<string> BuildComparisonExplanationNextSteps(
+        AgentComparisonContext comparisonContext)
+    {
+        return comparisonContext.MetricKey switch
+        {
+            "crestFactorDelta" =>
+            [
+                "Inspect the waveform peaks for the cited pair to see whether the difference comes from transient height or average level.",
+                "Check the peak and RMS cards together to see which side of the crest-factor ratio is moving more."
+            ],
+            "rmsAmplitudeDelta" =>
+            [
+                "Inspect the waveform and spectrum for the cited pair to see whether the level difference is broadband or concentrated in one band.",
+                "Select a narrower region if you want to confirm whether the RMS difference is tied to one event."
+            ],
+            "peakAmplitudeDelta" =>
+            [
+                "Inspect the waveform peaks for the cited pair to locate the highest excursion.",
+                "Select a narrower region if you want to verify whether the peak difference comes from one transient."
+            ],
+            "clippingSampleCountDelta" =>
+            [
+                "Inspect the waveform for the cited pair to locate where clipping occurs.",
+                "Select a narrower region if you want to confirm whether clipping is confined to one event."
+            ],
+            _ =>
+            [
+                "Inspect the waveform and spectrum for the cited pair.",
+                "Compare another ranked metric if you need a broader explanation."
+            ]
+        };
     }
 
     private static CompareEvidence ParseCompareEvidence(string toolResult)

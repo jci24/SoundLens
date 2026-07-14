@@ -41,6 +41,7 @@ Turn the current analysis workspace into a focused comparison workflow for repea
 - compare-mode UX cleanup and lower-density layout
 - active-pair plus queued-overflow messaging for multi-assignment states
 - deterministic factual Copilot answers for selected-signal RMS, peak, and clipping comparisons
+- bounded Copilot explanation for the currently selected comparison evidence, aligned pair, findings, and ROI
 
 ## Ordered Thin Tasks
 
@@ -68,29 +69,6 @@ Proposed branch name:
 Dependencies:
 - shipped pairwise comparison UI
 
-### A10. AI Evidence Explanation
-
-User value:
-- A user can ask for a clearer explanation of selected comparison evidence.
-
-Thin-slice boundary:
-- AI explains already selected comparison evidence; it does not invent or silently widen scope.
-
-Acceptance criteria:
-- explanation is grounded in selected comparison results
-- scope, limitations, and calibration state remain explicit
-- wording avoids unsupported conclusions
-
-Test expectations:
-- backend narrative or agent tests
-- eval cases for unsupported claims and no-difference scenarios
-
-Proposed branch name:
-- `codex/comparison-ai-explanation`
-
-Dependencies:
-- `A8`
-
 ### A11. Comparison Report
 
 User value:
@@ -112,7 +90,7 @@ Proposed branch name:
 - `codex/comparison-report`
 
 Dependencies:
-- `A10`
+- shipped bounded comparison explanation
 
 ### A12. Comparison Eval Cases
 

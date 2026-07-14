@@ -74,11 +74,13 @@ These findings are useful first-pass cues, but they should still be treated as b
 - `POST /api/agent/query` runs an OpenAI tool-calling loop against the current imported-session context.
 - Simple factual multi-signal comparison questions about RMS loudness, peak amplitude, or clipping now bypass the freeform OpenAI path when enough signal IDs are already selected.
 - That deterministic factual path uses backend-owned `compare_signals` evidence directly and still works when the OpenAI API key is missing.
+- In compare mode, Copilot now also accepts a bounded selected-comparison context from the current ranked metric, active aligned pair, visible findings, and ROI scope.
+- That explanation path asks the model to explain only the selected comparison evidence instead of rediscovering or widening the workspace scope.
 - The backend exposes compact deterministic tools such as metrics, findings, spectrum summaries, and signal comparison summaries.
 - The response returns structured answer text, cited evidence, limitations, next steps, and tools used.
 - If the OpenAI API key is missing, the endpoint returns a structured unavailable response instead of a bare `503`.
 
-The current Copilot is more grounded for factual comparison questions, but it is still operating over a workspace model rather than a first-class comparison model.
+The current Copilot is more grounded for both factual comparison questions and selected comparison explanation, but it is still operating over a workspace model rather than a first-class persisted comparison object.
 
 ## Current Report Export
 
@@ -130,6 +132,7 @@ The repo is still intentionally simple: no extra backend projects, no persistenc
 - Multi-recording group comparison is not yet available; when several recordings are assigned to one side, the UI shows the active pair and queued overflow rather than aggregating larger cohorts
 - Coverage visibility is still lightweight: users see evidence-strength cues, limitation counts, and limitation text, but not yet a dedicated coverage breakdown view
 - Deterministic factual Copilot answers currently cover a narrow comparison question set only: RMS loudness, peak amplitude, and clipping across multiple selected signals
+- Comparison explanation is bounded to the current selected ranked metric and active aligned pair; it is not yet a report-grade narrative over the full comparison
 - No persisted project or dataset model
 - Calibration handling remains lightweight and mostly limited to dBFS caveats plus calibrated flags
 - Copilot and report export still operate on workspace context more than comparison objects
@@ -137,10 +140,10 @@ The repo is still intentionally simple: no extra backend projects, no persistenc
 
 ## Immediate Next Product Slice
 
-The next product slice should complete the drill-down path from ranked comparison results into the evidence surfaces:
+The next product slice should turn the current comparison evidence into a shareable comparison report:
 
-1. keep the currently selected ranked difference visible near the charts
-2. make the inspected aligned pair and metric feel obviously tied to the waveform and spectrum panels
-3. preserve ROI scope and comparison context while moving between ranked results and chart evidence
+1. structure export around the active A/B comparison rather than the broader workspace
+2. include ranked deltas, selected evidence context, and explicit limitations
+3. keep export safe when AI narrative is unavailable
 
-That is the next step from a pairwise comparison summary into a more usable comparison-investigation workflow.
+That is the next step from a usable comparison-investigation workflow into a demo-ready artifact.
