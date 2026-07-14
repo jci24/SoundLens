@@ -40,7 +40,7 @@ Validation gate:
 - users understand which recordings belong to each condition without manual note-taking outside the app
 
 Explicitly deferred work:
-- aggregate ranking logic
+- aggregate comparison metrics
 - report generation from groups
 
 ## Milestone 2 — Deterministic Aggregate Comparison
@@ -61,16 +61,16 @@ Validation gate:
 - a small repeated-recording dataset yields a defensible aggregate comparison without silent mismatches
 
 Explicitly deferred work:
-- AI narrative over ranked differences
+- AI narrative over selected comparison evidence
 - persistent datasets
 
-## Milestone 3 — Ranked Differences And Drill-Down
+## Milestone 3 — Comparison Metrics And Drill-Down
 
 User outcome:
-- A user can see the most relevant differences first and drill down into underlying evidence.
+- A user can review deterministic metrics in a stable domain order, select an evidence focus, and drill down into the underlying signals.
 
 Major capabilities:
-- ranked differences list
+- fixed-order comparison metrics
 - coverage summary
 - outlier and representative cues
 - drill-down into waveform and spectrum evidence
@@ -79,10 +79,10 @@ Dependencies:
 - Milestone 2
 
 Validation gate:
-- users can answer “what changed most between A and B?” faster than with raw charts alone
+- users can identify and inspect relevant metric differences faster than with raw charts alone without being shown unsupported cross-unit importance claims
 
 Current status:
-- ranked differences, coverage cues, and selected-result drill-down are in `main`
+- fixed-order comparison metrics, coverage cues, and selected-result drill-down are in `main`
 - the selected metric, aligned pair, and ROI remain visible while inspecting waveform and spectrum evidence
 
 Explicitly deferred work:
@@ -102,7 +102,7 @@ Dependencies:
 - Milestone 3
 
 Validation gate:
-- users report that the explanation adds value beyond the ranked table and charts
+- users report that the explanation adds value beyond the comparison table and charts
 
 Current status:
 - deterministic factual answers are available for RMS, peak, and clipping comparisons
@@ -120,13 +120,13 @@ User outcome:
 
 Major capabilities:
 - comparison-specific report structure
-- ranked evidence summary
+- fixed-order comparison metric summary
 - drill-down traceability
 - grounded AI narrative over comparison evidence
 
 Current status:
 - compare mode previews the active pair, scope, exclusions, title, and Markdown format before export
-- the backend reconstructs ranked and selected evidence from identifiers rather than accepting frontend measurements
+- the backend reconstructs ordered comparison metrics and selected evidence from identifiers rather than accepting frontend measurements
 - deterministic Markdown export remains complete when AI is unavailable or malformed
 
 Dependencies:

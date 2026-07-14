@@ -42,4 +42,33 @@ describe('getRecordingComparison', () => {
       })
     )
   })
+
+  it('surfaces nested FastEndpoints comparison errors', async () => {
+    vi.spyOn(globalThis, 'fetch').mockResolvedValue(
+      new Response(
+        JSON.stringify({
+          statusCode: 400,
+          message: 'One or more errors occurred!',
+          errors: {
+            generalErrors: [
+              'EndTimeSeconds must be less than or equal to the shortest selected signal duration (2.535 s).',
+            ],
+          },
+        }),
+        {
+          status: 400,
+          headers: { 'Content-Type': 'application/json' },
+        }
+      )
+    )
+
+    await expect(
+      getRecordingComparison('recording-a', 'recording-b', {
+        startTimeSeconds: 3,
+        endTimeSeconds: 3.5,
+      })
+    ).rejects.toThrow(
+      'EndTimeSeconds must be less than or equal to the shortest selected signal duration (2.535 s).'
+    )
+  })
 })

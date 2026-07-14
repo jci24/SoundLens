@@ -4,6 +4,7 @@ import {
   formatAmplitudeTick,
   formatTimeTick,
   getAmplitudeUnitLabel,
+  getSharedRegionMaximumDuration,
   getWaveformChartModel,
 } from '../utils/waveformChart'
 import type { IAnalysisRegionOfInterest, ITimeWaveformAxis, ITimeWaveformSignal } from '../../types'
@@ -44,14 +45,20 @@ const WaveformChart = ({
   const [dragMode, setDragMode] = useState<TRegionDragMode | null>(null)
   const [dragAnchorTime, setDragAnchorTime] = useState<number | null>(null)
   const activeRegion = draftRegion ?? regionOfInterest
-  const maxDuration = useMemo(
-    () => Math.max(...signals.map((signal) => signal.durationSeconds), 0),
+  const sharedRegionMaximumDuration = useMemo(
+    () => getSharedRegionMaximumDuration(signals),
     [signals]
   )
 
   const buildRegion = (startTimeSeconds: number, endTimeSeconds: number): IAnalysisRegionOfInterest => {
-    const safeStart = Math.max(0, Math.min(startTimeSeconds, endTimeSeconds))
-    const safeEnd = Math.min(maxDuration, Math.max(startTimeSeconds, endTimeSeconds))
+    const safeStart = Math.min(
+      sharedRegionMaximumDuration,
+      Math.max(0, Math.min(startTimeSeconds, endTimeSeconds))
+    )
+    const safeEnd = Math.max(
+      safeStart,
+      Math.min(sharedRegionMaximumDuration, Math.max(startTimeSeconds, endTimeSeconds))
+    )
 
     return {
       startTimeSeconds: safeStart,

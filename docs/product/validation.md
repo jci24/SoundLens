@@ -4,7 +4,7 @@ Last updated: 2026-07-12
 
 ## Current Validation Hypothesis
 
-The current product hypothesis is that repeated-recording comparison is painful enough that engineers will value a tool that computes deterministic differences, ranks the most relevant changes, supports evidence drill-down, and explains the selected evidence clearly.
+The current product hypothesis is that repeated-recording comparison is painful enough that engineers will value a tool that computes deterministic metrics, supports evidence drill-down, and explains the user-selected evidence clearly without unsupported cross-unit importance claims.
 
 ## Initial Comparison Workflow
 
@@ -13,7 +13,7 @@ The initial workflow to validate is:
 1. import repeated recordings
 2. assign them to Product or Condition A and B
 3. run deterministic comparison over aligned signals
-4. inspect ranked differences
+4. inspect comparison metrics and select an evidence focus
 5. drill down into waveform and spectrum evidence
 6. request a grounded explanation or report
 
@@ -42,7 +42,7 @@ Priority interview targets:
 Positive signals:
 
 - users immediately recognize the workflow as a real part of their job
-- users say ranking differences would save meaningful time
+- users say the ordered comparison overview and evidence selection would save meaningful time
 - users trust deterministic evidence more than ad hoc spreadsheet or screenshot workflows
 - users say an explanation layer would help communicate findings internally
 - users expect to reuse or share reports
@@ -53,7 +53,7 @@ Negative signals:
 
 - users say repeated-recording comparison is not painful enough to justify a dedicated tool
 - users prefer manual plots or existing acoustic suites without seeing a meaningful workflow gap
-- users find ranking unnecessary or untrustworthy
+- users find the comparison overview unnecessary or untrustworthy
 - users say AI explanation adds little beyond tables and charts
 - users reject cloud-connected workflows on privacy grounds without a viable local path
 
@@ -68,13 +68,13 @@ Negative signals:
 | Hypothesis | What would support it | What would disconfirm it |
 | --- | --- | --- |
 | Repeated-recording comparison is painful | Users describe slow, manual, error-prone comparison workflows | Users say current tools already solve it well enough |
-| Ranking differences saves meaningful time | Users say ranked results would change how they triage recordings | Users say they still need to inspect everything manually |
+| Comparison overview saves meaningful time | Users say the metric overview and drill-down change how they triage recordings | Users say they still need to inspect everything manually |
 | AI explanation adds value beyond deterministic tables and charts | Users say it helps interpretation or communication | Users say evidence alone is sufficient and AI adds noise |
 | Report export is shared or reused | Users say they send or reuse comparison summaries | Users treat exports as disposable artifacts |
 | Cloud privacy is a meaningful blocker | Users raise data-handling concerns early and repeatedly | Users are comfortable with hosted workflows for this data |
 
 ## Decision Gates
 
-- Continue investing in the comparison wedge if users repeatedly confirm the pain and the ranked-evidence workflow feels materially faster.
+- Continue investing in the comparison wedge if users repeatedly confirm the pain and the selected-evidence workflow feels materially faster.
 - Narrow or change the wedge if users value the analysis workspace but not the comparison workflow.
 - Delay larger persistence or platform work until users demonstrate that session-only behavior is a real blocker.

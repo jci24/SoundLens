@@ -119,6 +119,14 @@ const buildWaveformPath = (
 
 const getAmplitudeUnitLabel = (yAxis: ITimeWaveformAxis) => yAxis.unit
 
+const getSharedRegionMaximumDuration = (signals: ITimeWaveformSignal[]) => {
+  const durations = signals
+    .map((signal) => signal.durationSeconds)
+    .filter((durationSeconds) => Number.isFinite(durationSeconds) && durationSeconds >= 0)
+
+  return durations.length > 0 ? Math.min(...durations) : 0
+}
+
 const buildTimeTicks = (durationSeconds: number) => {
   const tickCount = 5
   return Array.from({ length: tickCount }, (_, index) =>
@@ -134,5 +142,6 @@ export {
   formatAmplitudeTick,
   formatTimeTick,
   getAmplitudeUnitLabel,
+  getSharedRegionMaximumDuration,
   getWaveformChartModel,
 }

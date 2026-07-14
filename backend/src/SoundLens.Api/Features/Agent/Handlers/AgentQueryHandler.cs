@@ -726,7 +726,7 @@ public sealed class AgentQueryHandler(
             _ =>
             [
                 "Inspect the waveform and spectrum for the cited pair.",
-                "Compare another ranked metric if you need a broader explanation."
+                "Select another comparison metric if you need a broader explanation."
             ]
         };
     }

@@ -148,7 +148,7 @@ const comparisonResponse: IRecordingComparisonResponse = {
   ],
   aggregateMetrics: [
     {
-      metricKey: 'rmsAmplitudeDelta',
+      metricKey: 'peakAmplitudeDelta',
       unit: 'FS',
       comparedPairCount: 1,
       missingValueCount: 1,
@@ -156,6 +156,17 @@ const comparisonResponse: IRecordingComparisonResponse = {
       medianDifference: 0.2,
       minimumDifference: 0.2,
       maximumDifference: 0.2,
+      spread: 0,
+    },
+    {
+      metricKey: 'rmsAmplitudeDelta',
+      unit: 'FS',
+      comparedPairCount: 1,
+      missingValueCount: 1,
+      meanDifference: 0.1,
+      medianDifference: 0.1,
+      minimumDifference: 0.1,
+      maximumDifference: 0.1,
       spread: 0,
     },
     {
@@ -167,6 +178,17 @@ const comparisonResponse: IRecordingComparisonResponse = {
       medianDifference: -0.4,
       minimumDifference: -0.4,
       maximumDifference: -0.4,
+      spread: 0,
+    },
+    {
+      metricKey: 'clippingSampleCountDelta',
+      unit: 'samples',
+      comparedPairCount: 1,
+      missingValueCount: 1,
+      meanDifference: -4,
+      medianDifference: -4,
+      minimumDifference: -4,
+      maximumDifference: -4,
       spread: 0,
     },
   ],
@@ -435,7 +457,7 @@ describe('TimeWaveformWorkspace', () => {
     expect(screen.getByText('Compare enabled')).toBeInTheDocument()
   })
 
-  it('renders ranked comparison results for a single A/B recording pair in compare mode', async () => {
+  it('renders comparison metrics in backend order and preserves the selected metric across ROI refreshes', async () => {
     const workspaceState = createWorkspaceState()
     workspaceState.layoutMode = 'compare'
     workspaceState.recordings = [
@@ -467,7 +489,7 @@ describe('TimeWaveformWorkspace', () => {
 
     mockUseTimeWaveformWorkspace.mockReturnValue(workspaceState)
 
-    render(
+    const { rerender } = render(
       <TimeWaveformWorkspace
         importedFiles={importedFiles}
         isCopilotOpen={false}
@@ -479,19 +501,49 @@ describe('TimeWaveformWorkspace', () => {
       expect(mockGetRecordingComparison).toHaveBeenCalledWith('recording-1', 'recording-2', null)
     })
 
-    expect(screen.getByLabelText('Ranked comparison results')).toBeInTheDocument()
-    expect(screen.getByText('Ranked differences')).toBeInTheDocument()
-    expect(screen.getByText('Weak evidence')).toBeInTheDocument()
+    expect(screen.getByLabelText('Comparison metrics')).toBeInTheDocument()
+    expect(screen.getByText('Comparison metrics', { selector: 'h3' })).toBeInTheDocument()
+    expect(await screen.findByText('Weak evidence')).toBeInTheDocument()
     expect(screen.getByText('1 limitation')).toBeInTheDocument()
-    expect(screen.queryByLabelText('Selected ranked difference')).not.toBeInTheDocument()
+    expect(screen.queryByLabelText('Selected metric evidence')).not.toBeInTheDocument()
     expect(screen.queryByLabelText('Comparison limitations')).not.toBeInTheDocument()
-    expect(screen.getByRole('button', { name: /Crest factor/i })).toBeInTheDocument()
-    expect(screen.getByRole('button', { name: /RMS amplitude/i })).toBeInTheDocument()
+    const peakButton = screen.getByRole('button', { name: /Peak amplitude/i })
+    const rmsButton = screen.getByRole('button', { name: /RMS amplitude/i })
+    const crestButton = screen.getByRole('button', { name: /Crest factor/i })
+    const clippingButton = screen.getByRole('button', { name: /Clipping samples/i })
+    expect(peakButton.compareDocumentPosition(rmsButton) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy()
+    expect(rmsButton.compareDocumentPosition(crestButton) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy()
+    expect(crestButton.compareDocumentPosition(clippingButton) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy()
 
+    fireEvent.click(crestButton)
     fireEvent.click(screen.getByRole('button', { name: 'Details' }))
 
-    expect(screen.getByLabelText('Selected ranked difference')).toHaveTextContent('Crest factor')
+    expect(screen.getByLabelText('Selected metric evidence')).toHaveTextContent('Crest factor')
+    expect(peakButton.compareDocumentPosition(rmsButton) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy()
     expect(screen.getByLabelText('Comparison limitations')).toHaveTextContent('Low coverage')
+
+    workspaceState.regionOfInterest = {
+      startTimeSeconds: 0.2,
+      endTimeSeconds: 0.8,
+      durationSeconds: 0.6,
+    }
+    mockUseTimeWaveformWorkspace.mockReturnValue(workspaceState)
+    rerender(
+      <TimeWaveformWorkspace
+        importedFiles={importedFiles}
+        isCopilotOpen={false}
+        onCopilotToggle={vi.fn()}
+      />
+    )
+
+    await waitFor(() => {
+      expect(mockGetRecordingComparison).toHaveBeenCalledWith('recording-1', 'recording-2', {
+        startTimeSeconds: 0.2,
+        endTimeSeconds: 0.8,
+      })
+    })
+    fireEvent.click(screen.getByRole('button', { name: 'Details' }))
+    expect(screen.getByLabelText('Selected metric evidence')).toHaveTextContent('Crest factor')
   })
 
   it('shows a pairwise-only state when more than one recording is assigned to a group', () => {
@@ -550,7 +602,7 @@ describe('TimeWaveformWorkspace', () => {
     expect(screen.getByLabelText('Active comparison pair')).toHaveTextContent('alpha.wav')
     expect(screen.getByLabelText('Active comparison pair')).toHaveTextContent('gamma.wav')
     expect(screen.getByLabelText('Queued comparison recordings')).toHaveTextContent('A waiting: beta.wav')
-    expect(screen.getByLabelText('Ranked comparison results')).toHaveTextContent(
+    expect(screen.getByLabelText('Comparison metrics')).toHaveTextContent(
       'This slice compares one pair at a time. Now using alpha.wav vs gamma.wav. A waiting: beta.wav.'
     )
     expect(mockGetRecordingComparison).not.toHaveBeenCalled()
@@ -745,7 +797,7 @@ describe('TimeWaveformWorkspace', () => {
         reportTitle: 'Edited comparison title',
         recordingIdA: 'recording-1',
         recordingIdB: 'recording-2',
-        metricKey: 'crestFactorDelta',
+        metricKey: 'peakAmplitudeDelta',
         signalIdA: 'signal-a',
         signalIdB: 'signal-b',
         excludedRecordings: [{ recordingId: 'recording-3', assignment: 'unassigned' }],

@@ -8,13 +8,12 @@ public sealed class OpenAiComparisonReportNarrativeService(IChatClientProvider c
     : IComparisonReportNarrativeService
 {
     private const string SystemPrompt = """
-        You prioritize deterministic comparison facts for a SoundLens report.
+        You validate the deterministic selected-metric fact for a SoundLens report.
 
         RULES:
-        - Select one or two fact IDs from the supplied candidates.
-        - Always include the first-ranked candidate.
+        - Return the one supplied fact ID.
         - Return IDs only. Do not write, rewrite, explain, or add claims.
-        - Do not invent IDs or select the same ID twice.
+        - Do not invent or duplicate IDs.
 
         RESPONSE FORMAT:
         Return strict JSON with this exact structure:
@@ -58,9 +57,8 @@ public sealed class OpenAiComparisonReportNarrativeService(IChatClientProvider c
     private static string BuildUserMessage(ComparisonReportNarrativeCatalog catalog) =>
         JsonSerializer.Serialize(new
         {
-            Candidates = catalog.Facts.Select((fact, index) => new
+            SelectedMetricFact = catalog.Facts.Select(fact => new
             {
-                Rank = index + 1,
                 fact.Id,
                 fact.MetricLabel,
                 fact.DirectionLabel
@@ -91,7 +89,7 @@ public sealed class OpenAiComparisonReportNarrativeService(IChatClientProvider c
                 .ToArray();
             var eligibleIds = eligibleFactIds.ToHashSet(StringComparer.Ordinal);
 
-            return selectedIds.Length is < 1 or > 2 ||
+            return selectedIds.Length != 1 ||
                    selectedIds.Distinct(StringComparer.Ordinal).Count() != selectedIds.Length ||
                    selectedIds.Any(id => !eligibleIds.Contains(id)) ||
                    eligibleFactIds.Count == 0 ||

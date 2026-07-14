@@ -16,23 +16,11 @@ internal sealed record ComparisonReportNarrativeCatalog(
 {
     public static ComparisonReportNarrativeCatalog Build(ComparisonReportContext context)
     {
-        var rankedMetrics = context.Comparison.AggregateMetrics
-            .OrderByDescending(metric => Math.Abs(metric.MeanDifference))
-            .ToArray();
-        var eligibleMetrics = rankedMetrics
-            .Where(metric => metric.MeanDifference != 0)
-            .Take(2)
-            .ToArray();
-        if (eligibleMetrics.Length == 0)
-        {
-            eligibleMetrics = rankedMetrics.Take(1).ToArray();
-        }
-
-        var facts = eligibleMetrics.Select(BuildAggregateFact).ToArray();
+        var facts = new[] { BuildAggregateFact(context.SelectedMetric) };
         var cautions = new List<string>();
         if (context.Comparison.Limitations.Count > 0)
         {
-            cautions.Add("The deterministic comparison reports limitations; review the Limitations section before interpreting the ranking.");
+            cautions.Add("The deterministic comparison reports limitations; review the Limitations section before interpreting the selected metric.");
         }
         if (facts.Any(fact => fact.MetricKey == "crestFactorDelta") ||
             context.SelectedMetric.MetricKey == "crestFactorDelta")
@@ -52,25 +40,19 @@ internal sealed record ComparisonReportNarrativeCatalog(
     public ReportNarrativeResult Render(IReadOnlyList<string> selectedFactIds, bool isFallback)
     {
         var factsById = Facts.ToDictionary(fact => fact.Id, StringComparer.Ordinal);
-        var selectedFacts = selectedFactIds
+        var selectedFact = selectedFactIds
             .Where(factsById.ContainsKey)
             .Select(id => factsById[id])
-            .ToArray();
-        var metricSummary = selectedFacts.Length switch
-        {
-            0 => "the available metrics",
-            1 => selectedFacts[0].MetricLabel.ToLowerInvariant(),
-            _ => string.Join(" and ", selectedFacts.Select(fact => fact.MetricLabel.ToLowerInvariant()))
-        };
+            .FirstOrDefault() ?? Facts[0];
         var cautions = DeterministicCautions.ToList();
         if (isFallback)
         {
-            cautions.Add("AI prioritization was unavailable or invalid; the highest-ranked deterministic facts are shown.");
+            cautions.Add("AI fact selection was unavailable or invalid; the deterministic selected-metric evidence is shown.");
         }
 
         return new ReportNarrativeResult(
-            $"The aggregate evidence prioritizes {metricSummary} in the current ranking. {SelectedPairSentence}",
-            selectedFacts.Select(fact => fact.Sentence).ToArray(),
+            $"This interpretation describes the selected {FormatMetricReference(selectedFact.MetricLabel)} evidence. {SelectedPairSentence}",
+            [selectedFact.Sentence],
             cautions,
             isFallback);
     }
@@ -78,6 +60,7 @@ internal sealed record ComparisonReportNarrativeCatalog(
     private static ComparisonReportNarrativeFact BuildAggregateFact(RecordingComparisonMetricAggregate metric)
     {
         var metricLabel = FormatMetricLabel(metric.MetricKey);
+        var metricReference = FormatMetricReference(metricLabel);
         var direction = GetDirection(metric.MeanDifference);
         var directionLabel = direction switch
         {
@@ -87,9 +70,9 @@ internal sealed record ComparisonReportNarrativeCatalog(
         };
         var sentence = direction switch
         {
-            ComparisonDirection.CompareAHigher => $"Aggregate {metricLabel.ToLowerInvariant()} evidence is numerically higher for Compare A.",
-            ComparisonDirection.CompareBHigher => $"Aggregate {metricLabel.ToLowerInvariant()} evidence is numerically higher for Compare B.",
-            _ => $"Aggregate {metricLabel.ToLowerInvariant()} evidence is equal for Compare A and Compare B."
+            ComparisonDirection.CompareAHigher => $"Aggregate {metricReference} evidence is numerically higher for Compare A.",
+            ComparisonDirection.CompareBHigher => $"Aggregate {metricReference} evidence is numerically higher for Compare B.",
+            _ => $"Aggregate {metricReference} evidence is equal for Compare A and Compare B."
         };
 
         return new ComparisonReportNarrativeFact(
@@ -102,7 +85,7 @@ internal sealed record ComparisonReportNarrativeCatalog(
 
     private static string BuildSelectedPairSentence(ComparisonReportContext context)
     {
-        var metricLabel = FormatMetricLabel(context.SelectedMetric.MetricKey).ToLowerInvariant();
+        var metricLabel = FormatMetricReference(FormatMetricLabel(context.SelectedMetric.MetricKey));
         var aggregateDirection = GetDirection(context.SelectedMetric.MeanDifference);
         var selectedDirection = GetDirection(GetSelectedDelta(context));
 
@@ -156,6 +139,11 @@ internal sealed record ComparisonReportNarrativeCatalog(
         "clippingSampleCountDelta" => "Clipping samples",
         _ => metricKey
     };
+
+    private static string FormatMetricReference(string metricLabel) =>
+        metricLabel.StartsWith("RMS", StringComparison.Ordinal)
+            ? metricLabel
+            : metricLabel.ToLowerInvariant();
 
     private enum ComparisonDirection
     {
