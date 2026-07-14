@@ -96,7 +96,6 @@ Dependencies:
 
 High priority:
 
-- add `npm run test:run` to frontend CI so pull requests run the existing Vitest suite
 - ensure malformed or non-JSON model output cannot surface raw structured payloads in the Copilot UI
 - split comparison-explanation orchestration and prompt construction out of the oversized `AgentQueryHandler` before adding another broad agent capability
 
