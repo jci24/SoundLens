@@ -87,6 +87,7 @@ These findings are useful first-pass cues, but they should still be treated as b
 - Selected-comparison questions that ask what caused an observed difference also bypass OpenAI. The deterministic response preserves the measured values, ROI, coverage, findings, and limitations while stating that observational comparison evidence does not establish causation.
 - The backend exposes compact deterministic tools such as metrics, findings, spectrum summaries, and signal comparison summaries.
 - The response returns structured answer text, cited evidence, limitations, next steps, and tools used.
+- Copilot model output must pass strict JSON shape and evidence-tool validation before any model-authored answer is shown. Malformed, truncated, fenced-invalid, schema-invalid, or raw structured answer content is replaced with a concise deterministic fallback while backend-known comparison evidence and limitations remain available.
 - If the OpenAI API key is missing, the endpoint returns a structured unavailable response instead of a bare `503`.
 
 The current Copilot is more grounded for both factual comparison questions and selected comparison explanation, but it is still operating over a workspace model rather than a first-class persisted comparison object.
@@ -156,4 +157,4 @@ The repo is still intentionally simple: no extra backend projects, no persistenc
 
 ## Immediate Next Product Slice
 
-The next product slice should ensure malformed or non-JSON model output cannot surface raw structured payloads in the Copilot UI. A real calibration-state model and calibrated-versus-uncalibrated eval remain later trust work.
+The next product slice should add recording-level audio playback through a range-enabled backend stream and a compact workspace transport with seeking, ROI play-once, optional looping, and a waveform playhead. Synchronized A/B audition and isolated-channel playback remain follow-ups. A real calibration-state model and calibrated-versus-uncalibrated eval remain later trust work.

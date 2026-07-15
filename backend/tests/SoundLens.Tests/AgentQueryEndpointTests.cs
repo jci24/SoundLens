@@ -7,6 +7,7 @@ using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using OpenAI.Chat;
+using SoundLens.Api.Features.Agent.Common;
 using SoundLens.Api.Configuration;
 using SoundLens.Api.Features.Agent.Responses;
 using SoundLens.Api.Features.Waveforms.Common;
@@ -72,6 +73,36 @@ public sealed class AgentQueryEndpointTests : IClassFixture<WebApplicationFactor
         {
             File.Delete(tempPath);
         }
+    }
+
+    [Fact]
+    public async Task ReplacesMalformedGenericModelOutputWithSafeFallback()
+    {
+        const string rawMalformedResponse = "{ \"answer\": \"raw generic model payload\"";
+        var chatClientProvider = new StubChatClientProvider(rawMalformedResponse);
+        var malformedFactory = _factory.WithWebHostBuilder(builder =>
+        {
+            builder.ConfigureServices(services =>
+            {
+                services.RemoveAll<IChatClientProvider>();
+                services.AddSingleton<IChatClientProvider>(chatClientProvider);
+            });
+        });
+
+        using var client = malformedFactory.CreateClient();
+        var response = await client.PostAsJsonAsync(
+            "/api/agent/query",
+            new { question = "Summarize the current analysis workspace." });
+
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        var payload = await response.Content.ReadFromJsonAsync<AgentQueryResponse>();
+        Assert.NotNull(payload);
+        Assert.Contains("could not safely interpret", payload!.Answer, StringComparison.OrdinalIgnoreCase);
+        Assert.DoesNotContain(rawMalformedResponse, payload.Answer, StringComparison.Ordinal);
+        Assert.Empty(payload.CitedEvidence);
+        Assert.Contains(payload.Limitations, item => item == AgentStructuredResponseParser.InvalidOutputLimitation);
+        Assert.NotEmpty(payload.NextSteps);
+        Assert.Empty(payload.ToolsUsed);
     }
 
     [Fact]
@@ -148,6 +179,7 @@ public sealed class AgentQueryEndpointTests : IClassFixture<WebApplicationFactor
     [Fact]
     public async Task ResolvesBoundedComparisonExplanationFromBackendEvidence()
     {
+        const string rawMalformedResponse = "{ \"answer\": \"raw model payload\"";
         var chatClientProvider = new StubChatClientProvider(
             """
             {
@@ -158,7 +190,8 @@ public sealed class AgentQueryEndpointTests : IClassFixture<WebApplicationFactor
               "limitations": [],
               "nextSteps": []
             }
-            """);
+            """,
+            rawMalformedResponse);
         var explanationFactory = _factory.WithWebHostBuilder(builder =>
         {
             builder.ConfigureServices(services =>
@@ -248,6 +281,33 @@ public sealed class AgentQueryEndpointTests : IClassFixture<WebApplicationFactor
             Assert.Contains("Mean delta A-B: 0 ratio", chatClientProvider.LastUserMessage, StringComparison.Ordinal);
             Assert.DoesNotContain("999", chatClientProvider.LastUserMessage, StringComparison.Ordinal);
             Assert.DoesNotContain("invented-unit", chatClientProvider.LastUserMessage, StringComparison.Ordinal);
+
+            var malformedResponse = await client.PostAsJsonAsync(
+                "/api/agent/query",
+                new
+                {
+                    question = "Explain the selected comparison evidence.",
+                    signalIds,
+                    startTimeSeconds = 0.0,
+                    endTimeSeconds = 0.25,
+                    comparisonContext = new
+                    {
+                        recordingIdA = waveformPayload.Recordings[0].RecordingId,
+                        recordingIdB = waveformPayload.Recordings[1].RecordingId,
+                        metricKey = "crestFactorDelta",
+                        signalIdA = signalIds[0],
+                        signalIdB = signalIds[1]
+                    }
+                });
+
+            Assert.Equal(HttpStatusCode.OK, malformedResponse.StatusCode);
+            var malformedPayload = await malformedResponse.Content.ReadFromJsonAsync<AgentQueryResponse>();
+            Assert.NotNull(malformedPayload);
+            Assert.Contains("could not safely interpret", malformedPayload!.Answer, StringComparison.OrdinalIgnoreCase);
+            Assert.DoesNotContain(rawMalformedResponse, malformedPayload.Answer, StringComparison.Ordinal);
+            Assert.Contains(malformedPayload.CitedEvidence, item => item.ToolName == "selected_comparison_context");
+            Assert.Contains(malformedPayload.Limitations, item => item == AgentStructuredResponseParser.InvalidOutputLimitation);
+            Assert.Contains(malformedPayload.Limitations, item => item.Contains("selected ROI only", StringComparison.OrdinalIgnoreCase));
 
             var invalidPairResponse = await client.PostAsJsonAsync(
                 "/api/agent/query",
@@ -442,8 +502,15 @@ public sealed class AgentQueryEndpointTests : IClassFixture<WebApplicationFactor
         return stream.ToArray();
     }
 
-    private sealed class StubChatClientProvider(string responseJson) : IChatClientProvider
+    private sealed class StubChatClientProvider : IChatClientProvider
     {
+        private readonly IReadOnlyList<string> _responseJsons;
+
+        public StubChatClientProvider(params string[] responseJsons)
+        {
+            _responseJsons = responseJsons;
+        }
+
         public string? LastUserMessage { get; private set; }
 
         public int GetRequiredClientCallCount { get; private set; }
@@ -451,8 +518,9 @@ public sealed class AgentQueryEndpointTests : IClassFixture<WebApplicationFactor
         public ChatClient GetRequiredClient()
         {
             GetRequiredClientCallCount++;
+            var responseIndex = Math.Min(GetRequiredClientCallCount - 1, _responseJsons.Count - 1);
             return new StubChatClient(
-                responseJson,
+                _responseJsons[responseIndex],
                 messages => LastUserMessage = messages
                     .OfType<UserChatMessage>()
                     .LastOrDefault()?

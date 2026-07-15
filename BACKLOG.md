@@ -51,10 +51,41 @@ Turn the current analysis workspace into a focused comparison workflow for repea
 - comparison trust evals for ambiguity, zero difference, missing alignment, ROI-bounded causal uncertainty, and uncalibrated SPL refusal
 - deterministic refusal of calibrated dB SPL conclusions from uncalibrated selected-comparison evidence
 - deterministic refusal of unsupported causal conclusions from observational selected-comparison evidence
+- deterministic containment of malformed, truncated, fenced-invalid, and schema-invalid Copilot output
 - diagnostic live-eval artifacts plus CI-tested dataset and grading logic
 - Markdown and textual/tabular PDF comparison export over one backend-prepared evidence model
 
 ## Ordered Thin Tasks
+
+### Workspace usability. Focused audio playback
+
+User value:
+- A user can audition an explicitly selected recording while inspecting its waveform, spectrum, and selected ROI.
+
+Thin-slice boundary:
+- Add original-recording playback through a range-enabled backend stream and a compact native browser transport without changing DSP evidence.
+
+Acceptance criteria:
+- recording IDs resolve only through the current import session; arbitrary paths cannot be streamed
+- the transport supports explicit source selection, play/pause, seeking, ROI play-once, optional looping, and a waveform playhead
+- playback preserves the original channel layout and applies no gain, normalization, effects, resampling, or evidence calculations
+- source and ROI changes stop playback and reset the playhead predictably
+
+Test expectations:
+- backend full-file, byte-range, unknown-recording, and missing-file tests
+- frontend transport, ROI boundary, loop, failure, cleanup, accessibility, and waveform-regression tests
+
+Proposed branch name:
+- `codex/focused-audio-playback`
+
+Dependencies:
+- current imported-file session, recording IDs, waveform ROI state, and browser media support
+
+### Playback follow-up. Synchronized A/B audition
+
+Reason for deferral:
+- validate recording-level playback and ROI behavior before adding synchronized source switching
+- isolated-channel audition, level-matching policy, and switching semantics require their own product and trust decisions
 
 ### Trust follow-up. Real calibration-state mismatch
 
@@ -63,29 +94,6 @@ Priority: normal.
 Reason for deferral:
 - imported evidence is currently uncalibrated, so a calibrated fixture would fabricate unsupported state
 - schedule after the product introduces a real calibration-state contract and validation path
-
-### Trust hardening. Malformed model output containment
-
-User value:
-- A user receives a safe structured fallback instead of raw JSON, malformed payloads, or unvalidated model text when Copilot output cannot be parsed.
-
-Thin-slice boundary:
-- Harden response parsing and fallback behavior without changing evidence acquisition, prompts, or frontend contracts.
-
-Acceptance criteria:
-- malformed, fenced, truncated, or non-JSON model output never appears verbatim in the Copilot answer
-- the endpoint returns a concise deterministic fallback with explicit parsing limitations and safe next steps
-- valid structured responses and deterministic trust guards remain unchanged
-
-Test expectations:
-- backend parser and endpoint regression tests
-- frontend response rendering regression where justified
-
-Proposed branch name:
-- `codex/copilot-malformed-output-fallback`
-
-Dependencies:
-- existing structured agent response contract and trust guards
 
 ## Engineering Follow-Ups
 

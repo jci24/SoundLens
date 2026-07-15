@@ -78,6 +78,7 @@ Major capabilities:
 - coverage summary
 - outlier and representative cues
 - drill-down into waveform and spectrum evidence
+- original-recording audition aligned with waveform and ROI context
 
 Dependencies:
 - Milestone 2
@@ -89,6 +90,7 @@ Current status:
 - fixed-order comparison metrics, coverage cues, and selected-result drill-down are in `main`
 - the selected metric, aligned pair, and ROI remain visible while inspecting waveform and spectrum evidence
 - selected metric details and limitations open in a non-modal side inspector without pushing waveform or spectrum evidence down the workspace
+- focused recording playback is the next planned usability extension; synchronized A/B audition follows after manual validation
 
 Explicitly deferred work:
 - broad open-ended AI investigation
@@ -115,6 +117,7 @@ Current status:
 - comparison measurements, findings, units, coverage, and limitations are reconstructed by the backend before they are sent to the model
 - calibrated dB SPL and physical sound-pressure questions over uncalibrated selected evidence bypass the model and return a deterministic refusal while preserving available digital evidence
 - causal questions over observational selected evidence bypass the model and return measured differences, findings, and limitations without asserting a root cause
+- malformed or schema-invalid model output is never returned verbatim; a deterministic fallback preserves backend-known evidence and limitations
 - live trust evals now cover ambiguity, zero difference, missing aligned evidence, ROI-bounded causal uncertainty, and refusal of calibrated SPL claims from uncalibrated evidence
 - pure dataset and grader tests run in CI; live repeated runs remain local and produce diagnostic artifacts
 

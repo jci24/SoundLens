@@ -392,13 +392,21 @@ public sealed class AgentQueryHandler(
         };
 
         var completion = await chatClient.CompleteChatAsync(messages, new ChatCompletionOptions(), ct);
-        var parsed = ParseStructuredAnswer(completion.Value.Content.FirstOrDefault()?.Text ?? string.Empty, []);
-        return parsed with
+        var parseResult = AgentStructuredResponseParser.Parse(
+            completion.Value.Content.FirstOrDefault()?.Text ?? string.Empty,
+            []);
+        var limitations = SelectedComparisonResponseSupport.BuildLimitations(
+            comparisonContext,
+            isRoiScoped);
+        if (!parseResult.IsValid)
+        {
+            limitations = [.. limitations, AgentStructuredResponseParser.InvalidOutputLimitation];
+        }
+
+        return parseResult.Response with
         {
             CitedEvidence = SelectedComparisonResponseSupport.BuildExplanationEvidence(comparisonContext),
-            Limitations = SelectedComparisonResponseSupport.BuildLimitations(
-                comparisonContext,
-                isRoiScoped),
+            Limitations = limitations,
             NextSteps = BuildComparisonExplanationNextSteps(comparisonContext)
         };
     }
@@ -490,62 +498,14 @@ public sealed class AgentQueryHandler(
         IReadOnlyList<string> toolsUsed,
         IReadOnlyList<CompareEvidence> compareEvidence)
     {
-        var parsed = ParseStructuredAnswer(completion.Content.FirstOrDefault()?.Text ?? string.Empty, toolsUsed);
+        var parsed = AgentStructuredResponseParser.Parse(
+            completion.Content.FirstOrDefault()?.Text ?? string.Empty,
+            toolsUsed).Response;
 
         return parsed with
         {
             CitedEvidence = NormalizeCompareEvidence(parsed.CitedEvidence, compareEvidence)
         };
-    }
-
-    private static AgentQueryResponse ParseStructuredAnswer(
-        string rawText,
-        IReadOnlyList<string> toolsUsed)
-    {
-        // Strip markdown code fences if the model wraps JSON in ```json ... ```
-        var cleaned = rawText.Trim();
-        if (cleaned.StartsWith("```"))
-        {
-            var firstNewline = cleaned.IndexOf('\n');
-            var lastFence = cleaned.LastIndexOf("```", StringComparison.Ordinal);
-            if (firstNewline > 0 && lastFence > firstNewline)
-            {
-                cleaned = cleaned[(firstNewline + 1)..lastFence].Trim();
-            }
-        }
-
-        try
-        {
-            using var doc = JsonDocument.Parse(cleaned);
-            var root = doc.RootElement;
-
-            var answer = GetStringProperty(root, "answer", "No answer provided.");
-            var citedEvidence = ParseEvidenceItems(root);
-            var limitations = ParseStringArray(root, "limitations");
-            var nextSteps = ParseStringArray(root, "nextSteps");
-
-            if (!limitations.Any(l => l.Contains("dBFS", StringComparison.OrdinalIgnoreCase)))
-            {
-                limitations = [..limitations, "Values are in dBFS, not calibrated to physical SPL."];
-            }
-
-            return new AgentQueryResponse(
-                answer,
-                citedEvidence,
-                limitations,
-                nextSteps,
-                toolsUsed);
-        }
-        catch (JsonException)
-        {
-            // Model did not return valid JSON — return the raw text as the answer with a note.
-            return new AgentQueryResponse(
-                Answer: rawText,
-                CitedEvidence: [],
-                Limitations: ["Values are in dBFS, not calibrated to physical SPL.", "Response format could not be parsed as structured evidence."],
-                NextSteps: [],
-                ToolsUsed: toolsUsed);
-        }
     }
 
     private static string GetStringProperty(JsonElement root, string propertyName, string fallback)
@@ -555,28 +515,6 @@ public sealed class AgentQueryHandler(
             return element.GetString() ?? fallback;
         }
         return fallback;
-    }
-
-    private static IReadOnlyList<AgentEvidenceItem> ParseEvidenceItems(JsonElement root)
-    {
-        if (!root.TryGetProperty("citedEvidence", out var array) || array.ValueKind != JsonValueKind.Array)
-        {
-            return [];
-        }
-
-        var items = new List<AgentEvidenceItem>();
-        foreach (var element in array.EnumerateArray())
-        {
-            var toolName = GetStringProperty(element, "toolName", string.Empty);
-            var signalId = GetStringProperty(element, "signalId", string.Empty);
-            var summary = GetStringProperty(element, "summary", string.Empty);
-
-            if (!string.IsNullOrWhiteSpace(toolName))
-            {
-                items.Add(new AgentEvidenceItem(toolName, signalId, summary));
-            }
-        }
-        return items;
     }
 
     private static string BuildComparisonExplanationUserMessage(
@@ -827,17 +765,4 @@ public sealed class AgentQueryHandler(
     private static bool IsClippingSummary(string summary) =>
         summary.Contains("clipping", StringComparison.OrdinalIgnoreCase);
 
-    private static IReadOnlyList<string> ParseStringArray(JsonElement root, string propertyName)
-    {
-        if (!root.TryGetProperty(propertyName, out var array) || array.ValueKind != JsonValueKind.Array)
-        {
-            return [];
-        }
-
-        return array.EnumerateArray()
-            .Where(e => e.ValueKind == JsonValueKind.String)
-            .Select(e => e.GetString()!)
-            .Where(s => !string.IsNullOrWhiteSpace(s))
-            .ToList();
-    }
 }
