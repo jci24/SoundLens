@@ -190,12 +190,29 @@ Major capabilities:
 - content-hash-based reuse
 - bounded job execution
 - progress, cancellation, and per-file failure isolation
+- server-owned pagination and aggregation for large result sets
+
+Large-session visualization program:
+- virtualize recording and signal navigation so DOM size follows the visible window rather than the imported session size
+- separate dataset navigation, batch execution, aggregate overview, and detailed evidence inspection instead of mounting one chart per signal
+- introduce metric-specific matrix or heatmap overviews only after batch contracts exist; each metric keeps its own unit, scale, coverage, and limitation state
+- add distribution views and bounded small multiples for selected cohorts or exceptions, then drill into the existing waveform and spectrum workspace for a small active selection
+- aggregate or rasterize dense evidence on the backend at display resolution rather than sending every raw sample to the browser
+- preserve stable recording and signal identifiers so filtering, pagination, virtualization, playback, comparison, reporting, and Copilot actions never depend on mounted UI instances
+
+Proposed thin-slice sequence after large-session navigation:
+1. `codex/batch-comparison-contract`: define backend-owned batch selection, alignment, metric, ROI, progress, and result contracts without adding a broad dashboard.
+2. `codex/batch-comparison-overview`: add a paginated exact-value table and one metric-at-a-time matrix or heatmap with linked drill-down.
+3. `codex/batch-distribution-views`: add within-unit cohort distributions and bounded small multiples for selected or exceptional evidence.
+4. `codex/batch-execution-hardening`: add bounded queues, cancellation, retry, partial-failure isolation, and persisted progress before accepting production-scale batches.
 
 Dependencies:
 - evidence that the comparison workflow is valuable enough to justify persistence work
 
 Validation gate:
 - customer usage demonstrates that session-only workflow is a blocker
+- benchmark fixtures cover at least 100 recordings, large multichannel hierarchies, and 10,000 signal summaries without rendering 10,000 waveform or spectrum charts
+- filters, selection, and drill-down remain responsive while exact values, units, coverage, and backend limitations remain inspectable
 
 Explicitly deferred work:
 - microservices
