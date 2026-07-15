@@ -278,6 +278,113 @@ public sealed class AgentQueryEndpointTests : IClassFixture<WebApplicationFactor
         }
     }
 
+    [Fact]
+    public async Task RefusesCalibratedSplFromBackendResolvedComparisonWithoutCallingModel()
+    {
+        var chatClientProvider = new StubChatClientProvider(
+            """
+            {
+              "answer": "The calibrated dB SPL difference is 12 dB SPL.",
+              "citedEvidence": [],
+              "limitations": [],
+              "nextSteps": []
+            }
+            """);
+        var refusalFactory = _factory.WithWebHostBuilder(builder =>
+        {
+            builder.ConfigureServices(services =>
+            {
+                services.RemoveAll<IChatClientProvider>();
+                services.AddSingleton<IChatClientProvider>(chatClientProvider);
+            });
+        });
+
+        var quietPath = Path.Combine(Path.GetTempPath(), $"soundlens_agent_query_quiet_{Guid.NewGuid():N}.wav");
+        var loudPath = Path.Combine(Path.GetTempPath(), $"soundlens_agent_query_loud_{Guid.NewGuid():N}.wav");
+        await File.WriteAllBytesAsync(quietPath, CreateMono16BitWav(
+            sampleRate: 8,
+            samples: [8192, 8192, 8192, 8192]));
+        await File.WriteAllBytesAsync(loudPath, CreateMono16BitWav(
+            sampleRate: 8,
+            samples: [16384, 16384, 16384, 16384]));
+
+        using var client = refusalFactory.CreateClient();
+        try
+        {
+            var importResponse = await client.PostAsJsonAsync(
+                "/api/import",
+                new { filePaths = new[] { quietPath, loudPath } });
+            importResponse.EnsureSuccessStatusCode();
+
+            var waveformResponse = await client.PostAsJsonAsync(
+                "/api/waveforms/time",
+                new
+                {
+                    binCount = 64,
+                    signalIds = Array.Empty<string>(),
+                    startTimeSeconds = (double?)null,
+                    endTimeSeconds = (double?)null
+                });
+            waveformResponse.EnsureSuccessStatusCode();
+
+            var waveformPayload = await waveformResponse.Content.ReadFromJsonAsync<TimeWaveformResponse>();
+            Assert.NotNull(waveformPayload);
+
+            var signalIds = waveformPayload!.Recordings
+                .SelectMany(recording => recording.Signals)
+                .Select(signal => signal.SignalId)
+                .ToArray();
+
+            async Task<AgentQueryResponse> AskAsync(double? startTimeSeconds, double? endTimeSeconds)
+            {
+                var response = await client.PostAsJsonAsync(
+                    "/api/agent/query",
+                    new
+                    {
+                        question = "What is the calibrated dB SPL difference between these recordings?",
+                        signalIds,
+                        startTimeSeconds,
+                        endTimeSeconds,
+                        comparisonContext = new
+                        {
+                            recordingIdA = waveformPayload.Recordings[0].RecordingId,
+                            recordingIdB = waveformPayload.Recordings[1].RecordingId,
+                            metricKey = "rmsAmplitudeDelta",
+                            signalIdA = signalIds[0],
+                            signalIdB = signalIds[1]
+                        }
+                    });
+
+                Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+                return (await response.Content.ReadFromJsonAsync<AgentQueryResponse>())!;
+            }
+
+            var fullDurationPayload = await AskAsync(null, null);
+            var roiPayload = await AskAsync(0.0, 0.25);
+
+            Assert.Equal(0, chatClientProvider.GetRequiredClientCallCount);
+            Assert.Contains("cannot determine a calibrated dB SPL", fullDurationPayload.Answer, StringComparison.OrdinalIgnoreCase);
+            Assert.Contains("digital RMS amplitude evidence", fullDurationPayload.Answer, StringComparison.Ordinal);
+            Assert.Contains("mean A-B difference of -0.25 FS", fullDurationPayload.Answer, StringComparison.Ordinal);
+            Assert.Contains("A-B difference is -0.25 FS", fullDurationPayload.Answer, StringComparison.Ordinal);
+            Assert.DoesNotContain("12 dB SPL", fullDurationPayload.Answer, StringComparison.OrdinalIgnoreCase);
+            Assert.Contains(fullDurationPayload.CitedEvidence, item => item.ToolName == "selected_comparison_context");
+            Assert.Single(fullDurationPayload.CitedEvidence);
+            Assert.Contains(fullDurationPayload.Limitations, item => item.Contains("not calibrated to physical SPL", StringComparison.OrdinalIgnoreCase));
+            Assert.DoesNotContain(fullDurationPayload.Limitations, item => item.Contains("dBFS", StringComparison.OrdinalIgnoreCase));
+            Assert.Empty(fullDurationPayload.ToolsUsed);
+
+            Assert.Contains("selected ROI", roiPayload.Answer, StringComparison.OrdinalIgnoreCase);
+            Assert.Contains(roiPayload.Limitations, item => item.Contains("selected ROI only", StringComparison.OrdinalIgnoreCase));
+            Assert.Contains(roiPayload.NextSteps, item => item.Contains("calibration reference", StringComparison.OrdinalIgnoreCase));
+        }
+        finally
+        {
+            File.Delete(quietPath);
+            File.Delete(loudPath);
+        }
+    }
+
     private static byte[] CreateMono16BitWav(int sampleRate, IReadOnlyList<short> samples)
     {
         const short channels = 1;
@@ -318,14 +425,20 @@ public sealed class AgentQueryEndpointTests : IClassFixture<WebApplicationFactor
     {
         public string? LastUserMessage { get; private set; }
 
-        public ChatClient GetRequiredClient() => new StubChatClient(
-            responseJson,
-            messages => LastUserMessage = messages
-                .OfType<UserChatMessage>()
-                .LastOrDefault()?
-                .Content
-                .FirstOrDefault()?
-                .Text);
+        public int GetRequiredClientCallCount { get; private set; }
+
+        public ChatClient GetRequiredClient()
+        {
+            GetRequiredClientCallCount++;
+            return new StubChatClient(
+                responseJson,
+                messages => LastUserMessage = messages
+                    .OfType<UserChatMessage>()
+                    .LastOrDefault()?
+                    .Content
+                    .FirstOrDefault()?
+                    .Text);
+        }
     }
 
     private sealed class StubChatClient(

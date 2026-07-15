@@ -83,6 +83,7 @@ These findings are useful first-pass cues, but they should still be treated as b
 - In compare mode, Copilot now also accepts a bounded selected-comparison context from the selected metric, active aligned pair, visible findings, and ROI scope.
 - The frontend sends only comparison selection identifiers. The backend re-runs the deterministic recording comparison, validates the aligned pair, resolves the selected metric, and rebuilds findings and limitations before asking the model to explain anything.
 - That explanation path asks the model to explain only backend-owned selected comparison evidence instead of rediscovering or widening the workspace scope.
+- Selected-comparison requests for calibrated dB SPL or physical sound-pressure conclusions now bypass OpenAI and return a deterministic refusal. The response preserves the available digital metric values, active pair, aligned signals, ROI, and calibration limitation without relabelling digital evidence as physical SPL.
 - The backend exposes compact deterministic tools such as metrics, findings, spectrum summaries, and signal comparison summaries.
 - The response returns structured answer text, cited evidence, limitations, next steps, and tools used.
 - If the OpenAI API key is missing, the endpoint returns a structured unavailable response instead of a bare `503`.
@@ -154,4 +155,4 @@ The repo is still intentionally simple: no extra backend projects, no persistenc
 
 ## Immediate Next Product Slice
 
-The next product slice should harden selected-comparison Copilot refusal of calibrated dB SPL conclusions when evidence is uncalibrated. A real calibration-state model and calibrated-versus-uncalibrated eval remain later trust work.
+The next product slice should make unsupported causal questions consistently state that selected comparison evidence can describe a difference but cannot establish its cause. A real calibration-state model and calibrated-versus-uncalibrated eval remain later trust work.

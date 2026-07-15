@@ -138,17 +138,15 @@ public sealed class AgentQueryHandler(
             return deterministicComparisonResponse;
         }
 
-        var chatClient = chatClientProvider.GetRequiredClient();
-
         var comparisonExplanationResponse = await TryBuildComparisonExplanationResponseAsync(
             command,
-            chatClient,
             ct);
         if (comparisonExplanationResponse is not null)
         {
             return comparisonExplanationResponse;
         }
 
+        var chatClient = chatClientProvider.GetRequiredClient();
         var messages = new List<ChatMessage>
         {
             new SystemChatMessage(SystemPrompt),
@@ -353,7 +351,6 @@ public sealed class AgentQueryHandler(
 
     private async Task<AgentQueryResponse?> TryBuildComparisonExplanationResponseAsync(
         AgentQueryCommand command,
-        ChatClient chatClient,
         CancellationToken ct)
     {
         if (command.ComparisonContext is null)
@@ -376,6 +373,23 @@ public sealed class AgentQueryHandler(
             throw;
         }
 
+        var isRoiScoped = command.StartTimeSeconds.HasValue && command.EndTimeSeconds.HasValue;
+        if (UncalibratedSplRefusalPolicy.IsPhysicalSplRequest(command.Question))
+        {
+            return new AgentQueryResponse(
+                Answer: UncalibratedSplRefusalPolicy.BuildAnswer(comparisonContext, isRoiScoped),
+                CitedEvidence: BuildSelectedComparisonContextEvidence(comparisonContext),
+                Limitations: BuildComparisonExplanationLimitations(comparisonContext, isRoiScoped),
+                NextSteps:
+                [
+                    "Provide a validated acoustic calibration reference if you need physical dB SPL values.",
+                    "Use the available digital comparison evidence to compare the selected recordings without treating it as physical SPL."
+                ],
+                ToolsUsed: []);
+        }
+
+        var chatClient = chatClientProvider.GetRequiredClient();
+
         var messages = new List<ChatMessage>
         {
             new SystemChatMessage(ComparisonExplanationSystemPrompt),
@@ -389,7 +403,7 @@ public sealed class AgentQueryHandler(
             CitedEvidence = BuildComparisonExplanationEvidence(comparisonContext),
             Limitations = BuildComparisonExplanationLimitations(
                 comparisonContext,
-                command.StartTimeSeconds.HasValue && command.EndTimeSeconds.HasValue),
+                isRoiScoped),
             NextSteps = BuildComparisonExplanationNextSteps(comparisonContext)
         };
     }
@@ -646,13 +660,7 @@ public sealed class AgentQueryHandler(
     private static IReadOnlyList<AgentEvidenceItem> BuildComparisonExplanationEvidence(
         ResolvedComparisonExplanationContext comparisonContext)
     {
-        var evidence = new List<AgentEvidenceItem>
-        {
-            new(
-                "selected_comparison_context",
-                string.Empty,
-                $"{comparisonContext.MetricLabel} · {comparisonContext.RecordingFileNameA} vs {comparisonContext.RecordingFileNameB}")
-        };
+        var evidence = BuildSelectedComparisonContextEvidence(comparisonContext).ToList();
 
         evidence.AddRange(
             (comparisonContext.Findings ?? [])
@@ -666,6 +674,15 @@ public sealed class AgentQueryHandler(
         return evidence;
     }
 
+    private static IReadOnlyList<AgentEvidenceItem> BuildSelectedComparisonContextEvidence(
+        ResolvedComparisonExplanationContext comparisonContext) =>
+    [
+        new(
+            "selected_comparison_context",
+            string.Empty,
+            $"{comparisonContext.MetricLabel} · {comparisonContext.RecordingFileNameA} vs {comparisonContext.RecordingFileNameB}")
+    ];
+
     private static IReadOnlyList<string> BuildComparisonExplanationLimitations(
         ResolvedComparisonExplanationContext comparisonContext,
         bool isRoiScoped)
@@ -674,7 +691,7 @@ public sealed class AgentQueryHandler(
 
         if (string.Equals(comparisonContext.Unit, "FS", StringComparison.OrdinalIgnoreCase))
         {
-            limitations.Add("Values are in dBFS, not calibrated to physical SPL.");
+            limitations.Add("Amplitude values are normalized to digital full scale (FS), not calibrated to physical SPL.");
         }
         else if (string.Equals(comparisonContext.Unit, "ratio", StringComparison.OrdinalIgnoreCase))
         {

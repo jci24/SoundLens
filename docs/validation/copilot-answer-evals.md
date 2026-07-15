@@ -90,4 +90,6 @@ Live model failures are production-behavior evidence, not harness defects. Recor
 
 Comparison cases cover an undefined overall criterion, zero RMS difference, missing aligned evidence with low coverage, unsupported causal explanation over an ROI, and refusal of calibrated dB SPL conclusions from uncalibrated evidence.
 
+The uncalibrated SPL case exercises a deterministic backend trust guard rather than model compliance. A passing response must refuse the physical conclusion, preserve the backend-resolved digital comparison evidence and calibration limitation, and contain no numeric dB SPL claim. This case should remain stable even when OpenAI is unavailable or returns malformed output because the matching request never reaches the model.
+
 A true calibrated-versus-uncalibrated mismatch is deferred. Imported evidence currently remains uncalibrated, so adding such a fixture would invent unsupported product state rather than test the real contract.

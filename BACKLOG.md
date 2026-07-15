@@ -49,6 +49,7 @@ Turn the current analysis workspace into a focused comparison workflow for repea
 - non-modal comparison evidence inspector that preserves chart position and closes Copilot before opening
 - explicit Compare A and Compare B recording slots with accessible pickers, replace, clear, duplicate prevention, and atomic swap
 - comparison trust evals for ambiguity, zero difference, missing alignment, ROI-bounded causal uncertainty, and uncalibrated SPL refusal
+- deterministic refusal of calibrated dB SPL conclusions from uncalibrated selected-comparison evidence
 - diagnostic live-eval artifacts plus CI-tested dataset and grading logic
 - Markdown and textual/tabular PDF comparison export over one backend-prepared evidence model
 
@@ -62,25 +63,25 @@ Reason for deferral:
 - imported evidence is currently uncalibrated, so a calibrated fixture would fabricate unsupported state
 - schedule after the product introduces a real calibration-state contract and validation path
 
-### Trust hardening. Uncalibrated SPL refusal
+### Trust hardening. Unsupported causal explanation
 
 User value:
-- A user receives an explicit refusal instead of a physical SPL claim when selected comparison evidence is uncalibrated.
+- A user receives a consistent statement of causal uncertainty when selected comparison evidence shows a difference but cannot establish its cause.
 
 Thin-slice boundary:
-- Harden the selected-comparison answer path and its deterministic tests without adding a fabricated calibration state.
+- Harden the selected-comparison answer path and deterministic tests without adding speculative root-cause analysis.
 
 Acceptance criteria:
-- dB SPL questions over uncalibrated selected evidence explicitly state that physical SPL cannot be determined
-- the answer preserves the backend-provided digital evidence and calibration limitation
-- repeated trust evals no longer permit calibrated SPL wording
+- causal questions over selected evidence explicitly state that the current evidence does not establish a cause
+- the answer preserves the backend-provided selected metric, aligned pair, ROI, findings, and limitations
+- repeated trust evals no longer permit unsupported causal wording
 
 Test expectations:
 - backend selected-comparison regression tests
-- live eval rerun for the existing uncalibrated SPL case
+- live eval rerun for the existing unsupported-causal ROI case
 
 Proposed branch name:
-- `codex/uncalibrated-spl-refusal`
+- `codex/unsupported-causal-refusal`
 
 Dependencies:
 - existing A13 trust eval fixture and selected-comparison context
@@ -89,7 +90,6 @@ Dependencies:
 
 High priority:
 
-- make unsupported causal questions consistently state that selected comparison evidence cannot establish a cause; the A13 live baseline showed nondeterministic refusal wording over ROI evidence
 - ensure malformed or non-JSON model output cannot surface raw structured payloads in the Copilot UI
 - split comparison-explanation orchestration and prompt construction out of the oversized `AgentQueryHandler` before adding another broad agent capability
 
