@@ -2,6 +2,7 @@ import { AnalysisWorkspaceChart } from './AnalysisWorkspaceChart'
 import { AnalysisWorkspaceHeader } from './AnalysisWorkspaceHeader'
 import { ComparisonEvidenceInspector } from './ComparisonEvidenceInspector'
 import { ComparisonReportDialog } from '../../report/components/ComparisonReportDialog'
+import { AudioTransport } from '../../playback/components/AudioTransport'
 import { RecordingRail } from '../../recording-rail/components/RecordingRail'
 import { useAnalysisWorkspaceMetrics } from '../../metrics/hooks/useAnalysisWorkspaceMetrics'
 import { useReportExport } from '../../report/hooks/useReportExport'
@@ -600,6 +601,10 @@ const TimeWaveformWorkspace = ({ importedFiles, isCopilotOpen, onCopilotToggle }
               </button>
             </section>
           )}
+          <AudioTransport
+            recordings={recordings}
+            recordingGroupAssignments={recordingGroupAssignments}
+          />
           <AnalysisWorkspaceChart
             chartRef={chartRef}
             chartWidth={chartWidth}

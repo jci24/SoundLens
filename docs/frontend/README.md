@@ -148,6 +148,15 @@ Current report-export guidance:
 - Metric-card activation and the clearly labelled `Evidence & limitations` disclosure open a non-modal right-side inspector instead of expanding evidence inline. The inspector renders only backend-owned comparison values, scope, aligned-pair evidence, coverage, and limitations.
 - Evidence inspection must not resize or vertically displace the primary chart canvas. It supports Escape, outside-interaction, an explicit close action, and focus return to the invoking control.
 - Evidence and Copilot are mutually exclusive right-side surfaces. Opening evidence closes Copilot; contextual Copilot actions remain a separate slice.
+
+Current playback guidance:
+
+- The analysis workspace renders one reusable browser-native media element, regardless of the number of imported recordings.
+- Playback starts with no source. Users explicitly choose a recording from a searchable Radix picker that shows duration, channel count, and active A/B status.
+- Broad picker results are capped at 50 and ask the user to refine the search, preventing an unbounded popover DOM before the recording rail receives dedicated virtualization.
+- The transport requests only the selected recording with `preload="metadata"` and exposes play, pause, seek, time, loading, buffering, unsupported-format, and failure states.
+- Playback preserves original recording routing and remains separate from signal selection, ROI evidence, and backend DSP calculations.
+- ROI play-once, explicit looping, waveform playhead synchronization, A/B switching, and isolated-channel routing are separate follow-up slices.
 - Metric cards select context rather than unconditionally selecting a panel. When Copilot is open, a metric-card click keeps it open and updates the selected comparison context; the explicit `Evidence & limitations` disclosure switches from Copilot to the inspector.
 
 Current comparison-pair guidance:

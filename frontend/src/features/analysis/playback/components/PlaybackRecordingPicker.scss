@@ -1,0 +1,117 @@
+.playback-recording-picker__trigger {
+  display: inline-flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  min-width: 0;
+  padding: 0.35rem 0.5rem;
+  border: 1px solid color-mix(in srgb, var(--border) 84%, transparent);
+  border-radius: 0.55rem;
+  background: transparent;
+  color: var(--foreground);
+  text-align: left;
+  cursor: pointer;
+}
+
+.playback-recording-picker__trigger:hover,
+.playback-recording-picker__trigger[data-state='open'] {
+  background: color-mix(in srgb, var(--muted) 42%, transparent);
+}
+
+.playback-recording-picker__trigger-copy,
+.playback-recording-picker__option-copy {
+  display: grid;
+  min-width: 0;
+}
+
+.playback-recording-picker__trigger-copy strong,
+.playback-recording-picker__option-copy strong {
+  overflow: hidden;
+  font-size: var(--font-xs);
+  font-weight: 650;
+  line-height: 1.25;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.playback-recording-picker__trigger-copy span,
+.playback-recording-picker__option-copy span {
+  overflow: hidden;
+  color: var(--muted-foreground);
+  font-size: 0.65rem;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.playback-recording-picker__popover {
+  z-index: 60;
+  width: min(23rem, calc(100vw - 1.5rem));
+  padding: 0.45rem;
+  border: 1px solid var(--border);
+  border-radius: 0.75rem;
+  background: var(--popover);
+  color: var(--popover-foreground);
+  box-shadow: 0 16px 36px color-mix(in srgb, black 14%, transparent);
+}
+
+.playback-recording-picker__search {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.42rem 0.5rem;
+  border: 1px solid var(--border);
+  border-radius: 0.55rem;
+  color: var(--muted-foreground);
+
+  input {
+    width: 100%;
+    border: 0;
+    outline: 0;
+    background: transparent;
+    color: var(--foreground);
+    font: inherit;
+    font-size: var(--font-xs);
+  }
+}
+
+.playback-recording-picker__result-summary,
+.playback-recording-picker__refine {
+  margin: 0;
+  padding: 0.4rem 0.5rem 0.25rem;
+  color: var(--muted-foreground);
+  font-size: 0.65rem;
+}
+
+.playback-recording-picker__options {
+  display: grid;
+  max-height: min(21rem, 55vh);
+  overflow-y: auto;
+}
+
+.playback-recording-picker__option {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 0.5rem;
+  width: 100%;
+  padding: 0.48rem 0.5rem;
+  border: 0;
+  border-radius: 0.5rem;
+  background: transparent;
+  color: var(--foreground);
+  text-align: left;
+  cursor: pointer;
+}
+
+.playback-recording-picker__option:hover,
+.playback-recording-picker__option:focus-visible {
+  background: var(--muted);
+  outline: none;
+}
+
+.playback-recording-picker__empty {
+  margin: 0;
+  padding: 0.8rem 0.5rem;
+  color: var(--muted-foreground);
+  font-size: var(--font-xs);
+}

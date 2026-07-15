@@ -56,6 +56,14 @@ Current waveform guidance:
 - The initial decoder supports WAV PCM and 32-bit float WAV files only; MP3, FLAC, OGG, and AIFF need a later decoder slice.
 - Amplitudes are normalized digital sample values and are not calibrated SPL.
 
+Current playback guidance:
+
+- `GET /api/playback/recordings/{recordingId}` resolves only against the current imported-file store; clients never submit filesystem paths.
+- The store preserves import order and maintains an atomic recording-ID index so playback lookup does not scan or decode the session.
+- Playback streams the original file bytes and content type with HTTP range processing and `Cache-Control: no-store` for browser seeking.
+- Playback is an audition aid, not DSP evidence. The backend does not transcode, normalize, apply gain, resample, or derive measurements through this endpoint.
+- Unknown IDs, stale session entries, and missing files return `404` without exposing local paths.
+
 Current spectrum guidance:
 
 - The first frequency-domain evidence endpoint should be requested explicitly by the active analysis surface rather than generated automatically for every selection.

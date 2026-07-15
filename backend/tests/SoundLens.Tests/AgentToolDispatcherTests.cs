@@ -14,6 +14,8 @@ public sealed class AgentToolDispatcherTests
     private sealed class StubFileStore(IReadOnlyList<ImportedFileSummary> files) : IImportedFileStore
     {
         public IReadOnlyList<ImportedFileSummary> CurrentFiles => files;
+        public ImportedFileSummary? GetByRecordingId(string recordingId) =>
+            files.FirstOrDefault(file => ImportedFileIdentity.BuildRecordingId(file) == recordingId);
         public void Replace(IReadOnlyList<ImportedFileSummary> newFiles) { }
     }
 

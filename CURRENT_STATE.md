@@ -153,8 +153,10 @@ The repo is still intentionally simple: no extra backend projects, no persistenc
 - Copilot and comparison export reconstruct evidence from session-scoped identifiers rather than a persisted comparison object
 - Comparison report PDF is textual and tabular only; waveform and spectrum images and formal PDF/UA conformance remain deferred
 - Heterogeneous comparison metrics use a fixed backend-owned presentation order: Peak amplitude, RMS amplitude, crest factor, then clipping samples. The order does not claim normalized importance or severity.
+- Focused and compare workspaces can audition one explicitly selected imported recording through a browser-native transport with play, pause, seeking, compact time display, and searchable source selection.
+- Playback resolves recording IDs through an indexed current-session store and streams original bytes with HTTP range support. It does not normalize, transcode, recompute evidence, or preload unselected recordings.
 - A true calibrated-versus-uncalibrated comparison eval remains deferred because imported evidence currently has no real calibrated state
 
 ## Immediate Next Product Slice
 
-The next product slice should add recording-level audio playback through a range-enabled backend stream and a compact workspace transport with seeking, ROI play-once, optional looping, and a waveform playhead. Synchronized A/B audition and isolated-channel playback remain follow-ups. A real calibration-state model and calibrated-versus-uncalibrated eval remain later trust work.
+The next product slice should align the existing recording transport with selected ROI playback, optional looping, and a non-interactive waveform playhead. Large-session recording-rail virtualization follows as a separate UI-scale slice; synchronized A/B and isolated-channel audition remain later playback phases. A real calibration-state model and calibrated-versus-uncalibrated eval remain later trust work.

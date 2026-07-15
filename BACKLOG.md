@@ -54,32 +54,41 @@ Turn the current analysis workspace into a focused comparison workflow for repea
 - deterministic containment of malformed, truncated, fenced-invalid, and schema-invalid Copilot output
 - diagnostic live-eval artifacts plus CI-tested dataset and grading logic
 - Markdown and textual/tabular PDF comparison export over one backend-prepared evidence model
+- original-recording playback through one browser-native media element, a range-enabled backend stream, indexed session lookup, and searchable bounded source selection
 
 ## Ordered Thin Tasks
 
-### Workspace usability. Focused audio playback
+### Playback phase 2. ROI playback and waveform playhead
 
 User value:
-- A user can audition an explicitly selected recording while inspecting its waveform, spectrum, and selected ROI.
+- A user can audition exactly the selected time region and follow playback position on the waveform.
 
 Thin-slice boundary:
-- Add original-recording playback through a range-enabled backend stream and a compact native browser transport without changing DSP evidence.
+- Extend the validated single-recording transport with ROI boundaries, explicit looping, and a non-interactive playhead without changing DSP evidence.
 
 Acceptance criteria:
-- recording IDs resolve only through the current import session; arbitrary paths cannot be streamed
-- the transport supports explicit source selection, play/pause, seeking, ROI play-once, optional looping, and a waveform playhead
-- playback preserves the original channel layout and applies no gain, normalization, effects, resampling, or evidence calculations
-- source and ROI changes stop playback and reset the playhead predictably
+- Play starts at the selected ROI start and stops at its end; looping remains an explicit user choice
+- source and ROI changes stop playback and reset the playhead to the active scope start
+- the waveform playhead does not alter backend bins, ROI drag behavior, or chart geometry
+- one media element remains the only playback resource and all animation/listener cleanup is deterministic
 
 Test expectations:
-- backend full-file, byte-range, unknown-recording, and missing-file tests
-- frontend transport, ROI boundary, loop, failure, cleanup, accessibility, and waveform-regression tests
+- frontend ROI boundary, loop, source/ROI reset, playhead, cleanup, keyboard-guard, accessibility, and waveform-regression tests
 
 Proposed branch name:
-- `codex/focused-audio-playback`
+- `codex/roi-playback-sync`
 
 Dependencies:
-- current imported-file session, recording IDs, waveform ROI state, and browser media support
+- merged recording playback foundation, waveform ROI state, and browser media events
+
+### Playback phase 3. Large-session navigation
+
+Reason for sequencing:
+- searchable playback selection is bounded for 100+ recording choices, but the main recording rail still mounts its full expanded hierarchy
+- virtualize the rail only after ROI playback is validated so transport timing and list-rendering regressions remain isolated
+
+Proposed branch name:
+- `codex/large-session-navigation`
 
 ### Playback follow-up. Synchronized A/B audition
 

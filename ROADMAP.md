@@ -90,7 +90,9 @@ Current status:
 - fixed-order comparison metrics, coverage cues, and selected-result drill-down are in `main`
 - the selected metric, aligned pair, and ROI remain visible while inspecting waveform and spectrum evidence
 - selected metric details and limitations open in a non-modal side inspector without pushing waveform or spectrum evidence down the workspace
-- focused recording playback is the next planned usability extension; synchronized A/B audition follows after manual validation
+- focused and compare workspaces provide explicit original-recording playback through one browser-native media element and a range-enabled current-session stream
+- ROI play-once, optional looping, and waveform playhead synchronization are the next playback slice
+- large-session recording-rail virtualization follows separately before synchronized A/B and isolated-channel audition
 
 Explicitly deferred work:
 - broad open-ended AI investigation
