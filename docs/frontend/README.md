@@ -145,7 +145,10 @@ Current report-export guidance:
 - Markdown uses the existing text response and download path. PDF uses a binary `Blob`, reads the CORS-exposed `Content-Disposition` filename defensively, falls back to `soundlens-comparison.pdf`, and always releases the temporary object URL after triggering download.
 - Opening a new comparison preview resets the format to Markdown. Export failure keeps the dialog open so the user can retry or choose another format.
 - Comparison metric cards preserve backend response order and never sort heterogeneous units by frontend-computed magnitude. Selection changes evidence focus without moving cards.
-- Metric-card activation opens the selected evidence directly. The compact default view retains a clearly labeled `Evidence & limitations` disclosure, and the expanded section owns its `Hide evidence` action.
+- Metric-card activation and the clearly labelled `Evidence & limitations` disclosure open a non-modal right-side inspector instead of expanding evidence inline. The inspector renders only backend-owned comparison values, scope, aligned-pair evidence, coverage, and limitations.
+- Evidence inspection must not resize or vertically displace the primary chart canvas. It supports Escape, outside-interaction, an explicit close action, and focus return to the invoking control.
+- Evidence and Copilot are mutually exclusive right-side surfaces. Opening evidence closes Copilot; contextual Copilot actions remain a separate slice.
+- Metric cards select context rather than unconditionally selecting a panel. When Copilot is open, a metric-card click keeps it open and updates the selected comparison context; the explicit `Evidence & limitations` disclosure switches from Copilot to the inspector.
 
 Current comparison-pair guidance:
 

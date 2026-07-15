@@ -600,9 +600,8 @@ describe('TimeWaveformWorkspace', () => {
     expect(screen.getByText('Comparison metrics', { selector: 'h3' })).toBeInTheDocument()
     expect(await screen.findByText('Weak evidence')).toBeInTheDocument()
     expect(screen.getByText('1 limitation')).toBeInTheDocument()
-    expect(screen.queryByLabelText('Selected metric evidence')).not.toBeInTheDocument()
-    expect(screen.queryByLabelText('Comparison limitations')).not.toBeInTheDocument()
-    expect(screen.getByRole('button', { name: 'Evidence & limitations' })).toHaveAttribute('aria-expanded', 'false')
+    expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Evidence & limitations' })).toHaveAttribute('aria-haspopup', 'dialog')
     const peakButton = screen.getByRole('button', { name: /Peak amplitude/i })
     const rmsButton = screen.getByRole('button', { name: /RMS amplitude/i })
     const crestButton = screen.getByRole('button', { name: /Crest factor/i })
@@ -613,14 +612,19 @@ describe('TimeWaveformWorkspace', () => {
 
     fireEvent.click(crestButton)
 
-    expect(screen.getByLabelText('Selected metric evidence')).toHaveTextContent('Crest factor')
-    expect(crestButton).toHaveAttribute('aria-expanded', 'true')
+    expect(screen.getByRole('dialog', { name: 'Crest factor' })).toHaveTextContent('Mean delta A-B-0.400 ratio')
+    expect(screen.getByRole('dialog', { name: 'Crest factor' })).toHaveTextContent('Low coverage')
+    expect(crestButton).toHaveAttribute('aria-pressed', 'true')
     expect(peakButton.compareDocumentPosition(rmsButton) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy()
-    expect(screen.getByLabelText('Comparison limitations')).toHaveTextContent('Low coverage')
-    fireEvent.click(screen.getByRole('button', { name: 'Hide evidence' }))
-    expect(screen.queryByLabelText('Selected metric evidence')).not.toBeInTheDocument()
+    fireEvent.pointerDown(rmsButton, { button: 0, pointerType: 'mouse' })
+    fireEvent.click(rmsButton)
+    expect(screen.getByRole('dialog', { name: 'RMS amplitude' })).toBeInTheDocument()
+    expect(rmsButton).toHaveAttribute('aria-pressed', 'true')
+    expect(screen.queryByRole('button', { name: 'Hide evidence' })).not.toBeInTheDocument()
+    fireEvent.click(screen.getByRole('button', { name: 'Close evidence inspector' }))
+    expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
     fireEvent.click(screen.getByRole('button', { name: 'Evidence & limitations' }))
-    expect(screen.getByLabelText('Selected metric evidence')).toHaveTextContent('Crest factor')
+    expect(screen.getByRole('dialog', { name: 'RMS amplitude' })).toBeInTheDocument()
 
     workspaceState.regionOfInterest = {
       startTimeSeconds: 0.2,
@@ -642,8 +646,118 @@ describe('TimeWaveformWorkspace', () => {
         endTimeSeconds: 0.8,
       })
     })
+    expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
     fireEvent.click(screen.getByRole('button', { name: 'Evidence & limitations' }))
-    expect(screen.getByLabelText('Selected metric evidence')).toHaveTextContent('Crest factor')
+    expect(screen.getByRole('dialog', { name: 'RMS amplitude' })).toHaveTextContent('ROI 0.20 s to 0.80 s · 0.60 s')
+  })
+
+  it('closes Copilot before opening comparison evidence', async () => {
+    const workspaceState = createWorkspaceState()
+    const onCopilotToggle = vi.fn()
+    workspaceState.layoutMode = 'compare'
+    workspaceState.recordings = [
+      {
+        recordingId: 'recording-1',
+        fileName: 'alpha.wav',
+        sizeBytes: 1_024,
+        durationSeconds: 1,
+        sampleRate: 44_100,
+        channels: 1,
+        channelMode: 'Mono',
+        signals: [],
+      },
+      {
+        recordingId: 'recording-2',
+        fileName: 'beta.wav',
+        sizeBytes: 2_048,
+        durationSeconds: 1,
+        sampleRate: 44_100,
+        channels: 1,
+        channelMode: 'Mono',
+        signals: [],
+      },
+    ]
+    workspaceState.recordingGroupAssignments = {
+      'recording-1': 'A',
+      'recording-2': 'B',
+    }
+    mockUseTimeWaveformWorkspace.mockReturnValue(workspaceState)
+
+    const { rerender } = render(
+      <TimeWaveformWorkspace
+        importedFiles={importedFiles}
+        isCopilotOpen
+        onCopilotToggle={onCopilotToggle}
+      />
+    )
+
+    const evidenceButton = await screen.findByRole('button', { name: 'Evidence & limitations' })
+    fireEvent.click(evidenceButton)
+
+    expect(onCopilotToggle).toHaveBeenCalledTimes(1)
+    expect(screen.getByRole('dialog', { name: 'Peak amplitude' })).toBeInTheDocument()
+
+    workspaceState.recordings = [...workspaceState.recordings]
+    mockUseTimeWaveformWorkspace.mockReturnValue(workspaceState)
+    rerender(
+      <TimeWaveformWorkspace
+        importedFiles={importedFiles}
+        isCopilotOpen={false}
+        onCopilotToggle={onCopilotToggle}
+      />
+    )
+
+    expect(screen.getByRole('dialog', { name: 'Peak amplitude' })).toBeInTheDocument()
+    expect(onCopilotToggle).toHaveBeenCalledTimes(1)
+    expect(mockGetRecordingComparison).toHaveBeenCalledTimes(1)
+  })
+
+  it('keeps Copilot open when a metric card changes its grounded context', async () => {
+    const workspaceState = createWorkspaceState()
+    const onCopilotToggle = vi.fn()
+    workspaceState.layoutMode = 'compare'
+    workspaceState.recordings = [
+      {
+        recordingId: 'recording-1',
+        fileName: 'alpha.wav',
+        sizeBytes: 1_024,
+        durationSeconds: 1,
+        sampleRate: 44_100,
+        channels: 1,
+        channelMode: 'Mono',
+        signals: [],
+      },
+      {
+        recordingId: 'recording-2',
+        fileName: 'beta.wav',
+        sizeBytes: 2_048,
+        durationSeconds: 1,
+        sampleRate: 44_100,
+        channels: 1,
+        channelMode: 'Mono',
+        signals: [],
+      },
+    ]
+    workspaceState.recordingGroupAssignments = {
+      'recording-1': 'A',
+      'recording-2': 'B',
+    }
+    mockUseTimeWaveformWorkspace.mockReturnValue(workspaceState)
+
+    render(
+      <TimeWaveformWorkspace
+        importedFiles={importedFiles}
+        isCopilotOpen
+        onCopilotToggle={onCopilotToggle}
+      />
+    )
+
+    const crestButton = await screen.findByRole('button', { name: /Crest factor/i })
+    fireEvent.click(crestButton)
+
+    expect(crestButton).toHaveAttribute('aria-pressed', 'true')
+    expect(onCopilotToggle).not.toHaveBeenCalled()
+    expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
   })
 
   it('blocks comparison when inconsistent state assigns more than one recording to a target', () => {

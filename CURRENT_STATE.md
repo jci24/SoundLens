@@ -1,6 +1,6 @@
 # Current State
 
-Last updated: 2026-07-14
+Last updated: 2026-07-15
 
 ## What Users Can Currently Do
 
@@ -34,6 +34,9 @@ The current product is strong as an analysis workspace, but it is not yet a full
 - The backend now includes a deterministic pairwise signal-alignment contract that classifies matches as name-based, index-based, ambiguous, or missing.
 - The backend now exposes a pairwise recording-comparison contract with optional ROI, aligned-signal pairs, per-pair metric observations, aggregate delta summaries, and explicit limitation reporting.
 - Inconsistent or legacy multi-assignment state blocks comparison and asks the user to resolve the pair instead of silently selecting the first recording.
+- Selecting a comparison metric opens a non-modal evidence inspector with the active pair, ROI scope, aggregate values, aligned-pair values, coverage, and backend-provided limitations without moving the chart canvas.
+- The evidence inspector and Copilot are mutually exclusive so two right-side analysis surfaces cannot crowd the workspace at the same time.
+- When Copilot is already open, selecting another comparison metric keeps Copilot visible and updates its backend-resolved selected-metric context; the explicit `Evidence & limitations` action switches to the inspector.
 
 ## Waveform And Spectrum Behavior
 

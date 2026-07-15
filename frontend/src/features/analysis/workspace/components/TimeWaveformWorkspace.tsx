@@ -1,5 +1,6 @@
 import { AnalysisWorkspaceChart } from './AnalysisWorkspaceChart'
 import { AnalysisWorkspaceHeader } from './AnalysisWorkspaceHeader'
+import { ComparisonEvidenceInspector } from './ComparisonEvidenceInspector'
 import { ComparisonReportDialog } from '../../report/components/ComparisonReportDialog'
 import { RecordingRail } from '../../recording-rail/components/RecordingRail'
 import { useAnalysisWorkspaceMetrics } from '../../metrics/hooks/useAnalysisWorkspaceMetrics'
@@ -10,15 +11,21 @@ import { useTimeWaveformWorkspace } from '../hooks/useTimeWaveformWorkspace'
 import { getRecordingComparison } from '../../services/recordingComparison'
 import { useAnalysisWorkspaceStore } from '../../stores/useAnalysisWorkspaceStore'
 import { getComparisonSetupSummary } from '../../utils/analysisWorkspaceState'
+import {
+  formatAggregateValue,
+  formatComparisonMetricLabel,
+  getComparisonCoverageSummary,
+  getObservationDelta,
+  getObservationValue,
+} from '../../utils/comparisonEvidence'
 import type { IImportedFileSummary } from '../../../../common/contracts/import'
 import type {
   IComparisonCopilotSelection,
   IRecordingComparisonMetricAggregate,
   IRecordingComparisonResponse,
-  IRecordingComparisonSignalObservation,
 } from '../../types'
-import { ChevronDown, ChevronUp } from 'lucide-react'
-import { useEffect, useMemo, useState } from 'react'
+import { PanelRightOpen } from 'lucide-react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import './TimeWaveformWorkspace.scss'
 
 interface ITimeWaveformWorkspaceProps {
@@ -33,6 +40,8 @@ interface IComparisonRequestState {
   results: IRecordingComparisonResponse | null
 }
 
+const COPILOT_CLOSE_TRANSITION_MS = 220
+
 const TimeWaveformWorkspace = ({ importedFiles, isCopilotOpen, onCopilotToggle }: ITimeWaveformWorkspaceProps) => {
   const setComparisonCopilotContext = useAnalysisWorkspaceStore((state) => state.setComparisonCopilotContext)
   const [comparisonRequestState, setComparisonRequestState] = useState<IComparisonRequestState>({
@@ -40,7 +49,9 @@ const TimeWaveformWorkspace = ({ importedFiles, isCopilotOpen, onCopilotToggle }
     requestKey: null,
     results: null,
   })
-  const [isComparisonDetailsOpen, setIsComparisonDetailsOpen] = useState(false)
+  const [isEvidenceInspectorOpen, setIsEvidenceInspectorOpen] = useState(false)
+  const [isCopilotHandoffActive, setIsCopilotHandoffActive] = useState(false)
+  const evidenceInspectorTriggerRef = useRef<HTMLElement | null>(null)
   const [selectedMetricKey, setSelectedMetricKey] =
     useState<IRecordingComparisonMetricAggregate['metricKey'] | null>(null)
   const {
@@ -125,14 +136,18 @@ const TimeWaveformWorkspace = ({ importedFiles, isCopilotOpen, onCopilotToggle }
   )
   const activePairRecordingA = groupARecordings.length === 1 ? groupARecordings[0] : null
   const activePairRecordingB = groupBRecordings.length === 1 ? groupBRecordings[0] : null
+  const activePairRecordingIdA = activePairRecordingA?.recordingId ?? null
+  const activePairRecordingIdB = activePairRecordingB?.recordingId ?? null
+  const comparisonRoiStartSeconds = regionOfInterest?.startTimeSeconds ?? null
+  const comparisonRoiEndSeconds = regionOfInterest?.endTimeSeconds ?? null
   const canRequestPairwiseComparison =
     layoutMode === 'compare' && comparisonSetup.state === 'valid' && groupARecordings.length === 1 && groupBRecordings.length === 1
   const activeComparisonRequestKey = canRequestPairwiseComparison
     ? [
-        groupARecordings[0].recordingId,
-        groupBRecordings[0].recordingId,
-        regionOfInterest?.startTimeSeconds ?? 'full',
-        regionOfInterest?.endTimeSeconds ?? 'full',
+        activePairRecordingIdA,
+        activePairRecordingIdB,
+        comparisonRoiStartSeconds ?? 'full',
+        comparisonRoiEndSeconds ?? 'full',
       ].join(':')
     : null
   const comparisonResults =
@@ -245,25 +260,24 @@ const TimeWaveformWorkspace = ({ importedFiles, isCopilotOpen, onCopilotToggle }
   })
 
   useEffect(() => {
-    if (!canRequestPairwiseComparison) {
+    if (
+      !canRequestPairwiseComparison ||
+      !activeComparisonRequestKey ||
+      !activePairRecordingIdA ||
+      !activePairRecordingIdB
+    ) {
       return
     }
 
     let isCurrent = true
-    const requestKey = [
-      groupARecordings[0].recordingId,
-      groupBRecordings[0].recordingId,
-      regionOfInterest?.startTimeSeconds ?? 'full',
-      regionOfInterest?.endTimeSeconds ?? 'full',
-    ].join(':')
 
     void getRecordingComparison(
-      groupARecordings[0].recordingId,
-      groupBRecordings[0].recordingId,
-      regionOfInterest
+      activePairRecordingIdA,
+      activePairRecordingIdB,
+      comparisonRoiStartSeconds !== null && comparisonRoiEndSeconds !== null
         ? {
-            startTimeSeconds: regionOfInterest.startTimeSeconds,
-            endTimeSeconds: regionOfInterest.endTimeSeconds,
+            startTimeSeconds: comparisonRoiStartSeconds,
+            endTimeSeconds: comparisonRoiEndSeconds,
           }
         : null
     )
@@ -274,10 +288,11 @@ const TimeWaveformWorkspace = ({ importedFiles, isCopilotOpen, onCopilotToggle }
 
         setComparisonRequestState({
           error: null,
-          requestKey,
+          requestKey: activeComparisonRequestKey,
           results: response,
         })
-        setIsComparisonDetailsOpen(false)
+        setIsEvidenceInspectorOpen(false)
+        setIsCopilotHandoffActive(false)
       })
       .catch((caughtError) => {
         if (!isCurrent) {
@@ -286,15 +301,24 @@ const TimeWaveformWorkspace = ({ importedFiles, isCopilotOpen, onCopilotToggle }
 
         setComparisonRequestState({
           error: caughtError instanceof Error ? caughtError.message : 'Comparison results could not be prepared.',
-          requestKey,
+          requestKey: activeComparisonRequestKey,
           results: null,
         })
+        setIsEvidenceInspectorOpen(false)
+        setIsCopilotHandoffActive(false)
       })
 
     return () => {
       isCurrent = false
     }
-  }, [canRequestPairwiseComparison, groupARecordings, groupBRecordings, regionOfInterest])
+  }, [
+    activeComparisonRequestKey,
+    activePairRecordingIdA,
+    activePairRecordingIdB,
+    canRequestPairwiseComparison,
+    comparisonRoiEndSeconds,
+    comparisonRoiStartSeconds,
+  ])
 
   useEffect(() => {
     setComparisonCopilotContext(comparisonCopilotContext)
@@ -303,6 +327,57 @@ const TimeWaveformWorkspace = ({ importedFiles, isCopilotOpen, onCopilotToggle }
       setComparisonCopilotContext(null)
     }
   }, [comparisonCopilotContext, setComparisonCopilotContext])
+
+  useEffect(() => {
+    if (!isCopilotHandoffActive || isCopilotOpen) {
+      return
+    }
+
+    const timeoutId = window.setTimeout(() => {
+      setIsCopilotHandoffActive(false)
+    }, COPILOT_CLOSE_TRANSITION_MS)
+
+    return () => window.clearTimeout(timeoutId)
+  }, [isCopilotHandoffActive, isCopilotOpen])
+
+  const handleEvidenceInspectorOpenChange = (isOpen: boolean) => {
+    if (!isOpen) {
+      setIsEvidenceInspectorOpen(false)
+      setIsCopilotHandoffActive(false)
+      return
+    }
+
+    if (isCopilotOpen) {
+      if (isCopilotHandoffActive) {
+        return
+      }
+
+      setIsCopilotHandoffActive(true)
+      setIsEvidenceInspectorOpen(true)
+      onCopilotToggle()
+      return
+    }
+
+    setIsEvidenceInspectorOpen(true)
+  }
+
+  const handleLayoutModeChange = (mode: typeof layoutMode) => {
+    if (mode !== 'compare') {
+      setIsEvidenceInspectorOpen(false)
+      setIsCopilotHandoffActive(false)
+    }
+
+    onLayoutModeChange(mode)
+  }
+
+  const handleRecordingGroupAssignment = (
+    recordingId: Parameters<typeof onRecordingGroupAssignment>[0],
+    assignment: Parameters<typeof onRecordingGroupAssignment>[1]
+  ) => {
+    setIsEvidenceInspectorOpen(false)
+    setIsCopilotHandoffActive(false)
+    onRecordingGroupAssignment(recordingId, assignment)
+  }
 
   return (
     <section
@@ -318,7 +393,7 @@ const TimeWaveformWorkspace = ({ importedFiles, isCopilotOpen, onCopilotToggle }
         layoutMode={layoutMode}
         onCopilotToggle={onCopilotToggle}
         onExportReport={handleExportReport}
-        onLayoutModeChange={onLayoutModeChange}
+        onLayoutModeChange={handleLayoutModeChange}
         onSignalChartModeChange={onSignalChartModeChange}
         onSpectrumPresetChange={onSpectrumPresetChange}
         onSpectrumRangeEndChange={onSpectrumRangeEndChange}
@@ -353,11 +428,27 @@ const TimeWaveformWorkspace = ({ importedFiles, isCopilotOpen, onCopilotToggle }
         />
       )}
 
+      {activeMetric && activePairRecordingA && activePairRecordingB && comparisonResults && (
+        <ComparisonEvidenceInspector
+          activeMetric={activeMetric}
+          activeObservation={activeObservation}
+          coverageSummary={coverageSummary}
+          fileNameA={activePairRecordingA.fileName}
+          fileNameB={activePairRecordingB.fileName}
+          isOpen={isEvidenceInspectorOpen}
+          limitations={comparisonResults.limitations}
+          onOpenChange={handleEvidenceInspectorOpenChange}
+          preventOutsideDismiss={isCopilotHandoffActive}
+          returnFocusRef={evidenceInspectorTriggerRef}
+          roiScopeLabel={roiScopeLabel}
+        />
+      )}
+
       <div className="time-waveform-workspace__body">
         <RecordingRail
           expandedRecordings={expandedRecordings}
           onComparisonTargetsSwap={onComparisonTargetsSwap}
-          onRecordingGroupAssignment={onRecordingGroupAssignment}
+          onRecordingGroupAssignment={handleRecordingGroupAssignment}
           onRecordingToggle={onRecordingToggle}
           onSignalSelection={onSignalSelection}
           recordings={recordings}
@@ -425,18 +516,19 @@ const TimeWaveformWorkspace = ({ importedFiles, isCopilotOpen, onCopilotToggle }
                         <span className="time-waveform-workspace__comparison-results-summary">
                           {coverageSummary.limitationCount} limitation{coverageSummary.limitationCount === 1 ? '' : 's'}
                         </span>
-                        {!isComparisonDetailsOpen && (
-                          <button
-                            aria-controls="comparison-metric-evidence"
-                            aria-expanded="false"
-                            className="time-waveform-workspace__comparison-results-details-toggle"
-                            type="button"
-                            onClick={() => setIsComparisonDetailsOpen(true)}
-                          >
-                            Evidence &amp; limitations
-                            <ChevronDown aria-hidden="true" size={14} />
-                          </button>
-                        )}
+                        <button
+                          aria-haspopup="dialog"
+                          className="time-waveform-workspace__comparison-results-details-toggle"
+                          data-evidence-inspector-trigger
+                          type="button"
+                          onClick={(event) => {
+                            evidenceInspectorTriggerRef.current = event.currentTarget
+                            handleEvidenceInspectorOpenChange(true)
+                          }}
+                        >
+                          <PanelRightOpen aria-hidden="true" size={14} />
+                          Evidence &amp; limitations
+                        </button>
                       </>
                     )}
                   </div>
@@ -458,15 +550,19 @@ const TimeWaveformWorkspace = ({ importedFiles, isCopilotOpen, onCopilotToggle }
                   <div className="time-waveform-workspace__comparison-metrics">
                     {comparisonMetrics.map((metric) => (
                       <button
-                        aria-controls="comparison-metric-evidence"
-                        aria-expanded={activeMetric?.metricKey === metric.metricKey && isComparisonDetailsOpen}
+                        aria-haspopup="dialog"
                         aria-pressed={activeMetric?.metricKey === metric.metricKey}
+                        data-evidence-inspector-trigger
                         key={metric.metricKey}
                         className={`time-waveform-workspace__comparison-metric-card${activeMetric?.metricKey === metric.metricKey ? ' time-waveform-workspace__comparison-metric-card--active' : ''}`}
                         type="button"
-                        onClick={() => {
+                        onClick={(event) => {
+                          evidenceInspectorTriggerRef.current = event.currentTarget
                           setSelectedMetricKey(metric.metricKey)
-                          setIsComparisonDetailsOpen(true)
+
+                          if (!isCopilotOpen) {
+                            handleEvidenceInspectorOpenChange(true)
+                          }
                         }}
                       >
                         <span className="time-waveform-workspace__comparison-metric-label">
@@ -483,75 +579,6 @@ const TimeWaveformWorkspace = ({ importedFiles, isCopilotOpen, onCopilotToggle }
                     ))}
                   </div>
 
-                  {isComparisonDetailsOpen && (activeMetric || comparisonResults.limitations.length > 0) && (
-                    <section
-                      aria-label="Comparison details"
-                      className="time-waveform-workspace__comparison-details"
-                      id="comparison-metric-evidence"
-                    >
-                      <div className="time-waveform-workspace__comparison-details-toolbar">
-                        <button
-                          aria-controls="comparison-metric-evidence"
-                          aria-expanded="true"
-                          className="time-waveform-workspace__comparison-details-hide"
-                          type="button"
-                          onClick={() => setIsComparisonDetailsOpen(false)}
-                        >
-                          Hide evidence
-                          <ChevronUp aria-hidden="true" size={14} />
-                        </button>
-                      </div>
-                      {activeMetric && activeObservation && (
-                        <section className="time-waveform-workspace__comparison-focus" aria-label="Selected metric evidence">
-                          <div>
-                            <span className="time-waveform-workspace__comparison-focus-kicker">Selected metric</span>
-                            <h4 className="time-waveform-workspace__comparison-focus-title">
-                              {formatComparisonMetricLabel(activeMetric.metricKey)}
-                            </h4>
-                          </div>
-                          <div className="time-waveform-workspace__comparison-focus-grid">
-                            <div className="time-waveform-workspace__comparison-focus-stat">
-                              <span>Mean delta A-B</span>
-                              <strong>{formatAggregateValue(activeMetric.meanDifference, activeMetric.unit)}</strong>
-                            </div>
-                            <div className="time-waveform-workspace__comparison-focus-stat">
-                              <span>Median</span>
-                              <strong>{formatAggregateValue(activeMetric.medianDifference, activeMetric.unit)}</strong>
-                            </div>
-                            <div className="time-waveform-workspace__comparison-focus-stat">
-                              <span>Coverage</span>
-                              <strong>
-                                {activeMetric.comparedPairCount} pair{activeMetric.comparedPairCount === 1 ? '' : 's'}
-                              </strong>
-                            </div>
-                            <div className="time-waveform-workspace__comparison-focus-stat">
-                              <span>Missing</span>
-                              <strong>{activeMetric.missingValueCount}</strong>
-                            </div>
-                          </div>
-                          <p className="time-waveform-workspace__comparison-focus-copy">
-                            Largest absolute aligned-pair delta: {activeObservation.displayNameA} vs {activeObservation.displayNameB} ·
-                            A {formatAggregateValue(getObservationValue(activeObservation, activeMetric.metricKey, 'A'), activeMetric.unit)} ·
-                            B {formatAggregateValue(getObservationValue(activeObservation, activeMetric.metricKey, 'B'), activeMetric.unit)} ·
-                            Delta {formatAggregateValue(getObservationDelta(activeObservation, activeMetric.metricKey), activeMetric.unit)}
-                          </p>
-                        </section>
-                      )}
-
-                      {comparisonResults.limitations.length > 0 && (
-                        <section className="time-waveform-workspace__comparison-limitations" aria-label="Comparison limitations">
-                          <p className="time-waveform-workspace__comparison-limitations-summary">
-                            {coverageSummary.copy}
-                          </p>
-                          {comparisonResults.limitations.map((limitation) => (
-                            <p key={`${limitation.code}-${limitation.detail}`}>
-                              <strong>{formatLimitationLabel(limitation.code)}:</strong> {limitation.detail}
-                            </p>
-                          ))}
-                        </section>
-                      )}
-                    </section>
-                  )}
                 </>
               )}
             </section>
@@ -609,142 +636,3 @@ const TimeWaveformWorkspace = ({ importedFiles, isCopilotOpen, onCopilotToggle }
 }
 
 export { TimeWaveformWorkspace }
-
-const formatComparisonMetricLabel = (metricKey: IRecordingComparisonMetricAggregate['metricKey']) => {
-  switch (metricKey) {
-    case 'peakAmplitudeDelta':
-      return 'Peak amplitude'
-    case 'rmsAmplitudeDelta':
-      return 'RMS amplitude'
-    case 'crestFactorDelta':
-      return 'Crest factor'
-    case 'clippingSampleCountDelta':
-      return 'Clipping samples'
-  }
-}
-
-const formatAggregateValue = (value: number, unit: string) => {
-  if (unit === 'samples') {
-    return `${value.toFixed(0)} ${unit}`
-  }
-
-  return `${value.toFixed(3)} ${unit}`
-}
-
-const getObservationDelta = (
-  observation: IRecordingComparisonSignalObservation,
-  metricKey: IRecordingComparisonMetricAggregate['metricKey']
-) => {
-  switch (metricKey) {
-    case 'peakAmplitudeDelta':
-      return observation.peakAmplitudeDelta
-    case 'rmsAmplitudeDelta':
-      return observation.rmsAmplitudeDelta
-    case 'crestFactorDelta':
-      return observation.crestFactorDelta
-    case 'clippingSampleCountDelta':
-      return observation.clippingSampleCountDelta
-  }
-}
-
-const getObservationValue = (
-  observation: IRecordingComparisonSignalObservation,
-  metricKey: IRecordingComparisonMetricAggregate['metricKey'],
-  side: 'A' | 'B'
-) => {
-  switch (metricKey) {
-    case 'peakAmplitudeDelta':
-      return side === 'A' ? observation.peakAmplitudeA : observation.peakAmplitudeB
-    case 'rmsAmplitudeDelta':
-      return side === 'A' ? observation.rmsAmplitudeA : observation.rmsAmplitudeB
-    case 'crestFactorDelta':
-      return side === 'A' ? observation.crestFactorA : observation.crestFactorB
-    case 'clippingSampleCountDelta':
-      return side === 'A' ? observation.clippingSampleCountA : observation.clippingSampleCountB
-  }
-}
-
-const formatLimitationLabel = (code: string) => {
-  switch (code) {
-    case 'LowCoverage':
-      return 'Low coverage'
-    case 'Missing':
-      return 'Missing match'
-    case 'Ambiguous':
-      return 'Ambiguous match'
-    default:
-      return code
-  }
-}
-
-type TComparisonCoverageTone = 'strong' | 'partial' | 'weak'
-
-interface IComparisonCoverageSummary {
-  alignedPairCount: number
-  comparedPairCount: number
-  copy: string
-  label: string
-  limitationCount: number
-  missingValueCount: number
-  tone: TComparisonCoverageTone
-}
-
-const getComparisonCoverageSummary = (
-  comparisonResults: IRecordingComparisonResponse | null,
-  activeMetric: IRecordingComparisonMetricAggregate | null
-): IComparisonCoverageSummary => {
-  if (!comparisonResults || !activeMetric) {
-    return {
-      alignedPairCount: 0,
-      comparedPairCount: 0,
-      copy: 'Coverage will appear once comparison metrics are available.',
-      label: 'Coverage pending',
-      limitationCount: 0,
-      missingValueCount: 0,
-      tone: 'weak',
-    }
-  }
-
-  const alignedPairCount = comparisonResults.alignedSignals.length
-  const comparedPairCount = activeMetric.comparedPairCount
-  const missingValueCount = activeMetric.missingValueCount
-  const limitationCount = comparisonResults.limitations.length
-  const hasLowCoverageLimitation = comparisonResults.limitations.some((limitation) => limitation.code === 'LowCoverage')
-  const hasMissingOrAmbiguousLimitation = comparisonResults.limitations.some(
-    (limitation) => limitation.code === 'Missing' || limitation.code === 'Ambiguous'
-  )
-
-  if (hasLowCoverageLimitation || comparedPairCount <= 1) {
-    return {
-      alignedPairCount,
-      comparedPairCount,
-      copy: 'Interpret these metric deltas carefully. The current comparison rests on a very small amount of aligned evidence.',
-      label: 'Weak evidence',
-      limitationCount,
-      missingValueCount,
-      tone: 'weak',
-    }
-  }
-
-  if (missingValueCount > 0 || hasMissingOrAmbiguousLimitation) {
-    return {
-      alignedPairCount,
-      comparedPairCount,
-      copy: 'Some aligned evidence is incomplete or missing for the selected metric.',
-      label: 'Partial evidence',
-      limitationCount,
-      missingValueCount,
-      tone: 'partial',
-    }
-  }
-
-  return {
-    alignedPairCount,
-    comparedPairCount,
-    copy: 'The selected metric is supported by the currently aligned evidence set.',
-    label: 'Stronger evidence',
-    limitationCount,
-    missingValueCount,
-    tone: 'strong',
-  }
-}

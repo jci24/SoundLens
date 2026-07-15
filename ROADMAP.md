@@ -88,6 +88,7 @@ Validation gate:
 Current status:
 - fixed-order comparison metrics, coverage cues, and selected-result drill-down are in `main`
 - the selected metric, aligned pair, and ROI remain visible while inspecting waveform and spectrum evidence
+- selected metric details and limitations open in a non-modal side inspector without pushing waveform or spectrum evidence down the workspace
 
 Explicitly deferred work:
 - broad open-ended AI investigation

@@ -1,6 +1,6 @@
 # SoundLens Backlog
 
-Last updated: 2026-07-14
+Last updated: 2026-07-15
 
 This backlog reflects the immediate product direction: focused A/B comparison of repeated recordings with deterministic evidence, drill-down, grounded explanation, and report export. The later agentic Copilot initiative is sequenced in `ROADMAP.md` and is not yet part of the ordered implementation queue.
 
@@ -46,6 +46,7 @@ Turn the current analysis workspace into a focused comparison workflow for repea
 - comparison-specific Markdown preview and export over backend-reconstructed evidence
 - explicit excluded-recording, limitation, AI fallback, and traceability sections in comparison reports
 - direct metric-card evidence drill-down with explicit evidence and limitation controls
+- non-modal comparison evidence inspector that preserves chart position and closes Copilot before opening
 - explicit Compare A and Compare B recording slots with accessible pickers, replace, clear, duplicate prevention, and atomic swap
 - comparison trust evals for ambiguity, zero difference, missing alignment, ROI-bounded causal uncertainty, and uncalibrated SPL refusal
 - diagnostic live-eval artifacts plus CI-tested dataset and grading logic
