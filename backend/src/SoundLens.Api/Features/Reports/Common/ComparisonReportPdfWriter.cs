@@ -211,14 +211,19 @@ public static class ComparisonReportPdfWriter
         ReportNarrativeResult narrative)
     {
         section.AddParagraph("Limitations", StyleNames.Heading2);
-        foreach (var limitation in context.Comparison.Limitations)
+        var limitations = context.Comparison.Limitations
+            .Select(limitation => limitation.Detail)
+            .Append("Amplitude values and differences are normalized to digital full scale and are not calibrated physical SPL.")
+            .Append(narrative.IsFallback
+                ? "AI interpretation was unavailable or invalid; rely on the deterministic comparison evidence in this report."
+                : "AI interpretation is limited to the deterministic comparison evidence included in this report.")
+            .ToArray();
+
+        for (var index = 0; index < limitations.Length; index++)
         {
-            AddBullet(section, limitation.Detail);
+            var paragraph = AddBullet(section, limitations[index]);
+            paragraph.Format.KeepWithNext = index < limitations.Length - 1;
         }
-        AddBullet(section, "Amplitude values and differences are normalized to digital full scale and are not calibrated physical SPL.");
-        AddBullet(section, narrative.IsFallback
-            ? "AI interpretation was unavailable or invalid; rely on the deterministic comparison evidence in this report."
-            : "AI interpretation is limited to the deterministic comparison evidence included in this report.");
     }
 
     private static void AddTraceability(Section section, ComparisonReportContext context)
@@ -278,13 +283,14 @@ public static class ComparisonReportPdfWriter
         }
     }
 
-    private static void AddBullet(Section section, string text)
+    private static Paragraph AddBullet(Section section, string text)
     {
         var paragraph = section.AddParagraph();
         paragraph.Format.LeftIndent = Unit.FromCentimeter(0.45);
         paragraph.Format.FirstLineIndent = Unit.FromCentimeter(-0.3);
         paragraph.AddText("-  ");
         paragraph.AddText(text);
+        return paragraph;
     }
 
     private static void EnsureFontResolver()

@@ -306,6 +306,28 @@ public sealed class ExportComparisonReportTests : IClassFixture<WebApplicationFa
         Assert.Contains("Metric", text);
     }
 
+    [Fact]
+    public void ComparisonReportPdf_KeepsTheLimitationsSectionTogetherAcrossPages()
+    {
+        var context = CreateNarrativeContext(includeLimitation: true);
+        var pdf = ComparisonReportPdfWriter.Write(
+            context,
+            OpenAiComparisonReportNarrativeService.BuildInvalidResponseFallback(context));
+
+        using var document = PdfDocument.Open(pdf);
+        var pages = document.GetPages().Select(ExtractPageText).ToArray();
+        var limitationsPage = Assert.Single(
+            pages,
+            page => page.Contains("Only limited aligned evidence is available.", StringComparison.Ordinal));
+
+        Assert.True(
+            limitationsPage.IndexOf("Limitations", StringComparison.Ordinal) <
+            limitationsPage.IndexOf("Only limited aligned evidence is available.", StringComparison.Ordinal));
+        Assert.Contains("Only limited aligned evidence is available.", limitationsPage);
+        Assert.Contains("not calibrated physical SPL", limitationsPage);
+        Assert.Contains("rely on the deterministic comparison evidence", limitationsPage);
+    }
+
     [Theory]
     [InlineData("not-json")]
     [InlineData("{\"selectedFactIds\":[]}")]
