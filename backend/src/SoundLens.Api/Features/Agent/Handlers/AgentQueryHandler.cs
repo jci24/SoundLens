@@ -374,18 +374,13 @@ public sealed class AgentQueryHandler(
         }
 
         var isRoiScoped = command.StartTimeSeconds.HasValue && command.EndTimeSeconds.HasValue;
-        if (UncalibratedSplRefusalPolicy.IsPhysicalSplRequest(command.Question))
+        var trustGuardResponse = SelectedComparisonTrustGuard.TryBuildResponse(
+            command.Question,
+            comparisonContext,
+            isRoiScoped);
+        if (trustGuardResponse is not null)
         {
-            return new AgentQueryResponse(
-                Answer: UncalibratedSplRefusalPolicy.BuildAnswer(comparisonContext, isRoiScoped),
-                CitedEvidence: BuildSelectedComparisonContextEvidence(comparisonContext),
-                Limitations: BuildComparisonExplanationLimitations(comparisonContext, isRoiScoped),
-                NextSteps:
-                [
-                    "Provide a validated acoustic calibration reference if you need physical dB SPL values.",
-                    "Use the available digital comparison evidence to compare the selected recordings without treating it as physical SPL."
-                ],
-                ToolsUsed: []);
+            return trustGuardResponse;
         }
 
         var chatClient = chatClientProvider.GetRequiredClient();
@@ -400,8 +395,8 @@ public sealed class AgentQueryHandler(
         var parsed = ParseStructuredAnswer(completion.Value.Content.FirstOrDefault()?.Text ?? string.Empty, []);
         return parsed with
         {
-            CitedEvidence = BuildComparisonExplanationEvidence(comparisonContext),
-            Limitations = BuildComparisonExplanationLimitations(
+            CitedEvidence = SelectedComparisonResponseSupport.BuildExplanationEvidence(comparisonContext),
+            Limitations = SelectedComparisonResponseSupport.BuildLimitations(
                 comparisonContext,
                 isRoiScoped),
             NextSteps = BuildComparisonExplanationNextSteps(comparisonContext)
@@ -655,64 +650,6 @@ public sealed class AgentQueryHandler(
         }
 
         return finding.SignalId;
-    }
-
-    private static IReadOnlyList<AgentEvidenceItem> BuildComparisonExplanationEvidence(
-        ResolvedComparisonExplanationContext comparisonContext)
-    {
-        var evidence = BuildSelectedComparisonContextEvidence(comparisonContext).ToList();
-
-        evidence.AddRange(
-            (comparisonContext.Findings ?? [])
-                .Where(finding => !string.IsNullOrWhiteSpace(finding.Label))
-                .Take(2)
-                .Select(finding => new AgentEvidenceItem(
-                    "selected_signal_findings",
-                    finding.SignalId,
-                    string.IsNullOrWhiteSpace(finding.Detail) ? finding.Label : $"{finding.Label}: {finding.Detail}")));
-
-        return evidence;
-    }
-
-    private static IReadOnlyList<AgentEvidenceItem> BuildSelectedComparisonContextEvidence(
-        ResolvedComparisonExplanationContext comparisonContext) =>
-    [
-        new(
-            "selected_comparison_context",
-            string.Empty,
-            $"{comparisonContext.MetricLabel} · {comparisonContext.RecordingFileNameA} vs {comparisonContext.RecordingFileNameB}")
-    ];
-
-    private static IReadOnlyList<string> BuildComparisonExplanationLimitations(
-        ResolvedComparisonExplanationContext comparisonContext,
-        bool isRoiScoped)
-    {
-        var limitations = new List<string>();
-
-        if (string.Equals(comparisonContext.Unit, "FS", StringComparison.OrdinalIgnoreCase))
-        {
-            limitations.Add("Amplitude values are normalized to digital full scale (FS), not calibrated to physical SPL.");
-        }
-        else if (string.Equals(comparisonContext.Unit, "ratio", StringComparison.OrdinalIgnoreCase))
-        {
-            limitations.Add("Crest factor values here are unitless ratios, not calibrated physical SPL.");
-        }
-        else if (string.Equals(comparisonContext.Unit, "samples", StringComparison.OrdinalIgnoreCase))
-        {
-            limitations.Add("Clipping values here are sample counts, not calibrated physical SPL.");
-        }
-
-        if (isRoiScoped)
-        {
-            limitations.Add("Answer reflects the selected ROI only.");
-        }
-
-        if (comparisonContext.Limitations.Count > 0)
-        {
-            limitations.AddRange(comparisonContext.Limitations.Select(limitation => limitation.Detail));
-        }
-
-        return limitations.Distinct(StringComparer.Ordinal).ToList();
     }
 
     private static IReadOnlyList<string> BuildComparisonExplanationNextSteps(

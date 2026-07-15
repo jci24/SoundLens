@@ -50,6 +50,7 @@ Turn the current analysis workspace into a focused comparison workflow for repea
 - explicit Compare A and Compare B recording slots with accessible pickers, replace, clear, duplicate prevention, and atomic swap
 - comparison trust evals for ambiguity, zero difference, missing alignment, ROI-bounded causal uncertainty, and uncalibrated SPL refusal
 - deterministic refusal of calibrated dB SPL conclusions from uncalibrated selected-comparison evidence
+- deterministic refusal of unsupported causal conclusions from observational selected-comparison evidence
 - diagnostic live-eval artifacts plus CI-tested dataset and grading logic
 - Markdown and textual/tabular PDF comparison export over one backend-prepared evidence model
 
@@ -63,34 +64,33 @@ Reason for deferral:
 - imported evidence is currently uncalibrated, so a calibrated fixture would fabricate unsupported state
 - schedule after the product introduces a real calibration-state contract and validation path
 
-### Trust hardening. Unsupported causal explanation
+### Trust hardening. Malformed model output containment
 
 User value:
-- A user receives a consistent statement of causal uncertainty when selected comparison evidence shows a difference but cannot establish its cause.
+- A user receives a safe structured fallback instead of raw JSON, malformed payloads, or unvalidated model text when Copilot output cannot be parsed.
 
 Thin-slice boundary:
-- Harden the selected-comparison answer path and deterministic tests without adding speculative root-cause analysis.
+- Harden response parsing and fallback behavior without changing evidence acquisition, prompts, or frontend contracts.
 
 Acceptance criteria:
-- causal questions over selected evidence explicitly state that the current evidence does not establish a cause
-- the answer preserves the backend-provided selected metric, aligned pair, ROI, findings, and limitations
-- repeated trust evals no longer permit unsupported causal wording
+- malformed, fenced, truncated, or non-JSON model output never appears verbatim in the Copilot answer
+- the endpoint returns a concise deterministic fallback with explicit parsing limitations and safe next steps
+- valid structured responses and deterministic trust guards remain unchanged
 
 Test expectations:
-- backend selected-comparison regression tests
-- live eval rerun for the existing unsupported-causal ROI case
+- backend parser and endpoint regression tests
+- frontend response rendering regression where justified
 
 Proposed branch name:
-- `codex/unsupported-causal-refusal`
+- `codex/copilot-malformed-output-fallback`
 
 Dependencies:
-- existing A13 trust eval fixture and selected-comparison context
+- existing structured agent response contract and trust guards
 
 ## Engineering Follow-Ups
 
 High priority:
 
-- ensure malformed or non-JSON model output cannot surface raw structured payloads in the Copilot UI
 - split comparison-explanation orchestration and prompt construction out of the oversized `AgentQueryHandler` before adding another broad agent capability
 
 Normal priority:

@@ -279,12 +279,12 @@ public sealed class AgentQueryEndpointTests : IClassFixture<WebApplicationFactor
     }
 
     [Fact]
-    public async Task RefusesCalibratedSplFromBackendResolvedComparisonWithoutCallingModel()
+    public async Task RefusesSelectedComparisonTrustRequestsWithoutCallingModel()
     {
         var chatClientProvider = new StubChatClientProvider(
             """
             {
-              "answer": "The calibrated dB SPL difference is 12 dB SPL.",
+              "answer": "The calibrated dB SPL difference is 12 dB SPL, caused by microphone placement.",
               "citedEvidence": [],
               "limitations": [],
               "nextSteps": []
@@ -335,13 +335,16 @@ public sealed class AgentQueryEndpointTests : IClassFixture<WebApplicationFactor
                 .Select(signal => signal.SignalId)
                 .ToArray();
 
-            async Task<AgentQueryResponse> AskAsync(double? startTimeSeconds, double? endTimeSeconds)
+            async Task<AgentQueryResponse> AskAsync(
+                string question,
+                double? startTimeSeconds,
+                double? endTimeSeconds)
             {
                 var response = await client.PostAsJsonAsync(
                     "/api/agent/query",
                     new
                     {
-                        question = "What is the calibrated dB SPL difference between these recordings?",
+                        question,
                         signalIds,
                         startTimeSeconds,
                         endTimeSeconds,
@@ -359,8 +362,18 @@ public sealed class AgentQueryEndpointTests : IClassFixture<WebApplicationFactor
                 return (await response.Content.ReadFromJsonAsync<AgentQueryResponse>())!;
             }
 
-            var fullDurationPayload = await AskAsync(null, null);
-            var roiPayload = await AskAsync(0.0, 0.25);
+            var fullDurationPayload = await AskAsync(
+                "What is the calibrated dB SPL difference between these recordings?",
+                null,
+                null);
+            var roiPayload = await AskAsync(
+                "What is the calibrated dB SPL difference between these recordings?",
+                0.0,
+                0.25);
+            var causalPayload = await AskAsync(
+                "What caused this selected difference in this region?",
+                0.0,
+                0.25);
 
             Assert.Equal(0, chatClientProvider.GetRequiredClientCallCount);
             Assert.Contains("cannot determine a calibrated dB SPL", fullDurationPayload.Answer, StringComparison.OrdinalIgnoreCase);
@@ -377,6 +390,14 @@ public sealed class AgentQueryEndpointTests : IClassFixture<WebApplicationFactor
             Assert.Contains("selected ROI", roiPayload.Answer, StringComparison.OrdinalIgnoreCase);
             Assert.Contains(roiPayload.Limitations, item => item.Contains("selected ROI only", StringComparison.OrdinalIgnoreCase));
             Assert.Contains(roiPayload.NextSteps, item => item.Contains("calibration reference", StringComparison.OrdinalIgnoreCase));
+
+            Assert.Contains("mean A-B difference of -0.25 FS", causalPayload.Answer, StringComparison.Ordinal);
+            Assert.Contains("does not establish a cause", causalPayload.Answer, StringComparison.OrdinalIgnoreCase);
+            Assert.DoesNotContain("microphone placement", causalPayload.Answer, StringComparison.OrdinalIgnoreCase);
+            Assert.Contains(causalPayload.Limitations, item => item.Contains("does not establish causation", StringComparison.OrdinalIgnoreCase));
+            Assert.Contains(causalPayload.Limitations, item => item.Contains("selected ROI only", StringComparison.OrdinalIgnoreCase));
+            Assert.Contains(causalPayload.CitedEvidence, item => item.ToolName == "selected_comparison_context");
+            Assert.Empty(causalPayload.ToolsUsed);
         }
         finally
         {

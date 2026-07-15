@@ -114,6 +114,7 @@ Current status:
 - bounded explanation is available for the selected metric and aligned pair
 - comparison measurements, findings, units, coverage, and limitations are reconstructed by the backend before they are sent to the model
 - calibrated dB SPL and physical sound-pressure questions over uncalibrated selected evidence bypass the model and return a deterministic refusal while preserving available digital evidence
+- causal questions over observational selected evidence bypass the model and return measured differences, findings, and limitations without asserting a root cause
 - live trust evals now cover ambiguity, zero difference, missing aligned evidence, ROI-bounded causal uncertainty, and refusal of calibrated SPL claims from uncalibrated evidence
 - pure dataset and grader tests run in CI; live repeated runs remain local and produce diagnostic artifacts
 
@@ -161,6 +162,7 @@ Major capabilities:
 
 Current status:
 - uncalibrated selected-comparison evidence cannot produce a calibrated physical SPL conclusion through the Copilot path
+- selected-comparison findings remain observational cues and cannot be presented as proof of causation
 - a real calibration-state contract and calibrated-versus-uncalibrated compatibility checks remain deferred
 
 Dependencies:
