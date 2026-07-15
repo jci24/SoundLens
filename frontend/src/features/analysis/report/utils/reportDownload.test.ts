@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it, vi } from 'vitest'
-import { downloadTextFile } from './reportDownload'
+import { downloadBlobFile, downloadTextFile } from './reportDownload'
 
 describe('downloadTextFile', () => {
   afterEach(() => {
@@ -22,5 +22,23 @@ describe('downloadTextFile', () => {
     expect(createObjectUrl).toHaveBeenCalled()
     expect(click).toHaveBeenCalled()
     expect(revokeObjectUrl).toHaveBeenCalledWith('blob:report')
+  })
+
+  it('downloads an existing binary blob and revokes its object URL', () => {
+    const blob = new Blob(['%PDF-test'], { type: 'application/pdf' })
+    const createObjectUrl = vi.spyOn(URL, 'createObjectURL').mockReturnValue('blob:pdf-report')
+    const revokeObjectUrl = vi.spyOn(URL, 'revokeObjectURL').mockImplementation(() => {})
+    const click = vi.fn()
+    const anchor = { click } as unknown as HTMLAnchorElement
+    const createElement = vi.spyOn(document, 'createElement').mockReturnValue(anchor)
+
+    downloadBlobFile('report.pdf', blob)
+
+    expect(createElement).toHaveBeenCalledWith('a')
+    expect(createObjectUrl).toHaveBeenCalledWith(blob)
+    expect(anchor.download).toBe('report.pdf')
+    expect(anchor.href).toBe('blob:pdf-report')
+    expect(click).toHaveBeenCalled()
+    expect(revokeObjectUrl).toHaveBeenCalledWith('blob:pdf-report')
   })
 })

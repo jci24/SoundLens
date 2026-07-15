@@ -132,9 +132,10 @@ Major capabilities:
 - grounded AI narrative over comparison evidence
 
 Current status:
-- compare mode previews the active pair, scope, exclusions, title, and Markdown format before export
+- compare mode previews the active pair, scope, exclusions, title, and Markdown or PDF format before export
 - the backend reconstructs ordered comparison metrics and selected evidence from identifiers rather than accepting frontend measurements
-- deterministic Markdown export remains complete when AI is unavailable or malformed
+- Markdown and PDF share one backend preparation path, and both remain complete when AI is unavailable or malformed
+- PDF provides an A4 monochrome textual and tabular report with selectable text, bundled fonts, page metadata, and traceability
 
 Dependencies:
 - Milestone 4
@@ -143,7 +144,7 @@ Validation gate:
 - exported reports are reused in customer or internal review workflows rather than treated as disposable markdown dumps
 
 Explicitly deferred work:
-- PDF export, chart images, and polished enterprise reporting workflows
+- chart images, formal PDF/UA conformance validation, and polished enterprise reporting workflows
 
 ## Milestone 6 — Trust, Calibration Compatibility, And Stronger Evals
 

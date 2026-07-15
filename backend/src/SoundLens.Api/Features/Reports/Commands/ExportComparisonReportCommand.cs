@@ -7,7 +7,7 @@ public sealed record ComparisonReportExcludedRecordingRequest(
     string RecordingId,
     string Assignment);
 
-public sealed record ExportComparisonReportMarkdownCommand(
+public sealed record ExportComparisonReportCommand(
     string ReportTitle,
     string RecordingIdA,
     string RecordingIdB,

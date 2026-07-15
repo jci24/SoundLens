@@ -3,16 +3,18 @@ import { X } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { formatCompactDuration } from '../../utils/analysisWorkspaceFormatting'
 import type { IAnalysisRegionOfInterest } from '../../types'
-import type { IComparisonReportExcludedRecording } from '../types/reportExport'
+import type { IComparisonReportExcludedRecording, TComparisonReportFormat } from '../types/reportExport'
 import './ComparisonReportDialog.scss'
 
 interface IComparisonReportDialogProps {
   excludedRecordings: IComparisonReportExcludedRecording[]
   fileNameA: string
   fileNameB: string
+  format: TComparisonReportFormat
   isExporting: boolean
   isOpen: boolean
   onExport: () => void
+  onFormatChange: (format: TComparisonReportFormat) => void
   onOpenChange: (isOpen: boolean) => void
   onTitleChange: (title: string) => void
   regionOfInterest: IAnalysisRegionOfInterest | null
@@ -29,9 +31,11 @@ const ComparisonReportDialog = ({
   excludedRecordings,
   fileNameA,
   fileNameB,
+  format,
   isExporting,
   isOpen,
   onExport,
+  onFormatChange,
   onOpenChange,
   onTitleChange,
   regionOfInterest,
@@ -45,7 +49,7 @@ const ComparisonReportDialog = ({
           <div>
             <Dialog.Title className="comparison-report-dialog__title">Export comparison report</Dialog.Title>
             <Dialog.Description className="comparison-report-dialog__description">
-              Review the report scope before generating the Markdown file.
+              Review the report scope and choose an export format.
             </Dialog.Description>
           </div>
           <Dialog.Close asChild>
@@ -78,14 +82,40 @@ const ComparisonReportDialog = ({
               <dd>{formatReportScope(regionOfInterest)}</dd>
             </div>
             <div>
-              <dt>Format</dt>
-              <dd>Markdown (.md)</dd>
-            </div>
-            <div>
               <dt>AI interpretation</dt>
               <dd>Automatic when available, with deterministic fallback</dd>
             </div>
           </dl>
+
+          <fieldset className="comparison-report-dialog__format">
+            <legend>Format</legend>
+            <label>
+              <input
+                checked={format === 'markdown'}
+                name="comparison-report-format"
+                onChange={() => onFormatChange('markdown')}
+                type="radio"
+                value="markdown"
+              />
+              <span>
+                <strong>Markdown</strong>
+                <small>Editable plain-text report (.md)</small>
+              </span>
+            </label>
+            <label>
+              <input
+                checked={format === 'pdf'}
+                name="comparison-report-format"
+                onChange={() => onFormatChange('pdf')}
+                type="radio"
+                value="pdf"
+              />
+              <span>
+                <strong>PDF</strong>
+                <small>Portable document with selectable text (.pdf)</small>
+              </span>
+            </label>
+          </fieldset>
 
           <section className="comparison-report-dialog__excluded" aria-labelledby="comparison-report-excluded-title">
             <div className="comparison-report-dialog__section-heading">
@@ -112,7 +142,7 @@ const ComparisonReportDialog = ({
             <Button disabled={isExporting} type="button" variant="ghost">Cancel</Button>
           </Dialog.Close>
           <Button disabled={isExporting || title.trim().length === 0} onClick={onExport} type="button">
-            {isExporting ? 'Preparing report...' : 'Export Markdown'}
+            {isExporting ? 'Preparing report...' : `Export ${format === 'pdf' ? 'PDF' : 'Markdown'}`}
           </Button>
         </footer>
       </Dialog.Content>

@@ -1,6 +1,4 @@
-using System.Globalization;
 using System.Text;
-using SoundLens.Api.Features.Comparisons.Common;
 
 namespace SoundLens.Api.Features.Reports.Common;
 
@@ -21,7 +19,7 @@ public static class ComparisonReportMarkdownWriter
         builder.AppendLine($"- Compare B: {Escape(comparison.RecordingB.FileName)}");
         builder.AppendLine(comparison.RegionOfInterest is null
             ? "- Region: full duration"
-            : $"- Region: {FormatSeconds(comparison.RegionOfInterest.StartTimeSeconds)} to {FormatSeconds(comparison.RegionOfInterest.EndTimeSeconds)} ({FormatSeconds(comparison.RegionOfInterest.DurationSeconds)})");
+            : $"- Region: {ComparisonReportFormatting.FormatSeconds(comparison.RegionOfInterest.StartTimeSeconds)} to {ComparisonReportFormatting.FormatSeconds(comparison.RegionOfInterest.EndTimeSeconds)} ({ComparisonReportFormatting.FormatSeconds(comparison.RegionOfInterest.DurationSeconds)})");
         builder.AppendLine();
 
         builder.AppendLine("## Comparison Metrics");
@@ -31,22 +29,22 @@ public static class ComparisonReportMarkdownWriter
         foreach (var metric in comparison.AggregateMetrics)
         {
             builder.AppendLine(
-                $"| {FormatMetricLabel(metric.MetricKey)} | {FormatValue(metric.MeanDifference, metric.Unit)} | {FormatValue(metric.MedianDifference, metric.Unit)} | {FormatValue(metric.Spread, metric.Unit)} | {metric.ComparedPairCount} | {metric.MissingValueCount} |");
+                $"| {ComparisonReportFormatting.FormatMetricLabel(metric.MetricKey)} | {ComparisonReportFormatting.FormatValue(metric.MeanDifference, metric.Unit)} | {ComparisonReportFormatting.FormatValue(metric.MedianDifference, metric.Unit)} | {ComparisonReportFormatting.FormatValue(metric.Spread, metric.Unit)} | {metric.ComparedPairCount} | {metric.MissingValueCount} |");
         }
         builder.AppendLine();
 
-        var (valueA, valueB, delta) = GetObservationValues(context.SelectedObservation, context.SelectedMetric.MetricKey);
+        var (valueA, valueB, delta) = ComparisonReportFormatting.GetObservationValues(context.SelectedObservation, context.SelectedMetric.MetricKey);
         builder.AppendLine("## Selected Evidence");
         builder.AppendLine();
-        builder.AppendLine($"### {FormatMetricLabel(context.SelectedMetric.MetricKey)}");
+        builder.AppendLine($"### {ComparisonReportFormatting.FormatMetricLabel(context.SelectedMetric.MetricKey)}");
         builder.AppendLine();
-        builder.AppendLine($"- Mean A-B: {FormatValue(context.SelectedMetric.MeanDifference, context.SelectedMetric.Unit)}");
-        builder.AppendLine($"- Median: {FormatValue(context.SelectedMetric.MedianDifference, context.SelectedMetric.Unit)}");
+        builder.AppendLine($"- Mean A-B: {ComparisonReportFormatting.FormatValue(context.SelectedMetric.MeanDifference, context.SelectedMetric.Unit)}");
+        builder.AppendLine($"- Median: {ComparisonReportFormatting.FormatValue(context.SelectedMetric.MedianDifference, context.SelectedMetric.Unit)}");
         builder.AppendLine($"- Coverage: {context.SelectedMetric.ComparedPairCount} aligned pair{(context.SelectedMetric.ComparedPairCount == 1 ? string.Empty : "s")}; {context.SelectedMetric.MissingValueCount} missing");
         builder.AppendLine($"- Selected aligned pair: {Escape(context.SelectedObservation.DisplayNameA)} vs {Escape(context.SelectedObservation.DisplayNameB)}");
-        builder.AppendLine($"- Compare A: {FormatValue(valueA, context.SelectedMetric.Unit)}");
-        builder.AppendLine($"- Compare B: {FormatValue(valueB, context.SelectedMetric.Unit)}");
-        builder.AppendLine($"- Delta A-B: {FormatValue(delta, context.SelectedMetric.Unit)}");
+        builder.AppendLine($"- Compare A: {ComparisonReportFormatting.FormatValue(valueA, context.SelectedMetric.Unit)}");
+        builder.AppendLine($"- Compare B: {ComparisonReportFormatting.FormatValue(valueB, context.SelectedMetric.Unit)}");
+        builder.AppendLine($"- Delta A-B: {ComparisonReportFormatting.FormatValue(delta, context.SelectedMetric.Unit)}");
         builder.AppendLine();
 
         builder.AppendLine("## AI Interpretation");
@@ -107,33 +105,6 @@ public static class ComparisonReportMarkdownWriter
         }
         builder.AppendLine();
     }
-
-    private static (double ValueA, double ValueB, double Delta) GetObservationValues(
-        RecordingComparisonSignalObservation observation,
-        string metricKey) => metricKey switch
-    {
-        "peakAmplitudeDelta" => (observation.PeakAmplitudeA, observation.PeakAmplitudeB, observation.PeakAmplitudeDelta),
-        "rmsAmplitudeDelta" => (observation.RmsAmplitudeA, observation.RmsAmplitudeB, observation.RmsAmplitudeDelta),
-        "crestFactorDelta" => (observation.CrestFactorA, observation.CrestFactorB, observation.CrestFactorDelta),
-        "clippingSampleCountDelta" => (observation.ClippingSampleCountA, observation.ClippingSampleCountB, observation.ClippingSampleCountDelta),
-        _ => throw new ArgumentOutOfRangeException(nameof(metricKey), metricKey, "Unsupported comparison metric.")
-    };
-
-    private static string FormatMetricLabel(string metricKey) => metricKey switch
-    {
-        "peakAmplitudeDelta" => "Peak amplitude",
-        "rmsAmplitudeDelta" => "RMS amplitude",
-        "crestFactorDelta" => "Crest factor",
-        "clippingSampleCountDelta" => "Clipping samples",
-        _ => metricKey
-    };
-
-    private static string FormatValue(double value, string unit) => unit == "samples"
-        ? $"{value.ToString("0", CultureInfo.InvariantCulture)} {unit}"
-        : $"{value.ToString("0.###", CultureInfo.InvariantCulture)} {unit}";
-
-    private static string FormatSeconds(double value) =>
-        $"{value.ToString("0.###", CultureInfo.InvariantCulture)} s";
 
     private static string Escape(string value) => value.Replace("|", "\\|", StringComparison.Ordinal);
 }

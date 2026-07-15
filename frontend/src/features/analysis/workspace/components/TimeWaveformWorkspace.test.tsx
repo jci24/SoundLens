@@ -18,6 +18,8 @@ const mockUseAnalysisWorkspacePanels = vi.fn()
 const mockUseAnalysisWorkspaceMetrics = vi.fn()
 const mockExportReportMarkdown = vi.fn()
 const mockExportComparisonReportMarkdown = vi.fn()
+const mockExportComparisonReportPdf = vi.fn()
+const mockDownloadBlobFile = vi.fn()
 const mockDownloadTextFile = vi.fn()
 const mockGetRecordingComparison = vi.fn()
 
@@ -38,7 +40,12 @@ vi.mock('../../report/services/exportReportMarkdown', () => ({
   exportReportMarkdown: (...args: unknown[]) => mockExportReportMarkdown(...args),
 }))
 
+vi.mock('../../report/services/exportComparisonReportPdf', () => ({
+  exportComparisonReportPdf: (...args: unknown[]) => mockExportComparisonReportPdf(...args),
+}))
+
 vi.mock('../../report/utils/reportDownload', () => ({
+  downloadBlobFile: (...args: unknown[]) => mockDownloadBlobFile(...args),
   downloadTextFile: (...args: unknown[]) => mockDownloadTextFile(...args),
 }))
 
@@ -261,6 +268,8 @@ describe('TimeWaveformWorkspace', () => {
   beforeEach(() => {
     mockGetRecordingComparison.mockReset()
     mockExportComparisonReportMarkdown.mockReset()
+    mockExportComparisonReportPdf.mockReset()
+    mockDownloadBlobFile.mockReset()
     mockDownloadTextFile.mockReset()
     mockUseAnalysisWorkspacePanels.mockReturnValue({
       hasActiveChart: true,
@@ -279,6 +288,10 @@ describe('TimeWaveformWorkspace', () => {
     mockExportComparisonReportMarkdown.mockResolvedValue({
       fileName: 'alpha-vs-beta-comparison.md',
       markdown: '# Alpha vs beta comparison',
+    })
+    mockExportComparisonReportPdf.mockResolvedValue({
+      fileName: 'alpha-vs-beta-comparison.pdf',
+      pdf: new Blob(['%PDF-test'], { type: 'application/pdf' }),
     })
     mockGetRecordingComparison.mockResolvedValue(comparisonResponse)
 
@@ -909,6 +922,48 @@ describe('TimeWaveformWorkspace', () => {
     expect(screen.queryByRole('dialog', { name: 'Export comparison report' })).not.toBeInTheDocument()
   })
 
+  it('exports the same backend-owned comparison request as PDF', async () => {
+    const workspaceState = createWorkspaceState()
+    workspaceState.layoutMode = 'compare'
+    workspaceState.recordings = [
+      createRecording('recording-1', 'alpha.wav'),
+      createRecording('recording-2', 'beta.wav'),
+    ]
+    workspaceState.recordingGroupAssignments = { 'recording-1': 'A', 'recording-2': 'B' }
+    mockUseTimeWaveformWorkspace.mockReturnValue(workspaceState)
+
+    render(
+      <TimeWaveformWorkspace importedFiles={importedFiles} isCopilotOpen={false} onCopilotToggle={vi.fn()} />
+    )
+
+    await waitFor(() => expect(screen.getByRole('button', { name: 'Export report' })).toBeEnabled())
+    fireEvent.click(screen.getByRole('button', { name: 'Export report' }))
+    expect(screen.getByRole('radio', { name: /Markdown/ })).toBeChecked()
+
+    fireEvent.click(screen.getByRole('radio', { name: /PDF/ }))
+    fireEvent.click(screen.getByRole('button', { name: 'Export PDF' }))
+
+    await waitFor(() => {
+      expect(mockExportComparisonReportPdf).toHaveBeenCalledWith({
+        reportTitle: 'alpha.wav vs beta.wav comparison',
+        recordingIdA: 'recording-1',
+        recordingIdB: 'recording-2',
+        metricKey: 'peakAmplitudeDelta',
+        signalIdA: 'signal-a',
+        signalIdB: 'signal-b',
+        excludedRecordings: [],
+        startTimeSeconds: undefined,
+        endTimeSeconds: undefined,
+      })
+      expect(mockDownloadBlobFile).toHaveBeenCalledWith(
+        'alpha-vs-beta-comparison.pdf',
+        expect.any(Blob)
+      )
+    })
+    expect(mockExportComparisonReportMarkdown).not.toHaveBeenCalled()
+    expect(screen.queryByRole('dialog', { name: 'Export comparison report' })).not.toBeInTheDocument()
+  })
+
   it('keeps the comparison preview open when export fails', async () => {
     const workspaceState = createWorkspaceState()
     workspaceState.layoutMode = 'compare'
@@ -931,6 +986,31 @@ describe('TimeWaveformWorkspace', () => {
     await waitFor(() => expect(mockExportComparisonReportMarkdown).toHaveBeenCalled())
     expect(screen.getByRole('dialog', { name: 'Export comparison report' })).toBeInTheDocument()
     expect(mockDownloadTextFile).not.toHaveBeenCalled()
+  })
+
+  it('keeps the comparison preview open when PDF export fails', async () => {
+    const workspaceState = createWorkspaceState()
+    workspaceState.layoutMode = 'compare'
+    workspaceState.recordings = [
+      createRecording('recording-1', 'alpha.wav'),
+      createRecording('recording-2', 'beta.wav'),
+    ]
+    workspaceState.recordingGroupAssignments = { 'recording-1': 'A', 'recording-2': 'B' }
+    mockUseTimeWaveformWorkspace.mockReturnValue(workspaceState)
+    mockExportComparisonReportPdf.mockRejectedValue(new Error('PDF export failed'))
+
+    render(
+      <TimeWaveformWorkspace importedFiles={importedFiles} isCopilotOpen={false} onCopilotToggle={vi.fn()} />
+    )
+
+    await waitFor(() => expect(screen.getByRole('button', { name: 'Export report' })).toBeEnabled())
+    fireEvent.click(screen.getByRole('button', { name: 'Export report' }))
+    fireEvent.click(screen.getByRole('radio', { name: /PDF/ }))
+    fireEvent.click(screen.getByRole('button', { name: 'Export PDF' }))
+
+    await waitFor(() => expect(mockExportComparisonReportPdf).toHaveBeenCalled())
+    expect(screen.getByRole('dialog', { name: 'Export comparison report' })).toBeInTheDocument()
+    expect(mockDownloadBlobFile).not.toHaveBeenCalled()
   })
 })
 

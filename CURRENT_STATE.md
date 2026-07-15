@@ -18,7 +18,7 @@ Today SoundLens supports a deterministic analysis workspace for imported recordi
 - select a comparison metric card to reveal its evidence and limitations directly, without locating a separate generic details control
 - see the active Compare A and Compare B recording pair
 - export the focused workspace state directly to markdown
-- preview and export a grounded comparison-specific markdown report for a valid active A/B pair
+- preview and export a grounded comparison-specific Markdown or PDF report for a valid active A/B pair
 - ask a grounded Copilot about the loaded evidence
 
 The current product is strong as an analysis workspace, but it is not yet a fully comparison-first investigation workflow.
@@ -93,9 +93,11 @@ The current Copilot is more grounded for both factual comparison questions and s
 - Focused-mode export keeps the existing immediate workspace markdown behavior.
 - Compare-mode export opens a preview for the active A/B pair, ROI or full-duration scope, editable title, and explicitly excluded recordings.
 - `POST /api/report/export/comparison/markdown` accepts identifiers and UI-owned assignment labels only. The backend re-runs the deterministic comparison and validates the selected metric and aligned pair before writing evidence.
+- `POST /api/report/export/comparison/pdf` accepts the same identifier-only request and renders the same prepared evidence as a selectable-text A4 PDF.
 - The comparison report includes comparison metrics in the fixed Peak, RMS, crest-factor, and clipping order, selected evidence, AI interpretation, exclusions, limitations, and traceability.
 - Comparison export still succeeds without a usable AI response by including deterministic evidence plus a clear fallback notice; malformed model output is not exposed.
 - Comparison-report AI may validate only the backend-generated fact for the user-selected metric. All narrative prose is rendered from deterministic backend templates, so selected aggregate evidence, aligned-pair direction, limitations, and fallback wording remain backend-owned and cannot be invented by the model.
+- Markdown and PDF share one backend preparation path, including comparison reconstruction and one automatic narrative-or-fallback decision per export. PDF uses bundled Noto Sans fonts rather than host font discovery.
 
 ## Current Tests And Eval Harness
 
@@ -143,10 +145,10 @@ The repo is still intentionally simple: no extra backend projects, no persistenc
 - No persisted project or dataset model
 - Calibration handling remains lightweight and mostly limited to dBFS caveats plus calibrated flags
 - Copilot and comparison export reconstruct evidence from session-scoped identifiers rather than a persisted comparison object
-- Comparison report export is Markdown-only and does not include waveform or spectrum images; PDF is deferred
+- Comparison report PDF is textual and tabular only; waveform and spectrum images and formal PDF/UA conformance remain deferred
 - Heterogeneous comparison metrics use a fixed backend-owned presentation order: Peak amplitude, RMS amplitude, crest factor, then clipping samples. The order does not claim normalized importance or severity.
 - A true calibrated-versus-uncalibrated comparison eval remains deferred because imported evidence currently has no real calibrated state
 
 ## Immediate Next Product Slice
 
-The next product slice should add PDF as a format over the validated backend-owned comparison report model. A real calibration-state model and calibrated-versus-uncalibrated eval remain later trust work.
+The next product slice should harden selected-comparison Copilot refusal of calibrated dB SPL conclusions when evidence is uncalibrated. A real calibration-state model and calibrated-versus-uncalibrated eval remain later trust work.

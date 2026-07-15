@@ -8,9 +8,11 @@ const createProps = () => ({
   ],
   fileNameA: 'alpha.wav',
   fileNameB: 'beta.wav',
+  format: 'markdown' as const,
   isExporting: false,
   isOpen: true,
   onExport: vi.fn(),
+  onFormatChange: vi.fn(),
   onOpenChange: vi.fn(),
   onTitleChange: vi.fn(),
   regionOfInterest: {
@@ -32,11 +34,24 @@ describe('ComparisonReportDialog', () => {
     expect(screen.getByText('gamma.wav')).toBeInTheDocument()
     expect(screen.getByText('Unassigned')).toBeInTheDocument()
     expect(screen.getByText('Automatic when available, with deterministic fallback')).toBeInTheDocument()
+    expect(screen.getByRole('radio', { name: /Markdown/ })).toBeChecked()
 
     fireEvent.change(screen.getByRole('textbox', { name: 'Report title' }), {
       target: { value: 'Edited comparison' },
     })
     expect(props.onTitleChange).toHaveBeenCalledWith('Edited comparison')
+  })
+
+  it('selects PDF accessibly and updates the export action', () => {
+    const props = createProps()
+    const { rerender } = render(<ComparisonReportDialog {...props} />)
+
+    fireEvent.click(screen.getByRole('radio', { name: /PDF/ }))
+    expect(props.onFormatChange).toHaveBeenCalledWith('pdf')
+
+    rerender(<ComparisonReportDialog {...props} format="pdf" />)
+    expect(screen.getByRole('radio', { name: /PDF/ })).toBeChecked()
+    expect(screen.getByRole('button', { name: 'Export PDF' })).toBeEnabled()
   })
 
   it('supports cancellation and disables actions while exporting', () => {

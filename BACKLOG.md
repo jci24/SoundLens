@@ -49,6 +49,7 @@ Turn the current analysis workspace into a focused comparison workflow for repea
 - explicit Compare A and Compare B recording slots with accessible pickers, replace, clear, duplicate prevention, and atomic swap
 - comparison trust evals for ambiguity, zero difference, missing alignment, ROI-bounded causal uncertainty, and uncalibrated SPL refusal
 - diagnostic live-eval artifacts plus CI-tested dataset and grading logic
+- Markdown and textual/tabular PDF comparison export over one backend-prepared evidence model
 
 ## Ordered Thin Tasks
 
@@ -60,34 +61,33 @@ Reason for deferral:
 - imported evidence is currently uncalibrated, so a calibrated fixture would fabricate unsupported state
 - schedule after the product introduces a real calibration-state contract and validation path
 
-### A14. Comparison Report PDF
+### Trust hardening. Uncalibrated SPL refusal
 
 User value:
-- A user can export the validated comparison report as a portable PDF.
+- A user receives an explicit refusal instead of a physical SPL claim when selected comparison evidence is uncalibrated.
 
 Thin-slice boundary:
-- Reuse the backend-owned comparison report model and existing preview without adding chart images.
+- Harden the selected-comparison answer path and its deterministic tests without adding a fabricated calibration state.
 
 Acceptance criteria:
-- PDF is selectable from the existing comparison report preview
-- PDF content preserves the same evidence, units, limitations, exclusions, and AI fallback semantics as Markdown
-- the selected PDF library is reviewed for licensing, maintenance, accessibility, and deployment compatibility before implementation
+- dB SPL questions over uncalibrated selected evidence explicitly state that physical SPL cannot be determined
+- the answer preserves the backend-provided digital evidence and calibration limitation
+- repeated trust evals no longer permit calibrated SPL wording
 
 Test expectations:
-- backend PDF generation and content tests
-- frontend format-selection and download tests
+- backend selected-comparison regression tests
+- live eval rerun for the existing uncalibrated SPL case
 
 Proposed branch name:
-- `codex/comparison-report-pdf`
+- `codex/uncalibrated-spl-refusal`
 
 Dependencies:
-- manual validation of the shipped Markdown comparison report contract
+- existing A13 trust eval fixture and selected-comparison context
 
 ## Engineering Follow-Ups
 
 High priority:
 
-- reject calibrated dB SPL requests explicitly in selected-comparison answers; the A13 live baseline showed repeated wording that mislabeled an uncalibrated FS delta as a calibrated SPL difference despite returning the correct limitation
 - make unsupported causal questions consistently state that selected comparison evidence cannot establish a cause; the A13 live baseline showed nondeterministic refusal wording over ROI evidence
 - ensure malformed or non-JSON model output cannot surface raw structured payloads in the Copilot UI
 - split comparison-explanation orchestration and prompt construction out of the oversized `AgentQueryHandler` before adding another broad agent capability

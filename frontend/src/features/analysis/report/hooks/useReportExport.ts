@@ -1,7 +1,8 @@
 import { useState } from 'react'
 import { toast } from 'sonner'
 import { exportComparisonReportMarkdown, exportReportMarkdown } from '../services/exportReportMarkdown'
-import { downloadTextFile } from '../utils/reportDownload'
+import { exportComparisonReportPdf } from '../services/exportComparisonReportPdf'
+import { downloadBlobFile, downloadTextFile } from '../utils/reportDownload'
 import type { IMetricSignalItem } from '../../metrics/hooks/useAnalysisWorkspaceMetrics'
 import type {
   IAnalysisRegionOfInterest,
@@ -12,7 +13,7 @@ import type {
   TComparisonGroupAssignment,
   TSignalChartMode,
 } from '../../types'
-import type { IComparisonReportExcludedRecording } from '../types/reportExport'
+import type { IComparisonReportExcludedRecording, TComparisonReportFormat } from '../types/reportExport'
 
 interface IUseReportExportOptions {
   activePairRecordingA: ITimeWaveformRecording | null
@@ -44,6 +45,7 @@ const useReportExport = ({
   const [isComparisonReportOpen, setIsComparisonReportOpen] = useState(false)
   const [isExporting, setIsExporting] = useState(false)
   const [comparisonReportTitle, setComparisonReportTitle] = useState('')
+  const [comparisonReportFormat, setComparisonReportFormat] = useState<TComparisonReportFormat>('markdown')
 
   const excludedRecordings: IComparisonReportExcludedRecording[] = activePairRecordingA && activePairRecordingB
     ? recordings
@@ -67,6 +69,7 @@ const useReportExport = ({
       }
 
       setComparisonReportTitle(`${activePairRecordingA.fileName} vs ${activePairRecordingB.fileName} comparison`)
+      setComparisonReportFormat('markdown')
       setIsComparisonReportOpen(true)
       return
     }
@@ -132,7 +135,8 @@ const useReportExport = ({
 
     try {
       setIsExporting(true)
-      const response = await exportComparisonReportMarkdown({
+      let downloadedFileName: string
+      const request = {
         reportTitle: comparisonReportTitle.trim(),
         recordingIdA: comparisonSelection.recordingIdA,
         recordingIdB: comparisonSelection.recordingIdB,
@@ -142,11 +146,19 @@ const useReportExport = ({
         excludedRecordings: excludedRecordings.map(({ assignment, recordingId }) => ({ assignment, recordingId })),
         startTimeSeconds: regionOfInterest?.startTimeSeconds,
         endTimeSeconds: regionOfInterest?.endTimeSeconds,
-      })
+      }
 
-      downloadTextFile(response.fileName, response.markdown)
+      if (comparisonReportFormat === 'pdf') {
+        const response = await exportComparisonReportPdf(request)
+        downloadBlobFile(response.fileName, response.pdf)
+        downloadedFileName = response.fileName
+      } else {
+        const response = await exportComparisonReportMarkdown(request)
+        downloadTextFile(response.fileName, response.markdown)
+        downloadedFileName = response.fileName
+      }
       setIsComparisonReportOpen(false)
-      toast.success(`Downloaded ${response.fileName}.`)
+      toast.success(`Downloaded ${downloadedFileName}.`)
     } catch {
       toast.error('The comparison report could not be prepared.')
     } finally {
@@ -156,6 +168,7 @@ const useReportExport = ({
 
   return {
     canExportReport,
+    comparisonReportFormat,
     comparisonReportTitle,
     excludedRecordings,
     handleComparisonReportExport,
@@ -163,6 +176,7 @@ const useReportExport = ({
     isComparisonReportOpen,
     isExporting,
     setComparisonReportTitle,
+    setComparisonReportFormat,
     setIsComparisonReportOpen,
   }
 }

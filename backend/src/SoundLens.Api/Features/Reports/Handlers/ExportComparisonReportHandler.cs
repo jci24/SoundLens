@@ -6,11 +6,11 @@ using SoundLens.Api.Features.Reports.Common;
 
 namespace SoundLens.Api.Features.Reports.Handlers;
 
-public sealed class ExportComparisonReportMarkdownHandler(IImportedFileStore importedFileStore)
-    : CommandHandler<ExportComparisonReportMarkdownCommand, ComparisonReportContext>
+public sealed class ExportComparisonReportHandler(IImportedFileStore importedFileStore)
+    : CommandHandler<ExportComparisonReportCommand, ComparisonReportContext>
 {
     public override async Task<ComparisonReportContext> ExecuteAsync(
-        ExportComparisonReportMarkdownCommand command,
+        ExportComparisonReportCommand command,
         CancellationToken ct = default)
     {
         var comparison = await new GetRecordingComparisonCommand(
@@ -44,7 +44,7 @@ public sealed class ExportComparisonReportMarkdownHandler(IImportedFileStore imp
     }
 
     private IReadOnlyList<ComparisonReportExcludedRecording> ResolveExcludedRecordings(
-        ExportComparisonReportMarkdownCommand command)
+        ExportComparisonReportCommand command)
     {
         var requests = command.ExcludedRecordings ?? [];
         var duplicateId = requests
