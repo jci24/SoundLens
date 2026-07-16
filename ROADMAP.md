@@ -95,7 +95,8 @@ Current status:
 - recording and expanded-signal rows are virtualized with stable identifier keys, bounded overscan, and filtering validated against a 100-recording fixture
 - active Compare A and Compare B recordings can be auditioned at the same logical full-duration or ROI position with readiness-gated resume and explicit buffering state
 - A/B audition remains browser-timed rather than sample-accurate and applies no normalization, level matching, or crossfade
-- isolated-channel audition remains the next playback phase
+- multichannel recordings expose Original and isolated-channel audition; the selected channel is routed equally to both outputs through a playback-local Web Audio graph without gain or evidence changes
+- valid isolated-channel indexes persist across A/B switching, while unsupported targets and general recording replacement fall back to Original
 
 Explicitly deferred work:
 - broad open-ended AI investigation

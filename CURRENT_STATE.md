@@ -163,8 +163,10 @@ The repo is still intentionally simple: no extra backend projects, no persistenc
 - Valid A/B selection is no longer repeated in a separate readiness banner; only actionable setup guidance and active ROI scope remain above comparison evidence.
 - Compare mode exposes compact A/B audition controls for the explicit active pair. Switching transfers the logical full-duration or ROI position, waits for target readiness before resuming, and surfaces side-specific loading or buffering state.
 - A/B audition uses no more than two browser-native media elements and does not normalize, level-match, crossfade, or claim seamless or sample-accurate switching.
+- Multichannel playback exposes an explicit Original or isolated-channel route. Isolated channels are sent equally to both outputs through one lazily created Web Audio graph without gain, normalization, effects, stored-sample changes, or evidence-state changes.
+- Isolated-channel routing stays local to the primary playback element, preserves a valid channel index across A/B switching, falls back visibly to Original when the target lacks that channel, and resets to Original for general recording replacement.
 - A true calibrated-versus-uncalibrated comparison eval remains deferred because imported evidence currently has no real calibrated state
 
 ## Immediate Next Product Slice
 
-The next playback slice should add explicit isolated-channel audition for the active recording without changing stored samples or deterministic evidence. A real calibration-state model and calibrated-versus-uncalibrated eval remain later trust work.
+The next ordered engineering slice should extract selected-comparison orchestration and prompt construction from the oversized `AgentQueryHandler` before another broad Copilot capability is added. A real calibration-state model and calibrated-versus-uncalibrated eval remain later trust work.

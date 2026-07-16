@@ -1,11 +1,14 @@
 import { createContext, useContext } from 'react'
 import type { ITimeWaveformRecording, TComparisonGroupAssignment } from '../../types'
 import type { useRecordingPlayback } from '../hooks/useRecordingPlayback'
+import type { useChannelAuditionRouting } from '../hooks/useChannelAuditionRouting'
 
-type TRecordingPlaybackContext = ReturnType<typeof useRecordingPlayback> & {
-  recordings: ITimeWaveformRecording[]
-  recordingGroupAssignments: Record<string, TComparisonGroupAssignment>
-}
+type TRecordingPlaybackContext = ReturnType<typeof useRecordingPlayback>
+  & ReturnType<typeof useChannelAuditionRouting>
+  & {
+    recordings: ITimeWaveformRecording[]
+    recordingGroupAssignments: Record<string, TComparisonGroupAssignment>
+  }
 
 const RecordingPlaybackContext = createContext<TRecordingPlaybackContext | null>(null)
 

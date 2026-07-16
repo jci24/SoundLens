@@ -13,8 +13,54 @@ const createRecording = (index: number): ITimeWaveformRecording => ({
   sampleRate: 44_100,
   channels: index % 2 === 0 ? 2 : 1,
   channelMode: index % 2 === 0 ? 'Stereo' : 'Mono',
-  signals: [],
+  signals: Array.from({ length: index % 2 === 0 ? 2 : 1 }, (_, channelIndex) => ({
+    signalId: `recording-${index}:ch:${channelIndex}`,
+    channelIndex,
+    displayName: `Input ${channelIndex + 1}`,
+  })),
 })
+
+class MockAudioNode {
+  connect = vi.fn()
+  disconnect = vi.fn()
+}
+
+class MockAudioContext {
+  static instances: MockAudioContext[] = []
+  static shouldRejectGraph = false
+  static shouldRejectResume = false
+
+  close = vi.fn<() => Promise<void>>().mockResolvedValue(undefined)
+  createChannelMerger = vi.fn(() => {
+    const node = new MockAudioNode()
+    this.mergers.push(node)
+    return node
+  })
+  createChannelSplitter = vi.fn(() => {
+    if (MockAudioContext.shouldRejectGraph) {
+      throw new DOMException('Graph rejected')
+    }
+    const node = new MockAudioNode()
+    this.splitters.push(node)
+    return node
+  })
+  createMediaElementSource = vi.fn(() => this.source)
+  destination = new MockAudioNode()
+  mergers: MockAudioNode[] = []
+  resume = vi.fn<() => Promise<void>>().mockImplementation(async () => {
+    if (MockAudioContext.shouldRejectResume) {
+      throw new DOMException('Audio context blocked')
+    }
+    this.state = 'running'
+  })
+  source = new MockAudioNode()
+  splitters: MockAudioNode[] = []
+  state: AudioContextState = 'suspended'
+
+  constructor() {
+    MockAudioContext.instances.push(this)
+  }
+}
 
 interface IPlaybackTestWorkspaceProps {
   layoutMode?: 'focused' | 'compare'
@@ -70,6 +116,10 @@ describe('AudioTransport', () => {
   let animationFrameCallback: FrameRequestCallback | null = null
 
   beforeEach(() => {
+    MockAudioContext.instances = []
+    MockAudioContext.shouldRejectGraph = false
+    MockAudioContext.shouldRejectResume = false
+    vi.stubGlobal('AudioContext', MockAudioContext)
     play.mockReset()
     pause.mockReset()
     load.mockReset()
@@ -88,6 +138,7 @@ describe('AudioTransport', () => {
 
   afterEach(() => {
     vi.restoreAllMocks()
+    vi.unstubAllGlobals()
   })
 
   it('keeps one unloaded media element until a recording is explicitly selected', () => {
@@ -96,6 +147,217 @@ describe('AudioTransport', () => {
     expect(container.querySelectorAll('audio')).toHaveLength(1)
     expect(container.querySelector('audio')).not.toHaveAttribute('src')
     expect(screen.getByRole('button', { name: 'Play recording' })).toBeDisabled()
+    expect(MockAudioContext.instances).toHaveLength(0)
+  })
+
+  it('hides channel audition for mono recordings', () => {
+    renderTransport({ recordings: [createRecording(1)] })
+    fireEvent.click(screen.getByRole('button', { name: 'Choose playback recording' }))
+    fireEvent.click(screen.getByRole('button', { name: /recording-001\.wav/i }))
+
+    expect(screen.queryByRole('button', { name: 'Choose playback channel' })).not.toBeInTheDocument()
+    expect(MockAudioContext.instances).toHaveLength(0)
+  })
+
+  it('lazily routes a stereo channel to both outputs', async () => {
+    const { container } = renderTransport({ recordings: [createRecording(2)] })
+
+    fireEvent.click(screen.getByRole('button', { name: 'Choose playback recording' }))
+    fireEvent.click(screen.getByRole('button', { name: /recording-002\.wav/i }))
+    expect(container.querySelector('audio')).toHaveAttribute('crossorigin', 'anonymous')
+    expect(screen.getByRole('button', { name: 'Choose playback channel' })).toHaveTextContent('Original')
+    expect(MockAudioContext.instances).toHaveLength(0)
+
+    fireEvent.click(screen.getByRole('button', { name: 'Choose playback channel' }))
+    expect(screen.getByRole('dialog', { name: 'Select playback channel' })).toBeInTheDocument()
+    await act(async () => {
+      fireEvent.click(screen.getByRole('button', { name: 'Input 2' }))
+    })
+
+    await waitFor(() => expect(screen.getByRole('button', { name: 'Choose playback channel' }))
+      .toHaveTextContent('Input 2'))
+    expect(MockAudioContext.instances).toHaveLength(1)
+    const context = MockAudioContext.instances[0]
+    expect(context.createMediaElementSource).toHaveBeenCalledOnce()
+    expect(context.createChannelSplitter).toHaveBeenCalledWith(2)
+    expect(context.createChannelMerger).toHaveBeenCalledWith(2)
+    expect(context.resume).toHaveBeenCalledOnce()
+    expect(context.source.connect).toHaveBeenCalledWith(context.splitters[0])
+    expect(context.splitters[0].connect).toHaveBeenNthCalledWith(1, context.mergers[0], 1, 0)
+    expect(context.splitters[0].connect).toHaveBeenNthCalledWith(2, context.mergers[0], 1, 1)
+    expect(context.mergers[0].connect).toHaveBeenCalledWith(context.destination)
+  })
+
+  it('returns to original routing without changing playback time or pause state', async () => {
+    const { container } = renderTransport({ recordings: [createRecording(2)] })
+    fireEvent.click(screen.getByRole('button', { name: 'Choose playback recording' }))
+    fireEvent.click(screen.getByRole('button', { name: /recording-002\.wav/i }))
+    const audio = container.querySelector('audio')!
+    audio.currentTime = 14.25
+    Object.defineProperty(audio, 'paused', { configurable: true, value: false })
+    const pauseCallsBeforeRouting = pause.mock.calls.length
+
+    fireEvent.click(screen.getByRole('button', { name: 'Choose playback channel' }))
+    await act(async () => fireEvent.click(screen.getByRole('button', { name: 'Input 1' })))
+    fireEvent.click(screen.getByRole('button', { name: 'Choose playback channel' }))
+    await act(async () => fireEvent.click(screen.getByRole('button', { name: 'Original' })))
+
+    const context = MockAudioContext.instances[0]
+    expect(context.source.connect).toHaveBeenLastCalledWith(context.destination)
+    expect(audio.currentTime).toBe(14.25)
+    expect(pause).toHaveBeenCalledTimes(pauseCallsBeforeRouting)
+  })
+
+  it('resumes an existing suspended context from a channel-selection action', async () => {
+    renderTransport({ recordings: [createRecording(2)] })
+    fireEvent.click(screen.getByRole('button', { name: 'Choose playback recording' }))
+    fireEvent.click(screen.getByRole('button', { name: /recording-002\.wav/i }))
+    fireEvent.click(screen.getByRole('button', { name: 'Choose playback channel' }))
+    await act(async () => fireEvent.click(screen.getByRole('button', { name: 'Input 1' })))
+    const context = MockAudioContext.instances[0]
+    context.state = 'suspended'
+
+    fireEvent.click(screen.getByRole('button', { name: 'Choose playback channel' }))
+    await act(async () => fireEvent.click(screen.getByRole('button', { name: 'Input 2' })))
+
+    expect(context.resume).toHaveBeenCalledTimes(2)
+    expect(screen.getByRole('button', { name: 'Choose playback channel' })).toHaveTextContent('Input 2')
+  })
+
+  it('preserves a valid isolated channel across A/B switching and resets it for general selection', async () => {
+    const recordings = [createRecording(2), createRecording(4), createRecording(6)]
+    renderTransport({
+      layoutMode: 'compare',
+      recordings,
+      recordingGroupAssignments: { 'recording-2': 'A', 'recording-4': 'B' },
+    })
+
+    fireEvent.click(screen.getByRole('button', { name: /Audition Compare A/i }))
+    fireEvent.click(screen.getByRole('button', { name: 'Choose playback channel' }))
+    await act(async () => fireEvent.click(screen.getByRole('button', { name: 'Input 2' })))
+    fireEvent.click(screen.getByRole('button', { name: /Audition Compare B/i }))
+    expect(screen.getByRole('button', { name: 'Choose playback channel' })).toHaveTextContent('Input 2')
+    const context = MockAudioContext.instances[0]
+    expect(context.createMediaElementSource).toHaveBeenCalledOnce()
+    expect(context.splitters).toHaveLength(2)
+    expect(context.splitters[0].disconnect).toHaveBeenCalled()
+
+    fireEvent.click(screen.getByRole('button', { name: 'Change playback recording' }))
+    fireEvent.click(screen.getByRole('button', { name: /recording-006\.wav/i }))
+    expect(screen.getByRole('button', { name: 'Choose playback channel' })).toHaveTextContent('Original')
+    expect(MockAudioContext.instances).toHaveLength(1)
+  })
+
+  it('falls back to Original when the A/B target lacks the isolated channel', async () => {
+    const stereo = createRecording(2)
+    const mono = createRecording(1)
+    renderTransport({
+      layoutMode: 'compare',
+      recordings: [stereo, mono],
+      recordingGroupAssignments: { 'recording-2': 'A', 'recording-1': 'B' },
+    })
+
+    fireEvent.click(screen.getByRole('button', { name: /Audition Compare A/i }))
+    fireEvent.click(screen.getByRole('button', { name: 'Choose playback channel' }))
+    await act(async () => fireEvent.click(screen.getByRole('button', { name: 'Input 2' })))
+    fireEvent.click(screen.getByRole('button', { name: /Audition Compare B/i }))
+
+    expect(screen.queryByRole('button', { name: 'Choose playback channel' })).not.toBeInTheDocument()
+    expect(MockAudioContext.instances[0].source.connect)
+      .toHaveBeenLastCalledWith(MockAudioContext.instances[0].destination)
+  })
+
+  it('reports unsupported channel counts without constructing a graph', () => {
+    const recording = {
+      ...createRecording(2),
+      channels: 33,
+      channelMode: 'Multichannel',
+      signals: Array.from({ length: 33 }, (_, channelIndex) => ({
+        signalId: `recording-2:ch:${channelIndex}`,
+        channelIndex,
+        displayName: `Input ${channelIndex + 1}`,
+      })),
+    }
+    renderTransport({ recordings: [recording] })
+    fireEvent.click(screen.getByRole('button', { name: 'Choose playback recording' }))
+    fireEvent.click(screen.getByRole('button', { name: /recording-002\.wav/i }))
+
+    expect(screen.getByRole('button', { name: 'Choose playback channel' })).toBeDisabled()
+    expect(screen.getByText('Channel routing unavailable for this recording.')).toBeInTheDocument()
+    expect(MockAudioContext.instances).toHaveLength(0)
+  })
+
+  it('restores Original and reports routing failure when the context cannot resume', async () => {
+    renderTransport({ recordings: [createRecording(2)] })
+    fireEvent.click(screen.getByRole('button', { name: 'Choose playback recording' }))
+    fireEvent.click(screen.getByRole('button', { name: /recording-002\.wav/i }))
+    fireEvent.click(screen.getByRole('button', { name: 'Choose playback channel' }))
+    MockAudioContext.shouldRejectResume = true
+    await act(async () => fireEvent.click(screen.getByRole('button', { name: 'Input 1' })))
+
+    expect(screen.getByRole('button', { name: 'Choose playback channel' })).toHaveTextContent('Original')
+    expect(screen.getByText('Channel routing unavailable.')).toBeInTheDocument()
+    expect(MockAudioContext.instances[0].createMediaElementSource).not.toHaveBeenCalled()
+    expect(MockAudioContext.instances[0].close).toHaveBeenCalledOnce()
+  })
+
+  it('closes the channel picker on Escape and restores trigger focus', async () => {
+    renderTransport({ recordings: [createRecording(2)] })
+    fireEvent.click(screen.getByRole('button', { name: 'Choose playback recording' }))
+    fireEvent.click(screen.getByRole('button', { name: /recording-002\.wav/i }))
+    const trigger = screen.getByRole('button', { name: 'Choose playback channel' })
+
+    trigger.focus()
+    fireEvent.click(trigger)
+    expect(screen.getByRole('dialog', { name: 'Select playback channel' })).toBeInTheDocument()
+    fireEvent.keyDown(document, { key: 'Escape' })
+
+    await waitFor(() => {
+      expect(screen.queryByRole('dialog', { name: 'Select playback channel' })).not.toBeInTheDocument()
+      expect(trigger).toHaveFocus()
+    })
+  })
+
+  it('restores Original when the browser rejects the routing graph', async () => {
+    renderTransport({ recordings: [createRecording(2)] })
+    fireEvent.click(screen.getByRole('button', { name: 'Choose playback recording' }))
+    fireEvent.click(screen.getByRole('button', { name: /recording-002\.wav/i }))
+    fireEvent.click(screen.getByRole('button', { name: 'Choose playback channel' }))
+    MockAudioContext.shouldRejectGraph = true
+    await act(async () => fireEvent.click(screen.getByRole('button', { name: 'Input 1' })))
+
+    const context = MockAudioContext.instances[0]
+    expect(context.source.connect).toHaveBeenLastCalledWith(context.destination)
+    expect(screen.getByRole('button', { name: 'Choose playback channel' })).toHaveTextContent('Original')
+    expect(screen.getByText('Channel routing unavailable.')).toBeInTheDocument()
+  })
+
+  it('reports unavailable Web Audio without changing playback routing', async () => {
+    vi.stubGlobal('AudioContext', undefined)
+    renderTransport({ recordings: [createRecording(2)] })
+    fireEvent.click(screen.getByRole('button', { name: 'Choose playback recording' }))
+    fireEvent.click(screen.getByRole('button', { name: /recording-002\.wav/i }))
+    fireEvent.click(screen.getByRole('button', { name: 'Choose playback channel' }))
+    await act(async () => fireEvent.click(screen.getByRole('button', { name: 'Input 1' })))
+
+    expect(screen.getByRole('button', { name: 'Choose playback channel' })).toHaveTextContent('Original')
+    expect(screen.getByText('Channel routing unavailable.')).toBeInTheDocument()
+  })
+
+  it('disconnects routing nodes and closes the shared context on unmount', async () => {
+    const { unmount } = renderTransport({ recordings: [createRecording(2)] })
+    fireEvent.click(screen.getByRole('button', { name: 'Choose playback recording' }))
+    fireEvent.click(screen.getByRole('button', { name: /recording-002\.wav/i }))
+    fireEvent.click(screen.getByRole('button', { name: 'Choose playback channel' }))
+    await act(async () => fireEvent.click(screen.getByRole('button', { name: 'Input 1' })))
+    const context = MockAudioContext.instances[0]
+
+    unmount()
+
+    expect(context.source.disconnect).toHaveBeenCalled()
+    expect(context.splitters[0].disconnect).toHaveBeenCalled()
+    expect(context.mergers[0].disconnect).toHaveBeenCalled()
+    expect(context.close).toHaveBeenCalledOnce()
   })
 
   it('offers position-aligned A/B audition only for one valid compare pair', async () => {
