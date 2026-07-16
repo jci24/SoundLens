@@ -92,7 +92,8 @@ Current status:
 - selected metric details and limitations open in a non-modal side inspector without pushing waveform or spectrum evidence down the workspace
 - focused and compare workspaces provide explicit original-recording playback through one browser-native media element and a range-enabled current-session stream
 - ROI play-once, explicit looping, scope reset, guarded keyboard control, and waveform playhead synchronization are implemented without changing deterministic evidence
-- large-session recording-rail virtualization is the next playback and UI-scale slice before synchronized A/B and isolated-channel audition
+- recording and expanded-signal rows are virtualized with stable identifier keys, bounded overscan, and filtering validated against a 100-recording fixture
+- synchronized A/B and isolated-channel audition remain the next playback phases
 
 Explicitly deferred work:
 - broad open-ended AI investigation
@@ -193,7 +194,7 @@ Major capabilities:
 - server-owned pagination and aggregation for large result sets
 
 Large-session visualization program:
-- virtualize recording and signal navigation so DOM size follows the visible window rather than the imported session size
+- recording and signal navigation now virtualizes the visible window; server-owned pagination and aggregate views remain necessary for larger persisted datasets
 - separate dataset navigation, batch execution, aggregate overview, and detailed evidence inspection instead of mounting one chart per signal
 - introduce metric-specific matrix or heatmap overviews only after batch contracts exist; each metric keeps its own unit, scale, coverage, and limitation state
 - add distribution views and bounded small multiples for selected cohorts or exceptions, then drill into the existing waveform and spectrum workspace for a small active selection

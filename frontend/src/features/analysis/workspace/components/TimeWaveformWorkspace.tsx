@@ -163,31 +163,22 @@ const TimeWaveformWorkspace = ({ importedFiles, isCopilotOpen, onCopilotToggle }
       : null
   const isComparisonLoading =
     activeComparisonRequestKey !== null && comparisonRequestState.requestKey !== activeComparisonRequestKey
-  const comparisonGuidance =
-    canRequestPairwiseComparison
+  const comparisonGuidance = comparisonSetup.state === 'conflict'
+    ? {
+        label: 'Resolve pair',
+        copy: 'Choose exactly one recording for each target.',
+      }
+    : comparisonSetup.state === 'incomplete'
       ? {
-          label: 'Ready',
-          copy: 'Pair selected.',
+          label: 'Incomplete',
+          copy: 'Choose the empty target.',
         }
-      : comparisonSetup.state === 'valid'
+      : comparisonSetup.state === 'invalid'
         ? {
-            label: 'Ready',
-            copy: 'Pair selected.',
+            label: 'Not ready',
+            copy: 'Choose A and B.',
           }
-      : comparisonSetup.state === 'conflict'
-        ? {
-            label: 'Resolve pair',
-            copy: 'Choose exactly one recording for each target.',
-          }
-        : comparisonSetup.state === 'incomplete'
-        ? {
-            label: 'Incomplete',
-            copy: 'Choose the empty target.',
-          }
-        : {
-          label: 'Not ready',
-          copy: 'Choose A and B.',
-        }
+        : null
   const comparisonMetrics = comparisonResults?.aggregateMetrics ?? []
   const activeMetric =
     comparisonMetrics.find((metric) => metric.metricKey === selectedMetricKey) ?? comparisonMetrics[0] ?? null
@@ -460,48 +451,37 @@ const TimeWaveformWorkspace = ({ importedFiles, isCopilotOpen, onCopilotToggle }
           selectedSignalIds={selectedSignalIds}
         />
         <div className="time-waveform-workspace__main-pane">
-          <section
-            className={`time-waveform-workspace__comparison-guidance time-waveform-workspace__comparison-guidance--${comparisonSetup.state}`}
-            aria-label="Comparison setup guidance"
-          >
-            <div className="time-waveform-workspace__comparison-guidance-main">
-              <span className="time-waveform-workspace__comparison-guidance-label">
-                {comparisonGuidance.label}
-              </span>
-              <p className="time-waveform-workspace__comparison-guidance-copy">
-                {comparisonGuidance.copy}
-              </p>
-            </div>
-            {comparisonSetup.state === 'valid' && (
-              <div className="time-waveform-workspace__comparison-guidance-context">
-                <div className="time-waveform-workspace__comparison-guidance-pair" aria-label="Active comparison pair">
-                  <span className="time-waveform-workspace__comparison-guidance-pair-pill time-waveform-workspace__comparison-guidance-pair-pill--A">
-                    <strong>Compare A</strong>
-                    <span>{activePairRecordingA ? activePairRecordingA.fileName : `${groupARecordings.length} recordings`}</span>
+          {(comparisonGuidance || (layoutMode === 'compare' && regionOfInterest && roiScopeLabel)) && (
+            <section
+              className={`time-waveform-workspace__comparison-guidance time-waveform-workspace__comparison-guidance--${comparisonSetup.state}`}
+              aria-label="Comparison setup guidance"
+            >
+              {comparisonGuidance && (
+                <div className="time-waveform-workspace__comparison-guidance-main">
+                  <span className="time-waveform-workspace__comparison-guidance-label">
+                    {comparisonGuidance.label}
                   </span>
-                  <span className="time-waveform-workspace__comparison-guidance-pair-divider">vs</span>
-                  <span className="time-waveform-workspace__comparison-guidance-pair-pill time-waveform-workspace__comparison-guidance-pair-pill--B">
-                    <strong>Compare B</strong>
-                    <span>{activePairRecordingB ? activePairRecordingB.fileName : `${groupBRecordings.length} recordings`}</span>
-                  </span>
+                  <p className="time-waveform-workspace__comparison-guidance-copy">
+                    {comparisonGuidance.copy}
+                  </p>
                 </div>
-                {layoutMode === 'compare' && regionOfInterest && roiScopeLabel && (
-                  <div className="time-waveform-workspace__comparison-guidance-scope" aria-label="Comparison scope">
-                    <span className="time-waveform-workspace__comparison-guidance-scope-kicker">ROI</span>
-                    <span className="time-waveform-workspace__comparison-guidance-scope-values">{roiScopeLabel}</span>
-                    <button
-                      aria-label="Clear selected comparison region"
-                      className="time-waveform-workspace__comparison-guidance-scope-clear"
-                      type="button"
-                      onClick={() => onRegionOfInterestChange(null)}
-                    >
-                      Clear
-                    </button>
-                  </div>
-                )}
-              </div>
-            )}
-          </section>
+              )}
+              {layoutMode === 'compare' && regionOfInterest && roiScopeLabel && (
+                <div className="time-waveform-workspace__comparison-guidance-scope" aria-label="Comparison scope">
+                  <span className="time-waveform-workspace__comparison-guidance-scope-kicker">ROI</span>
+                  <span className="time-waveform-workspace__comparison-guidance-scope-values">{roiScopeLabel}</span>
+                  <button
+                    aria-label="Clear selected comparison region"
+                    className="time-waveform-workspace__comparison-guidance-scope-clear"
+                    type="button"
+                    onClick={() => onRegionOfInterestChange(null)}
+                  >
+                    Clear
+                  </button>
+                </div>
+              )}
+            </section>
+          )}
           {layoutMode === 'compare' && (
             <section className="time-waveform-workspace__comparison-results" aria-label="Comparison metrics">
               <div className="time-waveform-workspace__comparison-results-header">

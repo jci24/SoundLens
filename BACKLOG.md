@@ -56,38 +56,34 @@ Turn the current analysis workspace into a focused comparison workflow for repea
 - Markdown and textual/tabular PDF comparison export over one backend-prepared evidence model
 - original-recording playback through one browser-native media element, a range-enabled backend stream, indexed session lookup, and searchable bounded source selection
 - ROI-bounded playback with explicit looping, a read-only waveform playhead, source and scope reset, and guarded workspace Spacebar control
+- virtualized large-session recording and expanded-signal navigation with stable keys, bounded overscan, compact filtering, and persistent selection and assignment state
+- removal of redundant valid-pair readiness copy while preserving actionable setup and ROI scope controls
 
 ## Ordered Thin Tasks
 
-### Playback phase 3. Large-session navigation
+### Playback phase 4. Synchronized A/B audition
 
 User value:
-- A user can find, expand, and select recordings and signals in large imported sessions without the recording rail becoming slow or visually unmanageable.
+- A user can audition the active Compare A and Compare B recordings at the same logical position without manually replacing the playback source.
 
 Thin-slice boundary:
-- Virtualize the existing recording and expanded-signal hierarchy while preserving stable IDs, search, expansion, channel selection, A/B status, keyboard access, and playback selection.
+- Add explicit A/B audition controls over only the active comparison pair, with at most two media elements and honest buffering or seek-delay states.
 
 Acceptance criteria:
-- at least 100 recordings with multiple channels render only the visible row window plus bounded overscan
-- expansion, channel selection, Compare A/B markers, and focus behavior remain correct as rows enter and leave the DOM
-- playback, comparison, reports, and Copilot context continue to reference recording and signal IDs rather than mounted row instances
-- the searchable playback picker remains bounded and separate from the virtualized rail
+- switching targets the same logical full-duration or ROI position
+- play/pause state is preserved only when browser readiness permits
+- no gain normalization, level matching, crossfade, or sample-accurate switching claim is introduced
+- buffering and delayed target readiness remain visible to the user
 
 Test expectations:
-- frontend flattened-row-model, virtualization-window, scroll restoration, focus, expansion, selection, assignment, and 100-recording regression tests
+- frontend target switching, ROI position, readiness, buffering, failure, cleanup, and existing playback regression tests
 
 Proposed branch name:
-- `codex/large-session-navigation`
+- `codex/ab-audition`
 
 Dependencies:
-- merged recording playback foundation and ROI playback synchronization
-- a benchmark fixture representing at least 100 recordings with multiple signals
-
-### Playback follow-up. Synchronized A/B audition
-
-Reason for deferral:
-- validate recording-level playback and ROI behavior before adding synchronized source switching
-- isolated-channel audition, level-matching policy, and switching semantics require their own product and trust decisions
+- merged recording playback, ROI synchronization, and large-session navigation
+- explicit product wording that switching is position-aligned, not sample-accurate
 
 ### Trust follow-up. Real calibration-state mismatch
 

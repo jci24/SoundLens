@@ -155,4 +155,39 @@ describe('ComparePairBuilder', () => {
     )
     expect(screen.queryByRole('button', { name: 'Swap A/B' })).not.toBeInTheDocument()
   })
+
+  it('bounds large pickers and filters to a recording near the end of the session', () => {
+    const largeSession = Array.from({ length: 100 }, (_, index): ITimeWaveformRecording => ({
+      recordingId: `recording-${index + 1}`,
+      fileName: `recording-${String(index + 1).padStart(3, '0')}.wav`,
+      sizeBytes: 1_024,
+      durationSeconds: 1,
+      sampleRate: 44_100,
+      channels: 2,
+      channelMode: 'Stereo',
+      signals: [],
+    }))
+    const onRecordingGroupAssignment = vi.fn()
+
+    render(
+      <ComparePairBuilder
+        onRecordingGroupAssignment={onRecordingGroupAssignment}
+        onSwap={vi.fn()}
+        recordings={largeSession}
+        recordingGroupAssignments={{}}
+      />
+    )
+
+    fireEvent.click(screen.getByRole('button', { name: 'Choose Compare A recording' }))
+
+    expect(screen.queryByRole('button', { name: /recording-100\.wav/i })).not.toBeInTheDocument()
+    expect(screen.getByText('Showing the first 50. Refine the filter to see more.')).toBeInTheDocument()
+
+    fireEvent.change(screen.getByRole('searchbox', { name: 'Filter Compare A recordings' }), {
+      target: { value: 'recording-100' },
+    })
+    fireEvent.click(screen.getByRole('button', { name: /recording-100\.wav/i }))
+
+    expect(onRecordingGroupAssignment).toHaveBeenCalledWith('recording-100', 'A')
+  })
 })

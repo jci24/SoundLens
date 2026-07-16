@@ -158,8 +158,11 @@ The repo is still intentionally simple: no extra backend projects, no persistenc
 - When an ROI exists, playback starts at its beginning and stops at its end unless explicit looping is enabled. Source or ROI changes stop playback and reset the playhead to the active scope start.
 - A non-interactive playhead follows the selected recording on applicable waveform charts through a local playback provider; it does not alter waveform bins, ROI geometry, or evidence state.
 - Spacebar control is scoped to the analysis workspace and ignored for form controls, dialogs, editable content, and the Copilot composer.
+- The recording rail flattens recording and expanded-signal rows into a stable identifier-based model and renders only the visible virtual window plus bounded overscan.
+- Sessions above eight recordings gain compact rail and A/B-picker filters. Pair pickers cap broad results at 50, while expansion, selected signals, A/B assignment, playback, reports, and Copilot context remain owned by stable IDs rather than mounted rows.
+- Valid A/B selection is no longer repeated in a separate readiness banner; only actionable setup guidance and active ROI scope remain above comparison evidence.
 - A true calibrated-versus-uncalibrated comparison eval remains deferred because imported evidence currently has no real calibrated state
 
 ## Immediate Next Product Slice
 
-The next product slice should virtualize the recording and expanded-signal rail for large sessions while preserving selection, assignment, accessibility, and stable identifier behavior. Synchronized A/B and isolated-channel audition remain later playback phases. A real calibration-state model and calibrated-versus-uncalibrated eval remain later trust work.
+The next product slice should add honest synchronized A/B recording audition over the active comparison pair without claiming sample-accurate switching or adding normalization. Isolated-channel audition remains a later playback phase. A real calibration-state model and calibrated-versus-uncalibrated eval remain later trust work.

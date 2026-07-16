@@ -129,7 +129,7 @@ SoundLens is a validation-stage engineering prototype, not a production acoustic
 - Findings are bounded observations, not proof of root cause or standards compliance.
 - Playback auditions one recording at a time; synchronized A/B and isolated-channel audition are deferred.
 - The current PDF report is textual and tabular and does not claim PDF/UA conformance.
-- Large-session navigation, persistent projects, bounded batch execution, cancellation, and partial-failure isolation remain roadmap work.
+- Persistent projects, server-owned batch navigation, bounded execution, cancellation, aggregate visualization, and partial-failure isolation remain roadmap work.
 
 See [`CURRENT_STATE.md`](CURRENT_STATE.md) for the precise shipped behavior and [`ROADMAP.md`](ROADMAP.md) for planned validation and engineering milestones.
 

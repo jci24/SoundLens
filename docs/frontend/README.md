@@ -160,7 +160,10 @@ Current playback guidance:
 - Applicable waveform charts consume only the selected recording ID and current playback position to render a non-interactive playhead. They do not recompute bins or alter ROI interaction geometry.
 - Spacebar play/pause is scoped to the analysis workspace and ignored when focus is in inputs, buttons, dialogs, editable content, or the Copilot composer.
 - Playback preserves original recording routing and remains separate from signal selection, ROI evidence, and backend DSP calculations.
-- Large-session recording-rail virtualization, A/B switching, and isolated-channel routing are separate follow-up slices.
+- The recording rail uses a pure flattened row model and TanStack Virtual so only visible recording and expanded-signal rows plus bounded overscan are mounted. Stable recording and signal IDs preserve expansion, selection, assignment, playback, reporting, and Copilot context across row unmounts.
+- Compact recording/signal and A/B-picker filters appear only for sessions above eight recordings. A/B and playback pickers cap broad results at 50 and ask users to refine instead of mounting the whole session in a popover.
+- Valid pair state is expressed by the populated A/B slots rather than repeated readiness text. Setup guidance remains only for incomplete or inconsistent states, and an active ROI remains explicitly visible and clearable.
+- Synchronized A/B switching and isolated-channel routing remain separate follow-up slices.
 - Metric cards select context rather than unconditionally selecting a panel. When Copilot is open, a metric-card click keeps it open and updates the selected comparison context; the explicit `Evidence & limitations` disclosure switches from Copilot to the inspector.
 
 Current comparison-pair guidance:

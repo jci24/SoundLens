@@ -432,7 +432,7 @@ describe('TimeWaveformWorkspace', () => {
     expect(workspaceState.onRecordingGroupAssignment).toHaveBeenCalledWith('recording-1', 'A')
   })
 
-  it('marks compare mode ready when both groups are populated', () => {
+  it('enables compare mode without repeating a valid pair summary in the workspace', () => {
     const workspaceState = createWorkspaceState()
     workspaceState.recordings = [
       {
@@ -471,8 +471,8 @@ describe('TimeWaveformWorkspace', () => {
       />
     )
 
-    expect(screen.getByLabelText('Comparison setup guidance')).toHaveTextContent('Ready')
-    expect(screen.getByText('Pair selected.')).toBeInTheDocument()
+    expect(screen.queryByLabelText('Comparison setup guidance')).not.toBeInTheDocument()
+    expect(screen.queryByText('Pair selected.')).not.toBeInTheDocument()
     expect(screen.getByText('Compare enabled')).toBeInTheDocument()
   })
 

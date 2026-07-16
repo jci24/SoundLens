@@ -153,67 +153,6 @@
     line-height: 1.35;
   }
 
-  &__comparison-guidance-pair {
-    display: inline-flex;
-    align-items: center;
-    gap: 0.45rem;
-    flex-shrink: 0;
-  }
-
-  &__comparison-guidance-context {
-    display: inline-flex;
-    align-items: center;
-    justify-content: flex-end;
-    flex-wrap: wrap;
-    gap: 0.45rem;
-    min-width: 0;
-  }
-
-  &__comparison-guidance-pair-divider {
-    color: color-mix(in srgb, var(--muted-foreground) 82%, transparent);
-    font-size: 0.72rem;
-    font-weight: 700;
-    letter-spacing: 0.08em;
-    text-transform: uppercase;
-  }
-
-  &__comparison-guidance-pair-pill {
-    display: inline-flex;
-    align-items: flex-start;
-    gap: 0.35rem;
-    min-width: 0;
-    padding: 0.4rem 0.62rem;
-    border: 1px solid color-mix(in srgb, var(--border) 78%, transparent);
-    border-radius: 0.8rem;
-    background: color-mix(in srgb, var(--card) 96%, white 4%);
-    color: var(--foreground);
-    font-size: var(--font-xs);
-  }
-
-  &__comparison-guidance-pair-pill strong {
-    flex-shrink: 0;
-    font-size: 0.66rem;
-    font-weight: 700;
-    letter-spacing: 0.08em;
-    text-transform: uppercase;
-  }
-
-  &__comparison-guidance-pair-pill span {
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-  }
-
-  &__comparison-guidance-pair-pill--A {
-    border-color: color-mix(in srgb, var(--foreground) 10%, var(--border));
-    background: color-mix(in srgb, white 84%, var(--card) 16%);
-  }
-
-  &__comparison-guidance-pair-pill--B {
-    border-color: color-mix(in srgb, var(--foreground) 10%, var(--border));
-    background: color-mix(in srgb, white 84%, var(--card) 16%);
-  }
-
   &__comparison-guidance-scope {
     display: inline-flex;
     align-items: center;
@@ -641,6 +580,16 @@
       box-shadow: 0 14px 28px -26px color-mix(in srgb, black 24%, transparent);
     }
 
+    .time-waveform-workspace__comparison-guidance--valid {
+      justify-content: flex-end;
+      min-height: auto;
+      padding: 0.05rem 0;
+      border: 0;
+      border-radius: 0;
+      background: transparent;
+      box-shadow: none;
+    }
+
     .time-waveform-workspace__comparison-results {
       gap: 0.62rem;
       padding: 0.24rem 0 0;
@@ -686,10 +635,6 @@
     gap: 0.55rem;
   }
 
-  &--compare &__comparison-guidance-context {
-    gap: 0.35rem;
-  }
-
   &--compare &__comparison-guidance-scope {
     padding: 0.28rem 0.38rem;
   }
@@ -700,15 +645,6 @@
 
   &--compare &__comparison-guidance-copy {
     font-size: var(--font-xs);
-  }
-
-  &--compare &__comparison-guidance-pair {
-    gap: 0.32rem;
-  }
-
-  &--compare &__comparison-guidance-pair-pill {
-    padding: 0.3rem 0.46rem;
-    border-radius: 0.72rem;
   }
 
   &--compare &__comparison-metric-value {
@@ -783,8 +719,6 @@
     }
 
     &__comparison-guidance-main,
-    &__comparison-guidance-pair,
-    &__comparison-guidance-context,
     &__comparison-guidance-scope {
       width: 100%;
     }

@@ -4,7 +4,7 @@
   padding: 0 0 0.7rem;
   border-bottom: 1px solid color-mix(in srgb, var(--border) 84%, transparent);
 
-  &__header,
+  &__actions,
   &__slot-label-row {
     display: flex;
     align-items: center;
@@ -12,11 +12,9 @@
     gap: 0.5rem;
   }
 
-  &__header h3 {
-    margin: 0;
-    color: var(--foreground);
-    font-size: var(--font-sm);
-    font-weight: 700;
+  &__actions {
+    justify-content: flex-end;
+    margin-bottom: -0.1rem;
   }
 
   &__swap,
@@ -117,14 +115,51 @@
   animation: compare-pair-popover-in 140ms ease-out;
 }
 
-.compare-pair-builder__popover-title {
-  display: block;
+.compare-pair-builder__popover-header {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.5rem;
   padding: 0.35rem 0.45rem 0.45rem;
   color: var(--muted-foreground);
   font-size: 0.65rem;
+}
+
+.compare-pair-builder__popover-title {
+  color: var(--muted-foreground);
   font-weight: 700;
   letter-spacing: 0.08em;
   text-transform: uppercase;
+}
+
+.compare-pair-builder__search {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  align-items: center;
+  gap: 0.4rem;
+  margin: 0 0.35rem 0.35rem;
+  padding: 0 0.35rem;
+  border-bottom: 1px solid color-mix(in srgb, var(--border) 88%, transparent);
+  color: var(--muted-foreground);
+}
+
+.compare-pair-builder__search:focus-within {
+  border-bottom-color: color-mix(in srgb, var(--foreground) 26%, var(--border));
+}
+
+.compare-pair-builder__search input {
+  min-width: 0;
+  padding: 0.38rem 0;
+  border: 0;
+  outline: 0;
+  background: transparent;
+  color: var(--foreground);
+  font: inherit;
+  font-size: var(--font-xs);
+}
+
+.compare-pair-builder__search input::-webkit-search-cancel-button {
+  display: none;
 }
 
 .compare-pair-builder__options {
@@ -172,6 +207,13 @@
   color: var(--muted-foreground);
   font-size: var(--font-xs);
   line-height: 1.4;
+}
+
+.compare-pair-builder__result-limit {
+  margin: 0.3rem 0.45rem 0.15rem;
+  color: var(--muted-foreground);
+  font-size: 0.65rem;
+  line-height: 1.35;
 }
 
 @keyframes compare-pair-popover-in {
