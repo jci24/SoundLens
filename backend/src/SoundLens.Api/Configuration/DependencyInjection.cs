@@ -21,7 +21,8 @@ public static class DependencyInjection
         services.AddSingleton<ISpectrumService, SpectrumService>();
         services.AddSingleton<SignalAlignmentService>();
         services.AddSingleton<RecordingComparisonAggregationService>();
-        services.AddSingleton<ComparisonExplanationContextResolver>();
+        services.AddSingleton<IComparisonExplanationContextResolver, ComparisonExplanationContextResolver>();
+        services.AddSingleton<SelectedComparisonOrchestrator>();
         services.AddSingleton<ComparisonReportPreparationService>();
 
         return services;

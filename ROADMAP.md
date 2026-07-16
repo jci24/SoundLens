@@ -124,6 +124,7 @@ Current status:
 - calibrated dB SPL and physical sound-pressure questions over uncalibrated selected evidence bypass the model and return a deterministic refusal while preserving available digital evidence
 - causal questions over observational selected evidence bypass the model and return measured differences, findings, and limitations without asserting a root cause
 - malformed or schema-invalid model output is never returned verbatim; a deterministic fallback preserves backend-known evidence and limitations
+- selected-comparison reconstruction, deterministic guards, prompt construction, model invocation, parsing, and fallback coordination execute through a dedicated orchestrator rather than the generic tool-calling handler
 - live trust evals now cover ambiguity, zero difference, missing aligned evidence, ROI-bounded causal uncertainty, and refusal of calibrated SPL claims from uncalibrated evidence
 - pure dataset and grader tests run in CI; live repeated runs remain local and produce diagnostic artifacts
 
