@@ -1,6 +1,6 @@
 # SoundLens Project Context
 
-Last updated: 2026-07-14
+Last updated: 2026-07-16
 
 ## Product Problem
 
@@ -41,6 +41,8 @@ SoundLens should be positioned as an AI-assisted acoustic investigation and prod
 It is not a generic chatbot, DAW, audio editor, or freeform dashboard builder.
 
 The long-term Copilot direction is an agentic acoustic investigation workspace: users state an acoustic question, the Copilot proposes and operates a traceable investigation, the backend remains the numerical authority, and the resulting evidence stays editable and reviewable in the workspace. This direction is staged after validation of the current A/B comparison wedge and is detailed in [docs/product/agentic-copilot-strategy.md](docs/product/agentic-copilot-strategy.md).
+
+SoundLens may expand to additional analysis workflows only through customer-driven discovery and deterministic capability validation. Requested analyses should be grouped around recurring user decisions and implemented as typed, reusable primitives or recipes where practical, rather than accumulated as unrelated one-off metrics. The research and decision process is defined in [docs/product/analysis-capability-discovery.md](docs/product/analysis-capability-discovery.md).
 
 ## Core Product Principles
 
@@ -119,6 +121,7 @@ The immediate roadmap should not expand into:
 - [AGENTS.md](AGENTS.md)
 - [docs/architecture/domain-model.md](docs/architecture/domain-model.md)
 - [docs/product/validation.md](docs/product/validation.md)
+- [docs/product/analysis-capability-discovery.md](docs/product/analysis-capability-discovery.md)
 - [docs/backend/README.md](docs/backend/README.md)
 - [docs/frontend/README.md](docs/frontend/README.md)
 - [docs/adr/](docs/adr/)

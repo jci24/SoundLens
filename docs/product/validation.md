@@ -1,6 +1,6 @@
 # Product Validation
 
-Last updated: 2026-07-14
+Last updated: 2026-07-16
 
 ## Current Validation Hypothesis
 
@@ -62,6 +62,8 @@ Negative signals:
 - After every two meaningful product slices, run at least one external workflow review or customer conversation.
 - Log outcomes in a lightweight evidence trail rather than relying on memory.
 - Revisit roadmap priority if multiple sessions disconfirm the current wedge.
+- Use the [analysis-capability discovery guide](analysis-capability-discovery.md) when the conversation concerns new analyses, customer segmentation, batch scale, or commercial priority.
+- Keep identifiable interview notes and confidential customer material outside the public repository; commit only anonymized synthesis and product decisions.
 
 ## Hypothesis Table
 
@@ -111,3 +113,4 @@ Agentic disconfirming evidence:
 - Narrow or change the wedge if users value the analysis workspace but not the comparison workflow.
 - Delay larger persistence or platform work until users demonstrate that session-only behavior is a real blocker.
 - Start agentic capability work only after the A/B wedge is validated; expand autonomy only when the preceding trust and usability gate passes.
+- Add a new deterministic analysis only after the customer-driven analysis program passes its problem-evidence and capability-priority gates.

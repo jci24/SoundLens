@@ -4,6 +4,8 @@ Last updated: 2026-07-16
 
 This backlog reflects the immediate product direction: focused A/B comparison of repeated recordings with deterministic evidence, drill-down, grounded explanation, and report export. The later agentic Copilot initiative is sequenced in `ROADMAP.md` and is not yet part of the ordered implementation queue.
 
+Product discovery runs in parallel with the ordered engineering queue. It may change future priorities, but it does not authorize speculative implementation without an approved thin-slice prompt.
+
 ## Working Rules
 
 - Prefer thin vertical slices with one clear user outcome.
@@ -64,6 +66,28 @@ Turn the current analysis workspace into a focused comparison workflow for repea
 
 ## Ordered Thin Tasks
 
+### Product discovery. Analysis capability study
+
+User value:
+- Future analysis capabilities reflect a real, repeated customer workflow rather than an assumed catalogue of acoustic metrics.
+
+Discovery boundary:
+- Interview prospective users and domain experts using `docs/product/analysis-capability-discovery.md`, then synthesize jobs, decisions, requested evidence, current alternatives, trust constraints, scale, and commercial signals.
+- Do not implement a new analysis, choose a standards claim, or commit to a domain pack during this task.
+
+Acceptance criteria:
+- at least three relevant conversations are recorded with supporting and disconfirming evidence
+- requested analyses are grouped by customer workflow and decision, not counted as unrelated feature requests
+- opportunities are scored using the documented evidence-based scorecard
+- the output recommends one next wedge, recommends further discovery, or explicitly rejects the current assumptions
+- any implementation recommendation is rewritten as a separate thin-slice prompt and approved before branch creation
+
+Proposed artifact:
+- a dated synthesis under `docs/product/research/` with anonymized findings and links to any private source notes kept outside the public repository
+
+Priority:
+- high, parallel product work; begin before expanding the deterministic analysis catalogue
+
 ### Validation follow-up. Comparison-selection-to-Copilot regression
 
 User value:
@@ -110,4 +134,5 @@ The following remain intentionally out of the immediate backlog:
 - advanced psychoacoustic metrics beyond the validated wedge
 - generalized batch infrastructure
 - enterprise deployment concerns
+- unvalidated analysis catalogues or one-off customer-specific metric implementations
 - agent-operated investigations, recipes, and broader workspace automation until the current comparison wedge and trust gates are validated
