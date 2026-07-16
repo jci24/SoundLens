@@ -161,8 +161,10 @@ The repo is still intentionally simple: no extra backend projects, no persistenc
 - The recording rail flattens recording and expanded-signal rows into a stable identifier-based model and renders only the visible virtual window plus bounded overscan.
 - Sessions above eight recordings gain compact rail and A/B-picker filters. Pair pickers cap broad results at 50, while expansion, selected signals, A/B assignment, playback, reports, and Copilot context remain owned by stable IDs rather than mounted rows.
 - Valid A/B selection is no longer repeated in a separate readiness banner; only actionable setup guidance and active ROI scope remain above comparison evidence.
+- Compare mode exposes compact A/B audition controls for the explicit active pair. Switching transfers the logical full-duration or ROI position, waits for target readiness before resuming, and surfaces side-specific loading or buffering state.
+- A/B audition uses no more than two browser-native media elements and does not normalize, level-match, crossfade, or claim seamless or sample-accurate switching.
 - A true calibrated-versus-uncalibrated comparison eval remains deferred because imported evidence currently has no real calibrated state
 
 ## Immediate Next Product Slice
 
-The next product slice should add honest synchronized A/B recording audition over the active comparison pair without claiming sample-accurate switching or adding normalization. Isolated-channel audition remains a later playback phase. A real calibration-state model and calibrated-versus-uncalibrated eval remain later trust work.
+The next playback slice should add explicit isolated-channel audition for the active recording without changing stored samples or deterministic evidence. A real calibration-state model and calibrated-versus-uncalibrated eval remain later trust work.

@@ -1,6 +1,10 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import type { RefObject, SyntheticEvent } from 'react'
-import type { IAnalysisRegionOfInterest, ITimeWaveformRecording } from '../../types'
+import type {
+  IAnalysisRegionOfInterest,
+  ITimeWaveformRecording,
+  TComparisonGroupAssignment,
+} from '../../types'
 import { getPlaybackRecordingUrl } from '../services/playbackRecording'
 
 type TPlaybackStatus = 'empty' | 'loading' | 'ready' | 'playing' | 'buffering' | 'error'
@@ -9,6 +13,12 @@ interface IPlaybackScope {
   endTimeSeconds: number
   hasRegionOfInterest: boolean
   startTimeSeconds: number
+}
+
+interface IPendingAuditionSwitch {
+  recordingId: string
+  shouldResume: boolean
+  timeSeconds: number
 }
 
 const unsupportedMediaSourceErrorCode = 4
@@ -52,14 +62,27 @@ const getPlaybackScope = (
   }
 }
 
+const getPositionAlignedTime = (
+  timeSeconds: number,
+  recording: ITimeWaveformRecording,
+  regionOfInterest: IAnalysisRegionOfInterest | null
+) => {
+  const scope = getPlaybackScope(recording, regionOfInterest)
+  return Math.min(Math.max(timeSeconds, scope.startTimeSeconds), scope.endTimeSeconds)
+}
+
 const useRecordingPlayback = (
   recordings: ITimeWaveformRecording[],
   regionOfInterest: IAnalysisRegionOfInterest | null,
-  workspaceRef: RefObject<HTMLElement | null>
+  workspaceRef: RefObject<HTMLElement | null>,
+  recordingGroupAssignments: Record<string, TComparisonGroupAssignment> = {},
+  isCompareMode = false
 ) => {
   const audioRef = useRef<HTMLAudioElement | null>(null)
+  const secondaryAudioRef = useRef<HTMLAudioElement | null>(null)
   const animationFrameRef = useRef<number | null>(null)
   const readyRecordingIdRef = useRef<string | null>(null)
+  const pendingAuditionSwitchRef = useRef<IPendingAuditionSwitch | null>(null)
   const previousRecordingIdRef = useRef<string | null>(null)
   const [selectedRecordingId, setSelectedRecordingId] = useState<string | null>(null)
   const [currentTimeSeconds, setCurrentTimeSeconds] = useState(0)
@@ -69,6 +92,32 @@ const useRecordingPlayback = (
   const selectedRecording = recordings.find(
     (recording) => recording.recordingId === selectedRecordingId
   ) ?? null
+  const auditionPair = useMemo(() => {
+    if (!isCompareMode) {
+      return null
+    }
+
+    const pairRecordingsA = recordings.filter(
+      (recording) => recordingGroupAssignments[recording.recordingId] === 'A'
+    )
+    const pairRecordingsB = recordings.filter(
+      (recording) => recordingGroupAssignments[recording.recordingId] === 'B'
+    )
+
+    return pairRecordingsA.length === 1 && pairRecordingsB.length === 1
+      ? { A: pairRecordingsA[0], B: pairRecordingsB[0] }
+      : null
+  }, [isCompareMode, recordingGroupAssignments, recordings])
+  const activePairSide: 'A' | 'B' | null = auditionPair?.A.recordingId === selectedRecordingId
+    ? 'A'
+    : auditionPair?.B.recordingId === selectedRecordingId
+      ? 'B'
+      : null
+  const inactivePairRecording = activePairSide === 'A'
+    ? auditionPair?.B ?? null
+    : activePairSide === 'B'
+      ? auditionPair?.A ?? null
+      : null
   const hasSelectedRecording = selectedRecording !== null
   const scope = useMemo(
     () => getPlaybackScope(selectedRecording, regionOfInterest),
@@ -137,13 +186,17 @@ const useRecordingPlayback = (
   useEffect(() => {
     const audio = audioRef.current
     const recordingChanged = previousRecordingIdRef.current !== selectedRecordingId
+    const pendingSwitch = pendingAuditionSwitchRef.current?.recordingId === selectedRecordingId
+      ? pendingAuditionSwitchRef.current
+      : null
     previousRecordingIdRef.current = selectedRecordingId
 
     stopAnimation()
     audio?.pause()
 
-    if (audio) {
-      audio.currentTime = scope.startTimeSeconds
+    const nextTimeSeconds = pendingSwitch?.timeSeconds ?? scope.startTimeSeconds
+    if (audio && !recordingChanged) {
+      audio.currentTime = nextTimeSeconds
     }
 
     let isCancelled = false
@@ -152,7 +205,7 @@ const useRecordingPlayback = (
         return
       }
 
-      setCurrentTimeSeconds(scope.startTimeSeconds)
+      setCurrentTimeSeconds(nextTimeSeconds)
       setError(null)
       setStatus(
         hasSelectedRecording
@@ -185,6 +238,16 @@ const useRecordingPlayback = (
     }
   }, [stopAnimation])
 
+  useEffect(() => {
+    const secondaryAudio = secondaryAudioRef.current
+
+    return () => {
+      secondaryAudio?.pause()
+      secondaryAudio?.removeAttribute('src')
+      secondaryAudio?.load()
+    }
+  }, [inactivePairRecording?.recordingId])
+
   const resetPlayback = useCallback((nextTimeSeconds: number) => {
     const audio = audioRef.current
     stopAnimation()
@@ -202,6 +265,7 @@ const useRecordingPlayback = (
     const nextRecording = recordings.find((recording) => recording.recordingId === recordingId) ?? null
     const nextScope = getPlaybackScope(nextRecording, regionOfInterest)
     resetPlayback(nextScope.startTimeSeconds)
+    pendingAuditionSwitchRef.current = null
     readyRecordingIdRef.current = null
     setSelectedRecordingId(recordingId)
     setStatus('loading')
@@ -209,6 +273,7 @@ const useRecordingPlayback = (
 
   const clearRecording = useCallback(() => {
     resetPlayback(0)
+    pendingAuditionSwitchRef.current = null
     readyRecordingIdRef.current = null
     setSelectedRecordingId(null)
     setStatus('empty')
@@ -318,8 +383,45 @@ const useRecordingPlayback = (
     return () => document.removeEventListener('keydown', handleWorkspaceKeyDown)
   }, [handleWorkspaceKeyDown])
 
+  const selectAuditionSide = useCallback((side: 'A' | 'B') => {
+    if (!auditionPair) {
+      return
+    }
+
+    const targetRecording = auditionPair[side]
+    if (targetRecording.recordingId === selectedRecordingId) {
+      return
+    }
+
+    if (!activePairSide) {
+      selectRecording(targetRecording.recordingId)
+      return
+    }
+
+    const audio = audioRef.current
+    const nextTimeSeconds = getPositionAlignedTime(
+      audio?.currentTime ?? scope.startTimeSeconds,
+      targetRecording,
+      regionOfInterest
+    )
+    pendingAuditionSwitchRef.current = {
+      recordingId: targetRecording.recordingId,
+      shouldResume: audio?.paused === false,
+      timeSeconds: nextTimeSeconds,
+    }
+    readyRecordingIdRef.current = null
+    stopAnimation()
+    audio?.pause()
+    setCurrentTimeSeconds(nextTimeSeconds)
+    setError(null)
+    setStatus('loading')
+    setSelectedRecordingId(targetRecording.recordingId)
+  }, [activePairSide, auditionPair, regionOfInterest, scope.startTimeSeconds, selectRecording, selectedRecordingId, stopAnimation])
+
   return {
+    activePairSide,
     audioRef: audioRef as RefObject<HTMLAudioElement>,
+    auditionPair,
     clearRecording,
     currentTimeSeconds,
     error,
@@ -330,11 +432,29 @@ const useRecordingPlayback = (
     handleLoadedMetadata: () => {
       const audio = audioRef.current
       readyRecordingIdRef.current = selectedRecordingId
+      const pendingSwitch = pendingAuditionSwitchRef.current?.recordingId === selectedRecordingId
+        ? pendingAuditionSwitchRef.current
+        : null
+      const requestedTimeSeconds = pendingSwitch?.timeSeconds ?? scopeRef.current.startTimeSeconds
+      const nextTimeSeconds = Math.min(
+        Math.max(requestedTimeSeconds, scopeRef.current.startTimeSeconds),
+        scopeRef.current.endTimeSeconds
+      )
       if (audio) {
-        audio.currentTime = scopeRef.current.startTimeSeconds
+        audio.currentTime = nextTimeSeconds
       }
-      updatePosition(scopeRef.current.startTimeSeconds)
+      updatePosition(nextTimeSeconds)
       setStatus('ready')
+
+      if (pendingSwitch?.shouldResume && audio) {
+        pendingAuditionSwitchRef.current = null
+        void audio.play().catch(() => {
+          setStatus('error')
+          setError('Playback could not continue after switching.')
+        })
+      } else {
+        pendingAuditionSwitchRef.current = null
+      }
     },
     handleLoadStart: () => setStatus('loading'),
     handleMediaError,
@@ -356,9 +476,14 @@ const useRecordingPlayback = (
     playbackUrl: selectedRecording
       ? getPlaybackRecordingUrl(selectedRecording.recordingId)
       : undefined,
+    secondaryAudioRef: secondaryAudioRef as RefObject<HTMLAudioElement>,
+    secondaryPlaybackUrl: inactivePairRecording
+      ? getPlaybackRecordingUrl(inactivePairRecording.recordingId)
+      : undefined,
     scope,
     seek,
     selectRecording,
+    selectAuditionSide,
     selectedRecording,
     selectedRecordingId: selectedRecording?.recordingId ?? null,
     status,
@@ -367,5 +492,5 @@ const useRecordingPlayback = (
   }
 }
 
-export { getPlaybackScope, useRecordingPlayback }
+export { getPlaybackScope, getPositionAlignedTime, useRecordingPlayback }
 export type { TPlaybackStatus }

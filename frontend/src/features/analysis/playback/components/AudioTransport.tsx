@@ -1,5 +1,6 @@
 import { Headphones, Pause, Play, Repeat2, X } from 'lucide-react'
 import { PlaybackRecordingPicker } from './PlaybackRecordingPicker'
+import { AbAuditionToggle } from './AbAuditionToggle'
 import { useRecordingPlaybackContext } from '../contexts/recordingPlaybackContext'
 import './AudioTransport.scss'
 
@@ -15,7 +16,9 @@ const formatPlaybackTime = (seconds: number) => {
 
 const AudioTransport = () => {
   const {
+    activePairSide,
     audioRef,
+    auditionPair,
     clearRecording,
     currentTimeSeconds,
     error,
@@ -35,6 +38,9 @@ const AudioTransport = () => {
     recordingGroupAssignments,
     scope,
     seek,
+    secondaryAudioRef,
+    secondaryPlaybackUrl,
+    selectAuditionSide,
     selectRecording,
     selectedRecording,
     status,
@@ -59,6 +65,15 @@ const AudioTransport = () => {
         ref={audioRef}
         src={playbackUrl}
       />
+      {secondaryPlaybackUrl && (
+        <audio
+          aria-hidden="true"
+          key={secondaryPlaybackUrl}
+          preload="metadata"
+          ref={secondaryAudioRef}
+          src={secondaryPlaybackUrl}
+        />
+      )}
 
       <div className="audio-transport__identity">
         <Headphones aria-hidden="true" size={15} />
@@ -71,6 +86,14 @@ const AudioTransport = () => {
         recordingGroupAssignments={recordingGroupAssignments}
         selectedRecording={selectedRecording}
       />
+
+      {auditionPair && (
+        <AbAuditionToggle
+          activeSide={activePairSide}
+          onSelect={selectAuditionSide}
+          pair={auditionPair}
+        />
+      )}
 
       {selectedRecording && (
         <button
@@ -122,7 +145,13 @@ const AudioTransport = () => {
       </button>
 
       <span className={`audio-transport__status audio-transport__status--${status}`} aria-live="polite">
-        {error ?? (status === 'loading' ? 'Loading' : status === 'buffering' ? 'Buffering' : '')}
+        {error ?? (
+          status === 'loading'
+            ? `Loading${activePairSide ? ` ${activePairSide}` : ''}`
+            : status === 'buffering'
+              ? `Buffering${activePairSide ? ` ${activePairSide}` : ''}`
+              : ''
+        )}
       </span>
     </section>
   )

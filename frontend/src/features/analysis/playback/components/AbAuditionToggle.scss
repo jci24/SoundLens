@@ -1,0 +1,34 @@
+.ab-audition-toggle {
+  display: inline-flex;
+  align-items: center;
+  margin: 0;
+  padding: 0.12rem;
+  border: 1px solid color-mix(in srgb, var(--border) 84%, transparent);
+  border-radius: 999px;
+
+  &__button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 1.65rem;
+    height: 1.55rem;
+    padding: 0 0.42rem;
+    border: 0;
+    border-radius: 999px;
+    background: transparent;
+    color: var(--muted-foreground);
+    font-size: var(--font-xs);
+    font-weight: 750;
+    cursor: pointer;
+  }
+
+  &__button[aria-pressed='true'] {
+    background: var(--foreground);
+    color: var(--background);
+  }
+
+  &__button:focus-visible {
+    outline: 2px solid var(--ring);
+    outline-offset: 2px;
+  }
+}

@@ -585,6 +585,7 @@ const TimeWaveformWorkspace = ({ importedFiles, isCopilotOpen, onCopilotToggle }
             </section>
           )}
           <RecordingPlaybackProvider
+            layoutMode={layoutMode}
             recordings={recordings}
             recordingGroupAssignments={recordingGroupAssignments}
             regionOfInterest={regionOfInterest}

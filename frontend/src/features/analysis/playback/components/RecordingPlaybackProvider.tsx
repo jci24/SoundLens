@@ -2,6 +2,7 @@ import type { PropsWithChildren, RefObject } from 'react'
 import type {
   IAnalysisRegionOfInterest,
   ITimeWaveformRecording,
+  TAnalysisLayoutMode,
   TComparisonGroupAssignment,
 } from '../../types'
 import { useRecordingPlayback } from '../hooks/useRecordingPlayback'
@@ -9,6 +10,7 @@ import { RecordingPlaybackContext } from '../contexts/recordingPlaybackContext'
 import './RecordingPlaybackProvider.scss'
 
 interface IRecordingPlaybackProviderProps extends PropsWithChildren {
+  layoutMode?: TAnalysisLayoutMode
   recordings: ITimeWaveformRecording[]
   recordingGroupAssignments: Record<string, TComparisonGroupAssignment>
   regionOfInterest: IAnalysisRegionOfInterest | null
@@ -17,12 +19,19 @@ interface IRecordingPlaybackProviderProps extends PropsWithChildren {
 
 const RecordingPlaybackProvider = ({
   children,
+  layoutMode = 'focused',
   recordings,
   recordingGroupAssignments,
   regionOfInterest,
   workspaceRef,
 }: IRecordingPlaybackProviderProps) => {
-  const playback = useRecordingPlayback(recordings, regionOfInterest, workspaceRef)
+  const playback = useRecordingPlayback(
+    recordings,
+    regionOfInterest,
+    workspaceRef,
+    recordingGroupAssignments,
+    layoutMode === 'compare'
+  )
   const contextValue = {
     ...playback,
     recordings,
