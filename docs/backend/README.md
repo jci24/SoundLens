@@ -27,6 +27,14 @@ backend/
 
 The solution uses the .NET 10 `.slnx` solution format created by the current SDK.
 
+## Local Configuration
+
+Copy `backend/src/SoundLens.Api/appsettings.Development.local.example.json` to
+`appsettings.Development.local.json` in the same directory before adding local
+backend overrides. The local file is ignored by Git. Keep `OpenAI:ApiKey` empty
+when Copilot is not needed, or set the key there or through the
+`OPENAI__APIKEY` environment variable. Never commit a populated local override.
+
 ## Backend Responsibilities
 
 The backend should own:

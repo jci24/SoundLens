@@ -48,6 +48,11 @@ Datasets are validated before fixture access or network calls. Duplicate IDs, un
 
 ## Running Evals
 
+The committed WAV files under `scripts/copilot-evals/fixtures/` are synthetic,
+minimal PCM fixtures generated entirely by
+`scripts/copilot-evals/generate-fixtures.mjs`. They contain no captured,
+customer, or user-provided audio and can be regenerated deterministically.
+
 Regenerate the deterministic fixtures and start the backend with OpenAI configured:
 
 ```bash

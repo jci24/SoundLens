@@ -18,6 +18,7 @@ coverage/
 .env.*
 !.env.example
 appsettings.*.local.json
+!appsettings.*.local.example.json
 
 # OS/editor
 .DS_Store
