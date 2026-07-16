@@ -1,6 +1,6 @@
 # SoundLens Backlog
 
-Last updated: 2026-07-15
+Last updated: 2026-07-16
 
 This backlog reflects the immediate product direction: focused A/B comparison of repeated recordings with deterministic evidence, drill-down, grounded explanation, and report export. The later agentic Copilot initiative is sequenced in `ROADMAP.md` and is not yet part of the ordered implementation queue.
 
@@ -59,32 +59,32 @@ Turn the current analysis workspace into a focused comparison workflow for repea
 - virtualized large-session recording and expanded-signal navigation with stable keys, bounded overscan, compact filtering, and persistent selection and assignment state
 - removal of redundant valid-pair readiness copy while preserving actionable setup and ROI scope controls
 - position-aligned A/B audition over the explicit active pair with readiness-gated resume, ROI clamping, and no normalization or sample-accurate claim
+- isolated-channel audition through a lazy playback-local Web Audio graph with dual-output routing, explicit Original mode, and safe A/B persistence or fallback
 
 ## Ordered Thin Tasks
 
-### Playback phase 5. Isolated-channel audition
+### Architecture follow-up. Selected-comparison orchestration extraction
 
 User value:
-- A user can explicitly audition one channel from the active recording without changing the imported audio or confusing playback routing with evidence selection.
+- A user receives the same grounded selected-comparison answers through a smaller, more maintainable orchestration boundary before broader Copilot capabilities are introduced.
 
 Thin-slice boundary:
-- Add active-recording channel routing through a local Web Audio graph while preserving the existing recording transport, ROI, playhead, and A/B behavior.
+- Extract selected-comparison resolution, trust-guard dispatch, prompt construction, and fallback coordination from `AgentQueryHandler` without changing public contracts or answer behavior.
 
 Acceptance criteria:
-- channel choices reflect the active recording metadata and include an explicit original-layout option
-- routing affects audition only and never changes backend evidence, selected signals, stored samples, or report context
-- no graph is created for inactive recordings and all nodes are released on source change or unmount
-- mono, stereo, unsupported multichannel, and browser audio-context failure states are explicit
+- `AgentQueryHandler` delegates selected-comparison orchestration through an explicit feature-owned boundary
+- deterministic SPL, causal, malformed-output, RMS, peak, and clipping behavior remains unchanged
+- evidence reconstruction remains backend-owned and model acquisition still occurs only after deterministic guards
+- no endpoint schema, frontend contract, comparison DSP, or report behavior changes
 
 Test expectations:
-- frontend routing, source replacement, A/B interaction, ROI behavior, browser failure, cleanup, and existing playback regressions
+- backend regression coverage for every selected-comparison deterministic and model-backed path plus existing Copilot eval grader tests
 
 Proposed branch name:
-- `codex/channel-audition`
+- `codex/selected-comparison-orchestration`
 
 Dependencies:
-- merged recording playback, ROI synchronization, and A/B audition
-- browser validation for supported mono, stereo, and multichannel routing
+- existing selected-comparison resolver, trust guards, grounded prompt contract, and deterministic fallback behavior
 
 ### Trust follow-up. Real calibration-state mismatch
 
@@ -95,10 +95,6 @@ Reason for deferral:
 - schedule after the product introduces a real calibration-state contract and validation path
 
 ## Engineering Follow-Ups
-
-High priority:
-
-- split comparison-explanation orchestration and prompt construction out of the oversized `AgentQueryHandler` before adding another broad agent capability
 
 Normal priority:
 

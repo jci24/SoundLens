@@ -1,6 +1,7 @@
 import { Headphones, Pause, Play, Repeat2, X } from 'lucide-react'
 import { PlaybackRecordingPicker } from './PlaybackRecordingPicker'
 import { AbAuditionToggle } from './AbAuditionToggle'
+import { ChannelAuditionPicker } from './ChannelAuditionPicker'
 import { useRecordingPlaybackContext } from '../contexts/recordingPlaybackContext'
 import './AudioTransport.scss'
 
@@ -20,6 +21,10 @@ const AudioTransport = () => {
     audioRef,
     auditionPair,
     clearRecording,
+    channelAuditionError,
+    channelAuditionOptions,
+    channelAuditionRoute,
+    channelRoutingStatus,
     currentTimeSeconds,
     error,
     handleCanPlay,
@@ -32,6 +37,7 @@ const AudioTransport = () => {
     handleTimeUpdate,
     handleWaiting,
     isLoopEnabled,
+    isChannelAuditionSupported,
     isPlaying,
     playbackUrl,
     recordings,
@@ -41,17 +47,22 @@ const AudioTransport = () => {
     secondaryAudioRef,
     secondaryPlaybackUrl,
     selectAuditionSide,
+    selectChannelAuditionRoute,
     selectRecording,
     selectedRecording,
     status,
     toggleLoop,
     togglePlayPause,
   } = useRecordingPlaybackContext()
+  const displayedStatus = channelRoutingStatus === 'error' || channelRoutingStatus === 'unsupported'
+    ? 'error'
+    : status
 
   return (
     <section className="audio-transport" aria-label="Recording playback">
       <audio
         aria-hidden="true"
+        crossOrigin="anonymous"
         onCanPlay={handleCanPlay}
         onEnded={handleEnded}
         onError={handleMediaError}
@@ -94,6 +105,14 @@ const AudioTransport = () => {
           pair={auditionPair}
         />
       )}
+
+      <ChannelAuditionPicker
+        error={channelAuditionError}
+        isSupported={isChannelAuditionSupported}
+        onSelect={selectChannelAuditionRoute}
+        options={channelAuditionOptions}
+        route={channelAuditionRoute}
+      />
 
       {selectedRecording && (
         <button
@@ -144,14 +163,16 @@ const AudioTransport = () => {
         <Repeat2 aria-hidden="true" size={14} />
       </button>
 
-      <span className={`audio-transport__status audio-transport__status--${status}`} aria-live="polite">
-        {error ?? (
+      <span className={`audio-transport__status audio-transport__status--${displayedStatus}`} aria-live="polite">
+        {channelRoutingStatus === 'error' || channelRoutingStatus === 'unsupported'
+          ? channelAuditionError
+          : error ?? (
           status === 'loading'
             ? `Loading${activePairSide ? ` ${activePairSide}` : ''}`
             : status === 'buffering'
               ? `Buffering${activePairSide ? ` ${activePairSide}` : ''}`
               : ''
-        )}
+          )}
       </span>
     </section>
   )

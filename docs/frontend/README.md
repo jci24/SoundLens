@@ -163,10 +163,15 @@ Current playback guidance:
 - A valid compare pair exposes compact A/B audition controls. Switching transfers the current logical position into the target recording and clamps it to that recording's full-duration or ROI scope.
 - The inactive pair source may be metadata-preloaded, but playback resumes only after the selected target reports readiness. Loading and buffering identify the active side explicitly.
 - A/B switching is position-aligned browser playback, not seamless or sample-accurate synchronization. It does not normalize, level-match, crossfade, resample, or alter deterministic evidence.
+- Multichannel playback offers a compact Original or isolated-channel picker. Mono recordings omit the control, and recordings with 2 through 32 channels use backend-provided signal display names where available.
+- Channel routing is owned by a dedicated playback hook. It lazily creates one `AudioContext` and one `MediaElementAudioSourceNode` for the persistent primary media element, then uses disposable splitter and stereo-merger nodes for the active route.
+- An isolated channel is connected equally to the left and right merger inputs without gain, normalization, effects, or sample changes. Ordinary Original playback creates no Web Audio graph.
+- A/B switching preserves an isolated channel only when the target exposes the same index. General recording selection and incompatible A/B targets restore Original routing visibly; the secondary metadata element never enters the graph.
+- Routing failure, unsupported Web Audio, and channel counts above 32 keep Original playback available and surface a concise unavailable state. Context and node cleanup belongs to the playback provider lifecycle.
+- Channel audition is an audition aid only. It must never alter selected signals, comparison alignment, ROI evidence, report input, Copilot context, backend measurements, or global evidence state.
 - The recording rail uses a pure flattened row model and TanStack Virtual so only visible recording and expanded-signal rows plus bounded overscan are mounted. Stable recording and signal IDs preserve expansion, selection, assignment, playback, reporting, and Copilot context across row unmounts.
 - Compact recording/signal and A/B-picker filters appear only for sessions above eight recordings. A/B and playback pickers cap broad results at 50 and ask users to refine instead of mounting the whole session in a popover.
 - Valid pair state is expressed by the populated A/B slots rather than repeated readiness text. Setup guidance remains only for incomplete or inconsistent states, and an active ROI remains explicitly visible and clearable.
-- Isolated-channel routing remains a separate follow-up slice.
 - Metric cards select context rather than unconditionally selecting a panel. When Copilot is open, a metric-card click keeps it open and updates the selected comparison context; the explicit `Evidence & limitations` disclosure switches from Copilot to the inspector.
 
 Current comparison-pair guidance:
