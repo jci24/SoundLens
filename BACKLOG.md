@@ -58,32 +58,33 @@ Turn the current analysis workspace into a focused comparison workflow for repea
 - ROI-bounded playback with explicit looping, a read-only waveform playhead, source and scope reset, and guarded workspace Spacebar control
 - virtualized large-session recording and expanded-signal navigation with stable keys, bounded overscan, compact filtering, and persistent selection and assignment state
 - removal of redundant valid-pair readiness copy while preserving actionable setup and ROI scope controls
+- position-aligned A/B audition over the explicit active pair with readiness-gated resume, ROI clamping, and no normalization or sample-accurate claim
 
 ## Ordered Thin Tasks
 
-### Playback phase 4. Synchronized A/B audition
+### Playback phase 5. Isolated-channel audition
 
 User value:
-- A user can audition the active Compare A and Compare B recordings at the same logical position without manually replacing the playback source.
+- A user can explicitly audition one channel from the active recording without changing the imported audio or confusing playback routing with evidence selection.
 
 Thin-slice boundary:
-- Add explicit A/B audition controls over only the active comparison pair, with at most two media elements and honest buffering or seek-delay states.
+- Add active-recording channel routing through a local Web Audio graph while preserving the existing recording transport, ROI, playhead, and A/B behavior.
 
 Acceptance criteria:
-- switching targets the same logical full-duration or ROI position
-- play/pause state is preserved only when browser readiness permits
-- no gain normalization, level matching, crossfade, or sample-accurate switching claim is introduced
-- buffering and delayed target readiness remain visible to the user
+- channel choices reflect the active recording metadata and include an explicit original-layout option
+- routing affects audition only and never changes backend evidence, selected signals, stored samples, or report context
+- no graph is created for inactive recordings and all nodes are released on source change or unmount
+- mono, stereo, unsupported multichannel, and browser audio-context failure states are explicit
 
 Test expectations:
-- frontend target switching, ROI position, readiness, buffering, failure, cleanup, and existing playback regression tests
+- frontend routing, source replacement, A/B interaction, ROI behavior, browser failure, cleanup, and existing playback regressions
 
 Proposed branch name:
-- `codex/ab-audition`
+- `codex/channel-audition`
 
 Dependencies:
-- merged recording playback, ROI synchronization, and large-session navigation
-- explicit product wording that switching is position-aligned, not sample-accurate
+- merged recording playback, ROI synchronization, and A/B audition
+- browser validation for supported mono, stereo, and multichannel routing
 
 ### Trust follow-up. Real calibration-state mismatch
 

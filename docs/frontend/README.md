@@ -151,7 +151,7 @@ Current report-export guidance:
 
 Current playback guidance:
 
-- The analysis workspace renders one reusable browser-native media element, regardless of the number of imported recordings.
+- The analysis workspace renders one reusable browser-native media element for focused playback and no more than two while auditioning an explicit A/B pair, regardless of the number of imported recordings.
 - Playback starts with no source. Users explicitly choose a recording from a searchable Radix picker that shows duration, channel count, and active A/B status.
 - Broad picker results are capped at 50 and ask the user to refine the search, preventing an unbounded popover DOM before the recording rail receives dedicated virtualization.
 - The transport requests only the selected recording with `preload="metadata"` and exposes play, pause, seek, time, loading, buffering, unsupported-format, and failure states.
@@ -160,10 +160,13 @@ Current playback guidance:
 - Applicable waveform charts consume only the selected recording ID and current playback position to render a non-interactive playhead. They do not recompute bins or alter ROI interaction geometry.
 - Spacebar play/pause is scoped to the analysis workspace and ignored when focus is in inputs, buttons, dialogs, editable content, or the Copilot composer.
 - Playback preserves original recording routing and remains separate from signal selection, ROI evidence, and backend DSP calculations.
+- A valid compare pair exposes compact A/B audition controls. Switching transfers the current logical position into the target recording and clamps it to that recording's full-duration or ROI scope.
+- The inactive pair source may be metadata-preloaded, but playback resumes only after the selected target reports readiness. Loading and buffering identify the active side explicitly.
+- A/B switching is position-aligned browser playback, not seamless or sample-accurate synchronization. It does not normalize, level-match, crossfade, resample, or alter deterministic evidence.
 - The recording rail uses a pure flattened row model and TanStack Virtual so only visible recording and expanded-signal rows plus bounded overscan are mounted. Stable recording and signal IDs preserve expansion, selection, assignment, playback, reporting, and Copilot context across row unmounts.
 - Compact recording/signal and A/B-picker filters appear only for sessions above eight recordings. A/B and playback pickers cap broad results at 50 and ask users to refine instead of mounting the whole session in a popover.
 - Valid pair state is expressed by the populated A/B slots rather than repeated readiness text. Setup guidance remains only for incomplete or inconsistent states, and an active ROI remains explicitly visible and clearable.
-- Synchronized A/B switching and isolated-channel routing remain separate follow-up slices.
+- Isolated-channel routing remains a separate follow-up slice.
 - Metric cards select context rather than unconditionally selecting a panel. When Copilot is open, a metric-card click keeps it open and updates the selected comparison context; the explicit `Evidence & limitations` disclosure switches from Copilot to the inspector.
 
 Current comparison-pair guidance:

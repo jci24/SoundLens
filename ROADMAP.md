@@ -93,7 +93,9 @@ Current status:
 - focused and compare workspaces provide explicit original-recording playback through one browser-native media element and a range-enabled current-session stream
 - ROI play-once, explicit looping, scope reset, guarded keyboard control, and waveform playhead synchronization are implemented without changing deterministic evidence
 - recording and expanded-signal rows are virtualized with stable identifier keys, bounded overscan, and filtering validated against a 100-recording fixture
-- synchronized A/B and isolated-channel audition remain the next playback phases
+- active Compare A and Compare B recordings can be auditioned at the same logical full-duration or ROI position with readiness-gated resume and explicit buffering state
+- A/B audition remains browser-timed rather than sample-accurate and applies no normalization, level matching, or crossfade
+- isolated-channel audition remains the next playback phase
 
 Explicitly deferred work:
 - broad open-ended AI investigation

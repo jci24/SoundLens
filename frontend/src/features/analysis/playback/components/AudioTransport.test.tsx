@@ -17,12 +17,14 @@ const createRecording = (index: number): ITimeWaveformRecording => ({
 })
 
 interface IPlaybackTestWorkspaceProps {
+  layoutMode?: 'focused' | 'compare'
   recordings?: ITimeWaveformRecording[]
   regionOfInterest?: IAnalysisRegionOfInterest | null
   recordingGroupAssignments?: Record<string, 'unassigned' | 'A' | 'B'>
 }
 
 const PlaybackTestWorkspace = ({
+  layoutMode = 'focused',
   recordings = [createRecording(1)],
   regionOfInterest = null,
   recordingGroupAssignments = {},
@@ -33,6 +35,7 @@ const PlaybackTestWorkspace = ({
     <>
       <section ref={workspaceRef}>
         <RecordingPlaybackProvider
+          layoutMode={layoutMode}
           recordings={recordings}
           recordingGroupAssignments={recordingGroupAssignments}
           regionOfInterest={regionOfInterest}
@@ -47,11 +50,13 @@ const PlaybackTestWorkspace = ({
 }
 
 const renderTransport = ({
+  layoutMode = 'focused',
   recordings = [createRecording(1)],
   regionOfInterest = null,
   recordingGroupAssignments = {},
 }: IPlaybackTestWorkspaceProps = {}) => render(
   <PlaybackTestWorkspace
+    layoutMode={layoutMode}
     recordings={recordings}
     recordingGroupAssignments={recordingGroupAssignments}
     regionOfInterest={regionOfInterest}
@@ -91,6 +96,129 @@ describe('AudioTransport', () => {
     expect(container.querySelectorAll('audio')).toHaveLength(1)
     expect(container.querySelector('audio')).not.toHaveAttribute('src')
     expect(screen.getByRole('button', { name: 'Play recording' })).toBeDisabled()
+  })
+
+  it('offers position-aligned A/B audition only for one valid compare pair', async () => {
+    const recordings = [createRecording(1), createRecording(2), createRecording(3)]
+    const { container } = renderTransport({
+      layoutMode: 'compare',
+      recordings,
+      recordingGroupAssignments: {
+        'recording-1': 'A',
+        'recording-2': 'B',
+      },
+    })
+
+    const auditionA = screen.getByRole('button', { name: /Audition Compare A: recording-001\.wav/i })
+    const auditionB = screen.getByRole('button', { name: /Audition Compare B: recording-002\.wav/i })
+    expect(auditionA).toHaveAttribute('aria-pressed', 'false')
+    expect(container.querySelectorAll('audio')).toHaveLength(1)
+
+    fireEvent.click(auditionA)
+    await waitFor(() => expect(auditionA).toHaveAttribute('aria-pressed', 'true'))
+    expect(container.querySelectorAll('audio')).toHaveLength(2)
+    expect(container.querySelectorAll('audio')[0]).toHaveAttribute(
+      'src',
+      'http://127.0.0.1:5123/api/playback/recordings/recording-1'
+    )
+    expect(container.querySelectorAll('audio')[1]).toHaveAttribute(
+      'src',
+      'http://127.0.0.1:5123/api/playback/recordings/recording-2'
+    )
+
+    fireEvent.click(auditionB)
+    await waitFor(() => expect(auditionB).toHaveAttribute('aria-pressed', 'true'))
+    expect(container.querySelectorAll('audio')).toHaveLength(2)
+  })
+
+  it('does not expose A/B audition outside compare mode or for an invalid pair', () => {
+    const recordings = [createRecording(1), createRecording(2)]
+    const { rerender } = renderTransport({
+      recordings,
+      recordingGroupAssignments: { 'recording-1': 'A', 'recording-2': 'B' },
+    })
+
+    expect(screen.queryByRole('button', { name: /Audition Compare A/i })).not.toBeInTheDocument()
+
+    rerender(
+      <PlaybackTestWorkspace
+        layoutMode="compare"
+        recordings={recordings}
+        recordingGroupAssignments={{ 'recording-1': 'A' }}
+      />
+    )
+    expect(screen.queryByRole('button', { name: /Audition Compare A/i })).not.toBeInTheDocument()
+  })
+
+  it('releases the standby source when the active pair becomes invalid', async () => {
+    const recordings = [createRecording(1), createRecording(2)]
+    const { container, rerender } = renderTransport({
+      layoutMode: 'compare',
+      recordings,
+      recordingGroupAssignments: { 'recording-1': 'A', 'recording-2': 'B' },
+    })
+
+    fireEvent.click(screen.getByRole('button', { name: /Audition Compare A/i }))
+    await waitFor(() => expect(container.querySelectorAll('audio')).toHaveLength(2))
+
+    rerender(
+      <PlaybackTestWorkspace
+        layoutMode="compare"
+        recordings={recordings}
+        recordingGroupAssignments={{ 'recording-1': 'A' }}
+      />
+    )
+
+    await waitFor(() => expect(container.querySelectorAll('audio')).toHaveLength(1))
+    expect(screen.queryByRole('button', { name: /Audition Compare A/i })).not.toBeInTheDocument()
+    expect(pause).toHaveBeenCalled()
+    expect(load).toHaveBeenCalled()
+  })
+
+  it('keeps the logical position and resumes only after the switched source is ready', async () => {
+    const { container } = renderTransport({
+      layoutMode: 'compare',
+      recordings: [createRecording(1), createRecording(2)],
+      recordingGroupAssignments: { 'recording-1': 'A', 'recording-2': 'B' },
+    })
+
+    fireEvent.click(screen.getByRole('button', { name: /Audition Compare A/i }))
+    const audio = container.querySelector('audio')!
+    fireEvent.loadedMetadata(audio)
+    fireEvent.change(screen.getByRole('slider', { name: 'Playback position' }), {
+      target: { value: '24.5' },
+    })
+    Object.defineProperty(audio, 'paused', { configurable: true, value: false })
+    fireEvent.click(screen.getByRole('button', { name: /Audition Compare B/i }))
+
+    expect(screen.getByText('Loading B')).toBeInTheDocument()
+    expect(play).not.toHaveBeenCalled()
+    fireEvent.loadedMetadata(audio)
+
+    await waitFor(() => expect(play).toHaveBeenCalledOnce())
+    expect(audio.currentTime).toBe(24.5)
+  })
+
+  it('clamps an A/B switch to the target recording ROI boundary', async () => {
+    const shortTarget = { ...createRecording(2), durationSeconds: 12 }
+    const { container } = renderTransport({
+      layoutMode: 'compare',
+      recordings: [createRecording(1), shortTarget],
+      recordingGroupAssignments: { 'recording-1': 'A', 'recording-2': 'B' },
+      regionOfInterest: { startTimeSeconds: 5, endTimeSeconds: 20, durationSeconds: 15 },
+    })
+
+    fireEvent.click(screen.getByRole('button', { name: /Audition Compare A/i }))
+    const audio = container.querySelector('audio')!
+    fireEvent.loadedMetadata(audio)
+    fireEvent.change(screen.getByRole('slider', { name: 'Playback position' }), {
+      target: { value: '18' },
+    })
+    fireEvent.click(screen.getByRole('button', { name: /Audition Compare B/i }))
+    fireEvent.loadedMetadata(audio)
+
+    await waitFor(() => expect(audio.currentTime).toBe(12))
+    expect(screen.getByText('0:12 / 0:12')).toBeInTheDocument()
   })
 
   it('selects one recording from a searchable bounded picker with metadata', async () => {

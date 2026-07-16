@@ -1,6 +1,6 @@
 .audio-transport {
   display: grid;
-  grid-template-columns: auto minmax(10rem, 17rem) auto auto minmax(8rem, 1fr) auto auto minmax(0, auto);
+  grid-template-columns: auto minmax(10rem, 17rem) auto auto auto minmax(8rem, 1fr) auto auto minmax(0, auto);
   align-items: center;
   gap: 0.45rem;
   min-width: 0;
