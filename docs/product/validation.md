@@ -4,37 +4,53 @@ Last updated: 2026-07-16
 
 ## Current Validation Hypothesis
 
-The current product hypothesis is that repeated-recording comparison is painful enough that engineers will value a tool that computes deterministic metrics, supports evidence drill-down, and explains the user-selected evidence clearly without unsupported cross-unit importance claims.
+The current product hypothesis is that automotive NVH teams spend enough time contextualizing recordings, establishing comparability, repeating analysis, inspecting many results, and producing traceable reports that they will value a repeatable reference-versus-candidate investigation workflow.
+
+Automotive NVH is the leading desk-research hypothesis, not a validated market decision. The existing A/B workspace is the prototype used to test the underlying workflow. Industrial machinery and rotating equipment remain the strongest adjacent hypothesis.
 
 ## Initial Comparison Workflow
 
 The initial workflow to validate is:
 
 1. import repeated recordings
-2. assign them to Product or Condition A and B
-3. run deterministic comparison over aligned signals
-4. inspect comparison metrics and select an evidence focus
-5. drill down into waveform and spectrum evidence
-6. request a grounded explanation or report
+2. identify the reference and candidate plus relevant test and operating-condition context
+3. establish whether signals are sufficiently comparable without silently correcting uncertainty
+4. apply a repeatable deterministic analysis scope
+5. inspect comparison metrics and select an evidence focus
+6. drill down into waveform and spectrum evidence
+7. produce a traceable explanation or report linked to source evidence and processing scope
 
 ## Target Interview Profile
 
 Priority interview targets:
 
-- hearing-aid engineers
-- audio-device engineers
-- sound-quality engineers
-- acoustic engineers
-- test and R&D engineers doing repeated-recording comparison
+- automotive NVH engineers
+- automotive test and validation engineers
+- sound-quality and product-sound engineers
+- senior methods or tools specialists and test-lab leads
+- NVH team managers and engineering-tools decision makers
+
+Adjacent interview targets:
+
+- industrial machinery and rotating-equipment engineers
+- consumer-product sound teams
+- acoustic consultancies
+- hearing-device engineers where the workflow is not dominated by specialized regulated tooling
 
 ## Workflow Interview Questions
 
 - Walk me through how you currently compare repeated recordings from two product conditions.
+- Show me the most recent comparison and report you completed. What triggered it and what decision followed?
+- How do you locate recordings and verify product variant, operating condition, sensor identity, units, calibration, and test notes?
 - Where do you lose the most time or confidence in that workflow?
 - How do you decide which differences are meaningful enough to investigate further?
+- Which analysis settings or templates must be repeated consistently, and how are they preserved today?
+- What are the typical and worst-case numbers of recordings, channels, operating conditions, and reports?
 - What makes you trust or distrust an acoustic comparison tool?
 - When would you want AI explanation instead of raw evidence tables and charts?
 - How do you currently summarize or share comparison findings?
+- Who would champion, approve, buy, deploy, or block a tool for this workflow?
+- Would a bounded paid pilot be credible, and what outcome would it need to prove?
 - What privacy or deployment constraints would block adoption?
 
 ## Validation Signals
@@ -46,6 +62,9 @@ Positive signals:
 - users trust deterministic evidence more than ad hoc spreadsheet or screenshot workflows
 - users say an explanation layer would help communicate findings internally
 - users expect to reuse or share reports
+- automotive NVH users confirm that context, comparability, repeated processing, result triage, and reporting form one costly workflow
+- observed or timed prototype use indicates that a 40–50% reduction in active engineering time is plausible
+- a technical champion and economic buyer agree on a bounded pilot outcome
 
 ## Disconfirming Evidence
 
@@ -56,6 +75,19 @@ Negative signals:
 - users find the comparison overview unnecessary or untrustworthy
 - users say AI explanation adds little beyond tables and charts
 - users reject cloud-connected workflows on privacy grounds without a viable local path
+- automotive participants describe materially different problems that the current A/B workflow cannot represent
+- incumbent tools already solve the end-to-end workflow well enough that switching cost exceeds the expected benefit
+- participants value specialized analysis depth but not integrated comparison, traceability, or reporting
+
+## Desk-Research Baseline
+
+The [first NVH opportunity synthesis](research/2026-07-16-nvh-opportunity-synthesis.md) supports the existence and economic relevance of repeated analysis and reporting work. Its strongest sources are incumbent-vendor materials, especially Siemens, so it does not validate SoundLens's solution, adoption, or willingness to pay.
+
+Treat the current evidence as:
+
+- strong evidence that the workflow category exists
+- moderate evidence that organizations allocate budget to the problem
+- weak evidence that SoundLens's proposed workflow is the correct solution
 
 ## Interview Cadence
 
@@ -74,6 +106,9 @@ Negative signals:
 | AI explanation adds value beyond deterministic tables and charts | Users say it helps interpretation or communication | Users say evidence alone is sufficient and AI adds noise |
 | Report export is shared or reused | Users say they send or reuse comparison summaries | Users treat exports as disposable artifacts |
 | Cloud privacy is a meaningful blocker | Users raise data-handling concerns early and repeatedly | Users are comfortable with hosted workflows for this data |
+| Automotive NVH is the strongest initial segment | Direct participants describe repeated, costly comparison and reporting work that matches the prototype | Interviews reveal stronger pain elsewhere or a poor fit with the current workflow |
+| A repeatable workflow can materially reduce active engineering time | Timed workflow tests indicate a plausible 40–50% reduction without loss of trust | Review overhead or missing capabilities erase the expected saving |
+| A paid pilot is a credible first buying motion | A technical champion and buyer define a bounded pilot and success criteria | Interest remains exploratory with no owner, budget path, or pilot commitment |
 
 ## Future Agentic Copilot Hypothesis
 

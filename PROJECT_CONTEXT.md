@@ -8,15 +8,17 @@ Engineers comparing repeated acoustic recordings across product variants, settin
 
 SoundLens is intended to reduce that effort by combining deterministic acoustic analysis with evidence-grounded AI explanation.
 
-## Initial Target User
+## Leading Segment Hypothesis
 
-The initial validation wedge is:
+The first desk-research synthesis identifies this leading discovery hypothesis:
 
-- Hearing-aid and audio-device teams
-- Acoustic and sound-quality engineers
-- Test, R&D, and benchmark workflows comparing repeated recordings
+- automotive NVH teams performing repeated test, variant, and operating-condition comparisons
+- NVH, acoustic, product-sound, test, validation, and sound-quality engineers
+- technical leads and test-lab teams responsible for repeatable analysis and traceable reporting
 
-The product should stay narrow enough that these users can immediately recognize the workflow as their own.
+Industrial machinery and rotating equipment are the strongest adjacent hypothesis. Consumer-product sound, acoustic consultancies, and hearing-device engineering remain discovery segments rather than current positioning commitments.
+
+This hypothesis comes primarily from public incumbent-vendor material, not direct customer validation. It is strong evidence that the workflow problem exists, moderate evidence that organizations spend money addressing it, and weak evidence that SoundLens is the right solution. Direct interviews, workflow observation, and prototype tests are the next gate. See [the first NVH opportunity synthesis](docs/product/research/2026-07-16-nvh-opportunity-synthesis.md).
 
 ## Initial Comparison Workflow
 
@@ -71,7 +73,7 @@ Implications:
 
 ## Current Validation Goal
 
-Build a credible, reviewable demo that can be shown to prospective customers and used to test whether repeated-recording comparison is painful enough to justify adoption and payment.
+Build a credible, reviewable demo that can be shown to automotive NVH and adjacent product-sound teams and used to test whether repeatable comparison and reporting are painful enough to justify adoption and payment.
 
 ## Immediate Product Milestone
 
@@ -112,6 +114,8 @@ The immediate roadmap should not expand into:
 - Current findings and AI explanations can appear more mature than their validation level if wording is not tightly controlled.
 - Report export may add limited value until it is grounded in selected comparison evidence rather than raw workspace state.
 - Cloud/privacy concerns may block adoption unless the deployment model remains explicit and credible.
+- The leading automotive NVH hypothesis is based on desk research dominated by incumbent-vendor evidence and may not survive direct interviews.
+- NVH workflow breadth could pull the product into specialized analyses before the core comparison, traceability, and reporting value is validated.
 
 ## Key Repository Documents
 
@@ -122,6 +126,7 @@ The immediate roadmap should not expand into:
 - [docs/architecture/domain-model.md](docs/architecture/domain-model.md)
 - [docs/product/validation.md](docs/product/validation.md)
 - [docs/product/analysis-capability-discovery.md](docs/product/analysis-capability-discovery.md)
+- [docs/product/research/2026-07-16-nvh-opportunity-synthesis.md](docs/product/research/2026-07-16-nvh-opportunity-synthesis.md)
 - [docs/backend/README.md](docs/backend/README.md)
 - [docs/frontend/README.md](docs/frontend/README.md)
 - [docs/adr/](docs/adr/)
