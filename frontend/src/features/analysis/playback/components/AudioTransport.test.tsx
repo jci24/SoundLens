@@ -1,7 +1,9 @@
 import { act, fireEvent, render, screen, waitFor } from '@testing-library/react'
+import { useRef } from 'react'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
-import type { ITimeWaveformRecording } from '../../types'
+import type { IAnalysisRegionOfInterest, ITimeWaveformRecording } from '../../types'
 import { AudioTransport } from './AudioTransport'
+import { RecordingPlaybackProvider } from './RecordingPlaybackProvider'
 
 const createRecording = (index: number): ITimeWaveformRecording => ({
   recordingId: `recording-${index}`,
@@ -14,16 +16,69 @@ const createRecording = (index: number): ITimeWaveformRecording => ({
   signals: [],
 })
 
+interface IPlaybackTestWorkspaceProps {
+  recordings?: ITimeWaveformRecording[]
+  regionOfInterest?: IAnalysisRegionOfInterest | null
+  recordingGroupAssignments?: Record<string, 'unassigned' | 'A' | 'B'>
+}
+
+const PlaybackTestWorkspace = ({
+  recordings = [createRecording(1)],
+  regionOfInterest = null,
+  recordingGroupAssignments = {},
+}: IPlaybackTestWorkspaceProps) => {
+  const workspaceRef = useRef<HTMLElement | null>(null)
+
+  return (
+    <>
+      <section ref={workspaceRef}>
+        <RecordingPlaybackProvider
+          recordings={recordings}
+          recordingGroupAssignments={recordingGroupAssignments}
+          regionOfInterest={regionOfInterest}
+          workspaceRef={workspaceRef}
+        >
+          <AudioTransport />
+        </RecordingPlaybackProvider>
+      </section>
+      <textarea aria-label="Copilot composer" />
+    </>
+  )
+}
+
+const renderTransport = ({
+  recordings = [createRecording(1)],
+  regionOfInterest = null,
+  recordingGroupAssignments = {},
+}: IPlaybackTestWorkspaceProps = {}) => render(
+  <PlaybackTestWorkspace
+    recordings={recordings}
+    recordingGroupAssignments={recordingGroupAssignments}
+    regionOfInterest={regionOfInterest}
+  />
+)
+
 describe('AudioTransport', () => {
   const play = vi.fn<() => Promise<void>>()
   const pause = vi.fn()
   const load = vi.fn()
+  let animationFrameCallback: FrameRequestCallback | null = null
 
   beforeEach(() => {
+    play.mockReset()
+    pause.mockReset()
+    load.mockReset()
     play.mockResolvedValue(undefined)
     vi.spyOn(HTMLMediaElement.prototype, 'play').mockImplementation(play)
     vi.spyOn(HTMLMediaElement.prototype, 'pause').mockImplementation(pause)
     vi.spyOn(HTMLMediaElement.prototype, 'load').mockImplementation(load)
+    vi.spyOn(window, 'requestAnimationFrame').mockImplementation((callback) => {
+      animationFrameCallback = callback
+      return 1
+    })
+    vi.spyOn(window, 'cancelAnimationFrame').mockImplementation(() => {
+      animationFrameCallback = null
+    })
   })
 
   afterEach(() => {
@@ -31,9 +86,7 @@ describe('AudioTransport', () => {
   })
 
   it('keeps one unloaded media element until a recording is explicitly selected', () => {
-    const { container } = render(
-      <AudioTransport recordings={[createRecording(1)]} recordingGroupAssignments={{}} />
-    )
+    const { container } = renderTransport()
 
     expect(container.querySelectorAll('audio')).toHaveLength(1)
     expect(container.querySelector('audio')).not.toHaveAttribute('src')
@@ -42,12 +95,10 @@ describe('AudioTransport', () => {
 
   it('selects one recording from a searchable bounded picker with metadata', async () => {
     const recordings = Array.from({ length: 100 }, (_, index) => createRecording(index + 1))
-    const { container } = render(
-      <AudioTransport
-        recordings={recordings}
-        recordingGroupAssignments={{ 'recording-100': 'B' }}
-      />
-    )
+    const { container } = renderTransport({
+      recordings,
+      recordingGroupAssignments: { 'recording-100': 'B' },
+    })
 
     fireEvent.click(screen.getByRole('button', { name: 'Choose playback recording' }))
     expect(screen.getByText('Showing the first 50. Refine the search to see more.')).toBeInTheDocument()
@@ -73,7 +124,7 @@ describe('AudioTransport', () => {
   })
 
   it('closes the source picker on Escape and returns focus to its trigger', async () => {
-    render(<AudioTransport recordings={[createRecording(1)]} recordingGroupAssignments={{}} />)
+    renderTransport()
     const trigger = screen.getByRole('button', { name: 'Choose playback recording' })
 
     trigger.focus()
@@ -88,15 +139,14 @@ describe('AudioTransport', () => {
   })
 
   it('plays, pauses, seeks, reports media state, and clears the source', async () => {
-    const { container } = render(
-      <AudioTransport recordings={[createRecording(1)]} recordingGroupAssignments={{}} />
-    )
+    const { container } = renderTransport()
 
     fireEvent.click(screen.getByRole('button', { name: 'Choose playback recording' }))
     fireEvent.click(screen.getByRole('button', { name: /recording-001\.wav/i }))
     const audio = container.querySelector('audio')!
 
     fireEvent.loadedMetadata(audio)
+    await waitFor(() => expect(screen.getByRole('button', { name: 'Play recording' })).toBeEnabled())
     fireEvent.click(screen.getByRole('button', { name: 'Play recording' }))
     await waitFor(() => expect(play).toHaveBeenCalledOnce())
 
@@ -118,9 +168,7 @@ describe('AudioTransport', () => {
   })
 
   it('shows an honest unsupported-format error and releases media on unmount', () => {
-    const { container, unmount } = render(
-      <AudioTransport recordings={[createRecording(1)]} recordingGroupAssignments={{}} />
-    )
+    const { container, unmount } = renderTransport()
 
     fireEvent.click(screen.getByRole('button', { name: 'Choose playback recording' }))
     fireEvent.click(screen.getByRole('button', { name: /recording-001\.wav/i }))
@@ -140,16 +188,146 @@ describe('AudioTransport', () => {
 
   it('reports a failed play request without exposing browser details', async () => {
     play.mockRejectedValueOnce(new DOMException('Autoplay denied'))
-    render(<AudioTransport recordings={[createRecording(1)]} recordingGroupAssignments={{}} />)
+    renderTransport()
 
     fireEvent.click(screen.getByRole('button', { name: 'Choose playback recording' }))
     fireEvent.click(screen.getByRole('button', { name: /recording-001\.wav/i }))
     fireEvent.loadedMetadata(document.querySelector('audio')!)
+    await waitFor(() => expect(screen.getByRole('button', { name: 'Play recording' })).toBeEnabled())
 
     await act(async () => {
       fireEvent.click(screen.getByRole('button', { name: 'Play recording' }))
     })
 
     expect(screen.getByText('Playback could not start.')).toBeInTheDocument()
+  })
+
+  it('starts within the ROI, stops at its end, and resets when the ROI changes', async () => {
+    const firstRegion = {
+      startTimeSeconds: 10,
+      endTimeSeconds: 20,
+      durationSeconds: 10,
+    }
+    const { container, rerender } = renderTransport({ regionOfInterest: firstRegion })
+
+    fireEvent.click(screen.getByRole('button', { name: 'Choose playback recording' }))
+    fireEvent.click(screen.getByRole('button', { name: /recording-001\.wav/i }))
+    const audio = container.querySelector('audio')!
+    fireEvent.loadedMetadata(audio)
+    await waitFor(() => expect(screen.getByRole('button', { name: 'Play recording' })).toBeEnabled())
+
+    expect(audio.currentTime).toBe(10)
+    expect(screen.getByRole('slider', { name: 'Playback position' })).toHaveAttribute('min', '10')
+    expect(screen.getByRole('slider', { name: 'Playback position' })).toHaveAttribute('max', '20')
+
+    fireEvent.click(screen.getByRole('button', { name: 'Play recording' }))
+    await waitFor(() => expect(play).toHaveBeenCalledOnce())
+    fireEvent.playing(audio)
+    audio.currentTime = 20
+
+    act(() => animationFrameCallback?.(16))
+
+    expect(pause).toHaveBeenCalled()
+    expect(audio.currentTime).toBe(20)
+
+    rerender(
+      <PlaybackTestWorkspace
+        recordings={[createRecording(1)]}
+        recordingGroupAssignments={{}}
+        regionOfInterest={{ startTimeSeconds: 30, endTimeSeconds: 40, durationSeconds: 10 }}
+      />
+    )
+
+    await waitFor(() => expect(audio.currentTime).toBe(30))
+    expect(screen.getByText('0:30 / 0:40')).toBeInTheDocument()
+  })
+
+  it('loops the ROI only after the user explicitly enables it', async () => {
+    const { container } = renderTransport({
+      regionOfInterest: {
+        startTimeSeconds: 5,
+        endTimeSeconds: 8,
+        durationSeconds: 3,
+      },
+    })
+
+    fireEvent.click(screen.getByRole('button', { name: 'Choose playback recording' }))
+    fireEvent.click(screen.getByRole('button', { name: /recording-001\.wav/i }))
+    const audio = container.querySelector('audio')!
+    fireEvent.loadedMetadata(audio)
+    await waitFor(() => expect(screen.getByRole('button', { name: 'Play recording' })).toBeEnabled())
+    const loopButton = screen.getByRole('button', { name: 'Loop selected region' })
+
+    expect(loopButton).toHaveAttribute('aria-pressed', 'false')
+    fireEvent.click(loopButton)
+    expect(loopButton).toHaveAttribute('aria-pressed', 'true')
+    fireEvent.click(screen.getByRole('button', { name: 'Play recording' }))
+    await waitFor(() => expect(play).toHaveBeenCalledOnce())
+    fireEvent.playing(audio)
+    audio.currentTime = 8
+
+    act(() => animationFrameCallback?.(16))
+
+    expect(audio.currentTime).toBe(5)
+    expect(screen.getByText('0:05 / 0:08')).toBeInTheDocument()
+  })
+
+  it('stops and resets to the ROI start when the playback source is replaced', async () => {
+    const { container } = renderTransport({
+      recordings: [createRecording(1), createRecording(2)],
+      regionOfInterest: {
+        startTimeSeconds: 5,
+        endTimeSeconds: 8,
+        durationSeconds: 3,
+      },
+    })
+
+    fireEvent.click(screen.getByRole('button', { name: 'Choose playback recording' }))
+    fireEvent.click(screen.getByRole('button', { name: /recording-001\.wav/i }))
+    const audio = container.querySelector('audio')!
+    fireEvent.loadedMetadata(audio)
+    fireEvent.change(screen.getByRole('slider', { name: 'Playback position' }), {
+      target: { value: '7' },
+    })
+    expect(audio.currentTime).toBe(7)
+
+    fireEvent.click(screen.getByRole('button', { name: 'Change playback recording' }))
+    fireEvent.click(screen.getByRole('button', { name: /recording-002\.wav/i }))
+
+    await waitFor(() => {
+      expect(audio).toHaveAttribute(
+        'src',
+        'http://127.0.0.1:5123/api/playback/recordings/recording-2'
+      )
+      expect(audio.currentTime).toBe(5)
+    })
+    expect(pause).toHaveBeenCalled()
+  })
+
+  it('guards Spacebar playback from interactive and editable controls', async () => {
+    const { container } = renderTransport()
+
+    fireEvent.click(screen.getByRole('button', { name: 'Choose playback recording' }))
+    fireEvent.click(screen.getByRole('button', { name: /recording-001\.wav/i }))
+    fireEvent.loadedMetadata(container.querySelector('audio')!)
+    await waitFor(() => expect(screen.getByRole('button', { name: 'Play recording' })).toBeEnabled())
+
+    const slider = screen.getByRole('slider', { name: 'Playback position' })
+    slider.focus()
+    fireEvent.keyDown(document, {
+      code: 'Space',
+    })
+    expect(play).not.toHaveBeenCalled()
+
+    const composer = screen.getByRole('textbox', { name: 'Copilot composer' })
+    composer.focus()
+    fireEvent.keyDown(document, { code: 'Space' })
+    expect(play).not.toHaveBeenCalled()
+
+    composer.blur()
+    await act(async () => {
+      fireEvent.keyDown(document, { code: 'Space' })
+    })
+    await waitFor(() => expect(play).toHaveBeenCalledOnce())
   })
 })

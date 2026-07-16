@@ -91,8 +91,8 @@ Current status:
 - the selected metric, aligned pair, and ROI remain visible while inspecting waveform and spectrum evidence
 - selected metric details and limitations open in a non-modal side inspector without pushing waveform or spectrum evidence down the workspace
 - focused and compare workspaces provide explicit original-recording playback through one browser-native media element and a range-enabled current-session stream
-- ROI play-once, optional looping, and waveform playhead synchronization are the next playback slice
-- large-session recording-rail virtualization follows separately before synchronized A/B and isolated-channel audition
+- ROI play-once, explicit looping, scope reset, guarded keyboard control, and waveform playhead synchronization are implemented without changing deterministic evidence
+- large-session recording-rail virtualization is the next playback and UI-scale slice before synchronized A/B and isolated-channel audition
 
 Explicitly deferred work:
 - broad open-ended AI investigation

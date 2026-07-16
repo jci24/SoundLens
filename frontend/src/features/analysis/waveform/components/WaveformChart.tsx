@@ -8,6 +8,7 @@ import {
   getWaveformChartModel,
 } from '../utils/waveformChart'
 import type { IAnalysisRegionOfInterest, ITimeWaveformAxis, ITimeWaveformSignal } from '../../types'
+import { useOptionalRecordingPlaybackContext } from '../../playback/contexts/recordingPlaybackContext'
 import './WaveformChart.scss'
 
 interface IWaveformChartProps {
@@ -29,6 +30,7 @@ const WaveformChart = ({
   width,
   yAxis,
 }: IWaveformChartProps) => {
+  const playback = useOptionalRecordingPlaybackContext()
   const {
     chartHeight,
     chartPadding,
@@ -136,6 +138,14 @@ const WaveformChart = ({
   const regionEndX = activeRegion ? xForTime(activeRegion.endTimeSeconds) : null
   const regionWidth = regionStartX !== null && regionEndX !== null ? Math.max(0, regionEndX - regionStartX) : 0
   const regionHandleWidth = 8
+  const playbackPositionSeconds =
+    playback?.selectedRecordingId &&
+    signals.some((signal) => signal.recordingId === playback.selectedRecordingId)
+      ? playback.currentTimeSeconds
+      : null
+  const playbackX = playbackPositionSeconds !== null
+    ? xForTime(playbackPositionSeconds)
+    : null
 
   return (
     <svg
@@ -261,6 +271,22 @@ const WaveformChart = ({
           handleCreateStart(event.clientX, svgElement)
         }}
       />
+
+      {playbackX !== null && (
+        <g className="time-waveform-workspace__playhead" aria-hidden="true">
+          <line
+            className="time-waveform-workspace__playhead-line"
+            x1={playbackX}
+            x2={playbackX}
+            y1={chartPadding.top}
+            y2={chartPadding.top + plotHeight}
+          />
+          <path
+            className="time-waveform-workspace__playhead-cap"
+            d={`M${playbackX - 4} ${chartPadding.top} L${playbackX + 4} ${chartPadding.top} L${playbackX} ${chartPadding.top + 6} Z`}
+          />
+        </g>
+      )}
 
       <text className="time-waveform-workspace__axis-title" textAnchor="middle" x={chartPadding.left + plotWidth / 2} y={chartHeight - 6}>
         s

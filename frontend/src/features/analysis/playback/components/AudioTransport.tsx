@@ -1,18 +1,7 @@
-import { useEffect, useRef, useState } from 'react'
-import { Headphones, Pause, Play, X } from 'lucide-react'
-import type { ITimeWaveformRecording, TComparisonGroupAssignment } from '../../types'
-import { getPlaybackRecordingUrl } from '../services/playbackRecording'
+import { Headphones, Pause, Play, Repeat2, X } from 'lucide-react'
 import { PlaybackRecordingPicker } from './PlaybackRecordingPicker'
+import { useRecordingPlaybackContext } from '../contexts/recordingPlaybackContext'
 import './AudioTransport.scss'
-
-interface IAudioTransportProps {
-  recordings: ITimeWaveformRecording[]
-  recordingGroupAssignments: Record<string, TComparisonGroupAssignment>
-}
-
-type TPlaybackStatus = 'empty' | 'loading' | 'ready' | 'playing' | 'buffering' | 'error'
-
-const unsupportedMediaSourceErrorCode = 4
 
 const formatPlaybackTime = (seconds: number) => {
   if (!Number.isFinite(seconds) || seconds < 0) {
@@ -24,111 +13,48 @@ const formatPlaybackTime = (seconds: number) => {
   return `${minutes}:${String(wholeSeconds % 60).padStart(2, '0')}`
 }
 
-const AudioTransport = ({ recordings, recordingGroupAssignments }: IAudioTransportProps) => {
-  const audioRef = useRef<HTMLAudioElement | null>(null)
-  const [selectedRecordingId, setSelectedRecordingId] = useState<string | null>(null)
-  const [currentTimeSeconds, setCurrentTimeSeconds] = useState(0)
-  const [status, setStatus] = useState<TPlaybackStatus>('empty')
-  const [error, setError] = useState<string | null>(null)
-  const selectedRecording = recordings.find(
-    (recording) => recording.recordingId === selectedRecordingId
-  ) ?? null
-  const playbackDuration = selectedRecording?.durationSeconds ?? 0
-  const playbackUrl = selectedRecording
-    ? getPlaybackRecordingUrl(selectedRecording.recordingId)
-    : undefined
-  const isPlaying = status === 'playing'
-
-  useEffect(() => {
-    const audio = audioRef.current
-
-    return () => {
-      audio?.pause()
-      audio?.removeAttribute('src')
-      audio?.load()
-    }
-  }, [])
-
-  const resetPlayback = () => {
-    const audio = audioRef.current
-    audio?.pause()
-
-    if (audio) {
-      audio.currentTime = 0
-    }
-
-    setCurrentTimeSeconds(0)
-    setError(null)
-  }
-
-  const handleRecordingSelect = (recordingId: string) => {
-    resetPlayback()
-    setSelectedRecordingId(recordingId)
-    setStatus('loading')
-  }
-
-  const handleClear = () => {
-    resetPlayback()
-    setSelectedRecordingId(null)
-    setStatus('empty')
-  }
-
-  const handlePlayPause = async () => {
-    const audio = audioRef.current
-
-    if (!audio || !selectedRecording) {
-      return
-    }
-
-    if (!audio.paused) {
-      audio.pause()
-      return
-    }
-
-    setError(null)
-
-    try {
-      await audio.play()
-    } catch {
-      setStatus('error')
-      setError('Playback could not start.')
-    }
-  }
-
-  const handleSeek = (nextTimeSeconds: number) => {
-    const audio = audioRef.current
-    const boundedTime = Math.min(Math.max(nextTimeSeconds, 0), playbackDuration)
-
-    if (audio) {
-      audio.currentTime = boundedTime
-    }
-
-    setCurrentTimeSeconds(boundedTime)
-  }
-
-  const handleMediaError = () => {
-    const errorCode = audioRef.current?.error?.code
-    setStatus('error')
-    setError(
-      errorCode === unsupportedMediaSourceErrorCode
-        ? 'This recording format is not supported by the browser.'
-        : 'The recording could not be loaded.'
-    )
-  }
+const AudioTransport = () => {
+  const {
+    audioRef,
+    clearRecording,
+    currentTimeSeconds,
+    error,
+    handleCanPlay,
+    handleEnded,
+    handleLoadedMetadata,
+    handleLoadStart,
+    handleMediaError,
+    handlePause,
+    handlePlaying,
+    handleTimeUpdate,
+    handleWaiting,
+    isLoopEnabled,
+    isPlaying,
+    playbackUrl,
+    recordings,
+    recordingGroupAssignments,
+    scope,
+    seek,
+    selectRecording,
+    selectedRecording,
+    status,
+    toggleLoop,
+    togglePlayPause,
+  } = useRecordingPlaybackContext()
 
   return (
     <section className="audio-transport" aria-label="Recording playback">
       <audio
         aria-hidden="true"
-        onCanPlay={(event) => setStatus(event.currentTarget.paused ? 'ready' : 'playing')}
-        onEnded={() => setStatus('ready')}
+        onCanPlay={handleCanPlay}
+        onEnded={handleEnded}
         onError={handleMediaError}
-        onLoadStart={() => setStatus('loading')}
-        onLoadedMetadata={() => setStatus('ready')}
-        onPause={() => setStatus((current) => current === 'error' || current === 'empty' ? current : 'ready')}
-        onPlaying={() => setStatus('playing')}
-        onTimeUpdate={(event) => setCurrentTimeSeconds(event.currentTarget.currentTime)}
-        onWaiting={() => setStatus('buffering')}
+        onLoadStart={handleLoadStart}
+        onLoadedMetadata={handleLoadedMetadata}
+        onPause={handlePause}
+        onPlaying={handlePlaying}
+        onTimeUpdate={handleTimeUpdate}
+        onWaiting={handleWaiting}
         preload="metadata"
         ref={audioRef}
         src={playbackUrl}
@@ -140,7 +66,7 @@ const AudioTransport = ({ recordings, recordingGroupAssignments }: IAudioTranspo
       </div>
 
       <PlaybackRecordingPicker
-        onSelect={handleRecordingSelect}
+        onSelect={selectRecording}
         recordings={recordings}
         recordingGroupAssignments={recordingGroupAssignments}
         selectedRecording={selectedRecording}
@@ -151,7 +77,7 @@ const AudioTransport = ({ recordings, recordingGroupAssignments }: IAudioTranspo
           aria-label="Clear playback recording"
           className="audio-transport__clear"
           type="button"
-          onClick={handleClear}
+          onClick={clearRecording}
         >
           <X aria-hidden="true" size={14} />
         </button>
@@ -162,7 +88,7 @@ const AudioTransport = ({ recordings, recordingGroupAssignments }: IAudioTranspo
         className="audio-transport__play"
         disabled={!selectedRecording || status === 'loading'}
         type="button"
-        onClick={() => void handlePlayPause()}
+        onClick={() => void togglePlayPause()}
       >
         {isPlaying ? <Pause aria-hidden="true" size={15} /> : <Play aria-hidden="true" size={15} />}
       </button>
@@ -171,17 +97,29 @@ const AudioTransport = ({ recordings, recordingGroupAssignments }: IAudioTranspo
         aria-label="Playback position"
         className="audio-transport__seek"
         disabled={!selectedRecording}
-        max={playbackDuration}
-        min={0}
-        onChange={(event) => handleSeek(Number(event.target.value))}
+        max={scope.endTimeSeconds}
+        min={scope.startTimeSeconds}
+        onChange={(event) => seek(Number(event.target.value))}
         step="0.01"
         type="range"
-        value={Math.min(currentTimeSeconds, playbackDuration)}
+        value={Math.min(Math.max(currentTimeSeconds, scope.startTimeSeconds), scope.endTimeSeconds)}
       />
 
       <span className="audio-transport__time">
-        {formatPlaybackTime(currentTimeSeconds)} / {formatPlaybackTime(playbackDuration)}
+        {formatPlaybackTime(currentTimeSeconds)} / {formatPlaybackTime(scope.endTimeSeconds)}
       </span>
+
+      <button
+        aria-label="Loop selected region"
+        aria-pressed={isLoopEnabled}
+        className="audio-transport__loop"
+        disabled={!scope.hasRegionOfInterest || !selectedRecording}
+        title={scope.hasRegionOfInterest ? 'Loop selected region' : 'Select a region to enable looping'}
+        type="button"
+        onClick={toggleLoop}
+      >
+        <Repeat2 aria-hidden="true" size={14} />
+      </button>
 
       <span className={`audio-transport__status audio-transport__status--${status}`} aria-live="polite">
         {error ?? (status === 'loading' ? 'Loading' : status === 'buffering' ? 'Buffering' : '')}

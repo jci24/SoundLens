@@ -1,6 +1,6 @@
 .audio-transport {
   display: grid;
-  grid-template-columns: auto minmax(10rem, 17rem) auto auto minmax(8rem, 1fr) auto minmax(0, auto);
+  grid-template-columns: auto minmax(10rem, 17rem) auto auto minmax(8rem, 1fr) auto auto minmax(0, auto);
   align-items: center;
   gap: 0.45rem;
   min-width: 0;
@@ -13,7 +13,8 @@
 
   &__identity,
   &__play,
-  &__clear {
+  &__clear,
+  &__loop {
     display: inline-flex;
     align-items: center;
   }
@@ -28,7 +29,8 @@
   }
 
   &__play,
-  &__clear {
+  &__clear,
+  &__loop {
     justify-content: center;
     width: 1.9rem;
     height: 1.9rem;
@@ -45,6 +47,23 @@
     height: 1.7rem;
     border: 0;
     color: var(--muted-foreground);
+  }
+
+  &__loop {
+    width: 1.7rem;
+    height: 1.7rem;
+    color: var(--muted-foreground);
+  }
+
+  &__loop[aria-pressed='true'] {
+    border-color: var(--foreground);
+    background: var(--foreground);
+    color: var(--background);
+  }
+
+  &__loop:disabled {
+    cursor: not-allowed;
+    opacity: 0.38;
   }
 
   &__play:disabled {

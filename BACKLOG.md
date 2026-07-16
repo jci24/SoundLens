@@ -55,40 +55,33 @@ Turn the current analysis workspace into a focused comparison workflow for repea
 - diagnostic live-eval artifacts plus CI-tested dataset and grading logic
 - Markdown and textual/tabular PDF comparison export over one backend-prepared evidence model
 - original-recording playback through one browser-native media element, a range-enabled backend stream, indexed session lookup, and searchable bounded source selection
+- ROI-bounded playback with explicit looping, a read-only waveform playhead, source and scope reset, and guarded workspace Spacebar control
 
 ## Ordered Thin Tasks
 
-### Playback phase 2. ROI playback and waveform playhead
-
-User value:
-- A user can audition exactly the selected time region and follow playback position on the waveform.
-
-Thin-slice boundary:
-- Extend the validated single-recording transport with ROI boundaries, explicit looping, and a non-interactive playhead without changing DSP evidence.
-
-Acceptance criteria:
-- Play starts at the selected ROI start and stops at its end; looping remains an explicit user choice
-- source and ROI changes stop playback and reset the playhead to the active scope start
-- the waveform playhead does not alter backend bins, ROI drag behavior, or chart geometry
-- one media element remains the only playback resource and all animation/listener cleanup is deterministic
-
-Test expectations:
-- frontend ROI boundary, loop, source/ROI reset, playhead, cleanup, keyboard-guard, accessibility, and waveform-regression tests
-
-Proposed branch name:
-- `codex/roi-playback-sync`
-
-Dependencies:
-- merged recording playback foundation, waveform ROI state, and browser media events
-
 ### Playback phase 3. Large-session navigation
 
-Reason for sequencing:
-- searchable playback selection is bounded for 100+ recording choices, but the main recording rail still mounts its full expanded hierarchy
-- virtualize the rail only after ROI playback is validated so transport timing and list-rendering regressions remain isolated
+User value:
+- A user can find, expand, and select recordings and signals in large imported sessions without the recording rail becoming slow or visually unmanageable.
+
+Thin-slice boundary:
+- Virtualize the existing recording and expanded-signal hierarchy while preserving stable IDs, search, expansion, channel selection, A/B status, keyboard access, and playback selection.
+
+Acceptance criteria:
+- at least 100 recordings with multiple channels render only the visible row window plus bounded overscan
+- expansion, channel selection, Compare A/B markers, and focus behavior remain correct as rows enter and leave the DOM
+- playback, comparison, reports, and Copilot context continue to reference recording and signal IDs rather than mounted row instances
+- the searchable playback picker remains bounded and separate from the virtualized rail
+
+Test expectations:
+- frontend flattened-row-model, virtualization-window, scroll restoration, focus, expansion, selection, assignment, and 100-recording regression tests
 
 Proposed branch name:
 - `codex/large-session-navigation`
+
+Dependencies:
+- merged recording playback foundation and ROI playback synchronization
+- a benchmark fixture representing at least 100 recordings with multiple signals
 
 ### Playback follow-up. Synchronized A/B audition
 

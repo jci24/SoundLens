@@ -155,8 +155,11 @@ The repo is still intentionally simple: no extra backend projects, no persistenc
 - Heterogeneous comparison metrics use a fixed backend-owned presentation order: Peak amplitude, RMS amplitude, crest factor, then clipping samples. The order does not claim normalized importance or severity.
 - Focused and compare workspaces can audition one explicitly selected imported recording through a browser-native transport with play, pause, seeking, compact time display, and searchable source selection.
 - Playback resolves recording IDs through an indexed current-session store and streams original bytes with HTTP range support. It does not normalize, transcode, recompute evidence, or preload unselected recordings.
+- When an ROI exists, playback starts at its beginning and stops at its end unless explicit looping is enabled. Source or ROI changes stop playback and reset the playhead to the active scope start.
+- A non-interactive playhead follows the selected recording on applicable waveform charts through a local playback provider; it does not alter waveform bins, ROI geometry, or evidence state.
+- Spacebar control is scoped to the analysis workspace and ignored for form controls, dialogs, editable content, and the Copilot composer.
 - A true calibrated-versus-uncalibrated comparison eval remains deferred because imported evidence currently has no real calibrated state
 
 ## Immediate Next Product Slice
 
-The next product slice should align the existing recording transport with selected ROI playback, optional looping, and a non-interactive waveform playhead. Large-session recording-rail virtualization follows as a separate UI-scale slice; synchronized A/B and isolated-channel audition remain later playback phases. A real calibration-state model and calibrated-versus-uncalibrated eval remain later trust work.
+The next product slice should virtualize the recording and expanded-signal rail for large sessions while preserving selection, assignment, accessibility, and stable identifier behavior. Synchronized A/B and isolated-channel audition remain later playback phases. A real calibration-state model and calibrated-versus-uncalibrated eval remain later trust work.

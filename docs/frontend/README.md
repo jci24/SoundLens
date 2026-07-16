@@ -155,8 +155,12 @@ Current playback guidance:
 - Playback starts with no source. Users explicitly choose a recording from a searchable Radix picker that shows duration, channel count, and active A/B status.
 - Broad picker results are capped at 50 and ask the user to refine the search, preventing an unbounded popover DOM before the recording rail receives dedicated virtualization.
 - The transport requests only the selected recording with `preload="metadata"` and exposes play, pause, seek, time, loading, buffering, unsupported-format, and failure states.
+- A local playback provider owns media lifecycle, ROI scope, looping, animation frames, and cleanup. Playback state is not stored in the global evidence store.
+- An active ROI bounds the seek control and playback interval. Playback stops at the ROI end unless the user explicitly enables looping, and source or ROI changes stop and reset to the current scope start.
+- Applicable waveform charts consume only the selected recording ID and current playback position to render a non-interactive playhead. They do not recompute bins or alter ROI interaction geometry.
+- Spacebar play/pause is scoped to the analysis workspace and ignored when focus is in inputs, buttons, dialogs, editable content, or the Copilot composer.
 - Playback preserves original recording routing and remains separate from signal selection, ROI evidence, and backend DSP calculations.
-- ROI play-once, explicit looping, waveform playhead synchronization, A/B switching, and isolated-channel routing are separate follow-up slices.
+- Large-session recording-rail virtualization, A/B switching, and isolated-channel routing are separate follow-up slices.
 - Metric cards select context rather than unconditionally selecting a panel. When Copilot is open, a metric-card click keeps it open and updates the selected comparison context; the explicit `Evidence & limitations` disclosure switches from Copilot to the inspector.
 
 Current comparison-pair guidance:

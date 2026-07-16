@@ -3,6 +3,7 @@ import { AnalysisWorkspaceHeader } from './AnalysisWorkspaceHeader'
 import { ComparisonEvidenceInspector } from './ComparisonEvidenceInspector'
 import { ComparisonReportDialog } from '../../report/components/ComparisonReportDialog'
 import { AudioTransport } from '../../playback/components/AudioTransport'
+import { RecordingPlaybackProvider } from '../../playback/components/RecordingPlaybackProvider'
 import { RecordingRail } from '../../recording-rail/components/RecordingRail'
 import { useAnalysisWorkspaceMetrics } from '../../metrics/hooks/useAnalysisWorkspaceMetrics'
 import { useReportExport } from '../../report/hooks/useReportExport'
@@ -53,6 +54,7 @@ const TimeWaveformWorkspace = ({ importedFiles, isCopilotOpen, onCopilotToggle }
   const [isEvidenceInspectorOpen, setIsEvidenceInspectorOpen] = useState(false)
   const [isCopilotHandoffActive, setIsCopilotHandoffActive] = useState(false)
   const evidenceInspectorTriggerRef = useRef<HTMLElement | null>(null)
+  const workspaceRef = useRef<HTMLElement | null>(null)
   const [selectedMetricKey, setSelectedMetricKey] =
     useState<IRecordingComparisonMetricAggregate['metricKey'] | null>(null)
   const {
@@ -384,6 +386,7 @@ const TimeWaveformWorkspace = ({ importedFiles, isCopilotOpen, onCopilotToggle }
     <section
       className={`time-waveform-workspace${hasActiveChart ? ' time-waveform-workspace--revealed' : ''}${layoutMode === 'compare' ? ' time-waveform-workspace--compare' : ''}`}
       aria-label="Analysis workspace"
+      ref={workspaceRef}
     >
       <AnalysisWorkspaceHeader
         activeSurface={activeSurface}
@@ -601,39 +604,43 @@ const TimeWaveformWorkspace = ({ importedFiles, isCopilotOpen, onCopilotToggle }
               </button>
             </section>
           )}
-          <AudioTransport
+          <RecordingPlaybackProvider
             recordings={recordings}
             recordingGroupAssignments={recordingGroupAssignments}
-          />
-          <AnalysisWorkspaceChart
-            chartRef={chartRef}
-            chartWidth={chartWidth}
-            compareEvidenceDetail={
-              activeMetric && activeObservation
-                ? `Δ ${formatAggregateValue(getObservationDelta(activeObservation, activeMetric.metricKey), activeMetric.unit)} · A ${formatAggregateValue(getObservationValue(activeObservation, activeMetric.metricKey, 'A'), activeMetric.unit)} · B ${formatAggregateValue(getObservationValue(activeObservation, activeMetric.metricKey, 'B'), activeMetric.unit)}`
-                : null
-            }
-            compareEvidenceKicker={activeMetric ? 'Inspecting evidence for' : null}
-            compareEvidenceScope={roiScopeLabel ? `ROI ${roiScopeLabel}` : null}
-            compareEvidenceSummary={
-              activeMetric && activeObservation
-                ? `${activeObservation.displayNameA} vs ${activeObservation.displayNameB}`
-                : null
-            }
-            compareEvidenceTitle={activeMetric ? formatComparisonMetricLabel(activeMetric.metricKey) : null}
-            hasMetricsPending={hasMetricsPending}
-            isCompareMode={layoutMode === 'compare'}
-            metricSignals={metricSignals}
-            onRegionOfInterestChange={onRegionOfInterestChange}
-            panels={panels}
             regionOfInterest={regionOfInterest}
-            signalChartMode={signalChartMode}
-            spectrumSignals={spectrumSignals}
-            spectrumXAxis={spectrumXAxis}
-            spectrumYAxis={spectrumYAxis}
-            waveformSignals={waveformSignals}
-            waveformYAxis={waveformYAxis}
-          />
+            workspaceRef={workspaceRef}
+          >
+            <AudioTransport />
+            <AnalysisWorkspaceChart
+              chartRef={chartRef}
+              chartWidth={chartWidth}
+              compareEvidenceDetail={
+                activeMetric && activeObservation
+                  ? `Δ ${formatAggregateValue(getObservationDelta(activeObservation, activeMetric.metricKey), activeMetric.unit)} · A ${formatAggregateValue(getObservationValue(activeObservation, activeMetric.metricKey, 'A'), activeMetric.unit)} · B ${formatAggregateValue(getObservationValue(activeObservation, activeMetric.metricKey, 'B'), activeMetric.unit)}`
+                  : null
+              }
+              compareEvidenceKicker={activeMetric ? 'Inspecting evidence for' : null}
+              compareEvidenceScope={roiScopeLabel ? `ROI ${roiScopeLabel}` : null}
+              compareEvidenceSummary={
+                activeMetric && activeObservation
+                  ? `${activeObservation.displayNameA} vs ${activeObservation.displayNameB}`
+                  : null
+              }
+              compareEvidenceTitle={activeMetric ? formatComparisonMetricLabel(activeMetric.metricKey) : null}
+              hasMetricsPending={hasMetricsPending}
+              isCompareMode={layoutMode === 'compare'}
+              metricSignals={metricSignals}
+              onRegionOfInterestChange={onRegionOfInterestChange}
+              panels={panels}
+              regionOfInterest={regionOfInterest}
+              signalChartMode={signalChartMode}
+              spectrumSignals={spectrumSignals}
+              spectrumXAxis={spectrumXAxis}
+              spectrumYAxis={spectrumYAxis}
+              waveformSignals={waveformSignals}
+              waveformYAxis={waveformYAxis}
+            />
+          </RecordingPlaybackProvider>
         </div>
       </div>
     </section>
