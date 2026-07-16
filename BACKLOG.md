@@ -60,31 +60,32 @@ Turn the current analysis workspace into a focused comparison workflow for repea
 - removal of redundant valid-pair readiness copy while preserving actionable setup and ROI scope controls
 - position-aligned A/B audition over the explicit active pair with readiness-gated resume, ROI clamping, and no normalization or sample-accurate claim
 - isolated-channel audition through a lazy playback-local Web Audio graph with dual-output routing, explicit Original mode, and safe A/B persistence or fallback
+- selected-comparison orchestration extracted from `AgentQueryHandler` behind a feature-owned resolver, trust-guard, prompt, model, parser, and fallback boundary
 
 ## Ordered Thin Tasks
 
-### Architecture follow-up. Selected-comparison orchestration extraction
+### Validation follow-up. Comparison-selection-to-Copilot regression
 
 User value:
-- A user receives the same grounded selected-comparison answers through a smaller, more maintainable orchestration boundary before broader Copilot capabilities are introduced.
+- A user can rely on the selected metric, aligned pair, and ROI reaching Copilot correctly as the workspace interaction evolves.
 
 Thin-slice boundary:
-- Extract selected-comparison resolution, trust-guard dispatch, prompt construction, and fallback coordination from `AgentQueryHandler` without changing public contracts or answer behavior.
+- Add a frontend workflow regression that exercises comparison selection, metric changes, ROI scope, Copilot submission, identifier-only request construction, and grounded response rendering without adding new product behavior.
 
 Acceptance criteria:
-- `AgentQueryHandler` delegates selected-comparison orchestration through an explicit feature-owned boundary
-- deterministic SPL, causal, malformed-output, RMS, peak, and clipping behavior remains unchanged
-- evidence reconstruction remains backend-owned and model acquisition still occurs only after deterministic guards
-- no endpoint schema, frontend contract, comparison DSP, or report behavior changes
+- the test uses real workspace state and interaction boundaries rather than validating documentation or isolated formatting helpers
+- selected metric, active aligned pair, recording IDs, signal IDs, and ROI are submitted without frontend-authored measurements
+- metric and ROI changes update the next Copilot request without stale context
+- loading, success, backend refusal, and request-failure recovery remain explicit
 
 Test expectations:
-- backend regression coverage for every selected-comparison deterministic and model-backed path plus existing Copilot eval grader tests
+- focused frontend behavior tests plus the existing frontend suite, backend suite, lint, and build
 
 Proposed branch name:
-- `codex/selected-comparison-orchestration`
+- `codex/comparison-copilot-workflow-regression`
 
 Dependencies:
-- existing selected-comparison resolver, trust guards, grounded prompt contract, and deterministic fallback behavior
+- stable comparison workspace selection and selected-comparison API contract
 
 ### Trust follow-up. Real calibration-state mismatch
 
@@ -98,7 +99,6 @@ Reason for deferral:
 
 Normal priority:
 
-- add an end-to-end comparison-selection-to-explanation regression test when the browser workflow stabilizes
 - replace the reflection-based OpenAI SDK test stub if the SDK exposes a stable testing seam
 
 ## Deferred Work

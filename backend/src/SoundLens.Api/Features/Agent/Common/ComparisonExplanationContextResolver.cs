@@ -40,9 +40,18 @@ public sealed record ResolvedComparisonFinding(
     string Label,
     string? Detail);
 
+public interface IComparisonExplanationContextResolver
+{
+    Task<ResolvedComparisonExplanationContext> ResolveAsync(
+        AgentComparisonSelection selection,
+        double? startTimeSeconds,
+        double? endTimeSeconds,
+        CancellationToken ct);
+}
+
 public sealed class ComparisonExplanationContextResolver(
     IImportedFileStore importedFileStore,
-    ISpectrumService spectrumService)
+    ISpectrumService spectrumService) : IComparisonExplanationContextResolver
 {
     public async Task<ResolvedComparisonExplanationContext> ResolveAsync(
         AgentComparisonSelection selection,

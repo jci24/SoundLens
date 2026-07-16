@@ -85,6 +85,7 @@ These findings are useful first-pass cues, but they should still be treated as b
 - That explanation path asks the model to explain only backend-owned selected comparison evidence instead of rediscovering or widening the workspace scope.
 - Selected-comparison requests for calibrated dB SPL or physical sound-pressure conclusions now bypass OpenAI and return a deterministic refusal. The response preserves the available digital metric values, active pair, aligned signals, ROI, and calibration limitation without relabelling digital evidence as physical SPL.
 - Selected-comparison questions that ask what caused an observed difference also bypass OpenAI. The deterministic response preserves the measured values, ROI, coverage, findings, and limitations while stating that observational comparison evidence does not establish causation.
+- Selected-comparison resolution, trust-guard dispatch, prompt construction, model invocation, structured parsing, and deterministic fallback coordination now belong to a dedicated backend orchestrator. `AgentQueryHandler` retains generic tool-calling and endpoint validation translation rather than owning both pipelines.
 - The backend exposes compact deterministic tools such as metrics, findings, spectrum summaries, and signal comparison summaries.
 - The response returns structured answer text, cited evidence, limitations, next steps, and tools used.
 - Copilot model output must pass strict JSON shape and evidence-tool validation before any model-authored answer is shown. Malformed, truncated, fenced-invalid, schema-invalid, or raw structured answer content is replaced with a concise deterministic fallback while backend-known comparison evidence and limitations remain available.
@@ -169,4 +170,4 @@ The repo is still intentionally simple: no extra backend projects, no persistenc
 
 ## Immediate Next Product Slice
 
-The next ordered engineering slice should extract selected-comparison orchestration and prompt construction from the oversized `AgentQueryHandler` before another broad Copilot capability is added. A real calibration-state model and calibrated-versus-uncalibrated eval remain later trust work.
+The next ordered validation slice should add a frontend workflow regression from comparison selection through selected-context Copilot submission and response rendering. A real calibration-state model and calibrated-versus-uncalibrated eval remain later trust work.
