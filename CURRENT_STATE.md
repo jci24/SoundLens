@@ -1,6 +1,6 @@
 # Current State
 
-Last updated: 2026-07-15
+Last updated: 2026-07-16
 
 ## What Users Can Currently Do
 
@@ -121,6 +121,7 @@ Frontend:
 - Vitest plus React Testing Library
 - tests around workspace hooks, formatting, panel behavior, report services and preview, and selected render paths
 - focused tests for explicit pair selection, replacement, clearing, swapping, conflict handling, stable comparison-metric ordering, and selection
+- an integration-style comparison-to-Copilot regression verifies selected metric and ROI freshness, identifier-only request construction, grounded success and refusal rendering, request-failure recovery, original-context Re-run behavior, and workspace-store cleanup
 
 Eval harness:
 
@@ -170,4 +171,6 @@ The repo is still intentionally simple: no extra backend projects, no persistenc
 
 ## Immediate Next Product Slice
 
-The next ordered validation slice should add a frontend workflow regression from comparison selection through selected-context Copilot submission and response rendering. A real calibration-state model and calibrated-versus-uncalibrated eval remain later trust work.
+The next product action is direct automotive NVH workflow validation using recent-work walkthroughs, prototype feedback, and buyer discovery. Specialized analysis implementation and public repositioning remain gated on that evidence.
+
+A real calibration-state model and calibrated-versus-uncalibrated eval remain later trust work because the current import contract cannot represent a genuine calibrated comparison safely.

@@ -63,6 +63,7 @@ Turn the current analysis workspace into a focused comparison workflow for repea
 - position-aligned A/B audition over the explicit active pair with readiness-gated resume, ROI clamping, and no normalization or sample-accurate claim
 - isolated-channel audition through a lazy playback-local Web Audio graph with dual-output routing, explicit Original mode, and safe A/B persistence or fallback
 - selected-comparison orchestration extracted from `AgentQueryHandler` behind a feature-owned resolver, trust-guard, prompt, model, parser, and fallback boundary
+- comparison-to-Copilot workflow regression covering metric and ROI freshness, identifier-only requests, grounded responses, refusal presentation, failure recovery, Re-run context, and store cleanup
 
 ## Ordered Thin Tasks
 
@@ -92,29 +93,6 @@ Proposed artifact:
 
 Priority:
 - high, parallel product work; complete before changing public positioning or expanding the deterministic analysis catalogue
-
-### Validation follow-up. Comparison-selection-to-Copilot regression
-
-User value:
-- A user can rely on the selected metric, aligned pair, and ROI reaching Copilot correctly as the workspace interaction evolves.
-
-Thin-slice boundary:
-- Add a frontend workflow regression that exercises comparison selection, metric changes, ROI scope, Copilot submission, identifier-only request construction, and grounded response rendering without adding new product behavior.
-
-Acceptance criteria:
-- the test uses real workspace state and interaction boundaries rather than validating documentation or isolated formatting helpers
-- selected metric, active aligned pair, recording IDs, signal IDs, and ROI are submitted without frontend-authored measurements
-- metric and ROI changes update the next Copilot request without stale context
-- loading, success, backend refusal, and request-failure recovery remain explicit
-
-Test expectations:
-- focused frontend behavior tests plus the existing frontend suite, backend suite, lint, and build
-
-Proposed branch name:
-- `codex/comparison-copilot-workflow-regression`
-
-Dependencies:
-- stable comparison workspace selection and selected-comparison API contract
 
 ### Trust follow-up. Real calibration-state mismatch
 
