@@ -197,12 +197,20 @@ Program intent:
 - prioritize the smallest coherent capability wedge that solves a repeated high-value problem
 - preserve the current A/B comparison workflow as the validation baseline until evidence supports broadening or changing it
 
+Current discovery status:
+- the first desk-research synthesis identifies automotive NVH as the leading segment hypothesis, with industrial machinery and rotating equipment as the strongest adjacent segment
+- the narrowest proposed workflow is repeatable reference-versus-candidate investigation and traceable reporting, not a broad AI acoustics assistant
+- reducing active engineering time for a defined A/B workflow by 40–50% is a validation target, not a current product claim
+- evidence is currently dominated by incumbent-vendor sources; direct customer interviews and workflow observation remain required before changing public positioning or implementing specialized NVH analyses
+- the synthesis is recorded in [docs/product/research/2026-07-16-nvh-opportunity-synthesis.md](docs/product/research/2026-07-16-nvh-opportunity-synthesis.md)
+
 Capability architecture direction:
 - build validated analysis primitives with typed, versioned inputs, outputs, units, calibration state, limitations, and provenance
 - compose primitives into reviewable workflow recipes instead of maintaining thousands of bespoke analysis paths
 - keep numerical computation and compatibility validation in the backend
 - add batch execution, persistence, progress, cancellation, partial-failure isolation, and large-result visualization before making production-scale claims
 - expose new capabilities to the Copilot only after their deterministic contract and evaluation set are validated
+- prioritize differences only through comparable within-metric values, validated domain rules, or user-defined tolerances; never rank heterogeneous units by raw magnitude
 
 Discovery and delivery gates:
 1. **Problem evidence:** multiple target users describe the same costly or risky workflow and decision.

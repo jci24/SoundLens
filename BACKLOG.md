@@ -66,27 +66,32 @@ Turn the current analysis workspace into a focused comparison workflow for repea
 
 ## Ordered Thin Tasks
 
-### Product discovery. Analysis capability study
+### Product discovery. Validate the automotive NVH workflow hypothesis
 
 User value:
-- Future analysis capabilities reflect a real, repeated customer workflow rather than an assumed catalogue of acoustic metrics.
+- The next product and analysis decisions reflect observed automotive NVH work rather than vendor descriptions or founder assumptions.
 
 Discovery boundary:
-- Interview prospective users and domain experts using `docs/product/analysis-capability-discovery.md`, then synthesize jobs, decisions, requested evidence, current alternatives, trust constraints, scale, and commercial signals.
+- Interview automotive NVH engineers, test or validation engineers, technical leads, and test-lab stakeholders using `docs/product/analysis-capability-discovery.md`.
+- Test the proposed reference-versus-candidate workflow, current-tool strengths, metadata and comparability needs, analysis repetition, result triage, reporting effort, buyer roles, deployment constraints, and willingness to run a paid pilot.
+- Retain industrial machinery as an adjacent comparison point rather than silently assuming automotive is final.
 - Do not implement a new analysis, choose a standards claim, or commit to a domain pack during this task.
 
 Acceptance criteria:
-- at least three relevant conversations are recorded with supporting and disconfirming evidence
-- requested analyses are grouped by customer workflow and decision, not counted as unrelated feature requests
-- opportunities are scored using the documented evidence-based scorecard
-- the output recommends one next wedge, recommends further discovery, or explicitly rejects the current assumptions
+- at least three relevant direct conversations are recorded with supporting and disconfirming evidence
+- at least one participant walks through a recent real comparison and reporting workflow rather than answering only hypothetical questions
+- typical and worst-case recording, channel, operating-condition, and reporting scale are captured
+- the study tests whether a 40–50% active-time reduction is valuable and plausible without presenting it as achieved
+- user, technical champion, economic buyer, and adoption blockers are validated or revised
+- requested analyses are grouped by workflow and decision, with prioritization limited to comparable metrics, validated rules, or user tolerances
+- the output recommends one next wedge, further discovery, a prototype, or rejection of the automotive hypothesis
 - any implementation recommendation is rewritten as a separate thin-slice prompt and approved before branch creation
 
 Proposed artifact:
-- a dated synthesis under `docs/product/research/` with anonymized findings and links to any private source notes kept outside the public repository
+- a second dated synthesis under `docs/product/research/` containing anonymized direct evidence and links to private source notes kept outside the public repository
 
 Priority:
-- high, parallel product work; begin before expanding the deterministic analysis catalogue
+- high, parallel product work; complete before changing public positioning or expanding the deterministic analysis catalogue
 
 ### Validation follow-up. Comparison-selection-to-Copilot regression
 
