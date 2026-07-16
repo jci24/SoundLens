@@ -1,6 +1,6 @@
 # Roadmap
 
-Last updated: 2026-07-14
+Last updated: 2026-07-16
 
 ## Milestone 0 — Documentation And Product-Focus Reset
 
@@ -184,6 +184,46 @@ Validation gate:
 Explicitly deferred work:
 - standards-compliance claims
 - advanced uncertainty modeling
+
+## Cross-Cutting Program — Customer-Driven Analysis Expansion
+
+User outcome:
+- SoundLens grows beyond its initial A/B metrics only where target users demonstrate a valuable, recurring acoustic decision that the product can support with validated evidence.
+
+Program intent:
+- run customer and market discovery before selecting additional analysis categories
+- identify the initial customer segment, jobs-to-be-done, decisions, existing tools, workflow frequency, trust requirements, and willingness to pay
+- catalogue requested analyses by workflow rather than treating each requested calculation as an isolated feature
+- prioritize the smallest coherent capability wedge that solves a repeated high-value problem
+- preserve the current A/B comparison workflow as the validation baseline until evidence supports broadening or changing it
+
+Capability architecture direction:
+- build validated analysis primitives with typed, versioned inputs, outputs, units, calibration state, limitations, and provenance
+- compose primitives into reviewable workflow recipes instead of maintaining thousands of bespoke analysis paths
+- keep numerical computation and compatibility validation in the backend
+- add batch execution, persistence, progress, cancellation, partial-failure isolation, and large-result visualization before making production-scale claims
+- expose new capabilities to the Copilot only after their deterministic contract and evaluation set are validated
+
+Discovery and delivery gates:
+1. **Problem evidence:** multiple target users describe the same costly or risky workflow and decision.
+2. **Capability priority:** the proposed analysis has clear inputs, outputs, frequency, value, alternatives, and commercial relevance.
+3. **Technical validity:** the method, units, assumptions, fixtures, references, and failure behavior are independently reviewable.
+4. **Workflow validity:** target users can complete the real decision workflow faster or with greater confidence.
+5. **Scale validity:** representative batch sizes meet explicit latency, reliability, inspectability, and resource targets.
+
+Required discovery output:
+- completed interview records using [the analysis-capability discovery guide](docs/product/analysis-capability-discovery.md)
+- a synthesized opportunity inventory with supporting and disconfirming evidence
+- one recommended next analysis wedge with explicit non-goals and acceptance criteria
+- a separate approved implementation prompt before any capability branch is created
+
+Validation gate:
+- at least three relevant customer or domain-expert conversations produce enough convergent evidence to choose, reject, or revise an analysis wedge without relying on founder intuition alone
+
+Explicitly deferred work:
+- committing to particular advanced metrics, standards, domain packs, or customer segments before discovery
+- representing every customer request as a separate hard-coded analysis
+- claiming support for hundreds of recordings or thousands of signals before Milestone 7 scale gates pass
 
 ## Milestone 7 — Lightweight Persistence And Batch Hardening
 
