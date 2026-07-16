@@ -12,7 +12,10 @@ import { useAnalysisWorkspacePanels } from '../hooks/useAnalysisWorkspacePanels'
 import { useTimeWaveformWorkspace } from '../hooks/useTimeWaveformWorkspace'
 import { getRecordingComparison } from '../../services/recordingComparison'
 import { useAnalysisWorkspaceStore } from '../../stores/useAnalysisWorkspaceStore'
-import { getComparisonSetupSummary } from '../../utils/analysisWorkspaceState'
+import {
+  clampRegionOfInterest,
+  getComparisonSetupSummary,
+} from '../../utils/analysisWorkspaceState'
 import {
   formatAggregateValue,
   formatComparisonMetricLabel,
@@ -141,6 +144,9 @@ const TimeWaveformWorkspace = ({ importedFiles, isCopilotOpen, onCopilotToggle }
   const activePairRecordingB = groupBRecordings.length === 1 ? groupBRecordings[0] : null
   const activePairRecordingIdA = activePairRecordingA?.recordingId ?? null
   const activePairRecordingIdB = activePairRecordingB?.recordingId ?? null
+  const activePairMaximumDuration = activePairRecordingA && activePairRecordingB
+    ? Math.min(activePairRecordingA.durationSeconds, activePairRecordingB.durationSeconds)
+    : 0
   const comparisonRoiStartSeconds = regionOfInterest?.startTimeSeconds ?? null
   const comparisonRoiEndSeconds = regionOfInterest?.endTimeSeconds ?? null
   const canRequestPairwiseComparison =
@@ -361,7 +367,23 @@ const TimeWaveformWorkspace = ({ importedFiles, isCopilotOpen, onCopilotToggle }
       setIsCopilotHandoffActive(false)
     }
 
+    if (mode === 'compare' && regionOfInterest) {
+      onRegionOfInterestChange(
+        clampRegionOfInterest(regionOfInterest, activePairMaximumDuration)
+      )
+    }
+
     onLayoutModeChange(mode)
+  }
+
+  const handleRegionOfInterestChange = (
+    nextRegionOfInterest: typeof regionOfInterest
+  ) => {
+    onRegionOfInterestChange(
+      layoutMode === 'compare'
+        ? clampRegionOfInterest(nextRegionOfInterest, activePairMaximumDuration)
+        : nextRegionOfInterest
+    )
   }
 
   const handleRecordingGroupAssignment = (
@@ -611,7 +633,7 @@ const TimeWaveformWorkspace = ({ importedFiles, isCopilotOpen, onCopilotToggle }
               hasMetricsPending={hasMetricsPending}
               isCompareMode={layoutMode === 'compare'}
               metricSignals={metricSignals}
-              onRegionOfInterestChange={onRegionOfInterestChange}
+              onRegionOfInterestChange={handleRegionOfInterestChange}
               panels={panels}
               regionOfInterest={regionOfInterest}
               signalChartMode={signalChartMode}

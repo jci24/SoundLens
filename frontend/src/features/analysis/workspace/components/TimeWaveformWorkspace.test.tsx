@@ -95,7 +95,24 @@ vi.mock('../../recording-rail/components/RecordingRail', () => ({
 }))
 
 vi.mock('./AnalysisWorkspaceChart', () => ({
-  AnalysisWorkspaceChart: () => <div data-testid="workspace-chart" />,
+  AnalysisWorkspaceChart: ({
+    onRegionOfInterestChange,
+  }: {
+    onRegionOfInterestChange: (regionOfInterest: IAnalysisRegionOfInterest) => void
+  }) => (
+    <div data-testid="workspace-chart">
+      <button
+        type="button"
+        onClick={() => onRegionOfInterestChange({
+          startTimeSeconds: 1.5,
+          endTimeSeconds: 2.54,
+          durationSeconds: 1.04,
+        })}
+      >
+        Select test region
+      </button>
+    </div>
+  ),
 }))
 
 const importedFiles: IImportedFileSummary[] = [
@@ -383,6 +400,54 @@ describe('TimeWaveformWorkspace', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Clear selected comparison region' }))
 
     expect(workspaceState.onRegionOfInterestChange).toHaveBeenCalledWith(null)
+  })
+
+  it('clamps a compare ROI to the shorter active recording before storing it', () => {
+    const workspaceState = createWorkspaceState()
+    workspaceState.layoutMode = 'compare'
+    workspaceState.recordings = [
+      {
+        recordingId: 'recording-1',
+        fileName: 'alpha.wav',
+        sizeBytes: 1024,
+        durationSeconds: 2.6,
+        sampleRate: 44_100,
+        channels: 1,
+        channelMode: 'Mono',
+        signals: [],
+      },
+      {
+        recordingId: 'recording-2',
+        fileName: 'beta.wav',
+        sizeBytes: 2048,
+        durationSeconds: 2.5350113378684807,
+        sampleRate: 44_100,
+        channels: 1,
+        channelMode: 'Mono',
+        signals: [],
+      },
+    ]
+    workspaceState.recordingGroupAssignments = {
+      'recording-1': 'A',
+      'recording-2': 'B',
+    }
+    mockUseTimeWaveformWorkspace.mockReturnValue(workspaceState)
+
+    render(
+      <TimeWaveformWorkspace
+        importedFiles={importedFiles}
+        isCopilotOpen={false}
+        onCopilotToggle={vi.fn()}
+      />
+    )
+
+    fireEvent.click(screen.getByRole('button', { name: 'Select test region' }))
+
+    expect(workspaceState.onRegionOfInterestChange).toHaveBeenCalledWith({
+      startTimeSeconds: 1.5,
+      endTimeSeconds: 2.5350113378684807,
+      durationSeconds: 1.0350113378684807,
+    })
   })
 
   it('shows the current comparison scope and forwards recording assignments', () => {

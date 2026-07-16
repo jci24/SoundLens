@@ -1,4 +1,8 @@
-import type { TComparisonGroupAssignment, TComparisonSetupState } from '../types'
+import type {
+  IAnalysisRegionOfInterest,
+  TComparisonGroupAssignment,
+  TComparisonSetupState,
+} from '../types'
 import type { ITimeWaveformRecording } from '../types'
 
 export interface ISpectrumRange {
@@ -63,6 +67,34 @@ const areRegionOfInterestEqual = (
   }
 
   return left.startTimeSeconds === right.startTimeSeconds && left.endTimeSeconds === right.endTimeSeconds
+}
+
+const clampRegionOfInterest = (
+  regionOfInterest: IAnalysisRegionOfInterest | null,
+  maximumDurationSeconds: number
+): IAnalysisRegionOfInterest | null => {
+  if (!regionOfInterest || maximumDurationSeconds <= 0) {
+    return null
+  }
+
+  const startTimeSeconds = Math.min(
+    maximumDurationSeconds,
+    Math.max(0, regionOfInterest.startTimeSeconds)
+  )
+  const endTimeSeconds = Math.min(
+    maximumDurationSeconds,
+    Math.max(startTimeSeconds, regionOfInterest.endTimeSeconds)
+  )
+
+  if (endTimeSeconds <= startTimeSeconds) {
+    return null
+  }
+
+  return {
+    startTimeSeconds,
+    endTimeSeconds,
+    durationSeconds: endTimeSeconds - startTimeSeconds,
+  }
 }
 
 const getNextExpandedRecordings = (currentExpanded: string[], recordingId: string) =>
@@ -213,6 +245,7 @@ const getNextSpectrumRangeEnd = (
 export {
   areRegionOfInterestEqual,
   areSignalIdsEqual,
+  clampRegionOfInterest,
   clampSpectrumRange,
   defaultSpectrumFftSize,
   defaultSpectrumRangeEndHz,

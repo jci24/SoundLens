@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import {
   areSignalIdsEqual,
+  clampRegionOfInterest,
   clampSpectrumRange,
   getComparisonSetupSummary,
   getNextExpandedRecordings,
@@ -17,6 +18,26 @@ describe('analysisWorkspaceState', () => {
   it('keeps signal comparison order-sensitive', () => {
     expect(areSignalIdsEqual(['a', 'b'], ['a', 'b'])).toBe(true)
     expect(areSignalIdsEqual(['a', 'b'], ['b', 'a'])).toBe(false)
+  })
+
+  it('clamps an ROI to the shared comparison duration', () => {
+    expect(clampRegionOfInterest({
+      startTimeSeconds: 1.5,
+      endTimeSeconds: 2.54,
+      durationSeconds: 1.04,
+    }, 2.5350113378684807)).toEqual({
+      startTimeSeconds: 1.5,
+      endTimeSeconds: 2.5350113378684807,
+      durationSeconds: 1.0350113378684807,
+    })
+  })
+
+  it('rejects an ROI that starts at or beyond the shared comparison duration', () => {
+    expect(clampRegionOfInterest({
+      startTimeSeconds: 2.54,
+      endTimeSeconds: 3,
+      durationSeconds: 0.46,
+    }, 2.5350113378684807)).toBeNull()
   })
 
   it('toggles expanded recordings', () => {
