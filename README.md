@@ -13,7 +13,7 @@ SoundLens helps acoustic and audio engineers compare repeated recordings, inspec
 
 Import recordings, define the active A/B pair, narrow the analysis to a region of interest, inspect backend-computed evidence, audition the selected region, and preview a grounded report.
 
-![SoundLens workflow from audio import through A/B comparison, ROI selection, playback, evidence inspection, a grounded Copilot response, and report preview](docs/assets/soundlens-demo.gif)
+![SoundLens workflow from audio import through A/B comparison, ROI selection, playback, evidence inspection, a grounded Copilot response, and report preview](docs/assets/soundlens-copilot-demo.gif)
 
 ## Why SoundLens
 
