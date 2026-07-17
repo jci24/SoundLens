@@ -30,7 +30,9 @@ The current product is strong as an analysis workspace, but it is not yet a full
 - Sidebar, main content, and the Copilot boundary share the same monochrome surface contract.
 - Shared controls inherit semantic canvas, surface, text, interaction, radius, and focus tokens through the existing shadcn variables.
 - Teal remains an analysis accent rather than a general navigation color.
-- Recording-rail, evidence-canvas, utility-surface, and responsive-state refinements remain separate follow-up slices.
+- Waveform/Spectrum and Focused/Compare controls now share one compact workspace toolbar instead of occupying two stacked navigation bands.
+- The recording context rail uses a flat hairline boundary, compact searchable A/B slots, quieter recording rows, and restrained assignment markers while retaining virtualized large-session navigation.
+- Evidence-canvas, utility-surface, and responsive-state refinements remain separate follow-up slices.
 
 ## Import And Temporary Workspace Model
 

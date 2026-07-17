@@ -2,11 +2,12 @@
   &__recording-rail {
     display: flex;
     flex-direction: column;
-    align-self: start;
+    align-self: stretch;
     min-width: 0;
     min-height: auto;
     max-height: min(32rem, 100%);
-    padding: 0.28rem 0.22rem 0.2rem 0;
+    padding: 0.25rem 0.75rem 0.25rem 0;
+    border-right: 1px solid var(--sl-hairline);
     overflow: hidden;
     opacity: 0;
     transform: translateY(14px);
@@ -20,13 +21,13 @@
     overflow-x: hidden;
     overscroll-behavior: contain;
     scrollbar-width: thin;
-    scrollbar-color: color-mix(in srgb, var(--border) 60%, transparent) transparent;
+    scrollbar-color: color-mix(in srgb, var(--sl-hairline) 70%, transparent) transparent;
   }
 
   &__recording-rail-header {
     display: grid;
-    gap: 0.45rem;
-    padding: 0.65rem 0.1rem 0.45rem;
+    gap: 0.4rem;
+    padding: 0.65rem 0 0.4rem;
   }
 
   &__recording-rail-heading {
@@ -37,15 +38,16 @@
   }
 
   &__recording-rail-title {
-    color: var(--foreground);
+    color: var(--sl-text);
     font-size: var(--font-sm);
     font-weight: 700;
     letter-spacing: 0.01em;
   }
 
   &__recording-rail-summary {
-    color: color-mix(in srgb, var(--muted-foreground) 86%, var(--foreground));
-    font-size: var(--font-xs);
+    color: var(--sl-text-muted);
+    font-family: var(--font-mono);
+    font-size: 0.625rem;
     font-variant-numeric: tabular-nums;
     white-space: nowrap;
   }
@@ -55,29 +57,31 @@
     grid-template-columns: auto minmax(0, 1fr) auto;
     align-items: center;
     gap: 0.35rem;
-    min-height: 1.9rem;
-    padding: 0 0.45rem;
-    border-bottom: 1px solid color-mix(in srgb, var(--border) 88%, transparent);
-    color: var(--muted-foreground);
+    min-height: var(--sl-control-height-sm);
+    padding: 0 0.4rem;
+    border: 1px solid var(--sl-hairline);
+    border-radius: var(--sl-radius-md);
+    color: var(--sl-text-muted);
   }
 
   &__recording-search:focus-within {
-    border-bottom-color: color-mix(in srgb, var(--foreground) 26%, var(--border));
+    border-color: var(--ring);
+    box-shadow: 0 0 0 2px color-mix(in srgb, var(--ring) 16%, transparent);
   }
 
   &__recording-search input {
     min-width: 0;
-    padding: 0.34rem 0;
+    padding: 0.3rem 0;
     border: 0;
     outline: 0;
     background: transparent;
-    color: var(--foreground);
+    color: var(--sl-text);
     font: inherit;
     font-size: var(--font-xs);
   }
 
   &__recording-search input::placeholder {
-    color: var(--muted-foreground);
+    color: var(--sl-text-muted);
   }
 
   &__recording-search input::-webkit-search-cancel-button {
@@ -91,9 +95,22 @@
     height: 1.35rem;
     padding: 0;
     border: 0;
+    border-radius: var(--sl-radius-sm);
     background: transparent;
-    color: var(--muted-foreground);
+    color: var(--sl-text-muted);
     cursor: pointer;
+  }
+
+  &__recording-search button:hover {
+    background: var(--sl-interactive-hover);
+    color: var(--sl-text);
+  }
+
+  &__recording-search button:focus-visible,
+  &__recording-toggle:focus-visible,
+  &__signal-checkbox:focus-visible {
+    outline: 2px solid var(--ring);
+    outline-offset: 2px;
   }
 
   &__recording-virtualizer {
@@ -106,12 +123,11 @@
     top: 0;
     left: 0;
     width: 100%;
-    padding-right: 0.12rem;
   }
 
   &__recording-virtual-row--recording {
     padding-top: 0.25rem;
-    border-bottom: 1px solid color-mix(in srgb, var(--border) 86%, transparent);
+    border-bottom: 1px solid var(--sl-hairline);
   }
 
   &__recording-virtual-row--signal {
@@ -131,18 +147,15 @@
     width: 100%;
     padding: 0.22rem 0;
     border: 0;
-    border-radius: 0;
+    border-radius: var(--sl-radius-sm);
     background: transparent;
     color: inherit;
     text-align: left;
     cursor: pointer;
-    transition:
-      color 160ms ease,
-      transform 160ms ease;
   }
 
   &__recording-toggle:hover {
-    color: var(--foreground);
+    background: var(--sl-interactive-hover);
   }
 
   &__recording-heading {
@@ -150,14 +163,14 @@
     align-items: center;
     gap: 0.35rem;
     min-width: 0;
-    color: var(--foreground);
+    color: var(--sl-text);
     font-size: var(--font-md);
     font-weight: 650;
   }
 
   &__recording-chevron {
-    color: var(--muted-foreground);
-    transition: transform 160ms ease;
+    color: var(--sl-text-muted);
+    transition: transform 120ms ease;
   }
 
   &__recording-chevron--open {
@@ -174,46 +187,45 @@
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    min-width: 1.55rem;
-    padding: 0.18rem 0.4rem;
-    border: 1px solid color-mix(in srgb, var(--border) 78%, transparent);
-    border-radius: 999px;
-    background: color-mix(in srgb, var(--card) 95%, white 5%);
-    color: var(--foreground);
-    font-size: var(--font-xs);
+    width: 1.35rem;
+    height: 1.35rem;
+    border: 1px solid var(--sl-hairline);
+    border-radius: var(--sl-radius-sm);
+    background: var(--sl-surface-subtle);
+    color: var(--sl-text);
+    font-family: var(--font-mono);
+    font-size: 0.625rem;
     font-weight: 700;
-    white-space: nowrap;
   }
 
   &__signal-row {
     display: flex;
     align-items: center;
-    gap: 0.55rem;
+    gap: 0.5rem;
     width: 100%;
     padding: 0.3rem 0;
     border: 0;
-    border-bottom: 1px solid color-mix(in srgb, var(--border) 88%, transparent);
+    border-bottom: 1px solid var(--sl-hairline);
     border-radius: 0;
     background: transparent;
     color: inherit;
     text-align: left;
     transition:
-      border-color 160ms ease,
-      color 160ms ease,
-      transform 160ms ease;
+      background-color 120ms ease,
+      border-color 120ms ease;
   }
 
   &__signal-row:hover {
-    border-bottom-color: color-mix(in srgb, var(--foreground) 16%, var(--border));
+    background: var(--sl-interactive-hover);
   }
 
   &__signal-row--selected {
-    border-bottom-color: color-mix(in srgb, var(--foreground) 24%, var(--border));
-    transform: translateX(2px);
+    border-bottom-color: color-mix(in srgb, var(--sl-text) 22%, var(--sl-hairline));
+    background: var(--sl-surface-subtle);
   }
 
   &__signal-checkbox {
-    margin-top: 0.1rem;
+    margin-top: 0.05rem;
   }
 
   &__signal-label {
@@ -221,6 +233,7 @@
     min-width: 0 !important;
     flex: 1 1 auto;
     overflow: hidden;
+    color: var(--sl-text);
     font-size: var(--font-md);
     font-weight: 600;
     line-height: 1.2;
@@ -231,8 +244,8 @@
 
   &__recording-empty {
     margin: 0;
-    padding: 0.8rem 0.1rem;
-    color: var(--muted-foreground);
+    padding: 0.8rem 0;
+    color: var(--sl-text-muted);
     font-size: var(--font-xs);
     line-height: 1.4;
   }
@@ -241,7 +254,6 @@
 .time-waveform-workspace--compare {
   .time-waveform-workspace__recording-rail {
     max-height: min(24rem, 100%);
-    padding: 0.18rem 0.18rem 0.2rem 0;
   }
 
   .time-waveform-workspace__recording-list {
@@ -249,28 +261,30 @@
   }
 
   .time-waveform-workspace__recording-rail-header {
-    gap: 0.08rem;
-    padding-bottom: 0.28rem;
+    gap: 0.25rem;
+    padding-bottom: 0.3rem;
   }
 
-  .time-waveform-workspace__recording-toggle {
-    padding: 0.18rem 0;
+  .time-waveform-workspace__recording-toggle,
+  .time-waveform-workspace__signal-row {
+    padding-block: 0.22rem;
   }
 
   .time-waveform-workspace__recording-heading,
   .time-waveform-workspace__signal-label {
     font-size: var(--font-sm);
   }
+}
 
-  .time-waveform-workspace__recording-assignment-badge {
-    min-width: 1.9rem;
-    padding: 0.22rem 0.42rem;
+@media (max-width: 1280px) {
+  .time-waveform-workspace {
+    &__recording-rail {
+      max-height: 15rem;
+      padding: 0 0 0.6rem;
+      border-right: 0;
+      border-bottom: 1px solid var(--sl-hairline);
+    }
   }
-
-  .time-waveform-workspace__signal-row {
-    padding: 0.24rem 0;
-  }
-
 }
 
 @media (max-width: 900px) {

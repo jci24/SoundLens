@@ -15,7 +15,9 @@ Delivery order:
 5. responsive, empty, loading, error, and accessibility states
 
 Current status:
-- the visual-foundation slice establishes the semantic token contract and edge-to-edge shell without changing application behavior
+- the visual foundation establishes the semantic token contract and edge-to-edge shell
+- the workspace context rail now consolidates analysis navigation into one toolbar and applies the flat hierarchy to A/B setup and virtualized recording navigation without changing behavior
+- the evidence canvas is the next ordered visual slice
 - future platform pages remain out of navigation until they have functional product scope
 
 Validation gate:

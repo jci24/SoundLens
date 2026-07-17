@@ -98,35 +98,35 @@ const AnalysisWorkspaceHeader = ({
           >
             {isExporting ? 'Preparing export...' : 'Export report'}
           </Button>
-          <button
+          <Button
             aria-label={isCopilotOpen ? 'Close Copilot' : 'Open Copilot'}
             className={`time-waveform-workspace__copilot-toggle${isCopilotOpen ? ' time-waveform-workspace__copilot-toggle--active' : ''}`}
+            size="icon"
             title={isCopilotOpen ? 'Close Copilot' : 'Open Copilot'}
             type="button"
+            variant={isCopilotOpen ? 'secondary' : 'ghost'}
             onClick={onCopilotToggle}
           >
             {isCopilotOpen ? <PanelRightClose size={18} /> : <PanelRightOpen size={18} />}
-          </button>
+          </Button>
         </div>
       </header>
 
-      {/* Primary surface shelf — pick which analysis surface to view */}
-      <div className="time-waveform-workspace__surface-shelf">
-        <Tabs
-          className="time-waveform-workspace__surface-tabs"
-          onValueChange={(value) => onSurfaceChange(value as TAnalysisSurface)}
-          value={activeSurface}
-        >
-          <TabsList>
-            <TabsTrigger value="waveform">Waveform</TabsTrigger>
-            <TabsTrigger value="spectrum">Spectrum</TabsTrigger>
-          </TabsList>
-        </Tabs>
-      </div>
-
-      {/* Secondary view controls bar — layout and display options for the active surface */}
-      <div className="time-waveform-workspace__view-controls-bar">
+      <div className="time-waveform-workspace__toolbar">
         <div className="time-waveform-workspace__view-controls-nav">
+          <Tabs
+            className="time-waveform-workspace__surface-tabs"
+            onValueChange={(value) => onSurfaceChange(value as TAnalysisSurface)}
+            value={activeSurface}
+          >
+            <TabsList>
+              <TabsTrigger value="waveform">Waveform</TabsTrigger>
+              <TabsTrigger value="spectrum">Spectrum</TabsTrigger>
+            </TabsList>
+          </Tabs>
+
+          <span aria-hidden="true" className="time-waveform-workspace__toolbar-divider" />
+
           <Tabs
             className="time-waveform-workspace__layout-tabs"
             onValueChange={(value) => onLayoutModeChange(value as TAnalysisLayoutMode)}

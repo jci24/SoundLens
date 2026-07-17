@@ -65,11 +65,11 @@ const ComparePairSlot = ({
           <button
             aria-label={`Clear Compare ${assignment} recording`}
             className="compare-pair-builder__clear"
+            title={`Clear Compare ${assignment}`}
             type="button"
             onClick={() => onRecordingGroupAssignment(selectedRecording.recordingId, 'unassigned')}
           >
             <X aria-hidden="true" size={13} />
-            <span>Clear</span>
           </button>
         )}
       </div>

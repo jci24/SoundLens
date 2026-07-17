@@ -76,7 +76,10 @@ Foundation rules:
 - Semantic `--sl-*` tokens own canvas, surface, text, border, interaction, analysis, status, control-height, radius, and overlay-shadow decisions. Existing shadcn variables map onto those tokens.
 - Shared Button and Tabs primitives should be adapted before adding local alternatives.
 - Shadows belong to overlays where elevation communicates behavior, not to persistent workspace regions.
-- Future visual migration work proceeds through separate context-rail, evidence-canvas, utility-surface, and responsive-state slices so behavior remains reviewable.
+- Primary analysis-surface and layout tabs share one compact workspace toolbar; secondary spectrum controls remain adjacent to the surface they affect.
+- The recording context rail is a flat adjacent region separated by a hairline on desktop and a bottom boundary when stacked. Its explicit A/B slots, virtualized recording rows, and channel selection keep their existing stable-ID behavior.
+- Recording metadata, counts, A/B markers, and picker metadata use the mono data typeface; filenames and action labels remain in Geist.
+- Remaining visual migration work proceeds through separate evidence-canvas, utility-surface, and responsive-state slices so behavior remains reviewable.
 
 ## Workspace Layout Principles
 

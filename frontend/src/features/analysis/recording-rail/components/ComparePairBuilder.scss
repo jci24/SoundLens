@@ -1,39 +1,59 @@
 .compare-pair-builder {
   display: grid;
   gap: 0.55rem;
-  padding: 0 0 0.7rem;
-  border-bottom: 1px solid color-mix(in srgb, var(--border) 84%, transparent);
+  padding: 0 0.75rem 0.8rem 0;
+  border-bottom: 1px solid var(--sl-hairline);
 
   &__actions,
   &__slot-label-row {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    gap: 0.5rem;
+    gap: 0.45rem;
   }
 
   &__actions {
     justify-content: flex-end;
-    margin-bottom: -0.1rem;
+    min-height: 1rem;
+    margin-bottom: -0.15rem;
   }
 
   &__swap,
   &__clear {
     display: inline-flex;
     align-items: center;
+    justify-content: center;
     gap: 0.25rem;
-    padding: 0;
+    min-height: 1.5rem;
+    padding: 0 0.25rem;
     border: 0;
+    border-radius: var(--sl-radius-sm);
     background: transparent;
-    color: var(--muted-foreground);
-    font-size: 0.68rem;
+    color: var(--sl-text-muted);
+    font-size: var(--font-xs);
     font-weight: 650;
     cursor: pointer;
+    transition:
+      background-color 120ms ease,
+      color 120ms ease;
+  }
+
+  &__clear {
+    width: 1.5rem;
+    padding: 0;
   }
 
   &__swap:hover,
   &__clear:hover {
-    color: var(--foreground);
+    background: var(--sl-interactive-hover);
+    color: var(--sl-text);
+  }
+
+  &__swap:focus-visible,
+  &__clear:focus-visible,
+  &__trigger:focus-visible {
+    outline: 2px solid var(--ring);
+    outline-offset: 2px;
   }
 
   &__slot {
@@ -42,7 +62,7 @@
   }
 
   &__slot-label {
-    color: var(--muted-foreground);
+    color: var(--sl-text-muted);
     font-size: 0.65rem;
     font-weight: 700;
     letter-spacing: 0.08em;
@@ -56,24 +76,27 @@
     gap: 0.45rem;
     width: 100%;
     min-width: 0;
-    padding: 0.48rem 0.55rem;
-    border: 1px solid color-mix(in srgb, var(--border) 84%, transparent);
-    border-radius: 0.6rem;
-    background: color-mix(in srgb, var(--card) 82%, transparent);
-    color: var(--foreground);
+    min-height: 2.65rem;
+    padding: 0.42rem 0.5rem;
+    border: 1px solid var(--sl-hairline);
+    border-radius: var(--sl-radius-md);
+    background: var(--sl-surface);
+    color: var(--sl-text);
     text-align: left;
     cursor: pointer;
-    transition: border-color 160ms ease, background-color 160ms ease;
+    transition:
+      border-color 120ms ease,
+      background-color 120ms ease;
   }
 
   &__trigger:hover,
   &__trigger[data-state='open'] {
-    border-color: color-mix(in srgb, var(--foreground) 20%, var(--border));
-    background: color-mix(in srgb, var(--muted) 28%, var(--card));
+    border-color: color-mix(in srgb, var(--sl-text) 18%, var(--sl-hairline));
+    background: var(--sl-interactive-hover);
   }
 
   &__trigger--conflict {
-    border-color: color-mix(in srgb, var(--foreground) 36%, var(--border));
+    border-color: var(--sl-warning);
   }
 
   &__trigger-copy,
@@ -95,8 +118,9 @@
   &__trigger-copy span,
   &__option-copy span {
     overflow: hidden;
-    color: var(--muted-foreground);
-    font-size: 0.65rem;
+    color: var(--sl-text-muted);
+    font-family: var(--font-mono);
+    font-size: 0.625rem;
     line-height: 1.3;
     text-overflow: ellipsis;
     white-space: nowrap;
@@ -107,11 +131,11 @@
   z-index: 50;
   width: min(20rem, calc(100vw - 1.5rem));
   padding: 0.4rem;
-  border: 1px solid var(--border);
-  border-radius: 0.75rem;
-  background: var(--popover);
-  color: var(--popover-foreground);
-  box-shadow: 0 16px 36px color-mix(in srgb, black 14%, transparent);
+  border: 1px solid var(--sl-hairline);
+  border-radius: var(--sl-radius-panel);
+  background: var(--sl-surface);
+  color: var(--sl-text);
+  box-shadow: var(--sl-shadow-overlay);
   animation: compare-pair-popover-in 140ms ease-out;
 }
 
@@ -121,12 +145,14 @@
   justify-content: space-between;
   gap: 0.5rem;
   padding: 0.35rem 0.45rem 0.45rem;
-  color: var(--muted-foreground);
+  color: var(--sl-text-muted);
+  font-family: var(--font-mono);
   font-size: 0.65rem;
 }
 
 .compare-pair-builder__popover-title {
-  color: var(--muted-foreground);
+  color: var(--sl-text-muted);
+  font-family: var(--font-sans);
   font-weight: 700;
   letter-spacing: 0.08em;
   text-transform: uppercase;
@@ -139,12 +165,12 @@
   gap: 0.4rem;
   margin: 0 0.35rem 0.35rem;
   padding: 0 0.35rem;
-  border-bottom: 1px solid color-mix(in srgb, var(--border) 88%, transparent);
-  color: var(--muted-foreground);
+  border-bottom: 1px solid var(--sl-hairline);
+  color: var(--sl-text-muted);
 }
 
 .compare-pair-builder__search:focus-within {
-  border-bottom-color: color-mix(in srgb, var(--foreground) 26%, var(--border));
+  border-bottom-color: var(--ring);
 }
 
 .compare-pair-builder__search input {
@@ -153,7 +179,7 @@
   border: 0;
   outline: 0;
   background: transparent;
-  color: var(--foreground);
+  color: var(--sl-text);
   font: inherit;
   font-size: var(--font-xs);
 }
@@ -164,7 +190,7 @@
 
 .compare-pair-builder__options {
   display: grid;
-  gap: 0.12rem;
+  gap: 0.1rem;
   max-height: min(20rem, 55vh);
   overflow-y: auto;
 }
@@ -177,42 +203,50 @@
   width: 100%;
   padding: 0.5rem 0.55rem;
   border: 0;
-  border-radius: 0.5rem;
+  border-radius: var(--sl-radius-md);
   background: transparent;
-  color: var(--foreground);
+  color: var(--sl-text);
   text-align: left;
   cursor: pointer;
 }
 
 .compare-pair-builder__option:hover:not(:disabled),
 .compare-pair-builder__option:focus-visible {
-  background: var(--muted);
+  background: var(--sl-interactive-hover);
   outline: none;
 }
 
+.compare-pair-builder__option:focus-visible {
+  box-shadow: inset 0 0 0 2px var(--ring);
+}
+
 .compare-pair-builder__option:disabled {
-  color: var(--muted-foreground);
+  color: var(--sl-text-muted);
   cursor: not-allowed;
   opacity: 0.58;
 }
 
+.compare-pair-builder__option-status,
+.compare-pair-builder__result-limit {
+  color: var(--sl-text-muted);
+  font-family: var(--font-mono);
+  font-size: 0.625rem;
+}
+
 .compare-pair-builder__option-status {
-  font-size: 0.65rem;
   font-weight: 650;
 }
 
 .compare-pair-builder__empty {
   margin: 0;
   padding: 0.65rem 0.55rem;
-  color: var(--muted-foreground);
+  color: var(--sl-text-muted);
   font-size: var(--font-xs);
   line-height: 1.4;
 }
 
 .compare-pair-builder__result-limit {
   margin: 0.3rem 0.45rem 0.15rem;
-  color: var(--muted-foreground);
-  font-size: 0.65rem;
   line-height: 1.35;
 }
 
@@ -225,6 +259,12 @@
   to {
     opacity: 1;
     transform: translateY(0) scale(1);
+  }
+}
+
+@media (max-width: 1280px) {
+  .compare-pair-builder {
+    padding-right: 0;
   }
 }
 
