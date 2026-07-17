@@ -1,11 +1,9 @@
 .app {
-  --workspace-header-height: 4.9rem;
+  --workspace-header-height: 4rem;
   display: flex;
   height: 100svh;
-  padding: 0.85rem;
-  background:
-    radial-gradient(circle at top left, color-mix(in srgb, var(--muted) 55%, white 45%), transparent 32%),
-    linear-gradient(180deg, color-mix(in srgb, var(--background) 92%, white 8%), var(--background));
+  padding: 0;
+  background: var(--sl-canvas);
   color: var(--foreground);
 
   &__workspace-stage {
@@ -24,7 +22,7 @@
 
 @media (max-width: 900px) {
   .app {
-    padding: 0.65rem;
+    --workspace-header-height: 3.75rem;
   }
 }
 

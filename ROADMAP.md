@@ -1,6 +1,25 @@
 # Roadmap
 
-Last updated: 2026-07-16
+Last updated: 2026-07-17
+
+## Cross-Cutting Program — Figma Visual-System Migration
+
+User outcome:
+- SoundLens presents its existing evidence workflow through a cohesive, lower-density engineering interface aligned with the validated prototype direction.
+
+Delivery order:
+1. semantic design tokens, Geist Mono, flat application shell, and shared controls
+2. workspace context rail and A/B setup hierarchy
+3. evidence canvas, metrics, playback, charts, and ROI presentation
+4. Evidence, Copilot, reports, dialogs, and popovers
+5. responsive, empty, loading, error, and accessibility states
+
+Current status:
+- the visual-foundation slice establishes the semantic token contract and edge-to-edge shell without changing application behavior
+- future platform pages remain out of navigation until they have functional product scope
+
+Validation gate:
+- each slice preserves evidence ownership and existing workflows, passes automated validation, and is manually checked at desktop and narrow widths before the next slice begins
 
 ## Milestone 0 — Documentation And Product-Focus Reset
 

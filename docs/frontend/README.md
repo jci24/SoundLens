@@ -64,6 +64,20 @@ The first screen should be the working application, not a landing page.
 - Prefer semantic class names in TSX and keep component-specific layout/presentation rules in SCSS.
 - Keep Tailwind utility classes restrained and intentional. Use design tokens and SCSS for durable component styling.
 
+## Visual System
+
+The Figma Make customer-validation prototype is the visual north star, not a source-code dependency. SoundLens implements that direction through the existing React, shadcn, Radix, and paired-SCSS component system.
+
+Foundation rules:
+
+- Geist is the interface typeface; Geist Mono is reserved for measurements, units, timestamps, signal identifiers, and traceability values.
+- The shell is edge-to-edge and divided by hairline boundaries rather than floating inside a rounded decorative frame.
+- General navigation and controls remain monochrome. The restrained teal analysis accent is reserved for charts, ROI, and analysis-specific states.
+- Semantic `--sl-*` tokens own canvas, surface, text, border, interaction, analysis, status, control-height, radius, and overlay-shadow decisions. Existing shadcn variables map onto those tokens.
+- Shared Button and Tabs primitives should be adapted before adding local alternatives.
+- Shadows belong to overlays where elevation communicates behavior, not to persistent workspace regions.
+- Future visual migration work proceeds through separate context-rail, evidence-canvas, utility-surface, and responsive-state slices so behavior remains reviewable.
+
 ## Workspace Layout Principles
 
 For the main analysis workspace, follow these layout rules:

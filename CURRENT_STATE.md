@@ -1,6 +1,6 @@
 # Current State
 
-Last updated: 2026-07-16
+Last updated: 2026-07-17
 
 ## What Users Can Currently Do
 
@@ -22,6 +22,15 @@ Today SoundLens supports a deterministic analysis workspace for imported recordi
 - ask a grounded Copilot about the loaded evidence
 
 The current product is strong as an analysis workspace, but it is not yet a fully comparison-first investigation workflow.
+
+## Current Visual Foundation
+
+- The application uses Geist for interface text and Geist Mono as the semantic data typeface.
+- The workspace shell is edge-to-edge, with flat primary surfaces and hairline boundaries instead of a floating gradient frame.
+- Sidebar, main content, and the Copilot boundary share the same monochrome surface contract.
+- Shared controls inherit semantic canvas, surface, text, interaction, radius, and focus tokens through the existing shadcn variables.
+- Teal remains an analysis accent rather than a general navigation color.
+- Recording-rail, evidence-canvas, utility-surface, and responsive-state refinements remain separate follow-up slices.
 
 ## Import And Temporary Workspace Model
 

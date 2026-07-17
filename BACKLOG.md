@@ -68,6 +68,26 @@ Turn the current analysis workspace into a focused comparison workflow for repea
 
 ## Ordered Thin Tasks
 
+### UX program. Converge the workspace on the validated Figma direction
+
+User value:
+- The existing evidence workflow feels like one precise professional engineering product without risking working comparison, playback, Copilot, or report behavior in a wholesale redesign.
+
+Ordered slices:
+1. visual foundation: semantic tokens, Geist Mono, flat shell, and shared controls
+2. workspace context rail: recording navigation, A/B builder, and header hierarchy
+3. evidence canvas: comparison metrics, transport, evidence tables, charts, and ROI presentation
+4. utility surfaces: Evidence, Copilot, report dialogs, and popovers
+5. responsive states: import, loading, empty, error, narrow-screen, and accessibility polish
+
+Boundary:
+- reuse current React, shadcn, Radix, SCSS, and feature components
+- do not copy generated Figma Make code or add placeholder platform routes
+- merge and manually validate each slice before starting the next
+
+Priority:
+- high product-quality work in parallel with customer discovery
+
 ### Product discovery. Validate the automotive NVH workflow hypothesis
 
 User value:

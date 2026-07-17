@@ -1,3 +1,29 @@
 [data-slot='button'] {
   font-variant-numeric: tabular-nums;
+  border-radius: var(--sl-radius-md);
+  box-shadow: none;
+  transition:
+    background-color 120ms ease,
+    border-color 120ms ease,
+    color 120ms ease;
+
+  &[data-size='default'],
+  &[data-size='icon'] {
+    height: var(--sl-control-height-md);
+  }
+
+  &[data-size='sm'],
+  &[data-size='icon-sm'] {
+    height: var(--sl-control-height-sm);
+  }
+
+  &[data-variant='outline'] {
+    border-color: var(--sl-hairline);
+    background: var(--sl-surface);
+  }
+
+  &[data-variant='outline']:hover,
+  &[data-variant='ghost']:hover {
+    background: var(--sl-interactive-hover);
+  }
 }

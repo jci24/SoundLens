@@ -1,6 +1,7 @@
 import * as React from 'react'
 import * as TabsPrimitive from '@radix-ui/react-tabs'
 import { cn } from '@/lib/utils'
+import './tabs.scss'
 
 const Tabs = TabsPrimitive.Root
 
@@ -12,7 +13,7 @@ const TabsList = React.forwardRef<
     ref={ref}
     data-slot="tabs-list"
     className={cn(
-      'bg-muted text-muted-foreground inline-flex h-8 w-fit items-center justify-center rounded-lg p-[3px]',
+      'inline-flex h-8 w-fit items-center justify-center p-0.5',
       className
     )}
     {...props}
@@ -28,7 +29,7 @@ const TabsTrigger = React.forwardRef<
     ref={ref}
     data-slot="tabs-trigger"
     className={cn(
-      'inline-flex h-[calc(100%-1px)] flex-1 items-center justify-center gap-1.5 rounded-md border border-transparent px-2 py-1 text-[0.75rem] font-medium whitespace-nowrap transition-[color,box-shadow] outline-none ring-offset-background focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-50 data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-sm [&_svg]:pointer-events-none [&_svg:not([class*=size-])]:size-4',
+      'inline-flex h-full flex-1 items-center justify-center gap-1.5 border border-transparent px-2 py-1 text-[0.75rem] font-medium whitespace-nowrap outline-none disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*=size-])]:size-4',
       className
     )}
     {...props}
