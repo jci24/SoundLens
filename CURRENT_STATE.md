@@ -6,13 +6,14 @@ Last updated: 2026-07-17
 
 Today SoundLens supports a deterministic analysis workspace for imported recordings:
 
-- move through functional Home, Import, optional Configure, and Evidence routes with persistent navigation and breadcrumbs
+- move through functional Home, Import, optional Configure, Analysis review, and Evidence routes with persistent navigation and breadcrumbs
 - import WAV recordings from the browser
 - persist uploaded files into a temporary local backend workspace
 - browse recordings and channels in a left rail
 - choose one imported recording for each explicit Compare A and Compare B slot
 - inspect backend-computed waveform evidence
 - inspect backend-computed spectrum evidence
+- choose which currently supported waveform and spectrum analyses the Evidence workspace should request
 - select one or more signals for comparison within the workspace
 - switch between focused and compare-oriented chart layouts
 - review pairwise comparison metrics in a stable domain order for one Compare A recording versus one Compare B recording
@@ -38,7 +39,7 @@ The current product is strong as an analysis workspace, but it is not yet a full
 - Comparison metrics now read as one selectable evidence grid rather than four independent cards; selection uses a restrained analysis accent without changing metric order.
 - Playback, metrics tables, ROI summaries, and chart shells share compact hairline structure, while numerical values and axes use Geist Mono.
 - Waveform and spectrum series use the analysis teal plus neutral comparison tones instead of unrelated multicolor accents.
-- Optional recording-level investigation setup now follows the Figma workflow without blocking focused evidence; analysis selection, Figma-composed Evidence, report workflow, and responsive utility refinements remain separate follow-up slices.
+- Optional recording-level investigation setup and Analysis review now follow the Figma workflow without blocking direct Evidence access; Figma-composed Evidence, report workflow, and responsive utility refinements remain separate follow-up slices.
 
 ## Import And Temporary Workspace Model
 
@@ -52,6 +53,7 @@ The current product is strong as an analysis workspace, but it is not yet a full
 - The frontend tracks the two recording-level comparison targets locally so the A/B workflow is visible before a persisted comparison object exists.
 - Compare A and Compare B use explicit accessible recording pickers with replace, clear, duplicate prevention, and atomic swap behavior.
 - Multi-file imports suggest the optional Configure route; users can still bypass A/B setup for focused evidence, while single-file imports continue directly to Evidence.
+- Configure sends a valid comparison into the optional Analysis review route. Waveform and spectrum are selected by default, at least one remains enabled, and disabled analyses are not requested or rendered in Evidence.
 - The backend now includes a deterministic pairwise signal-alignment contract that classifies matches as name-based, index-based, ambiguous, or missing.
 - The backend now exposes a pairwise recording-comparison contract with optional ROI, aligned-signal pairs, per-pair metric observations, aggregate delta summaries, and explicit limitation reporting.
 - Inconsistent or legacy multi-assignment state blocks comparison and asks the user to resolve the pair instead of silently selecting the first recording.

@@ -34,6 +34,7 @@ const renderPage = () => render(
   <MemoryRouter initialEntries={['/setup']}>
     <Routes>
       <Route path="setup" element={<InvestigationSetupPage />} />
+      <Route path="analysis" element={<div>Analysis destination</div>} />
       <Route path="evidence" element={<div>Evidence destination</div>} />
     </Routes>
   </MemoryRouter>
@@ -54,7 +55,7 @@ describe('InvestigationSetupPage', () => {
     expect(screen.getByRole('heading', { name: 'Configure comparison' })).toBeInTheDocument()
     expect(screen.getByText('48.0 kHz')).toBeInTheDocument()
     expect(screen.getByText('Channel 1, Channel 2')).toBeInTheDocument()
-    expect(screen.getByRole('button', { name: 'Open comparison evidence' })).toBeDisabled()
+    expect(screen.getByRole('button', { name: 'Review comparison analyses' })).toBeDisabled()
 
     fireEvent.click(screen.getByRole('button', { name: 'Open focused evidence' }))
     expect(screen.getByText('Evidence destination')).toBeInTheDocument()
@@ -73,10 +74,10 @@ describe('InvestigationSetupPage', () => {
       'recording-a': 'A',
       'recording-b': 'B',
     })
-    const openComparison = screen.getByRole('button', { name: 'Open comparison evidence' })
+    const openComparison = screen.getByRole('button', { name: 'Review comparison analyses' })
     expect(openComparison).toBeEnabled()
     fireEvent.click(openComparison)
-    expect(screen.getByText('Evidence destination')).toBeInTheDocument()
+    expect(screen.getByText('Analysis destination')).toBeInTheDocument()
     expect(useAnalysisWorkspaceStore.getState().layoutMode).toBe('compare')
   })
 })

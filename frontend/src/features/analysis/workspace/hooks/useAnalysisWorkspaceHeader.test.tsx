@@ -7,6 +7,7 @@ describe('useAnalysisWorkspaceHeader', () => {
     const { result } = renderHook(() =>
       useAnalysisWorkspaceHeader({
         activeSurface: 'waveform',
+        enabledAnalysisSurfaces: ['waveform', 'spectrum'],
         layoutMode: 'focused',
         spectrumMaximumHz: 22_050,
         spectrumRangeEndHz: 22_050,
@@ -25,6 +26,7 @@ describe('useAnalysisWorkspaceHeader', () => {
     const { result } = renderHook(() =>
       useAnalysisWorkspaceHeader({
         activeSurface: 'spectrum',
+        enabledAnalysisSurfaces: ['waveform', 'spectrum'],
         layoutMode: 'focused',
         spectrumMaximumHz: 22_050,
         spectrumRangeEndHz: 8_000,
@@ -46,6 +48,7 @@ describe('useAnalysisWorkspaceHeader', () => {
     const { result } = renderHook(() =>
       useAnalysisWorkspaceHeader({
         activeSurface: 'waveform',
+        enabledAnalysisSurfaces: ['waveform', 'spectrum'],
         layoutMode: 'compare',
         spectrumMaximumHz: 22_050,
         spectrumRangeEndHz: 22_050,
@@ -59,6 +62,27 @@ describe('useAnalysisWorkspaceHeader', () => {
 
     expect(result.current.activeEyebrow).toBe('Multi-surface analysis')
     expect(result.current.activeTitle).toBe('Waveform and spectrum overview')
+    expect(result.current.isSpectrumRangeFiltered).toBe(false)
+  })
+
+  it('describes only the enabled analysis in compare mode', () => {
+    const { result } = renderHook(() =>
+      useAnalysisWorkspaceHeader({
+        activeSurface: 'waveform',
+        enabledAnalysisSurfaces: ['waveform'],
+        layoutMode: 'compare',
+        spectrumMaximumHz: 22_050,
+        spectrumRangeEndHz: 8_000,
+        spectrumRangeStartHz: 125,
+        spectrumViewport: {
+          startHz: 125,
+          endHz: 8_000,
+        },
+      })
+    )
+
+    expect(result.current.activeEyebrow).toBe('Time analysis')
+    expect(result.current.activeTitle).toBe('Waveform overview')
     expect(result.current.isSpectrumRangeFiltered).toBe(false)
   })
 })

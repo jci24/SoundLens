@@ -1,5 +1,6 @@
 import type {
   IAnalysisRegionOfInterest,
+  TAnalysisSurface,
   TComparisonGroupAssignment,
   TComparisonSetupState,
 } from '../types'
@@ -33,6 +34,7 @@ const spectrumFftSizeValues = [
 
 const defaultSpectrumFftSize = 44100
 const defaultSpectrumRangeEndHz = 22050
+const defaultEnabledAnalysisSurfaces: TAnalysisSurface[] = ['waveform', 'spectrum']
 
 const getWaveformRequestedBinCount = (chartWidth: number) => {
   if (chartWidth <= 0) {
@@ -206,6 +208,21 @@ const getNextRequestedSignalIds = (currentSignalIds: string[], signalId: string)
   return [...currentSignalIds, signalId]
 }
 
+const getNextEnabledAnalysisSurfaces = (
+  currentSurfaces: TAnalysisSurface[],
+  surface: TAnalysisSurface
+): TAnalysisSurface[] => {
+  if (!currentSurfaces.includes(surface)) {
+    return defaultEnabledAnalysisSurfaces.filter(
+      (candidateSurface) => candidateSurface === surface || currentSurfaces.includes(candidateSurface)
+    )
+  }
+
+  return currentSurfaces.length === 1
+    ? currentSurfaces
+    : currentSurfaces.filter((candidateSurface) => candidateSurface !== surface)
+}
+
 const clampSpectrumRange = (range: ISpectrumRange, maximumHz: number): ISpectrumRange => {
   const startHz = Math.min(Math.max(range.startHz, 0), maximumHz - 1)
   const endHz = Math.max(startHz + 1, Math.min(range.endHz, maximumHz))
@@ -247,11 +264,13 @@ export {
   areSignalIdsEqual,
   clampRegionOfInterest,
   clampSpectrumRange,
+  defaultEnabledAnalysisSurfaces,
   defaultSpectrumFftSize,
   defaultSpectrumRangeEndHz,
   formatSpectrumFftSizeOption,
   getComparisonSetupSummary,
   getNextExpandedRecordings,
+  getNextEnabledAnalysisSurfaces,
   getNextRecordingGroupAssignments,
   getNextSingleRecordingGroupAssignment,
   getSwappedRecordingGroupAssignments,

@@ -21,7 +21,8 @@ Current status:
 - the evidence canvas now applies one calm evidence grid, compact playback and tables, flat chart frames, mono data typography, and a restrained analysis-series palette
 - the first functional Figma workflow now exposes Home, Import, and Evidence through real URLs, persistent navigation, breadcrumbs, guarded direct access, and retryable temporary-session restoration
 - optional investigation setup now exposes backend-owned recording metadata and reuses the existing explicit A/B builder without blocking focused evidence
-- analysis selection and review-and-run is the next ordered workflow slice, but must not expose unimplemented methods or fabricated job progress
+- optional Analysis review exposes only the shipped waveform and spectrum methods, keeps at least one selected, and suppresses requests and panels for disabled analyses without fabricating job progress
+- Figma-composed Evidence is the next ordered workflow slice
 - future platform pages remain out of navigation until they have functional product scope
 
 Validation gate:

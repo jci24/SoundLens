@@ -63,6 +63,7 @@ const TimeWaveformWorkspace = ({ importedRecordingCount, isCopilotOpen, onCopilo
     activeSurface,
     chartRef,
     chartWidth,
+    enabledAnalysisSurfaces,
     expandedRecordings,
     isSpectrumInitialLoading,
     isSpectrumRefreshing,
@@ -404,6 +405,7 @@ const TimeWaveformWorkspace = ({ importedRecordingCount, isCopilotOpen, onCopilo
         activeSurface={activeSurface}
         canEnterCompareMode={comparisonSetup.state === 'valid'}
         canExportReport={canExportReport}
+        enabledAnalysisSurfaces={enabledAnalysisSurfaces}
         isCopilotOpen={isCopilotOpen}
         isExporting={isExporting}
         layoutMode={layoutMode}

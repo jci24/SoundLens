@@ -6,6 +6,7 @@ const createProps = () => ({
   activeSurface: 'waveform' as const,
   canEnterCompareMode: true,
   canExportReport: true,
+  enabledAnalysisSurfaces: ['waveform', 'spectrum'] as const,
   isCopilotOpen: false,
   isExporting: false,
   layoutMode: 'focused' as const,

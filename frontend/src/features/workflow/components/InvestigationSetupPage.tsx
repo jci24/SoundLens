@@ -35,6 +35,11 @@ const InvestigationSetupPage = () => {
     navigate('/evidence')
   }
 
+  const reviewComparisonAnalyses = () => {
+    setLayoutMode('compare')
+    navigate('/analysis')
+  }
+
   return (
     <main className="investigation-setup">
       <header className="investigation-setup__header">
@@ -116,8 +121,8 @@ const InvestigationSetupPage = () => {
         <p>A/B assignment changes workspace context only. Measurements remain backend-owned.</p>
         <div>
           <Button variant="outline" onClick={() => openEvidence('focused')}>Open focused evidence</Button>
-          <Button disabled={setup.state !== 'valid'} onClick={() => openEvidence('compare')}>
-            Open comparison evidence
+          <Button disabled={setup.state !== 'valid'} onClick={reviewComparisonAnalyses}>
+            Review comparison analyses
             <ArrowRight aria-hidden="true" />
           </Button>
         </div>

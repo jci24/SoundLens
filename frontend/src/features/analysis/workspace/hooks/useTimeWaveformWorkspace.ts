@@ -40,6 +40,7 @@ interface IUseTimeWaveformWorkspaceResult {
   activeSurface: TAnalysisSurface
   chartRef: RefObject<HTMLDivElement | null>
   chartWidth: number
+  enabledAnalysisSurfaces: TAnalysisSurface[]
   expandedRecordings: string[]
   isSpectrumInitialLoading: boolean
   isSpectrumRefreshing: boolean
@@ -102,6 +103,7 @@ const useTimeWaveformWorkspace = (importedRecordingCount: number): IUseTimeWavef
   })
 
   const activeSurface = useAnalysisWorkspaceStore((state) => state.activeSurface)
+  const enabledAnalysisSurfaces = useAnalysisWorkspaceStore((state) => state.enabledAnalysisSurfaces)
   const layoutMode = useAnalysisWorkspaceStore((state) => state.layoutMode)
   const signalChartMode = useAnalysisWorkspaceStore((state) => state.signalChartMode)
   const selectedSignalIds = useAnalysisWorkspaceStore((state) => state.selectedSignalIds)
@@ -113,8 +115,12 @@ const useTimeWaveformWorkspace = (importedRecordingCount: number): IUseTimeWavef
   const setRecordings = useAnalysisWorkspaceStore((state) => state.setRecordings)
 
   const binCount = useMemo(() => getWaveformRequestedBinCount(deferredChartWidth), [deferredChartWidth])
-  const showWaveformPanel = layoutMode === 'compare' || activeSurface === 'waveform'
-  const showSpectrumPanel = layoutMode === 'compare' || activeSurface === 'spectrum'
+  const showWaveformPanel =
+    enabledAnalysisSurfaces.includes('waveform') &&
+    (layoutMode === 'compare' || activeSurface === 'waveform')
+  const showSpectrumPanel =
+    enabledAnalysisSurfaces.includes('spectrum') &&
+    (layoutMode === 'compare' || activeSurface === 'spectrum')
   const requestedRegionOfInterest = useMemo<IRequestedRegionOfInterest | null>(
     () =>
       regionOfInterest
@@ -163,6 +169,7 @@ const useTimeWaveformWorkspace = (importedRecordingCount: number): IUseTimeWavef
 
           setSpectrum(response)
           setSpectrumError(null)
+          setRecordings(response.recordings)
           setResolvedSpectrumRequest({
             fftSize: selectedSpectrumFftSize,
             regionOfInterest: requestedRegionOfInterest,
@@ -294,6 +301,7 @@ const useTimeWaveformWorkspace = (importedRecordingCount: number): IUseTimeWavef
     activeSurface,
     chartRef,
     chartWidth,
+    enabledAnalysisSurfaces,
     expandedRecordings,
     isSpectrumInitialLoading,
     isSpectrumRefreshing,

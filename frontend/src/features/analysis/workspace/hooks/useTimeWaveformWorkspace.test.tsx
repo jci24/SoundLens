@@ -81,9 +81,11 @@ const resetWorkspaceStore = () => {
     selectedSignalIds: [],
     expandedRecordings: [],
     activeSurface: 'waveform',
+    enabledAnalysisSurfaces: ['waveform', 'spectrum'],
     layoutMode: 'focused',
     signalChartMode: 'overlay',
     regionOfInterest: null,
+    recordings: [],
   })
 }
 
@@ -119,6 +121,60 @@ describe('useTimeWaveformWorkspace', () => {
         endTimeSeconds: 0.4,
       })
     })
+
+    unmount()
+  })
+
+  it('does not request spectrum evidence when spectrum is disabled', async () => {
+    useAnalysisWorkspaceStore.setState({
+      enabledAnalysisSurfaces: ['waveform'],
+      layoutMode: 'compare',
+    })
+
+    const { unmount } = renderHook(() => useTimeWaveformWorkspace(importedFiles.length))
+
+    await waitFor(() => expect(mockGetTimeWaveforms).toHaveBeenCalled())
+    expect(mockGetFrequencySpectra).not.toHaveBeenCalled()
+
+    unmount()
+  })
+
+  it('does not request waveform evidence when waveform is disabled', async () => {
+    mockGetFrequencySpectra.mockResolvedValue({
+      ...spectrumResponse,
+      recordings: [{
+        recordingId: 'recording-spectrum',
+        fileName: 'spectrum.wav',
+        sizeBytes: 1024,
+        durationSeconds: 1,
+        sampleRate: 44_100,
+        channels: 1,
+        channelMode: 'Mono',
+        signals: [],
+      }],
+    })
+    useAnalysisWorkspaceStore.setState({
+      activeSurface: 'spectrum',
+      enabledAnalysisSurfaces: ['spectrum'],
+      layoutMode: 'compare',
+    })
+
+    const { unmount } = renderHook(() => useTimeWaveformWorkspace(importedFiles.length))
+
+    await waitFor(() => expect(mockGetFrequencySpectra).toHaveBeenCalled())
+    expect(mockGetTimeWaveforms).not.toHaveBeenCalled()
+    expect(useAnalysisWorkspaceStore.getState().recordings).toEqual([
+      {
+        recordingId: 'recording-spectrum',
+        fileName: 'spectrum.wav',
+        sizeBytes: 1024,
+        durationSeconds: 1,
+        sampleRate: 44_100,
+        channels: 1,
+        channelMode: 'Mono',
+        signals: [],
+      },
+    ])
 
     unmount()
   })

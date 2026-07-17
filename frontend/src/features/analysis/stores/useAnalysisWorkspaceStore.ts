@@ -1,7 +1,9 @@
 import { create } from 'zustand'
 import {
   areSignalIdsEqual,
+  defaultEnabledAnalysisSurfaces,
   getNextExpandedRecordings,
+  getNextEnabledAnalysisSurfaces,
   getNextRecordingGroupAssignments,
   getNextSingleRecordingGroupAssignment,
   getNextRequestedSignalIds,
@@ -22,6 +24,7 @@ interface IAnalysisWorkspaceStore {
   expandedRecordings: string[]
   recordingGroupAssignments: Record<string, TComparisonGroupAssignment>
   activeSurface: TAnalysisSurface
+  enabledAnalysisSurfaces: TAnalysisSurface[]
   layoutMode: TAnalysisLayoutMode
   signalChartMode: TSignalChartMode
   regionOfInterest: IAnalysisRegionOfInterest | null
@@ -32,6 +35,7 @@ interface IAnalysisWorkspaceStore {
   setRecordingGroupAssignment: (recordingId: string, assignment: TComparisonGroupAssignment) => void
   swapComparisonTargets: () => void
   setActiveSurface: (surface: TAnalysisSurface) => void
+  toggleAnalysisSurface: (surface: TAnalysisSurface) => void
   setLayoutMode: (mode: TAnalysisLayoutMode) => void
   setSignalChartMode: (mode: TSignalChartMode) => void
   setRegionOfInterest: (regionOfInterest: IAnalysisRegionOfInterest | null) => void
@@ -45,6 +49,7 @@ const useAnalysisWorkspaceStore = create<IAnalysisWorkspaceStore>((set) => ({
   expandedRecordings: [],
   recordingGroupAssignments: {},
   activeSurface: 'waveform',
+  enabledAnalysisSurfaces: [...defaultEnabledAnalysisSurfaces],
   layoutMode: 'focused',
   signalChartMode: 'overlay',
   regionOfInterest: null,
@@ -76,6 +81,21 @@ const useAnalysisWorkspaceStore = create<IAnalysisWorkspaceStore>((set) => ({
     })),
 
   setActiveSurface: (surface) => set({ activeSurface: surface }),
+
+  toggleAnalysisSurface: (surface) =>
+    set((state) => {
+      const enabledAnalysisSurfaces = getNextEnabledAnalysisSurfaces(
+        state.enabledAnalysisSurfaces,
+        surface
+      )
+
+      return {
+        activeSurface: enabledAnalysisSurfaces.includes(state.activeSurface)
+          ? state.activeSurface
+          : (enabledAnalysisSurfaces[0] ?? state.activeSurface),
+        enabledAnalysisSurfaces,
+      }
+    }),
 
   setLayoutMode: (mode) =>
     set((state) => ({

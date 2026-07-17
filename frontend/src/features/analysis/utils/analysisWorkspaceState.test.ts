@@ -5,6 +5,7 @@ import {
   clampSpectrumRange,
   getComparisonSetupSummary,
   getNextExpandedRecordings,
+  getNextEnabledAnalysisSurfaces,
   getNextRecordingGroupAssignments,
   getNextSingleRecordingGroupAssignment,
   getNextRequestedSignalIds,
@@ -43,6 +44,12 @@ describe('analysisWorkspaceState', () => {
   it('toggles expanded recordings', () => {
     expect(getNextExpandedRecordings([], 'recording-1')).toEqual(['recording-1'])
     expect(getNextExpandedRecordings(['recording-1'], 'recording-1')).toEqual([])
+  })
+
+  it('keeps analysis selections in domain order and never removes the final method', () => {
+    expect(getNextEnabledAnalysisSurfaces(['waveform', 'spectrum'], 'waveform')).toEqual(['spectrum'])
+    expect(getNextEnabledAnalysisSurfaces(['spectrum'], 'waveform')).toEqual(['waveform', 'spectrum'])
+    expect(getNextEnabledAnalysisSurfaces(['spectrum'], 'spectrum')).toEqual(['spectrum'])
   })
 
   it('drops recording assignments for recordings that are no longer present', () => {

@@ -13,6 +13,10 @@ vi.mock('./features/workflow/components/InvestigationSetupPage', () => ({
   InvestigationSetupPage: () => <div>Configure comparison workspace</div>,
 }))
 
+vi.mock('./features/workflow/components/AnalysisReviewPage', () => ({
+  AnalysisReviewPage: () => <div>Analysis review workspace</div>,
+}))
+
 vi.mock('./features/import/components/ImportWorkspace', () => ({
   ImportWorkspace: ({ onImportedFiles }: { onImportedFiles: (files: unknown[]) => void }) => (
     <>
@@ -65,6 +69,7 @@ describe('App workflow routes', () => {
     expect(await screen.findByRole('heading', { name: 'Current investigation' })).toBeInTheDocument()
     expect(screen.getByText('baseline.wav')).toBeInTheDocument()
     expect(screen.getByRole('link', { name: 'Evidence' })).toHaveAttribute('href', '/evidence')
+    expect(screen.getByRole('link', { name: 'Analysis setup' })).toHaveAttribute('href', '/analysis')
     expect(screen.getAllByRole('link', { name: 'Configure comparison' })).toHaveLength(2)
     expect(screen.getAllByRole('link', { name: 'Configure comparison' })).toEqual(
       expect.arrayContaining([expect.objectContaining({ pathname: '/setup' })])
@@ -128,6 +133,21 @@ describe('App workflow routes', () => {
 
     expect(await screen.findByRole('heading', { name: 'Import recordings' })).toBeInTheDocument()
     expect(screen.getByLabelText('Configure unavailable until recordings are imported')).toHaveAttribute('aria-disabled', 'true')
+  })
+
+  it('guards Analysis until recordings exist and restores it for a populated session', async () => {
+    vi.stubGlobal('fetch', vi.fn().mockResolvedValue({ ok: true, json: async () => ({ files: [] }) }))
+
+    const emptyRender = renderApp('/analysis')
+    expect(await screen.findByRole('heading', { name: 'Import recordings' })).toBeInTheDocument()
+    expect(screen.getByLabelText('Analysis unavailable until recordings are imported')).toHaveAttribute('aria-disabled', 'true')
+    emptyRender.unmount()
+
+    vi.stubGlobal('fetch', vi.fn().mockResolvedValue({ ok: true, json: async () => populatedSession }))
+    renderApp('/analysis')
+
+    expect(await screen.findByText('Analysis review workspace')).toBeInTheDocument()
+    expect(screen.getByText('Analysis', { selector: '[aria-current="page"]' })).toBeInTheDocument()
   })
 
   it('shows a retryable bootstrap failure and recovers without treating the session as empty', async () => {

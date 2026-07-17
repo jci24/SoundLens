@@ -1,4 +1,4 @@
-import { ChartNoAxesCombined, Home, PanelLeftClose, PanelLeftOpen, SlidersHorizontal, Upload } from 'lucide-react'
+import { ChartNoAxesCombined, Home, ListChecks, PanelLeftClose, PanelLeftOpen, SlidersHorizontal, Upload } from 'lucide-react'
 import { NavLink } from 'react-router'
 import './Sidebar.scss'
 
@@ -58,6 +58,15 @@ const Sidebar = ({ hasRecordings, isCollapsed, onToggleCollapse }: ISidebarProps
               <span className={labelClassName}>Configure</span>
             </NavLink>
             <NavLink
+              aria-label="Analysis setup"
+              className={({ isActive }) => `sidebar__nav-item${isActive ? ' sidebar__nav-item--active' : ''}`}
+              title={isCollapsed ? 'Analysis' : undefined}
+              to="/analysis"
+            >
+              <ListChecks size={18} />
+              <span className={labelClassName}>Analysis</span>
+            </NavLink>
+            <NavLink
               aria-label="Evidence"
               className={({ isActive }) => `sidebar__nav-item${isActive ? ' sidebar__nav-item--active' : ''}`}
               title={isCollapsed ? 'Evidence' : undefined}
@@ -77,6 +86,15 @@ const Sidebar = ({ hasRecordings, isCollapsed, onToggleCollapse }: ISidebarProps
             >
               <SlidersHorizontal size={18} />
               <span className={labelClassName}>Configure</span>
+            </span>
+            <span
+              aria-disabled="true"
+              aria-label="Analysis unavailable until recordings are imported"
+              className="sidebar__nav-item sidebar__nav-item--disabled"
+              title={isCollapsed ? 'Import recordings to select analyses' : undefined}
+            >
+              <ListChecks size={18} />
+              <span className={labelClassName}>Analysis</span>
             </span>
             <span
               aria-disabled="true"

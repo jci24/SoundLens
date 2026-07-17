@@ -12,6 +12,7 @@ interface IAnalysisWorkspaceHeaderProps {
   activeSurface: TAnalysisSurface
   canEnterCompareMode: boolean
   canExportReport: boolean
+  enabledAnalysisSurfaces: readonly TAnalysisSurface[]
   isCopilotOpen: boolean
   isExporting: boolean
   layoutMode: TAnalysisLayoutMode
@@ -39,6 +40,7 @@ const AnalysisWorkspaceHeader = ({
   activeSurface,
   canEnterCompareMode,
   canExportReport,
+  enabledAnalysisSurfaces,
   isCopilotOpen,
   isExporting,
   layoutMode,
@@ -68,6 +70,7 @@ const AnalysisWorkspaceHeader = ({
     spectrumRangeLabel,
   } = useAnalysisWorkspaceHeader({
     activeSurface,
+    enabledAnalysisSurfaces,
     layoutMode,
     spectrumMaximumHz,
     spectrumRangeEndHz,
@@ -114,18 +117,26 @@ const AnalysisWorkspaceHeader = ({
 
       <div className="time-waveform-workspace__toolbar">
         <div className="time-waveform-workspace__view-controls-nav">
-          <Tabs
-            className="time-waveform-workspace__surface-tabs"
-            onValueChange={(value) => onSurfaceChange(value as TAnalysisSurface)}
-            value={activeSurface}
-          >
-            <TabsList>
-              <TabsTrigger value="waveform">Waveform</TabsTrigger>
-              <TabsTrigger value="spectrum">Spectrum</TabsTrigger>
-            </TabsList>
-          </Tabs>
+          {enabledAnalysisSurfaces.length > 1 && (
+            <>
+              <Tabs
+                className="time-waveform-workspace__surface-tabs"
+                onValueChange={(value) => onSurfaceChange(value as TAnalysisSurface)}
+                value={activeSurface}
+              >
+                <TabsList>
+                  {enabledAnalysisSurfaces.includes('waveform') && (
+                    <TabsTrigger value="waveform">Waveform</TabsTrigger>
+                  )}
+                  {enabledAnalysisSurfaces.includes('spectrum') && (
+                    <TabsTrigger value="spectrum">Spectrum</TabsTrigger>
+                  )}
+                </TabsList>
+              </Tabs>
 
-          <span aria-hidden="true" className="time-waveform-workspace__toolbar-divider" />
+              <span aria-hidden="true" className="time-waveform-workspace__toolbar-divider" />
+            </>
+          )}
 
           <Tabs
             className="time-waveform-workspace__layout-tabs"

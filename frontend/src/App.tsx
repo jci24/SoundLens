@@ -4,6 +4,7 @@ import { Toaster } from '@/components/ui/sonner'
 import { AppShell } from './features/layout/components/AppShell'
 import { useCurrentImportSession } from './features/import/hooks/useCurrentImportSession'
 import { EvidencePage } from './features/workflow/components/EvidencePage'
+import { AnalysisReviewPage } from './features/workflow/components/AnalysisReviewPage'
 import { HomePage } from './features/workflow/components/HomePage'
 import { ImportPage } from './features/workflow/components/ImportPage'
 import { InvestigationSetupPage } from './features/workflow/components/InvestigationSetupPage'
@@ -39,6 +40,13 @@ const App = () => {
       : hasRecordings
         ? <InvestigationSetupPage />
         : <Navigate replace to="/import" />
+  const analysisRoute = session.status === 'loading'
+    ? <RouteState title="Restoring temporary workspace" />
+    : session.status === 'error'
+      ? <RouteState error={session.error} onRetry={session.retry} title="Workspace restoration failed" />
+      : hasRecordings
+        ? <AnalysisReviewPage />
+        : <Navigate replace to="/import" />
 
   return (
     <div className="app">
@@ -65,6 +73,7 @@ const App = () => {
           />
           <Route path="import" element={importRoute} />
           <Route path="setup" element={setupRoute} />
+          <Route path="analysis" element={analysisRoute} />
           <Route path="evidence" element={evidenceRoute} />
           <Route path="*" element={<Navigate replace to="/" />} />
         </Route>
