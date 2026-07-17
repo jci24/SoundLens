@@ -6,6 +6,10 @@ export interface IAgentQueryRequest {
   startTimeSeconds?: number
   endTimeSeconds?: number
   comparisonContext?: IComparisonCopilotSelection
+  comparisonPair?: {
+    recordingIdA: string
+    recordingIdB: string
+  }
 }
 
 export interface IAgentEvidenceItem {

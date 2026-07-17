@@ -1,9 +1,33 @@
 import { fireEvent, render, screen } from '@testing-library/react'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { useAnalysisWorkspaceStore } from '../../stores/useAnalysisWorkspaceStore'
+import type { ITimeWaveformRecording } from '../../types'
 import { CopilotPanel } from './CopilotPanel'
 
 const submitSpy = vi.fn()
+let submittedQuestion = 'Explain this difference'
+const recordings: ITimeWaveformRecording[] = [
+  {
+    recordingId: 'recording-a',
+    fileName: 'baseline.wav',
+    sizeBytes: 1024,
+    durationSeconds: 2.5,
+    sampleRate: 44100,
+    channels: 1,
+    channelMode: 'mono',
+    signals: [{ signalId: 'signal-a', channelIndex: 0, displayName: 'Channel 1' }],
+  },
+  {
+    recordingId: 'recording-b',
+    fileName: 'candidate.wav',
+    sizeBytes: 1024,
+    durationSeconds: 2.5,
+    sampleRate: 44100,
+    channels: 1,
+    channelMode: 'mono',
+    signals: [{ signalId: 'signal-b', channelIndex: 0, displayName: 'Channel 1' }],
+  },
+]
 
 vi.mock('../hooks/useCopilotQuery', () => ({
   useCopilotQuery: () => ({
@@ -16,7 +40,7 @@ vi.mock('../hooks/useCopilotQuery', () => ({
 
 vi.mock('./CopilotInput', () => ({
   CopilotInput: ({ onSubmit }: { onSubmit: (question: string) => void }) => (
-    <button type="button" onClick={() => onSubmit('Explain this difference')}>
+    <button type="button" onClick={() => onSubmit(submittedQuestion)}>
       Ask
     </button>
   ),
@@ -25,7 +49,9 @@ vi.mock('./CopilotInput', () => ({
 describe('CopilotPanel', () => {
   beforeEach(() => {
     submitSpy.mockReset()
+    submittedQuestion = 'Explain this difference'
     useAnalysisWorkspaceStore.setState({
+      recordingGroupAssignments: {},
       comparisonCopilotContext: {
         recordingIdA: 'recording-a',
         recordingIdB: 'recording-b',
@@ -63,6 +89,101 @@ describe('CopilotPanel', () => {
         signalIdA: 'signal-a',
         signalIdB: 'signal-b',
       },
+      comparisonPair: undefined,
+    })
+  })
+
+  it('uses the aligned comparison pair even when the general selection contains one signal', () => {
+    render(
+      <CopilotPanel
+        recordings={[]}
+        regionOfInterest={null}
+        selectedSignalIds={['signal-a']}
+      />
+    )
+
+    fireEvent.click(screen.getByRole('button', { name: 'Ask' }))
+
+    expect(submitSpy).toHaveBeenCalledWith(expect.objectContaining({
+      signalIds: ['signal-a', 'signal-b'],
+      comparisonContext: expect.objectContaining({
+        signalIdA: 'signal-a',
+        signalIdB: 'signal-b',
+      }),
+    }))
+  })
+
+  it('uses the visible focused signal when no comparison or mention overrides it', () => {
+    useAnalysisWorkspaceStore.setState({ comparisonCopilotContext: null })
+    submittedQuestion = 'What is the RMS level?'
+    render(
+      <CopilotPanel
+        recordings={[]}
+        regionOfInterest={null}
+        selectedSignalIds={['signal-focused']}
+      />
+    )
+
+    fireEvent.click(screen.getByRole('button', { name: 'Ask' }))
+
+    expect(submitSpy).toHaveBeenCalledWith({
+      question: 'What is the RMS level?',
+      signalIds: ['signal-focused'],
+      startTimeSeconds: undefined,
+      endTimeSeconds: undefined,
+      comparisonContext: undefined,
+      comparisonPair: undefined,
+    })
+  })
+
+  it('keeps the focused signal and includes an assigned A/B pair for comparison questions', () => {
+    useAnalysisWorkspaceStore.setState({
+      comparisonCopilotContext: null,
+      recordingGroupAssignments: { 'recording-a': 'A', 'recording-b': 'B' },
+    })
+    submittedQuestion = 'Which signal is louder by RMS?'
+    render(
+      <CopilotPanel
+        recordings={recordings}
+        regionOfInterest={null}
+        selectedSignalIds={['signal-a']}
+      />
+    )
+
+    fireEvent.click(screen.getByRole('button', { name: 'Ask' }))
+
+    expect(submitSpy).toHaveBeenCalledWith({
+      question: 'Which signal is louder by RMS?',
+      signalIds: ['signal-a'],
+      startTimeSeconds: undefined,
+      endTimeSeconds: undefined,
+      comparisonContext: undefined,
+      comparisonPair: {
+        recordingIdA: 'recording-a',
+        recordingIdB: 'recording-b',
+      },
+    })
+  })
+
+  it('lets explicit mentions override the selected comparison scope', () => {
+    submittedQuestion = 'Inspect @[Reference](signal-reference) RMS'
+    render(
+      <CopilotPanel
+        recordings={[]}
+        regionOfInterest={null}
+        selectedSignalIds={['signal-a']}
+      />
+    )
+
+    fireEvent.click(screen.getByRole('button', { name: 'Ask' }))
+
+    expect(submitSpy).toHaveBeenCalledWith({
+      question: 'Inspect @Reference RMS',
+      signalIds: ['signal-reference'],
+      startTimeSeconds: undefined,
+      endTimeSeconds: undefined,
+      comparisonContext: undefined,
+      comparisonPair: undefined,
     })
   })
 })

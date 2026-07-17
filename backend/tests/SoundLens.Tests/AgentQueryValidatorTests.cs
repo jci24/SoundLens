@@ -137,4 +137,21 @@ public sealed class AgentQueryValidatorTests
         Assert.False(result.IsValid);
         Assert.Contains(result.Errors, error => error.ErrorMessage.Contains("not supported", StringComparison.Ordinal));
     }
+
+    [Fact]
+    public async Task ComparisonPairWithSameRecordings_FailsValidation()
+    {
+        var validator = CreateValidator();
+        var command = new AgentQueryCommand(
+            "Which signal is louder by RMS?",
+            ["signal-a"],
+            null,
+            null,
+            ComparisonPair: new AgentComparisonPair("recording-a", "recording-a"));
+
+        var result = await validator.ValidateAsync(command);
+
+        Assert.False(result.IsValid);
+        Assert.Contains(result.Errors, error => error.ErrorMessage.Contains("different recordings", StringComparison.Ordinal));
+    }
 }

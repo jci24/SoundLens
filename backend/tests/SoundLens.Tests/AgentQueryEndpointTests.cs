@@ -168,11 +168,160 @@ public sealed class AgentQueryEndpointTests : IClassFixture<WebApplicationFactor
             Assert.Equal(new[] { "compare_signals" }, payload.ToolsUsed);
             Assert.NotEmpty(payload.CitedEvidence);
             Assert.Contains(payload.Limitations, item => item.Contains("dBFS", StringComparison.OrdinalIgnoreCase));
+
+            var selectedContextResponse = await client.PostAsJsonAsync(
+                "/api/agent/query",
+                new
+                {
+                    question = "Which signal is louder by RMS?",
+                    signalIds = new[] { signalIds[0] },
+                    comparisonContext = new
+                    {
+                        recordingIdA = waveformPayload.Recordings[0].RecordingId,
+                        recordingIdB = waveformPayload.Recordings[1].RecordingId,
+                        metricKey = "rmsAmplitudeDelta",
+                        signalIdA = signalIds[0],
+                        signalIdB = signalIds[1]
+                    }
+                });
+
+            Assert.Equal(HttpStatusCode.OK, selectedContextResponse.StatusCode);
+            var selectedContextPayload = await selectedContextResponse.Content.ReadFromJsonAsync<AgentQueryResponse>();
+            Assert.Contains("loudest by RMS", selectedContextPayload!.Answer, StringComparison.OrdinalIgnoreCase);
+            Assert.DoesNotContain("at least two", selectedContextPayload.Answer, StringComparison.OrdinalIgnoreCase);
+            Assert.Equal(["compare_signals"], selectedContextPayload.ToolsUsed);
+
+            var focusedPairResponse = await client.PostAsJsonAsync(
+                "/api/agent/query",
+                new
+                {
+                    question = "Which signal is louder by RMS?",
+                    signalIds = new[] { signalIds[0] },
+                    comparisonPair = new
+                    {
+                        recordingIdA = waveformPayload.Recordings[0].RecordingId,
+                        recordingIdB = waveformPayload.Recordings[1].RecordingId
+                    }
+                });
+
+            Assert.Equal(HttpStatusCode.OK, focusedPairResponse.StatusCode);
+            var focusedPairPayload = await focusedPairResponse.Content.ReadFromJsonAsync<AgentQueryResponse>();
+            Assert.Contains("loudest by RMS", focusedPairPayload!.Answer, StringComparison.OrdinalIgnoreCase);
+            Assert.DoesNotContain("at least two", focusedPairPayload.Answer, StringComparison.OrdinalIgnoreCase);
+            Assert.Equal(["compare_signals"], focusedPairPayload.ToolsUsed);
         }
         finally
         {
             File.Delete(quietPath);
             File.Delete(loudPath);
+        }
+    }
+
+    [Fact]
+    public async Task ReturnsDeterministicSingleSignalMetricsWithoutRequiringAComparison()
+    {
+        var tempPath = Path.Combine(Path.GetTempPath(), $"soundlens_agent_query_single_{Guid.NewGuid():N}.wav");
+        await File.WriteAllBytesAsync(tempPath, CreateMono16BitWav(
+            sampleRate: 8,
+            samples: [8192, 8192, 8192, 8192]));
+
+        using var client = _factory.CreateClient();
+        try
+        {
+            var importResponse = await client.PostAsJsonAsync(
+                "/api/import",
+                new { filePaths = new[] { tempPath } });
+            importResponse.EnsureSuccessStatusCode();
+
+            var waveformResponse = await client.PostAsJsonAsync(
+                "/api/waveforms/time",
+                new
+                {
+                    binCount = 64,
+                    signalIds = Array.Empty<string>(),
+                    startTimeSeconds = (double?)null,
+                    endTimeSeconds = (double?)null
+                });
+            waveformResponse.EnsureSuccessStatusCode();
+
+            var waveformPayload = await waveformResponse.Content.ReadFromJsonAsync<TimeWaveformResponse>();
+            var signalId = Assert.Single(waveformPayload!.SelectedSignals).SignalId;
+
+            var rmsResponse = await client.PostAsJsonAsync(
+                "/api/agent/query",
+                new
+                {
+                    question = "What is the RMS level of this signal?",
+                    signalIds = new[] { signalId }
+                });
+            var clippingResponse = await client.PostAsJsonAsync(
+                "/api/agent/query",
+                new
+                {
+                    question = "Does this signal clip?",
+                    signalIds = new[] { signalId },
+                    startTimeSeconds = 0.0,
+                    endTimeSeconds = 0.25
+                });
+
+            Assert.Equal(HttpStatusCode.OK, rmsResponse.StatusCode);
+            var rmsPayload = await rmsResponse.Content.ReadFromJsonAsync<AgentQueryResponse>();
+            Assert.Contains("RMS amplitude", rmsPayload!.Answer, StringComparison.Ordinal);
+            Assert.DoesNotContain("at least two", rmsPayload.Answer, StringComparison.OrdinalIgnoreCase);
+            Assert.Equal(["get_signal_metrics"], rmsPayload.ToolsUsed);
+            Assert.Contains(rmsPayload.CitedEvidence, item => item.SignalId == signalId);
+
+            Assert.Equal(HttpStatusCode.OK, clippingResponse.StatusCode);
+            var clippingPayload = await clippingResponse.Content.ReadFromJsonAsync<AgentQueryResponse>();
+            Assert.Contains("No clipping", clippingPayload!.Answer, StringComparison.OrdinalIgnoreCase);
+            Assert.Contains(clippingPayload.Limitations, item =>
+                item.Contains("selected ROI only", StringComparison.OrdinalIgnoreCase));
+        }
+        finally
+        {
+            File.Delete(tempPath);
+        }
+    }
+
+    [Fact]
+    public async Task StillRequiresAnotherSignalForAnExplicitComparison()
+    {
+        var tempPath = Path.Combine(Path.GetTempPath(), $"soundlens_agent_query_compare_{Guid.NewGuid():N}.wav");
+        await File.WriteAllBytesAsync(tempPath, CreateMono16BitWav(
+            sampleRate: 8,
+            samples: [8192, 8192, 8192, 8192]));
+
+        using var client = _factory.CreateClient();
+        try
+        {
+            var importResponse = await client.PostAsJsonAsync(
+                "/api/import",
+                new { filePaths = new[] { tempPath } });
+            importResponse.EnsureSuccessStatusCode();
+
+            var waveformResponse = await client.PostAsJsonAsync(
+                "/api/waveforms/time",
+                new { binCount = 64, signalIds = Array.Empty<string>() });
+            waveformResponse.EnsureSuccessStatusCode();
+            var waveformPayload = await waveformResponse.Content.ReadFromJsonAsync<TimeWaveformResponse>();
+            var signalId = Assert.Single(waveformPayload!.SelectedSignals).SignalId;
+
+            var response = await client.PostAsJsonAsync(
+                "/api/agent/query",
+                new
+                {
+                    question = "Which signal is louder by RMS?",
+                    signalIds = new[] { signalId }
+                });
+
+            Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+            var payload = await response.Content.ReadFromJsonAsync<AgentQueryResponse>();
+            Assert.Contains("at least two signals", payload!.Answer, StringComparison.OrdinalIgnoreCase);
+            Assert.Empty(payload.ToolsUsed);
+        }
+        finally
+        {
+            File.Delete(tempPath);
         }
     }
 

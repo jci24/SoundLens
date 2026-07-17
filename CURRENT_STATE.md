@@ -78,8 +78,9 @@ These findings are useful first-pass cues, but they should still be treated as b
 ## Current Copilot Behavior
 
 - `POST /api/agent/query` runs an OpenAI tool-calling loop against the current imported-session context.
-- Simple factual multi-signal comparison questions about RMS loudness, peak amplitude, or clipping now bypass the freeform OpenAI path when enough signal IDs are already selected.
-- That deterministic factual path uses backend-owned `compare_signals` evidence directly and still works when the OpenAI API key is missing.
+- Simple factual questions about one visible signal's RMS level, peak amplitude, or clipping now use backend-owned `get_signal_metrics` evidence without requiring a second signal or an OpenAI API key.
+- Explicit comparison questions about RMS loudness, peak amplitude, or clipping use backend-owned `compare_signals` evidence. In Focused mode, a valid assigned A/B recording pair supplies comparison scope without replacing the visible signal used by single-signal questions.
+- Copilot scope follows explicit signal mentions first, then detailed selected-comparison evidence, then an assigned A/B recording pair for explicit comparison intent, and finally the visible focused-workspace signal. The current ROI is retained in every scope.
 - In compare mode, Copilot now also accepts a bounded selected-comparison context from the selected metric, active aligned pair, visible findings, and ROI scope.
 - The frontend sends only comparison selection identifiers. The backend re-runs the deterministic recording comparison, validates the aligned pair, resolves the selected metric, and rebuilds findings and limitations before asking the model to explain anything.
 - That explanation path asks the model to explain only backend-owned selected comparison evidence instead of rediscovering or widening the workspace scope.
@@ -148,7 +149,7 @@ The repo is still intentionally simple: no extra backend projects, no persistenc
 - Comparison metrics currently support one recording from Compare A versus one recording from Compare B
 - Multi-recording group comparison is not yet available; the current interaction and backend contract support one recording per side
 - Coverage visibility is still lightweight: users see evidence-strength cues, limitation counts, and limitation text, but not yet a dedicated coverage breakdown view
-- Deterministic factual Copilot answers currently cover a narrow comparison question set only: RMS loudness, peak amplitude, and clipping across multiple selected signals
+- Deterministic factual Copilot answers currently cover RMS, peak amplitude, and clipping for one visible signal or the signals backend-resolved from an assigned A/B recording pair; these comparisons remain signal-level rather than recording-level aggregate loudness claims, and broader analyses still use the bounded tool-calling path
 - Comparison explanation remains bounded to the current selected metric and active aligned pair
 - No persisted project or dataset model
 - Calibration handling remains lightweight and mostly limited to dBFS caveats plus calibrated flags

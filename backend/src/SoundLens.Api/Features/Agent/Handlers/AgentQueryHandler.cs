@@ -1,6 +1,5 @@
 using System.Globalization;
 using System.Text.Json;
-using System.Text.Json.Serialization;
 using FastEndpoints;
 using OpenAI.Chat;
 using SoundLens.Api.Features.Agent.Common;
@@ -23,16 +22,11 @@ public sealed class AgentQueryHandler(
     AgentToolDispatcher toolDispatcher,
     IImportedFileStore importedFileStore,
     IWaveformService waveformService,
+    DeterministicSignalQueryResponder deterministicSignalQueryResponder,
     SelectedComparisonOrchestrator selectedComparisonOrchestrator) : CommandHandler<AgentQueryCommand, AgentQueryResponse>
 {
     private sealed record AgentAvailableSignal(string SignalId, string DisplayName, string FileName);
     private sealed record CompareWinnerEvidence(string SignalId, string Summary);
-    private enum DeterministicComparisonIntent
-    {
-        Rms,
-        Peak,
-        Clipping
-    }
     private sealed record CompareEvidence(
         IReadOnlyList<CompareWinnerEvidence> RmsWinners,
         IReadOnlyList<CompareWinnerEvidence> PeakWinners,
@@ -40,11 +34,6 @@ public sealed class AgentQueryHandler(
         IReadOnlyList<CompareWinnerEvidence> NonClippingSignals);
 
     private const int MaxToolRounds = 8;
-    private static readonly JsonSerializerOptions SerializerOptions = new()
-    {
-        DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull
-    };
-
     private const string SystemPrompt = """
         You are SoundLens, an acoustic investigation copilot.
         You help engineers understand sound recordings by analyzing evidence.
@@ -85,24 +74,19 @@ public sealed class AgentQueryHandler(
 
     public override async Task<AgentQueryResponse> ExecuteAsync(AgentQueryCommand command, CancellationToken ct = default)
     {
-        var availableSignals = importedFileStore.CurrentFiles.Count > 0
-            ? waveformService.BuildTimeWaveforms(
-                importedFileStore.CurrentFiles,
-                requestedBinCount: 1,
-                selectedSignalIds: null,
-                startTimeSeconds: null,
-                endTimeSeconds: null,
-                cancellationToken: ct)
-                .Recordings
-                .SelectMany(r => r.Signals.Select(signal =>
-                    new AgentAvailableSignal(signal.SignalId, signal.DisplayName, r.FileName)))
-                .ToList()
-            : [];
-
-        var deterministicComparisonResponse = await TryBuildDeterministicComparisonResponseAsync(command, ct);
-        if (deterministicComparisonResponse is not null)
+        AgentQueryResponse? deterministicSignalResponse;
+        try
         {
-            return deterministicComparisonResponse;
+            deterministicSignalResponse = await deterministicSignalQueryResponder.TryBuildAsync(command, ct);
+        }
+        catch (ArgumentException exception)
+        {
+            ThrowError(exception.Message);
+            throw;
+        }
+        if (deterministicSignalResponse is not null)
+        {
+            return deterministicSignalResponse;
         }
 
         AgentQueryResponse? comparisonExplanationResponse;
@@ -121,6 +105,20 @@ public sealed class AgentQueryHandler(
         {
             return comparisonExplanationResponse;
         }
+
+        var availableSignals = importedFileStore.CurrentFiles.Count > 0
+            ? waveformService.BuildTimeWaveforms(
+                importedFileStore.CurrentFiles,
+                requestedBinCount: 1,
+                selectedSignalIds: null,
+                startTimeSeconds: null,
+                endTimeSeconds: null,
+                cancellationToken: ct)
+                .Recordings
+                .SelectMany(r => r.Signals.Select(signal =>
+                    new AgentAvailableSignal(signal.SignalId, signal.DisplayName, r.FileName)))
+                .ToList()
+            : [];
 
         var chatClient = chatClientProvider.GetRequiredClient();
         var messages = new List<ChatMessage>
@@ -218,193 +216,6 @@ public sealed class AgentQueryHandler(
         }
 
         return string.Join("\n", parts);
-    }
-
-    private async Task<AgentQueryResponse?> TryBuildDeterministicComparisonResponseAsync(
-        AgentQueryCommand command,
-        CancellationToken ct)
-    {
-        if (!TryClassifyDeterministicComparisonIntent(command.Question, out var intent))
-        {
-            return null;
-        }
-
-        if (command.SignalIds is null || command.SignalIds.Count < 2)
-        {
-            return new AgentQueryResponse(
-                Answer: "I can only answer that comparison deterministically when at least two signals are selected.",
-                CitedEvidence: [],
-                Limitations:
-                [
-                    "Values are in dBFS, not calibrated to physical SPL.",
-                    "No deterministic comparison was run because fewer than two signals were provided."
-                ],
-                NextSteps:
-                [
-                    "Select or mention at least two signals before asking a comparison question.",
-                    "Then ask again about RMS loudness, peak amplitude, or clipping."
-                ],
-                ToolsUsed: []);
-        }
-
-        var toolResult = await toolDispatcher.DispatchAsync(
-            AgentToolDefinitions.CompareSignals,
-            JsonSerializer.Serialize(
-                new
-                {
-                    signalIds = command.SignalIds,
-                    startTimeSeconds = command.StartTimeSeconds,
-                    endTimeSeconds = command.EndTimeSeconds
-                },
-                SerializerOptions),
-            ct);
-
-        using var doc = JsonDocument.Parse(toolResult);
-        var root = doc.RootElement;
-        if (root.TryGetProperty("error", out _))
-        {
-            return null;
-        }
-
-        var answer = intent switch
-        {
-            DeterministicComparisonIntent.Rms => GetStringProperty(
-                root,
-                "rmsComparisonSummary",
-                "The selected signals could not be compared by RMS amplitude in this session."),
-            DeterministicComparisonIntent.Peak => GetStringProperty(
-                root,
-                "peakComparisonSummary",
-                "The selected signals could not be compared by peak amplitude in this session."),
-            DeterministicComparisonIntent.Clipping => GetStringProperty(
-                root,
-                "clippingComparisonSummary",
-                "Clipping could not be determined for the selected signals in this session."),
-            _ => "The selected signals could not be compared deterministically in this session."
-        };
-
-        var citedEvidence = intent switch
-        {
-            DeterministicComparisonIntent.Rms => ParseWinnerEvidence(root, "signalsAtHighestRmsDbFs", "rmsComparisonSummary"),
-            DeterministicComparisonIntent.Peak => ParseWinnerEvidence(root, "signalsAtHighestPeakDbFs", "peakComparisonSummary"),
-            DeterministicComparisonIntent.Clipping => ParseClippingEvidence(root),
-            _ => []
-        };
-
-        var limitations = new List<string> { "Values are in dBFS, not calibrated to physical SPL." };
-        if (command.StartTimeSeconds.HasValue && command.EndTimeSeconds.HasValue)
-        {
-            limitations.Add("Answer reflects the selected ROI only.");
-        }
-
-        IReadOnlyList<string> nextSteps = intent switch
-        {
-            DeterministicComparisonIntent.Rms =>
-            [
-                "Inspect the waveform and spectrum for the cited signals if you need to explain the loudness difference.",
-                "Select a narrower region if you want to compare only a specific event."
-            ],
-            DeterministicComparisonIntent.Peak =>
-            [
-                "Inspect the waveform peaks for the cited signals to see where the highest excursion occurs.",
-                "Select a narrower region if you want to compare only a specific transient."
-            ],
-            DeterministicComparisonIntent.Clipping =>
-            [
-                "Inspect the cited signals in the waveform view to locate the affected samples.",
-                "Select a narrower region if you want to check whether clipping is confined to one event."
-            ],
-            _ => []
-        };
-
-        return new AgentQueryResponse(
-            Answer: answer,
-            CitedEvidence: citedEvidence,
-            Limitations: limitations,
-            NextSteps: nextSteps,
-            ToolsUsed: [AgentToolDefinitions.CompareSignals]);
-    }
-
-    private static bool TryClassifyDeterministicComparisonIntent(
-        string question,
-        out DeterministicComparisonIntent intent)
-    {
-        var normalizedQuestion = question.Trim().ToLowerInvariant();
-
-        if (normalizedQuestion.Contains("clip", StringComparison.Ordinal))
-        {
-            intent = DeterministicComparisonIntent.Clipping;
-            return true;
-        }
-
-        if (normalizedQuestion.Contains("peak", StringComparison.Ordinal))
-        {
-            intent = DeterministicComparisonIntent.Peak;
-            return true;
-        }
-
-        if (normalizedQuestion.Contains("louder", StringComparison.Ordinal) ||
-            normalizedQuestion.Contains("loudest", StringComparison.Ordinal) ||
-            normalizedQuestion.Contains("rms", StringComparison.Ordinal) ||
-            normalizedQuestion.Contains("level", StringComparison.Ordinal))
-        {
-            intent = DeterministicComparisonIntent.Rms;
-            return true;
-        }
-
-        intent = default;
-        return false;
-    }
-
-    private static IReadOnlyList<AgentEvidenceItem> ParseWinnerEvidence(
-        JsonElement root,
-        string winnerArrayProperty,
-        string summaryProperty)
-    {
-        var summary = GetStringProperty(root, summaryProperty, string.Empty);
-        if (!root.TryGetProperty(winnerArrayProperty, out var array) || array.ValueKind != JsonValueKind.Array)
-        {
-            return string.IsNullOrWhiteSpace(summary)
-                ? []
-                : [new AgentEvidenceItem(AgentToolDefinitions.CompareSignals, string.Empty, summary)];
-        }
-
-        var items = array.EnumerateArray()
-            .Select(element => GetStringProperty(element, "signalId", string.Empty))
-            .Where(signalId => !string.IsNullOrWhiteSpace(signalId))
-            .Distinct(StringComparer.Ordinal)
-            .Select(signalId => new AgentEvidenceItem(AgentToolDefinitions.CompareSignals, signalId, summary))
-            .ToList();
-
-        return items.Count > 0
-            ? items
-            : string.IsNullOrWhiteSpace(summary)
-                ? []
-                : [new AgentEvidenceItem(AgentToolDefinitions.CompareSignals, string.Empty, summary)];
-    }
-
-    private static IReadOnlyList<AgentEvidenceItem> ParseClippingEvidence(JsonElement root)
-    {
-        var summary = GetStringProperty(root, "clippingComparisonSummary", string.Empty);
-        if (!root.TryGetProperty("signalsWithClipping", out var array) || array.ValueKind != JsonValueKind.Array)
-        {
-            return string.IsNullOrWhiteSpace(summary)
-                ? []
-                : [new AgentEvidenceItem(AgentToolDefinitions.CompareSignals, string.Empty, summary)];
-        }
-
-        var items = array.EnumerateArray()
-            .Select(element => GetStringProperty(element, "signalId", string.Empty))
-            .Where(signalId => !string.IsNullOrWhiteSpace(signalId))
-            .Distinct(StringComparer.Ordinal)
-            .Select(signalId => new AgentEvidenceItem(AgentToolDefinitions.CompareSignals, signalId, summary))
-            .ToList();
-
-        return items.Count > 0
-            ? items
-            : string.IsNullOrWhiteSpace(summary)
-                ? []
-                : [new AgentEvidenceItem(AgentToolDefinitions.CompareSignals, string.Empty, summary)];
     }
 
     private static AgentQueryResponse ParseFinalAnswer(

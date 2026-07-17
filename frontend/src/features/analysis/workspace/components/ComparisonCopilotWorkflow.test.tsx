@@ -140,7 +140,7 @@ const CopilotHarness = () => {
 
 const resetWorkspaceStore = () => {
   useAnalysisWorkspaceStore.setState({
-    selectedSignalIds: ['signal-a', 'signal-b'],
+    selectedSignalIds: ['signal-a'],
     expandedRecordings: [],
     recordingGroupAssignments: { 'recording-a': 'A', 'recording-b': 'B' },
     activeSurface: 'waveform',
