@@ -128,7 +128,7 @@ const CopilotHarness = () => {
 
   return (
     <>
-      <TimeWaveformWorkspace importedFiles={importedFiles} isCopilotOpen onCopilotToggle={vi.fn()} />
+      <TimeWaveformWorkspace importedRecordingCount={importedFiles.length} isCopilotOpen onCopilotToggle={vi.fn()} />
       <CopilotPanel
         recordings={workspaceRecordings}
         regionOfInterest={regionOfInterest}

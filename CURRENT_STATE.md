@@ -6,6 +6,7 @@ Last updated: 2026-07-17
 
 Today SoundLens supports a deterministic analysis workspace for imported recordings:
 
+- move through functional Home, Import, and Evidence routes with persistent navigation and breadcrumbs
 - import WAV recordings from the browser
 - persist uploaded files into a temporary local backend workspace
 - browse recordings and channels in a left rail
@@ -25,6 +26,8 @@ The current product is strong as an analysis workspace, but it is not yet a full
 
 ## Current Visual Foundation
 
+- The production workflow now begins at a functional Home route, moves through a dedicated Import route, and guards the Evidence route until the temporary backend session contains recordings.
+- Home summarizes only the current temporary investigation; it does not imply saved projects, sessions, reports, or history.
 - The application uses Geist for interface text and Geist Mono as the semantic data typeface.
 - The workspace shell is edge-to-edge, with flat primary surfaces and hairline boundaries instead of a floating gradient frame.
 - Sidebar, main content, and the Copilot boundary share the same monochrome surface contract.
@@ -35,13 +38,15 @@ The current product is strong as an analysis workspace, but it is not yet a full
 - Comparison metrics now read as one selectable evidence grid rather than four independent cards; selection uses a restrained analysis accent without changing metric order.
 - Playback, metrics tables, ROI summaries, and chart shells share compact hairline structure, while numerical values and axes use Geist Mono.
 - Waveform and spectrum series use the analysis teal plus neutral comparison tones instead of unrelated multicolor accents.
-- Utility-surface and responsive-state refinements remain separate follow-up slices.
+- Investigation setup, analysis selection, Figma-composed Evidence, report workflow, and responsive utility refinements remain separate follow-up slices.
 
 ## Import And Temporary Workspace Model
 
 - Browser file picking is the primary demo path.
 - The backend persists uploaded files into a temporary local workspace.
 - Imported files are also tracked in an in-memory import session used by analysis and Copilot requests.
+- `GET /api/import/session` returns ordered browser-safe filename, size, and content-type metadata so the frontend can restore the temporary session after a reload without receiving filesystem paths.
+- Session bootstrap has explicit loading, failure, retry, empty, and populated states. Direct Evidence navigation waits for bootstrap and redirects to Import only after an empty session is confirmed.
 - The current model is session-oriented rather than project-oriented or persistent.
 - The frontend tracks the two recording-level comparison targets locally so the A/B workflow is visible before a persisted comparison object exists.
 - Compare A and Compare B use explicit accessible recording pickers with replace, clear, duplicate prevention, and atomic swap behavior.

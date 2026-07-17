@@ -13,6 +13,7 @@ Preferred stack:
 - React
 - TypeScript
 - Vite
+- React Router in declarative mode
 - shadcn/ui with Radix primitives
 - Tailwind through semantic design-system tokens
 - SCSS files paired with TSX components for component-specific styling
@@ -49,7 +50,7 @@ SoundLens should feel like a modern professional analysis workspace:
 - Clear enough for customer demos
 - Deep enough that engineers trust it
 
-The first screen should be the working application, not a landing page.
+The first screen should be a functional product entry point, not a marketing landing page or a dashboard of fake persisted objects.
 
 ## UI Principles
 
@@ -82,7 +83,19 @@ Foundation rules:
 - Comparison metrics are one hairline evidence grid rather than separate elevated cards. The backend order stays fixed, and selection changes context without moving cells.
 - Persistent evidence surfaces avoid gradients and shadows. Chart shells, transport, ROI summaries, and metric tables use flat surfaces, compact spacing, and semantic boundaries; elevation remains reserved for overlays.
 - Chart axes and numerical evidence use Geist Mono. Teal identifies analysis data and ROI, while additional simultaneous series use neutral tones rather than unrelated status colors.
-- Remaining visual migration work proceeds through separate utility-surface and responsive-state slices so behavior remains reviewable.
+- Remaining migration work proceeds through functional setup, analysis selection, Evidence composition, report, and responsive utility slices so behavior remains reviewable.
+
+## Routing And Temporary Session Ownership
+
+- `BrowserRouter` owns real URLs for `/`, `/import`, and `/evidence`; unknown routes return to Home.
+- Production hosting must rewrite application routes to `index.html` so direct URLs and browser refreshes reach React Router.
+- The persistent shell owns primary navigation, collapse state, and breadcrumbs. It exposes only destinations with implemented behavior.
+- Home describes the product and summarizes the current temporary backend session. It must not imply saved projects, sessions, reports, or history.
+- Import owns browser file selection and replacement. A completed import updates the safe frontend session summary and navigates to Evidence.
+- `GET /api/import/session` is the restoration boundary. The frontend receives ordered filename, byte-size, and content-type metadata, never backend filesystem paths.
+- Session bootstrap must distinguish loading, retryable failure, confirmed empty, and populated states. Evidence redirects to Import only after an empty session is confirmed.
+- Evidence owns the analysis workspace and local Copilot-open state. Route unmount closes playback, dialogs, and utility surfaces, while valid Zustand-owned signal, A/B, metric, and ROI selection can survive route navigation.
+- Returning to Evidence refetches backend evidence. The session summary is a route guard, not a numerical source of truth.
 
 ## Workspace Layout Principles
 

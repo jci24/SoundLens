@@ -8,17 +8,19 @@ User outcome:
 - SoundLens presents its existing evidence workflow through a cohesive, lower-density engineering interface aligned with the validated prototype direction.
 
 Delivery order:
-1. semantic design tokens, Geist Mono, flat application shell, and shared controls
-2. workspace context rail and A/B setup hierarchy
-3. evidence canvas, metrics, playback, charts, and ROI presentation
-4. Evidence, Copilot, reports, dialogs, and popovers
-5. responsive, empty, loading, error, and accessibility states
+1. functional Home, Import, and guarded Evidence workflow with safe temporary-session restoration
+2. investigation setup and A/B configuration page
+3. analysis selection plus review-and-run workflow
+4. Figma-composed Evidence workspace using the existing visual foundation, context rail, and evidence canvas
+5. report workflow and persisted platform pages when their behavior and storage contracts exist
+6. responsive, empty, loading, error, accessibility, and utility-surface polish
 
 Current status:
 - the visual foundation establishes the semantic token contract and edge-to-edge shell
 - the workspace context rail now consolidates analysis navigation into one toolbar and applies the flat hierarchy to A/B setup and virtualized recording navigation without changing behavior
 - the evidence canvas now applies one calm evidence grid, compact playback and tables, flat chart frames, mono data typography, and a restrained analysis-series palette
-- utility surfaces are the next ordered visual slice
+- the first functional Figma workflow now exposes Home, Import, and Evidence through real URLs, persistent navigation, breadcrumbs, guarded direct access, and retryable temporary-session restoration
+- investigation setup and A/B configuration is the next ordered workflow slice
 - future platform pages remain out of navigation until they have functional product scope
 
 Validation gate:

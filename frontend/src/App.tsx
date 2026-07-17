@@ -1,87 +1,66 @@
-import { Suspense, lazy, useEffect, useRef, useState } from 'react'
+import { useState } from 'react'
+import { Navigate, Route, Routes } from 'react-router'
 import { Toaster } from '@/components/ui/sonner'
-import { Sidebar } from './features/layout/components/Sidebar'
-import { MainContent } from './features/layout/components/MainContent'
-import { ImportWorkspace } from './features/import/components/ImportWorkspace'
-import { useAnalysisWorkspaceStore } from './features/analysis/stores/useAnalysisWorkspaceStore'
-import type { IImportedFileSummary } from './common/contracts/import'
+import { AppShell } from './features/layout/components/AppShell'
+import { useCurrentImportSession } from './features/import/hooks/useCurrentImportSession'
+import { EvidencePage } from './features/workflow/components/EvidencePage'
+import { HomePage } from './features/workflow/components/HomePage'
+import { ImportPage } from './features/workflow/components/ImportPage'
+import { RouteState } from './features/workflow/components/RouteState'
 import './App.scss'
 
-const TimeWaveformWorkspace = lazy(async () => {
-  const module = await import('./features/analysis/workspace/components/TimeWaveformWorkspace')
-  return { default: module.TimeWaveformWorkspace }
-})
-
-const CopilotSidebar = lazy(async () => {
-  const module = await import('./features/analysis/copilot/components/CopilotSidebar')
-  return { default: module.CopilotSidebar }
-})
-
 const App = () => {
-  const [importedFiles, setImportedFiles] = useState<IImportedFileSummary[]>([])
-  const [isEnteringAnalysis, setIsEnteringAnalysis] = useState(false)
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false)
-  const [isCopilotOpen, setIsCopilotOpen] = useState(false)
-  const enterAnimationTimeoutRef = useRef<number | null>(null)
-  const selectedSignalIds = useAnalysisWorkspaceStore((state) => state.selectedSignalIds)
-  const regionOfInterest = useAnalysisWorkspaceStore((state) => state.regionOfInterest)
-  const recordings = useAnalysisWorkspaceStore((state) => state.recordings)
+  const session = useCurrentImportSession()
+  const hasRecordings = session.status === 'ready' && session.files.length > 0
 
-  useEffect(() => {
-    return () => {
-      if (enterAnimationTimeoutRef.current !== null) {
-        window.clearTimeout(enterAnimationTimeoutRef.current)
-      }
-    }
-  }, [])
-
-  const handleImportedFiles = (files: IImportedFileSummary[]) => {
-    if (enterAnimationTimeoutRef.current !== null) {
-      window.clearTimeout(enterAnimationTimeoutRef.current)
-    }
-
-    setIsEnteringAnalysis(true)
-    setImportedFiles(files)
-
-    enterAnimationTimeoutRef.current = window.setTimeout(() => {
-      setIsEnteringAnalysis(false)
-      enterAnimationTimeoutRef.current = null
-    }, 420)
-  }
+  const evidenceRoute = session.status === 'loading'
+    ? <RouteState title="Restoring temporary workspace" />
+    : session.status === 'error'
+      ? <RouteState error={session.error} onRetry={session.retry} title="Workspace restoration failed" />
+      : hasRecordings
+        ? <EvidencePage importedRecordingCount={session.files.length} />
+        : <Navigate replace to="/import" />
+  const importRoute = session.status === 'loading'
+    ? <RouteState title="Restoring temporary workspace" />
+    : session.status === 'error'
+      ? <RouteState error={session.error} onRetry={session.retry} title="Workspace restoration failed" />
+      : (
+          <ImportPage
+            hasRecordings={hasRecordings}
+            onImportedFiles={session.acceptImportedFiles}
+          />
+        )
 
   return (
     <div className="app">
-      <Sidebar
-        activeItem="files"
-        isCollapsed={isSidebarCollapsed}
-        onToggleCollapse={() => setIsSidebarCollapsed((currentValue) => !currentValue)}
-      />
-      <MainContent isCopilotOpen={isCopilotOpen}>
-        <div className={`app__workspace-stage${isEnteringAnalysis ? ' app__workspace-stage--entering' : ''}`}>
-          {importedFiles.length > 0 ? (
-            <Suspense fallback={null}>
-              <TimeWaveformWorkspace
-                importedFiles={importedFiles}
-                isCopilotOpen={isCopilotOpen}
-                onCopilotToggle={() => setIsCopilotOpen((prev) => !prev)}
+      <Routes>
+        <Route
+          element={
+            <AppShell
+              hasRecordings={hasRecordings}
+              isSidebarCollapsed={isSidebarCollapsed}
+              onToggleSidebar={() => setIsSidebarCollapsed((current) => !current)}
+            />
+          }
+        >
+          <Route
+            index
+            element={
+              <HomePage
+                error={session.error}
+                files={session.files}
+                onRetry={session.retry}
+                status={session.status}
               />
-            </Suspense>
-          ) : (
-            <ImportWorkspace onImportedFiles={handleImportedFiles} />
-          )}
-        </div>
-      </MainContent>
-      {importedFiles.length > 0 && (
-        <Suspense fallback={null}>
-          <CopilotSidebar
-            isOpen={isCopilotOpen}
-            recordings={recordings}
-            regionOfInterest={regionOfInterest}
-            selectedSignalIds={selectedSignalIds}
+            }
           />
-        </Suspense>
-      )}
-      <Toaster position="top-right" closeButton />
+          <Route path="import" element={importRoute} />
+          <Route path="evidence" element={evidenceRoute} />
+          <Route path="*" element={<Navigate replace to="/" />} />
+        </Route>
+      </Routes>
+      <Toaster closeButton position="top-right" />
     </div>
   )
 }

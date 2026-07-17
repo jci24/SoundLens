@@ -7,7 +7,6 @@ import {
   getVisibleSpectrumXAxis,
   type ISpectrumViewport,
 } from '../../spectrum/utils/spectrumChart'
-import type { IImportedFileSummary } from '../../../../common/contracts/import'
 import type {
   IAnalysisRegionOfInterest,
   IFrequencySpectrumAxis,
@@ -87,9 +86,7 @@ interface IResolvedSpectrumRequest {
   signalIds: string[]
 }
 
-const useTimeWaveformWorkspace = (
-  importedFiles: IImportedFileSummary[]
-): IUseTimeWaveformWorkspaceResult => {
+const useTimeWaveformWorkspace = (importedRecordingCount: number): IUseTimeWaveformWorkspaceResult => {
   const chartRef = useRef<HTMLDivElement | null>(null)
   const chartWidth = useMeasuredChartWidth(chartRef)
   const deferredChartWidth = useDeferredValue(chartWidth)
@@ -130,7 +127,7 @@ const useTimeWaveformWorkspace = (
   )
 
   useEffect(() => {
-    if (binCount <= 0 || importedFiles.length === 0) {
+    if (binCount <= 0 || importedRecordingCount === 0) {
       return
     }
 
@@ -185,7 +182,7 @@ const useTimeWaveformWorkspace = (
     return () => {
       isCurrent = false
     }
-  }, [binCount, importedFiles.length, requestedRegionOfInterest, selectedSignalIds, selectedSpectrumFftSize, showSpectrumPanel, showWaveformPanel, syncSignalIds, setRecordings])
+  }, [binCount, importedRecordingCount, requestedRegionOfInterest, selectedSignalIds, selectedSpectrumFftSize, showSpectrumPanel, showWaveformPanel, syncSignalIds, setRecordings])
 
   const waveformResponseSignalIds = waveforms?.selectedSignals.map((signal) => signal.signalId) ?? []
   const spectrumResponseSignalIds = spectrum?.selectedSignals.map((signal) => signal.signalId) ?? []

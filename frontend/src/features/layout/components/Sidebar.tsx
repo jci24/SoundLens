@@ -1,14 +1,16 @@
-import { FileAudio, PanelLeftClose, PanelLeftOpen } from 'lucide-react'
+import { ChartNoAxesCombined, Home, PanelLeftClose, PanelLeftOpen, Upload } from 'lucide-react'
+import { NavLink } from 'react-router'
 import './Sidebar.scss'
 
 interface ISidebarProps {
-  activeItem?: string
+  hasRecordings: boolean
   isCollapsed: boolean
   onToggleCollapse: () => void
 }
 
-const Sidebar = ({ activeItem = 'files', isCollapsed, onToggleCollapse }: ISidebarProps) => {
+const Sidebar = ({ hasRecordings, isCollapsed, onToggleCollapse }: ISidebarProps) => {
   const ToggleIcon = isCollapsed ? PanelLeftOpen : PanelLeftClose
+  const labelClassName = `sidebar__nav-label${isCollapsed ? ' sidebar__nav-label--collapsed' : ''}`
 
   return (
     <aside className={`sidebar${isCollapsed ? ' sidebar--collapsed' : ''}`}>
@@ -24,15 +26,47 @@ const Sidebar = ({ activeItem = 'files', isCollapsed, onToggleCollapse }: ISideb
         </button>
       </div>
 
-      <nav className="sidebar__nav">
-        <button
-          aria-label="Files"
-          className={`sidebar__nav-item ${activeItem === 'files' ? 'sidebar__nav-item--active' : ''}`}
-          title={isCollapsed ? 'Files' : undefined}
+      <nav className="sidebar__nav" aria-label="Primary navigation">
+        <NavLink
+          aria-label="Home"
+          className={({ isActive }) => `sidebar__nav-item${isActive ? ' sidebar__nav-item--active' : ''}`}
+          end
+          title={isCollapsed ? 'Home' : undefined}
+          to="/"
         >
-          <FileAudio size={18} />
-          <span className={`sidebar__nav-label${isCollapsed ? ' sidebar__nav-label--collapsed' : ''}`}>Files</span>
-        </button>
+          <Home size={18} />
+          <span className={labelClassName}>Home</span>
+        </NavLink>
+        <NavLink
+          aria-label="Import recordings"
+          className={({ isActive }) => `sidebar__nav-item${isActive ? ' sidebar__nav-item--active' : ''}`}
+          title={isCollapsed ? 'Import' : undefined}
+          to="/import"
+        >
+          <Upload size={18} />
+          <span className={labelClassName}>Import</span>
+        </NavLink>
+        {hasRecordings ? (
+          <NavLink
+            aria-label="Evidence"
+            className={({ isActive }) => `sidebar__nav-item${isActive ? ' sidebar__nav-item--active' : ''}`}
+            title={isCollapsed ? 'Evidence' : undefined}
+            to="/evidence"
+          >
+            <ChartNoAxesCombined size={18} />
+            <span className={labelClassName}>Evidence</span>
+          </NavLink>
+        ) : (
+          <span
+            aria-disabled="true"
+            aria-label="Evidence unavailable until recordings are imported"
+            className="sidebar__nav-item sidebar__nav-item--disabled"
+            title={isCollapsed ? 'Import recordings to view evidence' : undefined}
+          >
+            <ChartNoAxesCombined size={18} />
+            <span className={labelClassName}>Evidence</span>
+          </span>
+        )}
       </nav>
     </aside>
   )

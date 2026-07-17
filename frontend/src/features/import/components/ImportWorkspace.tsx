@@ -1,4 +1,4 @@
-import { Loader2 } from 'lucide-react'
+import { AlertCircle, Loader2 } from 'lucide-react'
 import { useImportFiles } from '../hooks/useImportFiles'
 import type { IImportedFileSummary } from '../../../common/contracts/import'
 import { FilePickerImporter } from './FilePickerImporter/FilePickerImporter'
@@ -9,7 +9,7 @@ interface IImportWorkspaceProps {
 }
 
 const ImportWorkspace = ({ onImportedFiles }: IImportWorkspaceProps) => {
-  const { handleUploadFiles, isImporting } = useImportFiles()
+  const { handleUploadFiles, importError, isImporting } = useImportFiles()
 
   const handleFiles = (files: File[]) => {
     void handleUploadFiles(files).then((response) => {
@@ -33,6 +33,12 @@ const ImportWorkspace = ({ onImportedFiles }: IImportWorkspaceProps) => {
   return (
     <section className="import-workspace" aria-label="Import audio files">
       <FilePickerImporter onImport={handleFiles} disabled={isImporting} />
+      {importError && (
+        <div className="import-workspace__error" role="alert">
+          <AlertCircle aria-hidden="true" size={16} />
+          <span>{importError}</span>
+        </div>
+      )}
     </section>
   )
 }

@@ -3,10 +3,6 @@
   display: flex;
   flex-direction: column;
   min-width: 0;
-  overflow: auto;
+  overflow: hidden;
   background: var(--sl-surface);
-
-  &--copilot-open {
-    min-width: 0;
-  }
 }

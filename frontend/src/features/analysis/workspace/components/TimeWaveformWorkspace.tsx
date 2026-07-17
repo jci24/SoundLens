@@ -23,7 +23,6 @@ import {
   getObservationDelta,
   getObservationValue,
 } from '../../utils/comparisonEvidence'
-import type { IImportedFileSummary } from '../../../../common/contracts/import'
 import type {
   IComparisonCopilotSelection,
   IRecordingComparisonMetricAggregate,
@@ -34,7 +33,7 @@ import { useEffect, useMemo, useRef, useState } from 'react'
 import './TimeWaveformWorkspace.scss'
 
 interface ITimeWaveformWorkspaceProps {
-  importedFiles: IImportedFileSummary[]
+  importedRecordingCount: number
   isCopilotOpen: boolean
   onCopilotToggle: () => void
 }
@@ -47,7 +46,7 @@ interface IComparisonRequestState {
 
 const COPILOT_CLOSE_TRANSITION_MS = 220
 
-const TimeWaveformWorkspace = ({ importedFiles, isCopilotOpen, onCopilotToggle }: ITimeWaveformWorkspaceProps) => {
+const TimeWaveformWorkspace = ({ importedRecordingCount, isCopilotOpen, onCopilotToggle }: ITimeWaveformWorkspaceProps) => {
   const setComparisonCopilotContext = useAnalysisWorkspaceStore((state) => state.setComparisonCopilotContext)
   const [comparisonRequestState, setComparisonRequestState] = useState<IComparisonRequestState>({
     error: null,
@@ -102,7 +101,7 @@ const TimeWaveformWorkspace = ({ importedFiles, isCopilotOpen, onCopilotToggle }
     onSurfaceChange,
     onRegionOfInterestChange,
     regionOfInterest,
-  } = useTimeWaveformWorkspace(importedFiles)
+  } = useTimeWaveformWorkspace(importedRecordingCount)
   const waveformYAxis = waveforms?.yAxis ?? null
   const spectrumYAxis = spectrum?.yAxis ?? null
   const {

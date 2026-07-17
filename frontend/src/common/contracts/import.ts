@@ -5,6 +5,16 @@ export interface IImportedFileSummary {
   contentType: string
 }
 
+export interface IImportSessionFileSummary {
+  fileName: string
+  sizeBytes: number
+  contentType: string
+}
+
+export interface IImportSessionResponse {
+  files: IImportSessionFileSummary[]
+}
+
 export interface IImportFilesByPathRequest {
   filePaths: string[]
 }

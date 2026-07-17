@@ -101,6 +101,7 @@
     font-size: var(--font-md);
     font-weight: 500;
     text-align: left;
+    text-decoration: none;
     cursor: pointer;
     transition:
       background-color 120ms ease,
@@ -117,6 +118,17 @@
       background: var(--sl-surface-subtle);
       color: var(--foreground);
       font-weight: 600;
+    }
+
+    &--disabled {
+      color: var(--sl-text-muted);
+      cursor: not-allowed;
+      opacity: 0.48;
+
+      &:hover {
+        background: transparent;
+        color: var(--sl-text-muted);
+      }
     }
 
     &:focus-visible {

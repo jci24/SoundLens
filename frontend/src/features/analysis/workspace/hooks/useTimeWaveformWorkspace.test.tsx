@@ -110,7 +110,7 @@ describe('useTimeWaveformWorkspace', () => {
       },
     })
 
-    const { unmount } = renderHook(() => useTimeWaveformWorkspace(importedFiles))
+    const { unmount } = renderHook(() => useTimeWaveformWorkspace(importedFiles.length))
 
     await waitFor(() => {
       expect(mockGetTimeWaveforms).toHaveBeenCalledWith(256, [])
@@ -129,7 +129,7 @@ describe('useTimeWaveformWorkspace', () => {
       selectedSignals: [{ signalId: 'signal-default' }],
     })
 
-    const { unmount } = renderHook(() => useTimeWaveformWorkspace(importedFiles))
+    const { unmount } = renderHook(() => useTimeWaveformWorkspace(importedFiles.length))
 
     await waitFor(() => {
       expect(useAnalysisWorkspaceStore.getState().selectedSignalIds).toEqual(['signal-default'])
@@ -149,7 +149,7 @@ describe('useTimeWaveformWorkspace', () => {
       },
     })
 
-    const { result, unmount } = renderHook(() => useTimeWaveformWorkspace(importedFiles))
+    const { result, unmount } = renderHook(() => useTimeWaveformWorkspace(importedFiles.length))
 
     await waitFor(() => {
       expect(result.current.isSpectrumRefreshing).toBe(false)
@@ -180,7 +180,7 @@ describe('useTimeWaveformWorkspace', () => {
       },
     })
 
-    const { result, unmount } = renderHook(() => useTimeWaveformWorkspace(importedFiles))
+    const { result, unmount } = renderHook(() => useTimeWaveformWorkspace(importedFiles.length))
 
     await waitFor(() => {
       expect(result.current.isSpectrumRefreshing).toBe(false)
@@ -201,7 +201,7 @@ describe('useTimeWaveformWorkspace', () => {
       },
     })
 
-    const { result, rerender, unmount } = renderHook(() => useTimeWaveformWorkspace(importedFiles))
+    const { result, rerender, unmount } = renderHook(() => useTimeWaveformWorkspace(importedFiles.length))
 
     await waitFor(() => {
       expect(result.current.regionOfInterest).toEqual({
@@ -246,7 +246,7 @@ describe('useTimeWaveformWorkspace', () => {
       regionOfInterest: null,
     })
 
-    const { result, rerender, unmount } = renderHook(() => useTimeWaveformWorkspace(importedFiles))
+    const { result, rerender, unmount } = renderHook(() => useTimeWaveformWorkspace(importedFiles.length))
 
     await waitFor(() => {
       expect(result.current.waveforms).toEqual(waveformResponse)

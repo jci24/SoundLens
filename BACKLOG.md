@@ -65,6 +65,7 @@ Turn the current analysis workspace into a focused comparison workflow for repea
 - selected-comparison orchestration extracted from `AgentQueryHandler` behind a feature-owned resolver, trust-guard, prompt, model, parser, and fallback boundary
 - comparison-to-Copilot workflow regression covering metric and ROI freshness, identifier-only requests, grounded responses, refusal presentation, failure recovery, Re-run context, and store cleanup
 - workspace-aware Copilot routing with explicit-mention precedence, detailed selected-evidence scope, focused-mode assigned A/B comparison scope, visible focused-signal inspection, and deterministic single-signal metrics
+- functional Home, Import, and guarded Evidence routes with temporary-session restoration, persistent navigation, breadcrumbs, and explicit bootstrap recovery
 
 ## Ordered Thin Tasks
 
@@ -74,15 +75,17 @@ User value:
 - The existing evidence workflow feels like one precise professional engineering product without risking working comparison, playback, Copilot, or report behavior in a wholesale redesign.
 
 Ordered slices:
-1. completed: visual foundation with semantic tokens, Geist Mono, flat shell, and shared controls
-2. completed: workspace context rail with recording navigation, compact A/B setup, and unified header hierarchy
-3. completed: evidence canvas with a unified metric grid, compact transport and evidence tables, flat chart frames, and restrained ROI presentation
-4. next: utility surfaces for Evidence, Copilot, report dialogs, and popovers
-5. responsive states: import, loading, empty, error, narrow-screen, and accessibility polish
+1. completed: functional workflow shell with Home, dedicated Import, guarded Evidence, safe temporary-session restoration, navigation, and breadcrumbs
+2. next: investigation setup and A/B configuration page
+3. analysis selection plus review-and-run workflow
+4. Figma-composed Evidence workspace using the already shipped visual foundation, context rail, and evidence canvas
+5. report workflow and persisted platform pages only as their behavior becomes real
+6. responsive states and utility-surface polish across import, loading, empty, error, narrow-screen, Evidence, Copilot, dialogs, and popovers
 
 Boundary:
 - reuse current React, shadcn, Radix, SCSS, and feature components
 - do not copy generated Figma Make code or add placeholder platform routes
+- expose only destinations with working behavior; Projects, Sessions, Analysis Library, Reports, and History remain absent until implemented
 - merge and manually validate each slice before starting the next
 
 Priority:
@@ -125,9 +128,14 @@ Reason for deferral:
 
 ## Engineering Follow-Ups
 
+High priority before hosted multi-user deployment:
+
+- remove backend filesystem paths from the browser upload response and retire or isolate the local path-import contract; the new session-restoration endpoint is safe, but the legacy import response remains unchanged in this slice
+
 Normal priority:
 
 - replace the reflection-based OpenAI SDK test stub if the SDK exposes a stable testing seam
+- add the production-host SPA fallback configuration when a deployment target is selected so `/import` and `/evidence` survive direct navigation and refresh
 
 ## Deferred Work
 

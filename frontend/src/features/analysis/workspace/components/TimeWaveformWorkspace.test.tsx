@@ -327,7 +327,7 @@ describe('TimeWaveformWorkspace', () => {
 
     render(
       <TimeWaveformWorkspace
-        importedFiles={importedFiles}
+        importedRecordingCount={importedFiles.length}
         isCopilotOpen={false}
         onCopilotToggle={vi.fn()}
       />
@@ -380,7 +380,7 @@ describe('TimeWaveformWorkspace', () => {
 
     render(
       <TimeWaveformWorkspace
-        importedFiles={importedFiles}
+        importedRecordingCount={importedFiles.length}
         isCopilotOpen={false}
         onCopilotToggle={vi.fn()}
       />
@@ -435,7 +435,7 @@ describe('TimeWaveformWorkspace', () => {
 
     render(
       <TimeWaveformWorkspace
-        importedFiles={importedFiles}
+        importedRecordingCount={importedFiles.length}
         isCopilotOpen={false}
         onCopilotToggle={vi.fn()}
       />
@@ -482,7 +482,7 @@ describe('TimeWaveformWorkspace', () => {
 
     render(
       <TimeWaveformWorkspace
-        importedFiles={importedFiles}
+        importedRecordingCount={importedFiles.length}
         isCopilotOpen={false}
         onCopilotToggle={vi.fn()}
       />
@@ -530,7 +530,7 @@ describe('TimeWaveformWorkspace', () => {
 
     render(
       <TimeWaveformWorkspace
-        importedFiles={importedFiles}
+        importedRecordingCount={importedFiles.length}
         isCopilotOpen={false}
         onCopilotToggle={vi.fn()}
       />
@@ -580,7 +580,7 @@ describe('TimeWaveformWorkspace', () => {
 
     const { rerender } = render(
       <TimeWaveformWorkspace
-        importedFiles={importedFiles}
+        importedRecordingCount={importedFiles.length}
         isCopilotOpen={false}
         onCopilotToggle={vi.fn()}
       />
@@ -603,7 +603,7 @@ describe('TimeWaveformWorkspace', () => {
     mockUseTimeWaveformWorkspace.mockReturnValue(workspaceState)
     rerender(
       <TimeWaveformWorkspace
-        importedFiles={importedFiles}
+        importedRecordingCount={importedFiles.length}
         isCopilotOpen={false}
         onCopilotToggle={vi.fn()}
       />
@@ -651,7 +651,7 @@ describe('TimeWaveformWorkspace', () => {
 
     const { rerender } = render(
       <TimeWaveformWorkspace
-        importedFiles={importedFiles}
+        importedRecordingCount={importedFiles.length}
         isCopilotOpen={false}
         onCopilotToggle={vi.fn()}
       />
@@ -699,7 +699,7 @@ describe('TimeWaveformWorkspace', () => {
     mockUseTimeWaveformWorkspace.mockReturnValue(workspaceState)
     rerender(
       <TimeWaveformWorkspace
-        importedFiles={importedFiles}
+        importedRecordingCount={importedFiles.length}
         isCopilotOpen={false}
         onCopilotToggle={vi.fn()}
       />
@@ -750,7 +750,7 @@ describe('TimeWaveformWorkspace', () => {
 
     const { rerender } = render(
       <TimeWaveformWorkspace
-        importedFiles={importedFiles}
+        importedRecordingCount={importedFiles.length}
         isCopilotOpen
         onCopilotToggle={onCopilotToggle}
       />
@@ -766,7 +766,7 @@ describe('TimeWaveformWorkspace', () => {
     mockUseTimeWaveformWorkspace.mockReturnValue(workspaceState)
     rerender(
       <TimeWaveformWorkspace
-        importedFiles={importedFiles}
+        importedRecordingCount={importedFiles.length}
         isCopilotOpen={false}
         onCopilotToggle={onCopilotToggle}
       />
@@ -811,7 +811,7 @@ describe('TimeWaveformWorkspace', () => {
 
     render(
       <TimeWaveformWorkspace
-        importedFiles={importedFiles}
+        importedRecordingCount={importedFiles.length}
         isCopilotOpen
         onCopilotToggle={onCopilotToggle}
       />
@@ -870,7 +870,7 @@ describe('TimeWaveformWorkspace', () => {
 
     render(
       <TimeWaveformWorkspace
-        importedFiles={importedFiles}
+        importedRecordingCount={importedFiles.length}
         isCopilotOpen={false}
         onCopilotToggle={vi.fn()}
       />
@@ -902,7 +902,7 @@ describe('TimeWaveformWorkspace', () => {
 
     render(
       <TimeWaveformWorkspace
-        importedFiles={importedFiles}
+        importedRecordingCount={importedFiles.length}
         isCopilotOpen={false}
         onCopilotToggle={vi.fn()}
       />
@@ -941,7 +941,7 @@ describe('TimeWaveformWorkspace', () => {
 
     render(
       <TimeWaveformWorkspace
-        importedFiles={importedFiles}
+        importedRecordingCount={importedFiles.length}
         isCopilotOpen={false}
         onCopilotToggle={vi.fn()}
       />
@@ -986,7 +986,7 @@ describe('TimeWaveformWorkspace', () => {
 
     render(
       <TimeWaveformWorkspace
-        importedFiles={importedFiles}
+        importedRecordingCount={importedFiles.length}
         isCopilotOpen={false}
         onCopilotToggle={vi.fn()}
       />
@@ -1051,7 +1051,7 @@ describe('TimeWaveformWorkspace', () => {
     mockUseTimeWaveformWorkspace.mockReturnValue(workspaceState)
 
     render(
-      <TimeWaveformWorkspace importedFiles={importedFiles} isCopilotOpen={false} onCopilotToggle={vi.fn()} />
+      <TimeWaveformWorkspace importedRecordingCount={importedFiles.length} isCopilotOpen={false} onCopilotToggle={vi.fn()} />
     )
 
     await waitFor(() => expect(screen.getByRole('button', { name: 'Export report' })).toBeEnabled())
@@ -1094,7 +1094,7 @@ describe('TimeWaveformWorkspace', () => {
     mockUseTimeWaveformWorkspace.mockReturnValue(workspaceState)
 
     render(
-      <TimeWaveformWorkspace importedFiles={importedFiles} isCopilotOpen={false} onCopilotToggle={vi.fn()} />
+      <TimeWaveformWorkspace importedRecordingCount={importedFiles.length} isCopilotOpen={false} onCopilotToggle={vi.fn()} />
     )
 
     expect(screen.getByRole('button', { name: 'Export report' })).toBeDisabled()
@@ -1112,7 +1112,7 @@ describe('TimeWaveformWorkspace', () => {
     mockUseTimeWaveformWorkspace.mockReturnValue(workspaceState)
 
     render(
-      <TimeWaveformWorkspace importedFiles={importedFiles} isCopilotOpen={false} onCopilotToggle={vi.fn()} />
+      <TimeWaveformWorkspace importedRecordingCount={importedFiles.length} isCopilotOpen={false} onCopilotToggle={vi.fn()} />
     )
 
     await waitFor(() => expect(screen.getByRole('button', { name: 'Export report' })).toBeEnabled())
@@ -1155,7 +1155,7 @@ describe('TimeWaveformWorkspace', () => {
     mockExportComparisonReportMarkdown.mockRejectedValue(new Error('Export failed'))
 
     render(
-      <TimeWaveformWorkspace importedFiles={importedFiles} isCopilotOpen={false} onCopilotToggle={vi.fn()} />
+      <TimeWaveformWorkspace importedRecordingCount={importedFiles.length} isCopilotOpen={false} onCopilotToggle={vi.fn()} />
     )
 
     await waitFor(() => expect(screen.getByRole('button', { name: 'Export report' })).toBeEnabled())
@@ -1179,7 +1179,7 @@ describe('TimeWaveformWorkspace', () => {
     mockExportComparisonReportPdf.mockRejectedValue(new Error('PDF export failed'))
 
     render(
-      <TimeWaveformWorkspace importedFiles={importedFiles} isCopilotOpen={false} onCopilotToggle={vi.fn()} />
+      <TimeWaveformWorkspace importedRecordingCount={importedFiles.length} isCopilotOpen={false} onCopilotToggle={vi.fn()} />
     )
 
     await waitFor(() => expect(screen.getByRole('button', { name: 'Export report' })).toBeEnabled())
