@@ -18,6 +18,7 @@ const CopilotPanel = ({ selectedSignalIds, regionOfInterest, recordings }: ICopi
   const threadRef = useRef<HTMLDivElement | null>(null)
   const hasConversation = turns.length > 0
   const comparisonContext = useAnalysisWorkspaceStore((state) => state.comparisonCopilotContext)
+  const recordingGroupAssignments = useAnalysisWorkspaceStore((state) => state.recordingGroupAssignments)
 
   useEffect(() => {
     if (threadRef.current) {
@@ -28,16 +29,26 @@ const CopilotPanel = ({ selectedSignalIds, regionOfInterest, recordings }: ICopi
   const handleSubmit = (question: string) => {
     const mentionMatches = Array.from(question.matchAll(/@\[([^\]]+)\]\(([^)]+)\)/g))
     const mentionedIds = mentionMatches.map((m) => m[2])
+    const activeComparisonContext = mentionedIds.length > 0 ? undefined : comparisonContext ?? undefined
+    const recordingA = recordings.filter((recording) => recordingGroupAssignments[recording.recordingId] === 'A')
+    const recordingB = recordings.filter((recording) => recordingGroupAssignments[recording.recordingId] === 'B')
+    const comparisonPair = mentionedIds.length === 0 && !activeComparisonContext &&
+      recordingA.length === 1 && recordingB.length === 1
+      ? { recordingIdA: recordingA[0].recordingId, recordingIdB: recordingB[0].recordingId }
+      : undefined
     const resolvedIds = mentionedIds.length > 0
       ? mentionedIds
-      : selectedSignalIds.length > 0 ? selectedSignalIds : undefined
+      : activeComparisonContext
+        ? [activeComparisonContext.signalIdA, activeComparisonContext.signalIdB]
+        : selectedSignalIds.length > 0 ? selectedSignalIds : undefined
     const cleanQuestion = question.replace(/@\[([^\]]+)\]\([^)]+\)/g, '@$1')
     submit({
       question: cleanQuestion,
       signalIds: resolvedIds,
       startTimeSeconds: regionOfInterest?.startTimeSeconds,
       endTimeSeconds: regionOfInterest?.endTimeSeconds,
-      comparisonContext: comparisonContext ?? undefined,
+      comparisonContext: activeComparisonContext,
+      comparisonPair,
     })
   }
 

@@ -100,13 +100,9 @@ const useAnalysisWorkspaceStore = create<IAnalysisWorkspaceStore>((set) => ({
 
   syncSignalIds: (responseSignalIds) =>
     set((state) => {
-      if (state.selectedSignalIds.length === 0) {
-        return {}
-      }
-
-      const nextSignalIds = state.selectedSignalIds.filter((signalId) =>
-        responseSignalIds.includes(signalId)
-      )
+      const nextSignalIds = state.selectedSignalIds.length === 0
+        ? responseSignalIds
+        : state.selectedSignalIds.filter((signalId) => responseSignalIds.includes(signalId))
 
       return areSignalIdsEqual(state.selectedSignalIds, nextSignalIds)
         ? {}

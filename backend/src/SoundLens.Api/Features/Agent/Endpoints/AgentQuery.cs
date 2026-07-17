@@ -78,6 +78,21 @@ public sealed class AgentQuery : Endpoint<AgentQueryCommand, AgentQueryResponse>
                     .NotEmpty()
                     .WithMessage("ComparisonContext.SignalIdB is required.");
             });
+
+            When(q => q.ComparisonPair is not null, () =>
+            {
+                RuleFor(q => q.ComparisonPair!.RecordingIdA)
+                    .NotEmpty()
+                    .WithMessage("ComparisonPair.RecordingIdA is required.");
+
+                RuleFor(q => q.ComparisonPair!.RecordingIdB)
+                    .NotEmpty()
+                    .WithMessage("ComparisonPair.RecordingIdB is required.");
+
+                RuleFor(q => q.ComparisonPair!)
+                    .Must(pair => !string.Equals(pair.RecordingIdA, pair.RecordingIdB, StringComparison.Ordinal))
+                    .WithMessage("ComparisonPair recording IDs must refer to different recordings.");
+            });
         }
     }
 

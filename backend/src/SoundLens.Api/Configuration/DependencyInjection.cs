@@ -22,6 +22,7 @@ public static class DependencyInjection
         services.AddSingleton<SignalAlignmentService>();
         services.AddSingleton<RecordingComparisonAggregationService>();
         services.AddSingleton<IComparisonExplanationContextResolver, ComparisonExplanationContextResolver>();
+        services.AddSingleton<DeterministicSignalQueryResponder>();
         services.AddSingleton<SelectedComparisonOrchestrator>();
         services.AddSingleton<ComparisonReportPreparationService>();
 

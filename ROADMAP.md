@@ -285,6 +285,11 @@ Major capabilities:
 - progress, cancellation, failure, and trace contracts
 - read-only context and deterministic analysis capabilities
 
+Current foundation:
+- Copilot signal scope follows explicit mentions, selected aligned A/B evidence, an assigned A/B pair for focused-mode comparison intent, or the visible focused-workspace signal instead of treating every metric question as a comparison
+- deterministic RMS, peak, and clipping inspection supports one visible signal, while explicitly comparative questions can resolve all signals in the assigned A/B recordings through backend-owned session data
+- unsupported analyses remain bounded by the available backend capability set and must state missing evidence rather than inventing results
+
 Dependencies:
 - validated A/B workflow
 - stable evidence contracts

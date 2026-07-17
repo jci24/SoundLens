@@ -8,7 +8,12 @@ public sealed record AgentQueryCommand(
     IReadOnlyList<string>? SignalIds,
     double? StartTimeSeconds,
     double? EndTimeSeconds,
-    AgentComparisonSelection? ComparisonContext = null) : ICommand<AgentQueryResponse>;
+    AgentComparisonSelection? ComparisonContext = null,
+    AgentComparisonPair? ComparisonPair = null) : ICommand<AgentQueryResponse>;
+
+public sealed record AgentComparisonPair(
+    string RecordingIdA,
+    string RecordingIdB);
 
 public sealed record AgentComparisonSelection(
     string RecordingIdA,

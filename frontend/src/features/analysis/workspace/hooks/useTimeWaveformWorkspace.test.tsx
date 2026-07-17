@@ -123,6 +123,22 @@ describe('useTimeWaveformWorkspace', () => {
     unmount()
   })
 
+  it('synchronizes the default visible signal into the shared Copilot scope', async () => {
+    mockGetTimeWaveforms.mockResolvedValue({
+      ...waveformResponse,
+      selectedSignals: [{ signalId: 'signal-default' }],
+    })
+
+    const { unmount } = renderHook(() => useTimeWaveformWorkspace(importedFiles))
+
+    await waitFor(() => {
+      expect(useAnalysisWorkspaceStore.getState().selectedSignalIds).toEqual(['signal-default'])
+    })
+    expect(mockGetTimeWaveforms).toHaveBeenLastCalledWith(256, ['signal-default'])
+
+    unmount()
+  })
+
   it('does not repeatedly request ROI spectrum data in compare mode after the first selection settles', async () => {
     useAnalysisWorkspaceStore.setState({
       layoutMode: 'compare',
