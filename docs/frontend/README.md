@@ -79,7 +79,10 @@ Foundation rules:
 - Primary analysis-surface and layout tabs share one compact workspace toolbar; secondary spectrum controls remain adjacent to the surface they affect.
 - The recording context rail is a flat adjacent region separated by a hairline on desktop and a bottom boundary when stacked. Its explicit A/B slots, virtualized recording rows, and channel selection keep their existing stable-ID behavior.
 - Recording metadata, counts, A/B markers, and picker metadata use the mono data typeface; filenames and action labels remain in Geist.
-- Remaining visual migration work proceeds through separate evidence-canvas, utility-surface, and responsive-state slices so behavior remains reviewable.
+- Comparison metrics are one hairline evidence grid rather than separate elevated cards. The backend order stays fixed, and selection changes context without moving cells.
+- Persistent evidence surfaces avoid gradients and shadows. Chart shells, transport, ROI summaries, and metric tables use flat surfaces, compact spacing, and semantic boundaries; elevation remains reserved for overlays.
+- Chart axes and numerical evidence use Geist Mono. Teal identifies analysis data and ROI, while additional simultaneous series use neutral tones rather than unrelated status colors.
+- Remaining visual migration work proceeds through separate utility-surface and responsive-state slices so behavior remains reviewable.
 
 ## Workspace Layout Principles
 

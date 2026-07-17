@@ -2,7 +2,7 @@
   &__metrics-rail {
     min-width: 0;
     padding: 0.16rem 0 0.22rem;
-    border-top: 1px solid color-mix(in srgb, var(--border) 84%, transparent);
+    border-top: 1px solid var(--sl-hairline);
   }
 
   &__metrics-rail-header {
@@ -27,7 +27,7 @@
     overflow-y: auto;
     max-height: 9rem;
     scrollbar-width: thin;
-    scrollbar-color: color-mix(in srgb, var(--border) 60%, transparent) transparent;
+    scrollbar-color: color-mix(in srgb, var(--sl-hairline) 70%, transparent) transparent;
   }
 
   &__metrics-table {
@@ -41,13 +41,13 @@
       position: sticky;
       top: 0;
       z-index: 1;
-      background: color-mix(in srgb, var(--card) 98%, transparent);
+      background: var(--sl-surface);
     }
 
     th {
       padding: 0.18rem 0.55rem 0.22rem;
-      border-bottom: 1px solid color-mix(in srgb, var(--border) 58%, transparent);
-      color: var(--muted-foreground);
+      border-bottom: 1px solid var(--sl-hairline);
+      color: var(--sl-text-muted);
       font-weight: 500;
       font-size: var(--font-xs);
       text-align: right;
@@ -59,29 +59,31 @@
       }
 
       & + th {
-        border-inline-start: 1px solid color-mix(in srgb, var(--border) 34%, transparent);
+        border-inline-start: 1px solid var(--sl-hairline);
       }
     }
 
     td {
       padding: 0.2rem 0.55rem;
       font-weight: 600;
-      color: var(--foreground);
+      color: var(--sl-text);
       text-align: right;
       white-space: nowrap;
-      border-top: 1px solid color-mix(in srgb, var(--border) 50%, transparent);
+      border-top: 1px solid var(--sl-hairline);
+      font-family: var(--font-mono);
 
       &:first-child {
         text-align: left;
+        font-family: var(--font-sans);
       }
 
       & + td {
-        border-inline-start: 1px solid color-mix(in srgb, var(--border) 34%, transparent);
+        border-inline-start: 1px solid var(--sl-hairline);
       }
     }
 
     tbody tr:hover td {
-      background: color-mix(in srgb, var(--muted) 30%, transparent);
+      background: var(--sl-interactive-hover);
     }
   }
 
@@ -96,7 +98,7 @@
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
-    color: var(--muted-foreground);
+    color: var(--sl-text-muted);
     font-weight: 500;
     opacity: 0.8;
   }
@@ -105,7 +107,7 @@
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
-    color: var(--muted-foreground);
+    color: var(--sl-text-muted);
     opacity: 0.65;
     font-weight: 400;
   }

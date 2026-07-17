@@ -32,7 +32,10 @@ The current product is strong as an analysis workspace, but it is not yet a full
 - Teal remains an analysis accent rather than a general navigation color.
 - Waveform/Spectrum and Focused/Compare controls now share one compact workspace toolbar instead of occupying two stacked navigation bands.
 - The recording context rail uses a flat hairline boundary, compact searchable A/B slots, quieter recording rows, and restrained assignment markers while retaining virtualized large-session navigation.
-- Evidence-canvas, utility-surface, and responsive-state refinements remain separate follow-up slices.
+- Comparison metrics now read as one selectable evidence grid rather than four independent cards; selection uses a restrained analysis accent without changing metric order.
+- Playback, metrics tables, ROI summaries, and chart shells share compact hairline structure, while numerical values and axes use Geist Mono.
+- Waveform and spectrum series use the analysis teal plus neutral comparison tones instead of unrelated multicolor accents.
+- Utility-surface and responsive-state refinements remain separate follow-up slices.
 
 ## Import And Temporary Workspace Model
 

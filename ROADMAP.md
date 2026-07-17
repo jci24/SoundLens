@@ -17,7 +17,8 @@ Delivery order:
 Current status:
 - the visual foundation establishes the semantic token contract and edge-to-edge shell
 - the workspace context rail now consolidates analysis navigation into one toolbar and applies the flat hierarchy to A/B setup and virtualized recording navigation without changing behavior
-- the evidence canvas is the next ordered visual slice
+- the evidence canvas now applies one calm evidence grid, compact playback and tables, flat chart frames, mono data typography, and a restrained analysis-series palette
+- utility surfaces are the next ordered visual slice
 - future platform pages remain out of navigation until they have functional product scope
 
 Validation gate:

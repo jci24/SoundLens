@@ -3,8 +3,8 @@
   align-items: center;
   margin: 0;
   padding: 0.12rem;
-  border: 1px solid color-mix(in srgb, var(--border) 84%, transparent);
-  border-radius: 999px;
+  border: 1px solid var(--sl-hairline);
+  border-radius: var(--sl-radius-md);
 
   &__button {
     display: inline-flex;
@@ -14,17 +14,18 @@
     height: 1.55rem;
     padding: 0 0.42rem;
     border: 0;
-    border-radius: 999px;
+    border-radius: var(--sl-radius-sm);
     background: transparent;
-    color: var(--muted-foreground);
+    color: var(--sl-text-muted);
+    font-family: var(--font-mono);
     font-size: var(--font-xs);
     font-weight: 750;
     cursor: pointer;
   }
 
   &__button[aria-pressed='true'] {
-    background: var(--foreground);
-    color: var(--background);
+    background: var(--sl-interactive-selected);
+    color: var(--primary-foreground);
   }
 
   &__button:focus-visible {

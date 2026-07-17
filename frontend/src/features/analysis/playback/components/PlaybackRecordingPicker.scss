@@ -4,18 +4,19 @@
   justify-content: space-between;
   gap: 0.5rem;
   min-width: 0;
-  padding: 0.35rem 0.5rem;
-  border: 1px solid color-mix(in srgb, var(--border) 84%, transparent);
-  border-radius: 0.55rem;
+  min-height: var(--sl-control-height-md);
+  padding: 0.3rem 0.45rem;
+  border: 1px solid var(--sl-hairline);
+  border-radius: var(--sl-radius-md);
   background: transparent;
-  color: var(--foreground);
+  color: var(--sl-text);
   text-align: left;
   cursor: pointer;
 }
 
 .playback-recording-picker__trigger:hover,
 .playback-recording-picker__trigger[data-state='open'] {
-  background: color-mix(in srgb, var(--muted) 42%, transparent);
+  background: var(--sl-interactive-hover);
 }
 
 .playback-recording-picker__trigger-copy,
@@ -37,8 +38,9 @@
 .playback-recording-picker__trigger-copy span,
 .playback-recording-picker__option-copy span {
   overflow: hidden;
-  color: var(--muted-foreground);
-  font-size: 0.65rem;
+  color: var(--sl-text-muted);
+  font-family: var(--font-mono);
+  font-size: 0.625rem;
   text-overflow: ellipsis;
   white-space: nowrap;
 }

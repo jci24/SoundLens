@@ -4,12 +4,12 @@
   justify-content: space-between;
   gap: 0.3rem;
   max-width: 9rem;
-  height: 1.8rem;
+  height: var(--sl-control-height-sm);
   padding: 0 0.48rem;
-  border: 1px solid color-mix(in srgb, var(--border) 84%, transparent);
-  border-radius: 999px;
+  border: 1px solid var(--sl-hairline);
+  border-radius: var(--sl-radius-md);
   background: transparent;
-  color: var(--foreground);
+  color: var(--sl-text);
   font-size: var(--font-xs);
   cursor: pointer;
 
@@ -21,7 +21,7 @@
 
   &:hover,
   &[data-state='open'] {
-    background: color-mix(in srgb, var(--muted) 42%, transparent);
+    background: var(--sl-interactive-hover);
   }
 
   &:disabled {

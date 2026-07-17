@@ -2,10 +2,11 @@
   display: grid;
   grid-template-columns: auto minmax(10rem, 17rem) auto auto auto auto minmax(8rem, 1fr) auto auto minmax(0, auto);
   align-items: center;
-  gap: 0.45rem;
+  gap: 0.35rem;
   min-width: 0;
-  padding: 0.35rem 0.15rem 0.45rem;
-  border-bottom: 1px solid color-mix(in srgb, var(--border) 78%, transparent);
+  min-height: 2.65rem;
+  padding: 0.3rem 0;
+  border-block: 1px solid var(--sl-hairline);
 
   audio {
     display: none;
@@ -21,7 +22,7 @@
 
   &__identity {
     gap: 0.35rem;
-    color: var(--muted-foreground);
+    color: var(--sl-text-muted);
     font-size: var(--font-xs);
     font-weight: 700;
     letter-spacing: 0.04em;
@@ -32,33 +33,36 @@
   &__clear,
   &__loop {
     justify-content: center;
-    width: 1.9rem;
-    height: 1.9rem;
+    width: var(--sl-control-height-sm);
+    height: var(--sl-control-height-sm);
     padding: 0;
-    border: 1px solid color-mix(in srgb, var(--border) 84%, transparent);
-    border-radius: 999px;
+    border: 1px solid var(--sl-hairline);
+    border-radius: var(--sl-radius-md);
     background: transparent;
-    color: var(--foreground);
+    color: var(--sl-text);
     cursor: pointer;
   }
 
+  &__play {
+    background: var(--sl-interactive-selected);
+    color: var(--primary-foreground);
+  }
+
   &__clear {
-    width: 1.7rem;
-    height: 1.7rem;
+    width: 1.5rem;
+    height: 1.5rem;
     border: 0;
-    color: var(--muted-foreground);
+    color: var(--sl-text-muted);
   }
 
   &__loop {
-    width: 1.7rem;
-    height: 1.7rem;
-    color: var(--muted-foreground);
+    color: var(--sl-text-muted);
   }
 
   &__loop[aria-pressed='true'] {
-    border-color: var(--foreground);
-    background: var(--foreground);
-    color: var(--background);
+    border-color: var(--sl-analysis);
+    background: var(--sl-analysis-soft);
+    color: var(--sl-analysis);
   }
 
   &__loop:disabled {
@@ -73,11 +77,13 @@
 
   &__seek {
     width: 100%;
-    accent-color: var(--foreground);
+    height: 1rem;
+    accent-color: var(--sl-analysis);
   }
 
   &__time {
-    color: var(--muted-foreground);
+    color: var(--sl-text-muted);
+    font-family: var(--font-mono);
     font-size: var(--font-xs);
     font-variant-numeric: tabular-nums;
     white-space: nowrap;
@@ -85,13 +91,22 @@
 
   &__status {
     min-width: 0;
-    color: var(--muted-foreground);
+    color: var(--sl-text-muted);
+    font-family: var(--font-mono);
     font-size: 0.68rem;
     white-space: nowrap;
   }
 
   &__status--error {
     color: var(--destructive);
+  }
+
+  &__play:focus-visible,
+  &__clear:focus-visible,
+  &__loop:focus-visible,
+  &__seek:focus-visible {
+    outline: 2px solid var(--ring);
+    outline-offset: 2px;
   }
 }
 

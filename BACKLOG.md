@@ -76,8 +76,8 @@ User value:
 Ordered slices:
 1. completed: visual foundation with semantic tokens, Geist Mono, flat shell, and shared controls
 2. completed: workspace context rail with recording navigation, compact A/B setup, and unified header hierarchy
-3. next: evidence canvas with comparison metrics, transport, evidence tables, charts, and ROI presentation
-4. utility surfaces: Evidence, Copilot, report dialogs, and popovers
+3. completed: evidence canvas with a unified metric grid, compact transport and evidence tables, flat chart frames, and restrained ROI presentation
+4. next: utility surfaces for Evidence, Copilot, report dialogs, and popovers
 5. responsive states: import, loading, empty, error, narrow-screen, and accessibility polish
 
 Boundary:
