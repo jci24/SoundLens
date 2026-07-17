@@ -9,7 +9,7 @@ User outcome:
 
 Delivery order:
 1. functional Home, Import, and guarded Evidence workflow with safe temporary-session restoration
-2. investigation setup and A/B configuration page
+2. optional investigation setup and A/B configuration page
 3. analysis selection plus review-and-run workflow
 4. Figma-composed Evidence workspace using the existing visual foundation, context rail, and evidence canvas
 5. report workflow and persisted platform pages when their behavior and storage contracts exist
@@ -20,7 +20,8 @@ Current status:
 - the workspace context rail now consolidates analysis navigation into one toolbar and applies the flat hierarchy to A/B setup and virtualized recording navigation without changing behavior
 - the evidence canvas now applies one calm evidence grid, compact playback and tables, flat chart frames, mono data typography, and a restrained analysis-series palette
 - the first functional Figma workflow now exposes Home, Import, and Evidence through real URLs, persistent navigation, breadcrumbs, guarded direct access, and retryable temporary-session restoration
-- investigation setup and A/B configuration is the next ordered workflow slice
+- optional investigation setup now exposes backend-owned recording metadata and reuses the existing explicit A/B builder without blocking focused evidence
+- analysis selection and review-and-run is the next ordered workflow slice, but must not expose unimplemented methods or fabricated job progress
 - future platform pages remain out of navigation until they have functional product scope
 
 Validation gate:

@@ -6,7 +6,7 @@ Last updated: 2026-07-17
 
 Today SoundLens supports a deterministic analysis workspace for imported recordings:
 
-- move through functional Home, Import, and Evidence routes with persistent navigation and breadcrumbs
+- move through functional Home, Import, optional Configure, and Evidence routes with persistent navigation and breadcrumbs
 - import WAV recordings from the browser
 - persist uploaded files into a temporary local backend workspace
 - browse recordings and channels in a left rail
@@ -38,7 +38,7 @@ The current product is strong as an analysis workspace, but it is not yet a full
 - Comparison metrics now read as one selectable evidence grid rather than four independent cards; selection uses a restrained analysis accent without changing metric order.
 - Playback, metrics tables, ROI summaries, and chart shells share compact hairline structure, while numerical values and axes use Geist Mono.
 - Waveform and spectrum series use the analysis teal plus neutral comparison tones instead of unrelated multicolor accents.
-- Investigation setup, analysis selection, Figma-composed Evidence, report workflow, and responsive utility refinements remain separate follow-up slices.
+- Optional recording-level investigation setup now follows the Figma workflow without blocking focused evidence; analysis selection, Figma-composed Evidence, report workflow, and responsive utility refinements remain separate follow-up slices.
 
 ## Import And Temporary Workspace Model
 
@@ -46,10 +46,12 @@ The current product is strong as an analysis workspace, but it is not yet a full
 - The backend persists uploaded files into a temporary local workspace.
 - Imported files are also tracked in an in-memory import session used by analysis and Copilot requests.
 - `GET /api/import/session` returns ordered browser-safe filename, size, and content-type metadata so the frontend can restore the temporary session after a reload without receiving filesystem paths.
+- `GET /api/import/session/recordings` reads supported WAV headers and returns backend-owned recording IDs, duration, sample rate, channel count, and stable signal identities without generating waveform or spectrum evidence.
 - Session bootstrap has explicit loading, failure, retry, empty, and populated states. Direct Evidence navigation waits for bootstrap and redirects to Import only after an empty session is confirmed.
 - The current model is session-oriented rather than project-oriented or persistent.
 - The frontend tracks the two recording-level comparison targets locally so the A/B workflow is visible before a persisted comparison object exists.
 - Compare A and Compare B use explicit accessible recording pickers with replace, clear, duplicate prevention, and atomic swap behavior.
+- Multi-file imports suggest the optional Configure route; users can still bypass A/B setup for focused evidence, while single-file imports continue directly to Evidence.
 - The backend now includes a deterministic pairwise signal-alignment contract that classifies matches as name-based, index-based, ambiguous, or missing.
 - The backend now exposes a pairwise recording-comparison contract with optional ROI, aligned-signal pairs, per-pair metric observations, aggregate delta summaries, and explicit limitation reporting.
 - Inconsistent or legacy multi-assignment state blocks comparison and asks the user to resolve the pair instead of silently selecting the first recording.

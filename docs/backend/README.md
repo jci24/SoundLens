@@ -57,6 +57,8 @@ Current import guidance:
 - Support a browser-friendly multipart upload path for demo readiness and self-serve trials.
 - Normalize both import modes to the same imported-file session contract so downstream DSP and evidence code can stay transport-agnostic.
 - Set explicit bounded upload limits for Kestrel request bodies and multipart form parsing; do not rely on defaults for audio import flows.
+- `GET /api/import/session` remains the lightweight route-restoration contract. `GET /api/import/session/recordings` is the configuration inventory contract and returns backend-owned stable IDs plus WAV header metadata without waveform bins, measurements, calibration claims, or filesystem paths.
+- Unsupported or malformed files remain explicit in the recording inventory's `failedFiles` list; the backend does not fabricate metadata to keep a setup row visible.
 
 Current waveform guidance:
 

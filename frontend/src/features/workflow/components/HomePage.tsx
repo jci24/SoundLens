@@ -1,4 +1,4 @@
-import { ArrowRight, Upload } from 'lucide-react'
+import { ArrowRight, SlidersHorizontal, Upload } from 'lucide-react'
 import { Link } from 'react-router'
 import { Button } from '../../../components/ui/button'
 import type { IImportSessionFileSummary } from '../../../common/contracts/import'
@@ -56,12 +56,26 @@ const HomePage = ({ error, files, onRetry, status }: IHomePageProps) => {
             ))}
           </ul>
           <div className="home-page__actions">
-            <Button asChild>
-              <Link to="/evidence">
-                Continue to evidence
-                <ArrowRight aria-hidden="true" />
-              </Link>
-            </Button>
+            {files.length > 1 ? (
+              <Button asChild>
+                <Link to="/setup">
+                  <SlidersHorizontal aria-hidden="true" />
+                  Configure comparison
+                </Link>
+              </Button>
+            ) : (
+              <Button asChild>
+                <Link to="/evidence">
+                  Inspect recording
+                  <ArrowRight aria-hidden="true" />
+                </Link>
+              </Button>
+            )}
+            {files.length > 1 && (
+              <Button asChild variant="outline">
+                <Link to="/evidence">Open focused evidence</Link>
+              </Button>
+            )}
             <Button asChild variant="outline">
               <Link to="/import">Replace recordings</Link>
             </Button>

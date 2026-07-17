@@ -76,8 +76,8 @@ User value:
 
 Ordered slices:
 1. completed: functional workflow shell with Home, dedicated Import, guarded Evidence, safe temporary-session restoration, navigation, and breadcrumbs
-2. next: investigation setup and A/B configuration page
-3. analysis selection plus review-and-run workflow
+2. completed: optional investigation setup with backend-owned recording inventory, explicit A/B configuration, and direct focused-evidence escape path
+3. next: analysis selection plus review-and-run workflow, bounded to analyses and execution behavior that actually exist
 4. Figma-composed Evidence workspace using the already shipped visual foundation, context rail, and evidence canvas
 5. report workflow and persisted platform pages only as their behavior becomes real
 6. responsive states and utility-surface polish across import, loading, empty, error, narrow-screen, Evidence, Copilot, dialogs, and popovers

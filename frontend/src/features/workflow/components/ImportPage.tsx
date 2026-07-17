@@ -15,7 +15,7 @@ const ImportPage = ({ hasRecordings, onImportedFiles }: IImportPageProps) => {
 
   const handleImportedFiles = (files: IImportedFileSummary[]) => {
     onImportedFiles(files)
-    navigate('/evidence')
+    navigate(files.length > 1 ? '/setup' : '/evidence')
   }
 
   return (

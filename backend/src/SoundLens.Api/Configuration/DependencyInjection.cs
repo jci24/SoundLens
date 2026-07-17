@@ -17,6 +17,7 @@ public static class DependencyInjection
     {
         // Add application services and configurations here
         services.AddSingleton<IImportedFileStore, InMemoryImportedFileStore>();
+        services.AddSingleton<IImportedRecordingMetadataReader, WavImportedRecordingMetadataReader>();
         services.AddSingleton<IWaveformService, WaveformService>();
         services.AddSingleton<ISpectrumService, SpectrumService>();
         services.AddSingleton<SignalAlignmentService>();

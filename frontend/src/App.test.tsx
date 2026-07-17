@@ -9,16 +9,31 @@ vi.mock('./features/workflow/components/EvidencePage', () => ({
   ),
 }))
 
+vi.mock('./features/workflow/components/InvestigationSetupPage', () => ({
+  InvestigationSetupPage: () => <div>Configure comparison workspace</div>,
+}))
+
 vi.mock('./features/import/components/ImportWorkspace', () => ({
   ImportWorkspace: ({ onImportedFiles }: { onImportedFiles: (files: unknown[]) => void }) => (
-    <button
-      type="button"
-      onClick={() => onImportedFiles([
-        { fileName: 'new.wav', sizeBytes: 42, filePath: '/private/new.wav', contentType: 'audio/wav' },
-      ])}
-    >
-      Complete import
-    </button>
+    <>
+      <button
+        type="button"
+        onClick={() => onImportedFiles([
+          { fileName: 'new.wav', sizeBytes: 42, filePath: '/private/new.wav', contentType: 'audio/wav' },
+        ])}
+      >
+        Complete import
+      </button>
+      <button
+        type="button"
+        onClick={() => onImportedFiles([
+          { fileName: 'baseline.wav', sizeBytes: 42, filePath: '/private/baseline.wav', contentType: 'audio/wav' },
+          { fileName: 'candidate.wav', sizeBytes: 43, filePath: '/private/candidate.wav', contentType: 'audio/wav' },
+        ])}
+      >
+        Complete multi-file import
+      </button>
+    </>
   ),
 }))
 
@@ -50,6 +65,10 @@ describe('App workflow routes', () => {
     expect(await screen.findByRole('heading', { name: 'Current investigation' })).toBeInTheDocument()
     expect(screen.getByText('baseline.wav')).toBeInTheDocument()
     expect(screen.getByRole('link', { name: 'Evidence' })).toHaveAttribute('href', '/evidence')
+    expect(screen.getAllByRole('link', { name: 'Configure comparison' })).toHaveLength(2)
+    expect(screen.getAllByRole('link', { name: 'Configure comparison' })).toEqual(
+      expect.arrayContaining([expect.objectContaining({ pathname: '/setup' })])
+    )
     expect(screen.getByText(/not yet a saved project/i)).toBeInTheDocument()
   })
 
@@ -89,6 +108,26 @@ describe('App workflow routes', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Complete import' }))
 
     expect(await screen.findByText('Evidence workspace with 1 recordings')).toBeInTheDocument()
+  })
+
+  it('suggests optional comparison configuration after a multi-file import', async () => {
+    vi.stubGlobal('fetch', vi.fn().mockResolvedValue({ ok: true, json: async () => populatedSession }))
+
+    renderApp('/import')
+    expect(await screen.findByRole('heading', { name: 'Replace recordings' })).toBeInTheDocument()
+    fireEvent.click(screen.getByRole('button', { name: 'Complete multi-file import' }))
+
+    expect(await screen.findByText('Configure comparison workspace')).toBeInTheDocument()
+    expect(screen.getByText('Configure', { selector: '[aria-current="page"]' })).toBeInTheDocument()
+  })
+
+  it('redirects an empty direct Configure route to Import', async () => {
+    vi.stubGlobal('fetch', vi.fn().mockResolvedValue({ ok: true, json: async () => ({ files: [] }) }))
+
+    renderApp('/setup')
+
+    expect(await screen.findByRole('heading', { name: 'Import recordings' })).toBeInTheDocument()
+    expect(screen.getByLabelText('Configure unavailable until recordings are imported')).toHaveAttribute('aria-disabled', 'true')
   })
 
   it('shows a retryable bootstrap failure and recovers without treating the session as empty', async () => {

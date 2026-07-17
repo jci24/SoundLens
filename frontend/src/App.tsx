@@ -6,6 +6,7 @@ import { useCurrentImportSession } from './features/import/hooks/useCurrentImpor
 import { EvidencePage } from './features/workflow/components/EvidencePage'
 import { HomePage } from './features/workflow/components/HomePage'
 import { ImportPage } from './features/workflow/components/ImportPage'
+import { InvestigationSetupPage } from './features/workflow/components/InvestigationSetupPage'
 import { RouteState } from './features/workflow/components/RouteState'
 import './App.scss'
 
@@ -31,6 +32,13 @@ const App = () => {
             onImportedFiles={session.acceptImportedFiles}
           />
         )
+  const setupRoute = session.status === 'loading'
+    ? <RouteState title="Restoring temporary workspace" />
+    : session.status === 'error'
+      ? <RouteState error={session.error} onRetry={session.retry} title="Workspace restoration failed" />
+      : hasRecordings
+        ? <InvestigationSetupPage />
+        : <Navigate replace to="/import" />
 
   return (
     <div className="app">
@@ -56,6 +64,7 @@ const App = () => {
             }
           />
           <Route path="import" element={importRoute} />
+          <Route path="setup" element={setupRoute} />
           <Route path="evidence" element={evidenceRoute} />
           <Route path="*" element={<Navigate replace to="/" />} />
         </Route>

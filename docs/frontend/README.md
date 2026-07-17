@@ -83,18 +83,21 @@ Foundation rules:
 - Comparison metrics are one hairline evidence grid rather than separate elevated cards. The backend order stays fixed, and selection changes context without moving cells.
 - Persistent evidence surfaces avoid gradients and shadows. Chart shells, transport, ROI summaries, and metric tables use flat surfaces, compact spacing, and semantic boundaries; elevation remains reserved for overlays.
 - Chart axes and numerical evidence use Geist Mono. Teal identifies analysis data and ROI, while additional simultaneous series use neutral tones rather than unrelated status colors.
-- Remaining migration work proceeds through functional setup, analysis selection, Evidence composition, report, and responsive utility slices so behavior remains reviewable.
+- The optional Configure route reuses the real A/B picker and Zustand assignment actions. Multi-file imports recommend it, but users can continue directly to focused Evidence; channel selection and ROI remain in Evidence where their visual context exists.
+- Remaining migration work proceeds through analysis selection, Evidence composition, report, and responsive utility slices so behavior remains reviewable.
 
 ## Routing And Temporary Session Ownership
 
-- `BrowserRouter` owns real URLs for `/`, `/import`, and `/evidence`; unknown routes return to Home.
+- `BrowserRouter` owns real URLs for `/`, `/import`, `/setup`, and `/evidence`; unknown routes return to Home.
 - Production hosting must rewrite application routes to `index.html` so direct URLs and browser refreshes reach React Router.
 - The persistent shell owns primary navigation, collapse state, and breadcrumbs. It exposes only destinations with implemented behavior.
 - Home describes the product and summarizes the current temporary backend session. It must not imply saved projects, sessions, reports, or history.
-- Import owns browser file selection and replacement. A completed import updates the safe frontend session summary and navigates to Evidence.
+- Import owns browser file selection and replacement. A completed single-file import navigates to focused Evidence; a multi-file import recommends the optional Configure route.
 - `GET /api/import/session` is the restoration boundary. The frontend receives ordered filename, byte-size, and content-type metadata, never backend filesystem paths.
+- Configure obtains recording IDs, duration, sample rate, channels, and signal display names from `GET /api/import/session/recordings`. It does not derive metadata or request chart bins merely to populate setup.
 - Session bootstrap must distinguish loading, retryable failure, confirmed empty, and populated states. Evidence redirects to Import only after an empty session is confirmed.
 - Evidence owns the analysis workspace and local Copilot-open state. Route unmount closes playback, dialogs, and utility surfaces, while valid Zustand-owned signal, A/B, metric, and ROI selection can survive route navigation.
+- Configure owns recording-level A/B assignment only. Channel selection and temporal ROI remain Evidence interactions rather than disconnected setup fields.
 - Returning to Evidence refetches backend evidence. The session summary is a route guard, not a numerical source of truth.
 
 ## Workspace Layout Principles
