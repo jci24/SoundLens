@@ -1,7 +1,11 @@
 import type { IComparisonCopilotSelection } from '../../types'
 
+export type TCopilotContextMode = 'auto' | 'workspace' | 'general'
+export type TCopilotAnswerMode = 'workspace' | 'general'
+
 export interface IAgentQueryRequest {
   question: string
+  contextMode?: TCopilotContextMode
   signalIds?: string[]
   startTimeSeconds?: number
   endTimeSeconds?: number
@@ -20,6 +24,7 @@ export interface IAgentEvidenceItem {
 
 export interface IAgentQueryResponse {
   answer: string
+  answerMode?: TCopilotAnswerMode
   citedEvidence: IAgentEvidenceItem[]
   limitations: string[]
   nextSteps: string[]

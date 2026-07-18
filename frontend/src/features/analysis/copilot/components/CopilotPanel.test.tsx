@@ -2,10 +2,12 @@ import { fireEvent, render, screen } from '@testing-library/react'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { useAnalysisWorkspaceStore } from '../../stores/useAnalysisWorkspaceStore'
 import type { ITimeWaveformRecording } from '../../types'
+import type { TCopilotContextMode } from '../types/copilot.types'
 import { CopilotPanel } from './CopilotPanel'
 
 const submitSpy = vi.fn()
 let submittedQuestion = 'Explain this difference'
+let submittedContextMode: TCopilotContextMode = 'auto'
 const recordings: ITimeWaveformRecording[] = [
   {
     recordingId: 'recording-a',
@@ -39,8 +41,8 @@ vi.mock('../hooks/useCopilotQuery', () => ({
 }))
 
 vi.mock('./CopilotInput', () => ({
-  CopilotInput: ({ onSubmit }: { onSubmit: (question: string) => void }) => (
-    <button type="button" onClick={() => onSubmit(submittedQuestion)}>
+  CopilotInput: ({ onSubmit }: { onSubmit: (question: string, contextMode: TCopilotContextMode) => void }) => (
+    <button type="button" onClick={() => onSubmit(submittedQuestion, submittedContextMode)}>
       Ask
     </button>
   ),
@@ -50,6 +52,7 @@ describe('CopilotPanel', () => {
   beforeEach(() => {
     submitSpy.mockReset()
     submittedQuestion = 'Explain this difference'
+    submittedContextMode = 'auto'
     useAnalysisWorkspaceStore.setState({
       recordingGroupAssignments: {},
       comparisonCopilotContext: {
@@ -79,6 +82,7 @@ describe('CopilotPanel', () => {
 
     expect(submitSpy).toHaveBeenCalledWith({
       question: 'Explain this difference',
+      contextMode: 'auto',
       signalIds: ['signal-a', 'signal-b'],
       startTimeSeconds: 0.25,
       endTimeSeconds: 0.75,
@@ -128,6 +132,7 @@ describe('CopilotPanel', () => {
 
     expect(submitSpy).toHaveBeenCalledWith({
       question: 'What is the RMS level?',
+      contextMode: 'auto',
       signalIds: ['signal-focused'],
       startTimeSeconds: undefined,
       endTimeSeconds: undefined,
@@ -154,6 +159,7 @@ describe('CopilotPanel', () => {
 
     expect(submitSpy).toHaveBeenCalledWith({
       question: 'Which signal is louder by RMS?',
+      contextMode: 'auto',
       signalIds: ['signal-a'],
       startTimeSeconds: undefined,
       endTimeSeconds: undefined,
@@ -179,7 +185,36 @@ describe('CopilotPanel', () => {
 
     expect(submitSpy).toHaveBeenCalledWith({
       question: 'Inspect @Reference RMS',
+      contextMode: 'workspace',
       signalIds: ['signal-reference'],
+      startTimeSeconds: undefined,
+      endTimeSeconds: undefined,
+      comparisonContext: undefined,
+      comparisonPair: undefined,
+    })
+  })
+
+  it('omits every workspace identifier when General mode is forced', () => {
+    submittedQuestion = 'Explain the Nyquist theorem.'
+    submittedContextMode = 'general'
+    render(
+      <CopilotPanel
+        recordings={recordings}
+        regionOfInterest={{
+          startTimeSeconds: 0.25,
+          endTimeSeconds: 0.75,
+          durationSeconds: 0.5,
+        }}
+        selectedSignalIds={['signal-a', 'signal-b']}
+      />
+    )
+
+    fireEvent.click(screen.getByRole('button', { name: 'Ask' }))
+
+    expect(submitSpy).toHaveBeenCalledWith({
+      question: 'Explain the Nyquist theorem.',
+      contextMode: 'general',
+      signalIds: undefined,
       startTimeSeconds: undefined,
       endTimeSeconds: undefined,
       comparisonContext: undefined,

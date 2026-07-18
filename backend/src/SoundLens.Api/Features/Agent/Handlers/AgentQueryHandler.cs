@@ -23,6 +23,8 @@ public sealed class AgentQueryHandler(
     IImportedFileStore importedFileStore,
     IWaveformService waveformService,
     DeterministicSignalQueryResponder deterministicSignalQueryResponder,
+    AgentContextRouter contextRouter,
+    GeneralKnowledgeResponder generalKnowledgeResponder,
     SelectedComparisonOrchestrator selectedComparisonOrchestrator) : CommandHandler<AgentQueryCommand, AgentQueryResponse>
 {
     private sealed record AgentAvailableSignal(string SignalId, string DisplayName, string FileName);
@@ -74,19 +76,32 @@ public sealed class AgentQueryHandler(
 
     public override async Task<AgentQueryResponse> ExecuteAsync(AgentQueryCommand command, CancellationToken ct = default)
     {
-        AgentQueryResponse? deterministicSignalResponse;
-        try
+        var requestedContextMode = AgentContextModes.Normalize(command.ContextMode);
+        if (requestedContextMode != AgentContextModes.General)
         {
-            deterministicSignalResponse = await deterministicSignalQueryResponder.TryBuildAsync(command, ct);
+            AgentQueryResponse? deterministicSignalResponse;
+            try
+            {
+                deterministicSignalResponse = await deterministicSignalQueryResponder.TryBuildAsync(command, ct);
+            }
+            catch (ArgumentException exception)
+            {
+                ThrowError(exception.Message);
+                throw;
+            }
+            if (deterministicSignalResponse is not null)
+            {
+                return deterministicSignalResponse;
+            }
         }
-        catch (ArgumentException exception)
+
+        var resolvedContextMode = await contextRouter.ResolveAsync(
+            command,
+            importedFileStore.CurrentFiles.Count,
+            ct);
+        if (resolvedContextMode == AgentContextModes.General)
         {
-            ThrowError(exception.Message);
-            throw;
-        }
-        if (deterministicSignalResponse is not null)
-        {
-            return deterministicSignalResponse;
+            return await generalKnowledgeResponder.BuildAsync(command.Question, ct);
         }
 
         AgentQueryResponse? comparisonExplanationResponse;

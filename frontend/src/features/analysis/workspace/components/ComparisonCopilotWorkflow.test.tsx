@@ -190,6 +190,7 @@ describe('comparison-to-Copilot workflow', () => {
     await waitFor(() => expect(mockPostAgentQuery).toHaveBeenCalledTimes(1))
     expect(mockPostAgentQuery.mock.calls[0]?.[0]).toEqual({
       question: 'Explain the selected comparison',
+      contextMode: 'auto',
       signalIds: ['signal-a', 'signal-b'],
       startTimeSeconds: 0.1,
       endTimeSeconds: 0.4,
@@ -200,6 +201,7 @@ describe('comparison-to-Copilot workflow', () => {
         signalIdA: 'signal-a',
         signalIdB: 'signal-b',
       },
+      comparisonPair: undefined,
     })
     expect(Object.keys(mockPostAgentQuery.mock.calls[0]?.[0]?.comparisonContext).sort()).toEqual([
       'metricKey', 'recordingIdA', 'recordingIdB', 'signalIdA', 'signalIdB',

@@ -50,6 +50,42 @@ public sealed class AgentQueryValidatorTests
         Assert.True(result.IsValid);
     }
 
+    [Theory]
+    [InlineData("auto")]
+    [InlineData("workspace")]
+    [InlineData("general")]
+    [InlineData(null)]
+    public async Task SupportedContextMode_PassesValidation(string? contextMode)
+    {
+        var validator = CreateValidator();
+        var command = new AgentQueryCommand(
+            "Explain Fourier analysis.",
+            null,
+            null,
+            null,
+            ContextMode: contextMode);
+
+        var result = await validator.ValidateAsync(command);
+
+        Assert.DoesNotContain(result.Errors, error => error.PropertyName == nameof(AgentQueryCommand.ContextMode));
+    }
+
+    [Fact]
+    public async Task UnsupportedContextMode_FailsValidation()
+    {
+        var validator = CreateValidator();
+        var command = new AgentQueryCommand(
+            "Explain Fourier analysis.",
+            null,
+            null,
+            null,
+            ContextMode: "internet");
+
+        var result = await validator.ValidateAsync(command);
+
+        Assert.Contains(result.Errors, error => error.ErrorMessage.Contains("auto, workspace, or general"));
+    }
+
     [Fact]
     public async Task StartTimeWithoutEndTime_FailsValidation()
     {
@@ -88,6 +124,29 @@ public sealed class AgentQueryValidatorTests
     {
         var validator = CreateValidator();
         var command = new AgentQueryCommand("Test question", null, StartTimeSeconds: 1.0, EndTimeSeconds: 3.0);
+
+        var result = await validator.ValidateAsync(command);
+
+        Assert.True(result.IsValid);
+    }
+
+    [Fact]
+    public async Task GeneralMode_IgnoresMalformedWorkspaceContext()
+    {
+        var validator = CreateValidator();
+        var command = new AgentQueryCommand(
+            "Explain Fourier analysis.",
+            ["stale-signal"],
+            StartTimeSeconds: 2.0,
+            EndTimeSeconds: null,
+            ComparisonContext: new AgentComparisonSelection(
+                "same-recording",
+                "same-recording",
+                "unsupportedMetric",
+                "signal-a",
+                "signal-b"),
+            ComparisonPair: new AgentComparisonPair("same-recording", "same-recording"),
+            ContextMode: "general");
 
         var result = await validator.ValidateAsync(command);
 

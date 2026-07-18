@@ -5,6 +5,7 @@ import { CopilotResponse } from './CopilotResponse'
 import { useCopilotQuery } from '../hooks/useCopilotQuery'
 import { useAnalysisWorkspaceStore } from '../../stores/useAnalysisWorkspaceStore'
 import type { IAnalysisRegionOfInterest, ITimeWaveformRecording } from '../../types'
+import type { TCopilotContextMode } from '../types/copilot.types'
 import './CopilotPanel.scss'
 
 interface ICopilotPanelProps {
@@ -26,17 +27,35 @@ const CopilotPanel = ({ selectedSignalIds, regionOfInterest, recordings }: ICopi
     }
   }, [turns, isLoading])
 
-  const handleSubmit = (question: string) => {
+  const assignedRecordingCount = recordings.filter((recording) =>
+    recordingGroupAssignments[recording.recordingId] === 'A' ||
+    recordingGroupAssignments[recording.recordingId] === 'B'
+  ).length
+  const workspaceContextLabel = comparisonContext
+    ? 'Selected comparison attached'
+    : assignedRecordingCount === 2
+      ? 'Assigned A/B pair attached'
+      : selectedSignalIds.length > 0
+        ? `${selectedSignalIds.length} selected signal${selectedSignalIds.length === 1 ? '' : 's'} attached`
+        : 'No workspace evidence attached'
+
+  const handleSubmit = (question: string, contextMode: TCopilotContextMode) => {
     const mentionMatches = Array.from(question.matchAll(/@\[([^\]]+)\]\(([^)]+)\)/g))
     const mentionedIds = mentionMatches.map((m) => m[2])
-    const activeComparisonContext = mentionedIds.length > 0 ? undefined : comparisonContext ?? undefined
+    const effectiveContextMode = mentionedIds.length > 0 ? 'workspace' : contextMode
+    const shouldAttachWorkspace = effectiveContextMode !== 'general'
+    const activeComparisonContext = shouldAttachWorkspace && mentionedIds.length === 0
+      ? comparisonContext ?? undefined
+      : undefined
     const recordingA = recordings.filter((recording) => recordingGroupAssignments[recording.recordingId] === 'A')
     const recordingB = recordings.filter((recording) => recordingGroupAssignments[recording.recordingId] === 'B')
-    const comparisonPair = mentionedIds.length === 0 && !activeComparisonContext &&
+    const comparisonPair = shouldAttachWorkspace && mentionedIds.length === 0 && !activeComparisonContext &&
       recordingA.length === 1 && recordingB.length === 1
       ? { recordingIdA: recordingA[0].recordingId, recordingIdB: recordingB[0].recordingId }
       : undefined
-    const resolvedIds = mentionedIds.length > 0
+    const resolvedIds = !shouldAttachWorkspace
+      ? undefined
+      : mentionedIds.length > 0
       ? mentionedIds
       : activeComparisonContext
         ? [activeComparisonContext.signalIdA, activeComparisonContext.signalIdB]
@@ -44,9 +63,10 @@ const CopilotPanel = ({ selectedSignalIds, regionOfInterest, recordings }: ICopi
     const cleanQuestion = question.replace(/@\[([^\]]+)\]\([^)]+\)/g, '@$1')
     submit({
       question: cleanQuestion,
+      contextMode: effectiveContextMode,
       signalIds: resolvedIds,
-      startTimeSeconds: regionOfInterest?.startTimeSeconds,
-      endTimeSeconds: regionOfInterest?.endTimeSeconds,
+      startTimeSeconds: shouldAttachWorkspace ? regionOfInterest?.startTimeSeconds : undefined,
+      endTimeSeconds: shouldAttachWorkspace ? regionOfInterest?.endTimeSeconds : undefined,
       comparisonContext: activeComparisonContext,
       comparisonPair,
     })
@@ -58,7 +78,7 @@ const CopilotPanel = ({ selectedSignalIds, regionOfInterest, recordings }: ICopi
         {!hasConversation && (
           <div className="copilot-panel__empty-state">
             <p className="copilot-panel__empty-label">Copilot</p>
-            <p className="copilot-panel__empty-hint">Ask a question about the loaded recordings.</p>
+            <p className="copilot-panel__empty-hint">Ask about your evidence or a general technical question.</p>
           </div>
         )}
 
@@ -99,6 +119,7 @@ const CopilotPanel = ({ selectedSignalIds, regionOfInterest, recordings }: ICopi
           isLoading={isLoading}
           recordings={recordings}
           showSuggestions={!hasConversation}
+          workspaceContextLabel={workspaceContextLabel}
           onSubmit={handleSubmit}
         />
       </div>

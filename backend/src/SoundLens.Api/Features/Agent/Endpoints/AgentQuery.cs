@@ -1,6 +1,7 @@
 using FastEndpoints;
 using FluentValidation;
 using SoundLens.Api.Features.Agent.Commands;
+using SoundLens.Api.Features.Agent.Common;
 using SoundLens.Api.Features.Agent.Responses;
 
 namespace SoundLens.Api.Features.Agent.Endpoints;
@@ -17,7 +18,7 @@ public sealed class AgentQuery : Endpoint<AgentQueryCommand, AgentQueryResponse>
         Summary(s =>
         {
             s.Summary = "Ask the AI copilot a question about the loaded recordings.";
-            s.Description = "The agent decides which DSP tools to run, executes them against the backend services, and returns a grounded answer citing only measured evidence.";
+            s.Description = "The Copilot routes general knowledge separately from workspace questions. Workspace answers cite only backend-resolved evidence.";
         });
     }
 
@@ -31,11 +32,20 @@ public sealed class AgentQuery : Endpoint<AgentQueryCommand, AgentQueryResponse>
                 .MaximumLength(500)
                 .WithMessage("Question must be 500 characters or fewer.");
 
+            RuleFor(q => q.ContextMode)
+                .Must(contextMode => AgentContextModes.Normalize(contextMode) is
+                    AgentContextModes.Auto or
+                    AgentContextModes.Workspace or
+                    AgentContextModes.General)
+                .WithMessage("ContextMode must be auto, workspace, or general.");
+
             RuleFor(q => q)
-                .Must(q => (q.StartTimeSeconds is null) == (q.EndTimeSeconds is null))
+                .Must(q => AgentContextModes.Normalize(q.ContextMode) == AgentContextModes.General ||
+                    (q.StartTimeSeconds is null) == (q.EndTimeSeconds is null))
                 .WithMessage("StartTimeSeconds and EndTimeSeconds must be provided together.");
 
-            When(q => q.StartTimeSeconds is not null && q.EndTimeSeconds is not null, () =>
+            When(q => AgentContextModes.Normalize(q.ContextMode) != AgentContextModes.General &&
+                q.StartTimeSeconds is not null && q.EndTimeSeconds is not null, () =>
             {
                 RuleFor(q => q.StartTimeSeconds!.Value)
                     .GreaterThanOrEqualTo(0)
@@ -46,7 +56,8 @@ public sealed class AgentQuery : Endpoint<AgentQueryCommand, AgentQueryResponse>
                     .WithMessage("EndTimeSeconds must be greater than StartTimeSeconds.");
             });
 
-            When(q => q.ComparisonContext is not null, () =>
+            When(q => AgentContextModes.Normalize(q.ContextMode) != AgentContextModes.General &&
+                q.ComparisonContext is not null, () =>
             {
                 RuleFor(q => q.ComparisonContext!.RecordingIdA)
                     .NotEmpty()
@@ -79,7 +90,8 @@ public sealed class AgentQuery : Endpoint<AgentQueryCommand, AgentQueryResponse>
                     .WithMessage("ComparisonContext.SignalIdB is required.");
             });
 
-            When(q => q.ComparisonPair is not null, () =>
+            When(q => AgentContextModes.Normalize(q.ContextMode) != AgentContextModes.General &&
+                q.ComparisonPair is not null, () =>
             {
                 RuleFor(q => q.ComparisonPair!.RecordingIdA)
                     .NotEmpty()
@@ -105,21 +117,32 @@ public sealed class AgentQuery : Endpoint<AgentQueryCommand, AgentQueryResponse>
         }
         catch (InvalidOperationException ex) when (ex.Message.Contains("API key"))
         {
+            var requestedMode = AgentContextModes.Normalize(req.ContextMode);
+            var hasExplicitIdentifiers = req.SignalIds is { Count: > 0 } ||
+                req.ComparisonContext is not null ||
+                req.ComparisonPair is not null;
+            var isGeneral = requestedMode == AgentContextModes.General ||
+                (requestedMode == AgentContextModes.Auto &&
+                 !hasExplicitIdentifiers &&
+                 !AgentContextRouter.IsClearlyWorkspaceQuestion(req.Question));
             await Send.OkAsync(
                 new AgentQueryResponse(
                     Answer: MissingApiKeyMessage,
                     CitedEvidence: [],
-                    Limitations:
-                    [
-                        "Values are in dBFS, not calibrated to physical SPL.",
-                        "No grounded investigation was run because the OpenAI API key is missing on the backend."
-                    ],
+                    Limitations: isGeneral
+                        ? ["No general answer was generated because the OpenAI API key is missing on the backend."]
+                        :
+                        [
+                            "Values are in dBFS, not calibrated to physical SPL.",
+                            "No grounded investigation was run because the OpenAI API key is missing on the backend."
+                        ],
                     NextSteps:
                     [
                         "Set OpenAI:ApiKey in backend configuration or OPENAI__APIKEY in the backend environment.",
                         "Restart the backend and re-run the question."
                     ],
-                    ToolsUsed: []),
+                    ToolsUsed: [],
+                    AnswerMode: isGeneral ? AgentAnswerModes.General : AgentAnswerModes.Workspace),
                 ct);
         }
     }

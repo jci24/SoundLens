@@ -1,6 +1,6 @@
 # Agentic Copilot Strategy
 
-Last updated: 2026-07-14
+Last updated: 2026-07-18
 
 ## Strategic Thesis
 
@@ -72,6 +72,20 @@ Implication for SoundLens:
 - trace plans, capability calls, results, limitations, and failures
 - introduce specialist agents only after evaluations demonstrate a clear benefit
 
+### General assistants and context routing
+
+ChatGPT, VS Code Copilot, Claude Code, Devin, and Jack & Jill demonstrate that a useful side assistant should not become unusable when the user's question falls outside the currently visible artifact. They also separate attached context, tools, live sources, and actions rather than presenting every answer as if it came from the active workspace.
+
+Implication for SoundLens:
+
+- keep one Copilot surface with explicit Auto, Workspace, and General context choices
+- run deterministic workspace responders before model intent classification
+- keep general model knowledge isolated from recordings, DSP tools, measurements, and evidence citations
+- label answer provenance so model knowledge is never mistaken for measured evidence
+- introduce live web retrieval only with first-class citations and a separate source contract
+- add bounded conversation history before treating the Copilot as a persistent assistant
+- make application actions reviewable, traceable, stale-state-safe, and reversible before expanding autonomy
+
 ### Declarative visualization
 
 Vega-Lite demonstrates how a constrained declarative grammar can describe interactive visualizations without emitting arbitrary rendering code.
@@ -110,6 +124,8 @@ An investigation contains:
 - optional report and reusable recipe
 
 Chat remains the conversational control surface. The main workspace remains the durable analysis surface.
+
+The conversational surface may answer general technical questions, but only workspace-grounded paths may claim SoundLens measurements. Future web answers must identify and cite external sources, and future workspace actions must pass policy and review gates.
 
 ## Capability Families
 
@@ -309,11 +325,17 @@ Evaluation sets should contain realistic domain tasks, multiple phrasings, missi
 - [Databricks Genie quality tuning](https://docs.databricks.com/aws/en/genie/tune-quality)
 - [Hex AI overview](https://learn.hex.tech/docs/getting-started/ai-overview)
 - [VS Code agent tools](https://code.visualstudio.com/docs/copilot/concepts/tools)
+- [VS Code chat context](https://code.visualstudio.com/docs/chat/copilot-chat-context)
 - [VS Code agent approvals](https://code.visualstudio.com/docs/agents/approvals)
+- [ChatGPT search](https://help.openai.com/en/articles/9237897-chatgpt-search)
+- [ChatGPT deep research](https://help.openai.com/en/articles/10500283-deep-research)
+- [Claude Code CLI reference](https://docs.anthropic.com/en/docs/claude-code/cli-usage)
+- [Ask Devin](https://docs.devin.ai/work-with-devin/ask-devin)
+- [Devin session tools](https://docs.devin.ai/work-with-devin/devin-session-tools)
+- [Jack & Jill working with Jill](https://www.jackandjill.ai/docs/working-with-jill)
 - [OpenAI Agents SDK agents](https://openai.github.io/openai-agents-python/agents/)
 - [OpenAI Agents SDK tracing](https://openai.github.io/openai-agents-python/tracing/)
 - [OpenAI Agents SDK human-in-the-loop](https://openai.github.io/openai-agents-python/human_in_the_loop/)
 - [Vega-Lite declarative visualization](https://vega.github.io/vega-lite/docs/)
 - [Model Context Protocol specification](https://modelcontextprotocol.io/specification/2025-03-26/index)
 - [NIST AI Risk Management Framework](https://airc.nist.gov/airmf-resources/airmf/5-sec-core/)
-

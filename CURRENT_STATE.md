@@ -101,6 +101,9 @@ These findings are useful first-pass cues, but they should still be treated as b
 ## Current Copilot Behavior
 
 - `POST /api/agent/query` runs an OpenAI tool-calling loop against the current imported-session context.
+- Copilot requests now declare `auto`, `workspace`, or `general` context. Auto mode preserves deterministic evidence responders first, then uses a bounded backend classifier to choose between workspace evidence and general knowledge without receiving measurements.
+- General mode is isolated from imported recordings, signals, comparison identifiers, and ROI. Its responses are labelled as general knowledge and cannot cite SoundLens evidence or inherit workspace-specific dBFS, calibration, or ROI limitations.
+- Workspace mode retains the existing deterministic tools, backend evidence reconstruction, selected-comparison trust guards, citations, and fail-closed structured response parsing. Explicit signal mentions always select this path.
 - Simple factual questions about one visible signal's RMS level, peak amplitude, or clipping now use backend-owned `get_signal_metrics` evidence without requiring a second signal or an OpenAI API key.
 - Explicit comparison questions about RMS loudness, peak amplitude, or clipping use backend-owned `compare_signals` evidence. In Focused mode, a valid assigned A/B recording pair supplies comparison scope without replacing the visible signal used by single-signal questions.
 - Copilot scope follows explicit signal mentions first, then detailed selected-comparison evidence, then an assigned A/B recording pair for explicit comparison intent, and finally the visible focused-workspace signal. The current ROI is retained in every scope.
@@ -113,9 +116,9 @@ These findings are useful first-pass cues, but they should still be treated as b
 - The backend exposes compact deterministic tools such as metrics, findings, spectrum summaries, and signal comparison summaries.
 - The response returns structured answer text, cited evidence, limitations, next steps, and tools used.
 - Copilot model output must pass strict JSON shape and evidence-tool validation before any model-authored answer is shown. Malformed, truncated, fenced-invalid, schema-invalid, or raw structured answer content is replaced with a concise deterministic fallback while backend-known comparison evidence and limitations remain available.
-- If the OpenAI API key is missing, the endpoint returns a structured unavailable response instead of a bare `503`.
+- If the OpenAI API key is missing, the endpoint returns a mode-appropriate structured unavailable response instead of a bare `503`.
 
-The current Copilot is more grounded for both factual comparison questions and selected comparison explanation, but it is still operating over a workspace model rather than a first-class persisted comparison object.
+The current Copilot supports bounded workspace evidence and general model knowledge, but it has no live web search, citations for external knowledge, bounded conversation history, shell-wide availability, or workspace actions. It still operates over a temporary workspace rather than a first-class persisted comparison object.
 
 ## Current Report Export
 
@@ -173,6 +176,7 @@ The repo is still intentionally simple: no extra backend projects, no persistenc
 - Multi-recording group comparison is not yet available; the current interaction and backend contract support one recording per side
 - Coverage visibility is still lightweight: users see evidence-strength cues, limitation counts, and limitation text, but not yet a dedicated coverage breakdown view
 - Deterministic factual Copilot answers currently cover RMS, peak amplitude, and clipping for one visible signal or the signals backend-resolved from an assigned A/B recording pair; these comparisons remain signal-level rather than recording-level aggregate loudness claims, and broader analyses still use the bounded tool-calling path
+- General Copilot answers use model knowledge only. They have no live web access or external citations and must not be treated as measured SoundLens evidence.
 - Comparison explanation remains bounded to the current selected metric and active aligned pair
 - No persisted project or dataset model
 - Calibration handling remains lightweight and mostly limited to dBFS caveats plus calibrated flags

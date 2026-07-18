@@ -69,7 +69,11 @@ describe('useCopilotQuery', () => {
     const { result } = renderHook(() => useCopilotQuery())
 
     await act(async () => {
-      await result.current.submit({ question: 'Why is this sharp?' })
+      await result.current.submit({
+        question: 'Why is this sharp?',
+        contextMode: 'workspace',
+        signalIds: ['signal-1'],
+      })
     })
 
     const firstTurnId = result.current.turns[0]?.id
@@ -83,6 +87,11 @@ describe('useCopilotQuery', () => {
       expect(result.current.turns).toHaveLength(1)
       expect(result.current.turns[0]?.response?.answer).toBe('Updated answer')
       expect(result.current.turns[0]?.response?.nextSteps).toEqual(['Try a narrower ROI'])
+    })
+    expect(mockPostAgentQuery).toHaveBeenLastCalledWith({
+      question: 'Why is this sharp?',
+      contextMode: 'workspace',
+      signalIds: ['signal-1'],
     })
   })
 })

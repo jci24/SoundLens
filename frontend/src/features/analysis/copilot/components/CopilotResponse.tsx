@@ -21,6 +21,9 @@ const CopilotResponse = ({ response, onRegenerate }: ICopilotResponseProps) => {
 
   return (
     <div className="copilot-response">
+      <p className="copilot-response__answer-mode">
+        {response.answerMode === 'general' ? 'General knowledge' : 'Workspace evidence'}
+      </p>
       <p className="copilot-response__answer">{response.answer}</p>
 
       {response.citedEvidence.length > 0 && (

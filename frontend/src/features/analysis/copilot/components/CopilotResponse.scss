@@ -4,6 +4,15 @@
   gap: 0.7rem;
   max-width: min(100%, 42rem);
 
+  &__answer-mode {
+    margin: 0;
+    color: var(--muted-foreground);
+    font-size: var(--font-xs);
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+  }
+
   &__section {
     display: flex;
     flex-direction: column;

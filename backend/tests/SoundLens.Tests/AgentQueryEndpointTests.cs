@@ -76,6 +76,27 @@ public sealed class AgentQueryEndpointTests : IClassFixture<WebApplicationFactor
     }
 
     [Fact]
+    public async Task MissingClassifierClientFallsBackToWorkspaceWhenIdentifiersAreAttached()
+    {
+        using var client = _factory.CreateClient();
+        var response = await client.PostAsJsonAsync(
+            "/api/agent/query",
+            new
+            {
+                question = "Could you help me understand it?",
+                contextMode = "auto",
+                signalIds = new[] { "stale-signal-id" }
+            });
+
+        response.EnsureSuccessStatusCode();
+        var payload = await response.Content.ReadFromJsonAsync<AgentQueryResponse>();
+
+        Assert.Equal(AgentAnswerModes.Workspace, payload!.AnswerMode);
+        Assert.Contains(payload.Limitations, limitation =>
+            limitation.Contains("dBFS", StringComparison.OrdinalIgnoreCase));
+    }
+
+    [Fact]
     public async Task ReplacesMalformedGenericModelOutputWithSafeFallback()
     {
         const string rawMalformedResponse = "{ \"answer\": \"raw generic model payload\"";
@@ -92,7 +113,7 @@ public sealed class AgentQueryEndpointTests : IClassFixture<WebApplicationFactor
         using var client = malformedFactory.CreateClient();
         var response = await client.PostAsJsonAsync(
             "/api/agent/query",
-            new { question = "Summarize the current analysis workspace." });
+            new { question = "Summarize the current analysis workspace.", contextMode = "workspace" });
 
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
         var payload = await response.Content.ReadFromJsonAsync<AgentQueryResponse>();
@@ -103,6 +124,132 @@ public sealed class AgentQueryEndpointTests : IClassFixture<WebApplicationFactor
         Assert.Contains(payload.Limitations, item => item == AgentStructuredResponseParser.InvalidOutputLimitation);
         Assert.NotEmpty(payload.NextSteps);
         Assert.Empty(payload.ToolsUsed);
+    }
+
+    [Fact]
+    public async Task ForcedGeneralModeIgnoresWorkspaceIdentifiersAndAcousticLimitations()
+    {
+        var chatClientProvider = new StubChatClientProvider(
+            """
+            {
+              "answer": "A Fourier transform represents a signal as frequency components.",
+              "limitations": [],
+              "nextSteps": ["Ask for a simple numerical example."]
+            }
+            """);
+        var generalFactory = _factory.WithWebHostBuilder(builder =>
+        {
+            builder.ConfigureServices(services =>
+            {
+                services.RemoveAll<IChatClientProvider>();
+                services.AddSingleton<IChatClientProvider>(chatClientProvider);
+            });
+        });
+
+        using var client = generalFactory.CreateClient();
+        var response = await client.PostAsJsonAsync(
+            "/api/agent/query",
+            new
+            {
+                question = "What is a Fourier transform?",
+                contextMode = "general",
+                signalIds = new[] { "private-signal-id" },
+                startTimeSeconds = 0.25,
+                comparisonPair = new { recordingIdA = "private-a", recordingIdB = "private-a" },
+                comparisonContext = new
+                {
+                    recordingIdA = "private-a",
+                    recordingIdB = "private-a",
+                    metricKey = "unsupportedMetric",
+                    signalIdA = "private-signal-id",
+                    signalIdB = "private-signal-id"
+                }
+            });
+
+        response.EnsureSuccessStatusCode();
+        var payload = await response.Content.ReadFromJsonAsync<AgentQueryResponse>();
+
+        Assert.Equal(AgentAnswerModes.General, payload!.AnswerMode);
+        Assert.Empty(payload.CitedEvidence);
+        Assert.Empty(payload.ToolsUsed);
+        Assert.DoesNotContain(payload.Limitations, limitation => limitation.Contains("dBFS", StringComparison.OrdinalIgnoreCase));
+        Assert.Equal("What is a Fourier transform?", Assert.Single(chatClientProvider.UserMessages));
+    }
+
+    [Fact]
+    public async Task AutoModeClassifiesGeneralQuestionWithoutSendingWorkspaceIdentifiersToResponder()
+    {
+        var chatClientProvider = new StubChatClientProvider(
+            """{"contextMode":"general"}""",
+            """
+            {
+              "answer": "The Nyquist theorem relates sampling rate to the highest representable frequency.",
+              "limitations": [],
+              "nextSteps": []
+            }
+            """);
+        var generalFactory = _factory.WithWebHostBuilder(builder =>
+        {
+            builder.ConfigureServices(services =>
+            {
+                services.RemoveAll<IChatClientProvider>();
+                services.AddSingleton<IChatClientProvider>(chatClientProvider);
+            });
+        });
+
+        using var client = generalFactory.CreateClient();
+        var response = await client.PostAsJsonAsync(
+            "/api/agent/query",
+            new
+            {
+                question = "Explain the Nyquist theorem in simple terms.",
+                contextMode = "auto",
+                signalIds = new[] { "private-signal-id" },
+                comparisonPair = new { recordingIdA = "private-a", recordingIdB = "private-b" }
+            });
+
+        response.EnsureSuccessStatusCode();
+        var payload = await response.Content.ReadFromJsonAsync<AgentQueryResponse>();
+
+        Assert.Equal(AgentAnswerModes.General, payload!.AnswerMode);
+        Assert.Equal(2, chatClientProvider.UserMessages.Count);
+        Assert.DoesNotContain("private-signal-id", chatClientProvider.UserMessages[0], StringComparison.Ordinal);
+        Assert.DoesNotContain("private-a", chatClientProvider.UserMessages[0], StringComparison.Ordinal);
+        Assert.Equal("Explain the Nyquist theorem in simple terms.", chatClientProvider.UserMessages[1]);
+    }
+
+    [Fact]
+    public async Task MalformedAutoClassificationFallsBackToExplicitWorkspaceIdentifiers()
+    {
+        var chatClientProvider = new StubChatClientProvider(
+            "not valid classifier output",
+            """
+            {
+              "answer": "The requested workspace question could not be tied to measured evidence.",
+              "citedEvidence": [],
+              "limitations": ["Values are in dBFS, not calibrated to physical SPL."],
+              "nextSteps": ["Ask about a specific metric."]
+            }
+            """);
+        var workspaceFactory = _factory.WithWebHostBuilder(builder =>
+        {
+            builder.ConfigureServices(services =>
+            {
+                services.RemoveAll<IChatClientProvider>();
+                services.AddSingleton<IChatClientProvider>(chatClientProvider);
+            });
+        });
+
+        using var client = workspaceFactory.CreateClient();
+        var response = await client.PostAsJsonAsync(
+            "/api/agent/query",
+            new { question = "Could you help me understand it?", signalIds = new[] { "signal-1" } });
+
+        response.EnsureSuccessStatusCode();
+        var payload = await response.Content.ReadFromJsonAsync<AgentQueryResponse>();
+
+        Assert.Equal(AgentAnswerModes.Workspace, payload!.AnswerMode);
+        Assert.Contains(payload.Limitations, limitation => limitation.Contains("dBFS", StringComparison.OrdinalIgnoreCase));
     }
 
     [Fact]
@@ -662,6 +809,8 @@ public sealed class AgentQueryEndpointTests : IClassFixture<WebApplicationFactor
 
         public string? LastUserMessage { get; private set; }
 
+        public List<string> UserMessages { get; } = [];
+
         public int GetRequiredClientCallCount { get; private set; }
 
         public ChatClient GetRequiredClient()
@@ -670,12 +819,19 @@ public sealed class AgentQueryEndpointTests : IClassFixture<WebApplicationFactor
             var responseIndex = Math.Min(GetRequiredClientCallCount - 1, _responseJsons.Count - 1);
             return new StubChatClient(
                 _responseJsons[responseIndex],
-                messages => LastUserMessage = messages
-                    .OfType<UserChatMessage>()
-                    .LastOrDefault()?
-                    .Content
-                    .FirstOrDefault()?
-                    .Text);
+                messages =>
+                {
+                    LastUserMessage = messages
+                        .OfType<UserChatMessage>()
+                        .LastOrDefault()?
+                        .Content
+                        .FirstOrDefault()?
+                        .Text;
+                    if (LastUserMessage is not null)
+                    {
+                        UserMessages.Add(LastUserMessage);
+                    }
+                });
         }
     }
 

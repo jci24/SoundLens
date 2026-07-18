@@ -315,6 +315,14 @@ Current foundation:
 - Copilot signal scope follows explicit mentions, selected aligned A/B evidence, an assigned A/B pair for focused-mode comparison intent, or the visible focused-workspace signal instead of treating every metric question as a comparison
 - deterministic RMS, peak, and clipping inspection supports one visible signal, while explicitly comparative questions can resolve all signals in the assigned A/B recordings through backend-owned session data
 - unsupported analyses remain bounded by the available backend capability set and must state missing evidence rather than inventing results
+- Copilot context is backend-routed across explicit Auto, Workspace, and General modes; deterministic workspace responders retain precedence, while isolated general answers receive no recording, signal, comparison, ROI, DSP-tool, or measured-evidence context
+- completed answers identify whether they use Workspace evidence or General knowledge
+
+Ordered Copilot platform follow-ups:
+1. OpenAI Responses API web search with first-class citations and a distinct answer-source contract
+2. bounded conversation history and explicit session lifecycle
+3. Copilot availability across the application shell with route-safe context attachment
+4. reviewable plans and reversible workspace actions under the Milestone 8 and 9 policy gates
 
 Dependencies:
 - validated A/B workflow

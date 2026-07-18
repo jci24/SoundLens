@@ -5,4 +5,11 @@ public sealed record AgentQueryResponse(
     IReadOnlyList<AgentEvidenceItem> CitedEvidence,
     IReadOnlyList<string> Limitations,
     IReadOnlyList<string> NextSteps,
-    IReadOnlyList<string> ToolsUsed);
+    IReadOnlyList<string> ToolsUsed,
+    string AnswerMode = AgentAnswerModes.Workspace);
+
+public static class AgentAnswerModes
+{
+    public const string Workspace = "workspace";
+    public const string General = "general";
+}

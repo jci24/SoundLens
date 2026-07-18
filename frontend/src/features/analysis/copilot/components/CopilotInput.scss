@@ -73,6 +73,41 @@
     gap: 0.5rem;
   }
 
+  &__context-row {
+    display: flex;
+    align-items: center;
+    gap: 0.45rem;
+    min-width: 0;
+    color: var(--muted-foreground);
+    font-size: var(--font-xs);
+  }
+
+  &__context-label {
+    font-weight: 600;
+    color: var(--foreground);
+  }
+
+  &__context-select {
+    height: 1.75rem;
+    padding: 0 1.65rem 0 0.5rem;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    background: var(--background);
+    color: var(--foreground);
+    font: inherit;
+
+    &:focus-visible {
+      outline: 2px solid var(--ring);
+      outline-offset: 2px;
+    }
+  }
+
+  &__context-summary {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
   &__textarea {
     flex: 1;
     resize: none;
