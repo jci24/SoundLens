@@ -10,6 +10,8 @@ export default defineConfig({
     alias: {
       '@': path.resolve(__dirname, './src'),
     },
+    // Lazy Evidence/Copilot chunks must share the renderer's React singleton.
+    dedupe: ['react', 'react-dom'],
   },
   test: {
     environment: 'happy-dom',
