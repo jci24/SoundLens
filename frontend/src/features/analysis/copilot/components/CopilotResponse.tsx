@@ -23,6 +23,8 @@ const CopilotResponse = ({ response, onRegenerate }: ICopilotResponseProps) => {
   const externalCitations = response.externalCitations ?? []
   const answerModeLabel = response.answerMode === 'web'
     ? 'Web research'
+    : response.answerMode === 'guidance'
+      ? 'Investigation guidance'
     : response.answerMode === 'general'
       ? 'General knowledge'
       : 'Workspace evidence'

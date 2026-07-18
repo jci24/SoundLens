@@ -80,6 +80,60 @@ public sealed class AgentQueryEndpointTests : IClassFixture<WebApplicationFactor
     }
 
     [Fact]
+    public async Task ReturnsGuidanceUnavailableResponseWhenApiKeyIsMissing()
+    {
+        using var client = _factory.CreateClient();
+        var response = await client.PostAsJsonAsync(
+            "/api/agent/query",
+            new { question = "What guidelines should I use to analyse these files?" });
+
+        response.EnsureSuccessStatusCode();
+        var payload = await response.Content.ReadFromJsonAsync<AgentQueryResponse>();
+
+        Assert.Equal(AgentAnswerModes.Guidance, payload!.AnswerMode);
+        Assert.Contains(payload.Limitations, limitation =>
+            limitation.Contains("adaptive investigation guidance", StringComparison.OrdinalIgnoreCase));
+        Assert.DoesNotContain(payload.Limitations, limitation =>
+            limitation.Contains("dBFS", StringComparison.OrdinalIgnoreCase));
+    }
+
+    [Fact]
+    public async Task BuildsAdaptiveGuidanceWithoutRequiringImportedRecordings()
+    {
+        var chatClientProvider = new StubChatClientProvider(
+            """
+            {
+              "answer": "What engineering decision should this investigation support?",
+              "limitations": ["No recordings are currently available in the workspace."],
+              "recommendedCapabilityIds": []
+            }
+            """);
+        var guidanceFactory = _factory.WithWebHostBuilder(builder =>
+        {
+            builder.ConfigureServices(services =>
+            {
+                services.RemoveAll<IChatClientProvider>();
+                services.AddSingleton<IChatClientProvider>(chatClientProvider);
+            });
+        });
+
+        using var client = guidanceFactory.CreateClient();
+        var response = await client.PostAsJsonAsync(
+            "/api/agent/query",
+            new { question = "What workflow should I use to analyse product sounds?" });
+
+        response.EnsureSuccessStatusCode();
+        var payload = await response.Content.ReadFromJsonAsync<AgentQueryResponse>();
+
+        Assert.Equal(AgentAnswerModes.Guidance, payload!.AnswerMode);
+        Assert.EndsWith("?", payload.Answer, StringComparison.Ordinal);
+        Assert.Empty(payload.NextSteps);
+        Assert.Contains("Imported recordings: 0", chatClientProvider.LastUserMessage, StringComparison.Ordinal);
+        Assert.Contains(chatClientProvider.SystemMessages, message =>
+            message.Contains("ask exactly one concise clarification question", StringComparison.Ordinal));
+    }
+
+    [Fact]
     public async Task MissingClassifierClientDoesNotTreatAttachedIdentifiersAsWorkspaceIntent()
     {
         using var client = _factory.CreateClient();
@@ -231,8 +285,7 @@ public sealed class AgentQueryEndpointTests : IClassFixture<WebApplicationFactor
     [InlineData("What is RMS?")]
     [InlineData("How does an FFT work?")]
     [InlineData("What is CPB analysis?")]
-    [InlineData("What could I analyze to assess sharpness?")]
-    public async Task AutoModeRoutesTheoryAndMethodQuestionsToGeneralDespiteWorkspaceIdentifiers(
+    public async Task AutoModeRoutesTheoryQuestionsToGeneralDespiteWorkspaceIdentifiers(
         string question)
     {
         var chatClientProvider = new StubChatClientProvider(
@@ -705,9 +758,8 @@ public sealed class AgentQueryEndpointTests : IClassFixture<WebApplicationFactor
             """
             {
               "answer": "Start by confirming comparable recording conditions, then inspect level and dynamics, waveform events, spectral content, and focused regions before drawing conclusions.",
-              "citedEvidence": [],
               "limitations": ["This is an analysis workflow, not a new measurement."],
-              "nextSteps": ["Define the engineering question before selecting additional analyses."]
+              "recommendedCapabilityIds": ["level_dynamics", "waveform", "spectrum"]
             }
             """);
         var explanationFactory = _factory.WithWebHostBuilder(builder =>
@@ -847,11 +899,17 @@ public sealed class AgentQueryEndpointTests : IClassFixture<WebApplicationFactor
             Assert.Equal(HttpStatusCode.OK, guidanceResponse.StatusCode);
             var guidancePayload = await guidanceResponse.Content.ReadFromJsonAsync<AgentQueryResponse>();
             Assert.NotNull(guidancePayload);
-            Assert.Equal(AgentAnswerModes.Workspace, guidancePayload!.AnswerMode);
+            Assert.Equal(AgentAnswerModes.Guidance, guidancePayload!.AnswerMode);
             Assert.Contains("recording conditions", guidancePayload.Answer, StringComparison.OrdinalIgnoreCase);
             Assert.DoesNotContain("mean A-B", guidancePayload.Answer, StringComparison.OrdinalIgnoreCase);
             Assert.Empty(guidancePayload.CitedEvidence);
             Assert.Empty(guidancePayload.ToolsUsed);
+            Assert.Contains(Path.GetFileName(quietPath), chatClientProvider.LastUserMessage, StringComparison.Ordinal);
+            Assert.Contains(Path.GetFileName(loudPath), chatClientProvider.LastUserMessage, StringComparison.Ordinal);
+            Assert.Contains("AVAILABLE SOUNDLENS CAPABILITIES", chatClientProvider.LastUserMessage, StringComparison.Ordinal);
+            Assert.DoesNotContain(waveformPayload.Recordings[0].RecordingId, chatClientProvider.LastUserMessage, StringComparison.Ordinal);
+            Assert.DoesNotContain(signalIds[0], chatClientProvider.LastUserMessage, StringComparison.Ordinal);
+            Assert.DoesNotContain("Mean delta", chatClientProvider.LastUserMessage, StringComparison.OrdinalIgnoreCase);
 
             var invalidPairResponse = await client.PostAsJsonAsync(
                 "/api/agent/query",

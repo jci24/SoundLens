@@ -22,4 +22,5 @@ public static class AgentAnswerModes
     public const string Workspace = "workspace";
     public const string General = "general";
     public const string Web = "web";
+    public const string Guidance = "guidance";
 }

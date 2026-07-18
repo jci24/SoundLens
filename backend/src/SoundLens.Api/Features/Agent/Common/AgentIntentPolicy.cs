@@ -119,6 +119,12 @@ public static class AgentIntentPolicy
             return true;
         }
 
+        if (InvestigationGuidanceIntentPolicy.IsGuidanceRequest(question))
+        {
+            mode = AgentContextModes.Workspace;
+            return true;
+        }
+
         if (IsClearlyWorkspaceQuestion(question, hasWorkspaceContext))
         {
             mode = AgentContextModes.Workspace;

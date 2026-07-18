@@ -83,4 +83,23 @@ describe('CopilotResponse', () => {
       expect(link).toHaveAttribute('target', '_blank')
     })
   })
+
+  it('labels adaptive investigation guidance without evidence-only sections', () => {
+    render(
+      <CopilotResponse
+        response={{
+          answer: 'Clarify which engineering decision this comparison must support.',
+          answerMode: 'guidance',
+          citedEvidence: [],
+          limitations: [],
+          nextSteps: ['Define the decision criterion.'],
+          toolsUsed: [],
+        }}
+        onRegenerate={() => {}}
+      />
+    )
+
+    expect(screen.getByText('Investigation guidance')).toBeInTheDocument()
+    expect(screen.queryByText('Evidence used')).not.toBeInTheDocument()
+  })
 })

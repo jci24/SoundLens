@@ -29,6 +29,8 @@ public static class DependencyInjection
         services.AddSingleton<AgentContextRouter>();
         services.AddSingleton<GeneralKnowledgeResponder>();
         services.AddSingleton<WebResearchResponder>();
+        services.AddSingleton<InvestigationGuidanceContextBuilder>();
+        services.AddSingleton<InvestigationGuidanceResponder>();
         services.AddSingleton<SelectedComparisonOrchestrator>();
         services.AddSingleton<ComparisonReportPreparationService>();
 

@@ -191,7 +191,8 @@ Current report-export guidance:
 - Evidence inspection must not resize or vertically displace the primary chart canvas. It supports Escape, outside-interaction, an explicit close action, and focus return to the invoking control.
 - Evidence and Copilot are mutually exclusive right-side surfaces. Opening evidence closes Copilot; contextual Copilot actions remain a separate slice.
 - The Copilot composer does not expose internal context modes. Normal questions submit in Auto with identifier-only available context; explicit signal mentions provide a strong Workspace instruction.
-- Completed turns are labelled `Workspace evidence`, `General knowledge`, or `Web research`, and Re-run preserves the original routing mode and identifier snapshot.
+- Completed turns are labelled `Workspace evidence`, `General knowledge`, `Web research`, or `Investigation guidance`, and Re-run preserves the original routing mode and identifier snapshot.
+- Investigation guidance is model-authored advice over backend-safe workspace descriptors and allowlisted shipped capabilities. It must not render evidence badges or imply that a proposed analysis has already produced measurements.
 - Web-research turns render backend-validated citations as visible links beside supported claims and in a Sources list. They do not render SoundLens evidence badges; measurements and workspace tool traces remain workspace-only concepts.
 - General knowledge is not SoundLens evidence and does not inherit workspace limitations or citations.
 - Copilot question scope follows explicit `@signal` mentions first, then the active comparison's detailed aligned evidence. In Focused mode, a valid assigned A/B recording pair is included as identifier-only comparison scope while the visible focused signal remains available for inspection questions. An explicit mention removes both comparison scopes rather than mixing them.

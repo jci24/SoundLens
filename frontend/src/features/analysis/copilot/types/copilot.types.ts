@@ -1,7 +1,7 @@
 import type { IComparisonCopilotSelection } from '../../types'
 
 export type TCopilotContextMode = 'auto' | 'workspace' | 'general'
-export type TCopilotAnswerMode = 'workspace' | 'general' | 'web'
+export type TCopilotAnswerMode = 'workspace' | 'general' | 'web' | 'guidance'
 
 export interface IAgentQueryRequest {
   question: string

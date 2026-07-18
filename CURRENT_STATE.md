@@ -108,6 +108,8 @@ These findings are useful first-pass cues, but they should still be treated as b
 - General answers are isolated from imported recordings, signals, comparison identifiers, and ROI. They are labelled as general knowledge and cannot cite SoundLens evidence or inherit workspace-specific dBFS, calibration, or ROI limitations.
 - Clear theory, definition, and analysis-method questions bypass deterministic measurement responders and route to General knowledge even when workspace identifiers are available. Questions that explicitly reference a selected signal, recording, comparison, metric, ROI, or measurement remain workspace-grounded; attached identifiers alone never establish intent.
 - Web-research answers receive only the question, are labelled separately from general knowledge and workspace evidence, and cannot cite or receive SoundLens measurements or identifiers. Missing or unsafe citations and search failures produce an explicit unavailable response rather than an unsourced answer.
+- Methodology and workflow questions can use a separate adaptive investigation-guidance path. It receives the user's objective plus backend-resolved safe filenames, duration and channel metadata, validated A/B state, ROI scope, an allowlisted selected-metric label, and the shipped capability catalog. It receives no measurements, findings, coverage, limitations, recording IDs, or signal IDs.
+- Guidance recommendations are returned as allowlisted capability identifiers and rendered into user-controlled next steps by the backend. Unknown capability identifiers or malformed output fail closed, unclear objectives are prompted for one concise clarification, and completed responses are labelled `Investigation guidance` rather than measured workspace evidence.
 - Workspace answers retain deterministic tools, backend evidence reconstruction, selected-comparison trust guards, citations, and fail-closed structured response parsing. Explicit signal mentions are treated as a strong workspace instruction.
 - Simple factual questions about one visible signal's RMS level, peak amplitude, or clipping now use backend-owned `get_signal_metrics` evidence without requiring a second signal or an OpenAI API key.
 - Explicit comparison questions about RMS loudness, peak amplitude, or clipping use backend-owned `compare_signals` evidence. In Focused mode, a valid assigned A/B recording pair supplies comparison scope without replacing the visible signal used by single-signal questions.
@@ -123,7 +125,7 @@ These findings are useful first-pass cues, but they should still be treated as b
 - Copilot model output must pass strict JSON shape and evidence-tool validation before any model-authored answer is shown. Malformed, truncated, fenced-invalid, schema-invalid, or raw structured answer content is replaced with a concise deterministic fallback while backend-known comparison evidence and limitations remain available.
 - If the OpenAI API key is missing, the endpoint returns a mode-appropriate structured unavailable response instead of a bare `503`.
 
-The current Copilot supports bounded workspace evidence, isolated general model knowledge, and bounded cited web research. It has no conversation history, shell-wide availability, workspace-plus-web synthesis, deep-research jobs, or workspace actions. It still operates over a temporary workspace rather than a first-class persisted comparison object.
+The current Copilot supports bounded workspace evidence, isolated general model knowledge, bounded cited web research, and adaptive investigation guidance. It has no conversation history, shell-wide availability, workspace-plus-web synthesis, deep-research jobs, activity trace, or workspace actions. It still operates over a temporary workspace rather than a first-class persisted comparison object.
 
 ## Current Report Export
 
@@ -182,7 +184,7 @@ The repo is still intentionally simple: no extra backend projects, no persistenc
 - Coverage visibility is still lightweight: users see evidence-strength cues, limitation counts, and limitation text, but not yet a dedicated coverage breakdown view
 - Deterministic factual Copilot answers currently cover RMS, peak amplitude, and clipping for one visible signal or the signals backend-resolved from an assigned A/B recording pair; these comparisons remain signal-level rather than recording-level aggregate loudness claims, and broader analyses still use the bounded tool-calling path
 - General Copilot answers use isolated model knowledge and must not be treated as measured SoundLens evidence; questions requiring current external information use the separately labelled cited web-research path.
-- Adaptive objective-aware investigation guidance and a progressively disclosed activity trace are planned but not shipped. Broad methodology requests do not yet produce a reviewable, workspace-tailored investigation plan.
+- Adaptive objective-aware investigation guidance is shipped as advice and clarification, not an executable plan. A progressively disclosed activity trace and reviewable execution plans remain deferred.
 - Comparison explanation remains bounded to the current selected metric and active aligned pair
 - No persisted project or dataset model
 - Calibration handling remains lightweight and mostly limited to dBFS caveats plus calibrated flags

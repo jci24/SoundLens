@@ -125,8 +125,14 @@ public sealed class AgentQuery : Endpoint<AgentQueryCommand, AgentQueryResponse>
                 req.Question,
                 requestedMode,
                 hasExplicitIdentifiers);
-            var isGeneral = answerMode == AgentAnswerModes.General;
             var isWeb = answerMode == AgentAnswerModes.Web;
+            if (requestedMode != AgentContextModes.General &&
+                !isWeb &&
+                InvestigationGuidanceIntentPolicy.IsGuidanceRequest(req.Question))
+            {
+                answerMode = AgentAnswerModes.Guidance;
+            }
+            var isGeneral = answerMode == AgentAnswerModes.General;
             await Send.OkAsync(
                 new AgentQueryResponse(
                     Answer: MissingApiKeyMessage,
@@ -135,6 +141,8 @@ public sealed class AgentQuery : Endpoint<AgentQueryCommand, AgentQueryResponse>
                         ? ["No general answer was generated because the OpenAI API key is missing on the backend."]
                         : isWeb
                             ? ["No web research was run because the OpenAI API key is missing on the backend."]
+                        : answerMode == AgentAnswerModes.Guidance
+                            ? ["No adaptive investigation guidance was generated because the OpenAI API key is missing on the backend."]
                         :
                         [
                             "Values are in dBFS, not calibrated to physical SPL.",

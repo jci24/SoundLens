@@ -321,15 +321,15 @@ Current foundation:
 - Copilot context is routed automatically without a user-facing mode selector; deterministic workspace responders retain precedence, while isolated general answers receive no recording, signal, comparison, ROI, DSP-tool, or measured-evidence context
 - completed answers identify whether they use Workspace evidence, General knowledge, or Web research
 - current-information, source, standards, product, research, and industry-practice questions can use one bounded hosted web-search lifecycle; the responder receives only the question and must return validated HTTP(S) citations or fail explicitly
+- methodology requests can receive adaptive investigation guidance from the user's objective and backend-resolved filenames, recording metadata, validated A/B state, ROI scope, selected metric label, and an allowlisted shipped-capability catalog; no measurements or frontend-authored evidence enter this planning path
 
 Ordered Copilot platform follow-ups:
-1. adaptive workspace investigation guidance using the user's objective, safe backend-resolved workspace descriptors, and the validated capability catalog; unclear objectives should produce a concise clarification rather than a canned checklist
-2. investigation activity trace with a collapsed-by-default UI and typed backend events for plan, routing, tool execution, evidence validation, fallback, completion, and failure; never expose private model reasoning, raw prompts, or internal identifiers
-3. bounded conversation history and explicit session lifecycle
-4. Copilot availability across the application shell with route-safe context attachment
-5. hybrid workspace-plus-web synthesis with separate evidence and external-source sections
-6. deep research with background execution, progress, cancellation, cost limits, and source-quality evaluation
-7. reviewable plans and reversible workspace actions under the Milestone 8 and 9 policy gates
+1. investigation activity trace with a collapsed-by-default UI and typed backend events for plan, routing, tool execution, evidence validation, fallback, completion, and failure; never expose private model reasoning, raw prompts, or internal identifiers
+2. bounded conversation history and explicit session lifecycle
+3. Copilot availability across the application shell with route-safe context attachment
+4. hybrid workspace-plus-web synthesis with separate evidence and external-source sections
+5. deep research with background execution, progress, cancellation, cost limits, and source-quality evaluation
+6. reviewable plans and reversible workspace actions under the Milestone 8 and 9 policy gates
 
 Dependencies:
 - validated A/B workflow

@@ -15,13 +15,12 @@ public sealed class AgentIntentPolicyTests
     [InlineData("Explain the Fourier transform.")]
     [InlineData("How does a Hann window work?")]
     [InlineData("Why does aliasing occur?")]
-    [InlineData("What could I analyze to assess sharpness?")]
     [InlineData("What does tonality mean?")]
     [InlineData("What is CPB analysis?")]
     [InlineData("Explain psychoacoustic sharpness.")]
     [InlineData("Can you explain RMS?")]
     [InlineData("What is a channel?")]
-    public void TheoryAndMethodQuestions_AreClearlyGeneral(string question)
+    public void TheoryQuestions_AreClearlyGeneral(string question)
     {
         Assert.True(AgentIntentPolicy.TryResolveHighConfidence(
             question,
