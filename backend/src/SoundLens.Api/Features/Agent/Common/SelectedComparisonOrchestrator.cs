@@ -34,16 +34,10 @@ public sealed class SelectedComparisonOrchestrator(
         RESPONSE FORMAT:
         You must respond with a JSON object that matches this exact structure:
         {
-          "answer": "<grounded explanation as a plain string>",
-          "citedEvidence": [
-            { "toolName": "<selected_comparison_context or selected_signal_findings>", "signalId": "<signal id or empty string>", "summary": "<summary you cited>" }
-          ],
-          "limitations": ["<limitation 1>", "<limitation 2>"],
-          "nextSteps": ["<suggested next step 1>", "<suggested next step 2>"]
+          "answer": "<grounded explanation as a plain string>"
         }
 
-        citedEvidence must include the selected comparison context if you cite any comparison value.
-        nextSteps should suggest 1–3 follow-up analyses or actions that stay within the current workflow.
+        SoundLens reconstructs citations, limitations, and next steps separately. Do not add those fields to the response.
         """;
 
     public async Task<AgentQueryResponse?> TryBuildResponseAsync(
@@ -91,9 +85,8 @@ public sealed class SelectedComparisonOrchestrator(
             MaxOutputTokenCount = 900
         };
         var completion = await chatClient.CompleteChatAsync(messages, options, ct);
-        var parseResult = AgentStructuredResponseParser.Parse(
-            completion.Value.Content.FirstOrDefault()?.Text ?? string.Empty,
-            []);
+        var parseResult = SelectedComparisonAnswerParser.Parse(
+            completion.Value.Content.FirstOrDefault()?.Text ?? string.Empty);
         var limitations = SelectedComparisonResponseSupport.BuildLimitations(
             comparisonContext,
             isRoiScoped);
@@ -102,12 +95,12 @@ public sealed class SelectedComparisonOrchestrator(
             limitations = [.. limitations, AgentStructuredResponseParser.InvalidOutputLimitation];
         }
 
-        return parseResult.Response with
-        {
-            CitedEvidence = SelectedComparisonResponseSupport.BuildExplanationEvidence(comparisonContext),
-            Limitations = limitations,
-            NextSteps = BuildNextSteps(comparisonContext)
-        };
+        return new AgentQueryResponse(
+            parseResult.Answer,
+            SelectedComparisonResponseSupport.BuildExplanationEvidence(comparisonContext),
+            limitations,
+            BuildNextSteps(comparisonContext),
+            []);
     }
 
     private static string BuildUserMessage(
