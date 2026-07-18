@@ -143,7 +143,11 @@ public sealed class AgentQueryHandler(
             new UserChatMessage(BuildUserMessage(command, availableSignals))
         };
 
-        var options = new ChatCompletionOptions();
+        var options = new ChatCompletionOptions
+        {
+            ResponseFormat = ChatResponseFormat.CreateJsonObjectFormat(),
+            MaxOutputTokenCount = 1000
+        };
         foreach (var tool in AgentToolDefinitions.All)
         {
             options.Tools.Add(tool);

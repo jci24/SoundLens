@@ -701,7 +701,15 @@ public sealed class AgentQueryEndpointTests : IClassFixture<WebApplicationFactor
               "nextSteps": []
             }
             """,
-            rawMalformedResponse);
+            rawMalformedResponse,
+            """
+            {
+              "answer": "Start by confirming comparable recording conditions, then inspect level and dynamics, waveform events, spectral content, and focused regions before drawing conclusions.",
+              "citedEvidence": [],
+              "limitations": ["This is an analysis workflow, not a new measurement."],
+              "nextSteps": ["Define the engineering question before selecting additional analyses."]
+            }
+            """);
         var explanationFactory = _factory.WithWebHostBuilder(builder =>
         {
             builder.ConfigureServices(services =>
@@ -819,6 +827,29 @@ public sealed class AgentQueryEndpointTests : IClassFixture<WebApplicationFactor
             Assert.Contains(malformedPayload.CitedEvidence, item => item.ToolName == "selected_comparison_context");
             Assert.Contains(malformedPayload.Limitations, item => item == AgentStructuredResponseParser.InvalidOutputLimitation);
             Assert.Contains(malformedPayload.Limitations, item => item.Contains("selected ROI only", StringComparison.OrdinalIgnoreCase));
+
+            var guidanceResponse = await client.PostAsJsonAsync(
+                "/api/agent/query",
+                new
+                {
+                    question = "What guidelines would you give me to analyse these files?",
+                    signalIds,
+                    comparisonContext = new
+                    {
+                        recordingIdA = waveformPayload.Recordings[0].RecordingId,
+                        recordingIdB = waveformPayload.Recordings[1].RecordingId,
+                        metricKey = "crestFactorDelta",
+                        signalIdA = signalIds[0],
+                        signalIdB = signalIds[1]
+                    }
+                });
+
+            Assert.Equal(HttpStatusCode.OK, guidanceResponse.StatusCode);
+            var guidancePayload = await guidanceResponse.Content.ReadFromJsonAsync<AgentQueryResponse>();
+            Assert.NotNull(guidancePayload);
+            Assert.Contains("recording conditions", guidancePayload!.Answer, StringComparison.OrdinalIgnoreCase);
+            Assert.DoesNotContain("mean A-B", guidancePayload.Answer, StringComparison.OrdinalIgnoreCase);
+            Assert.Empty(guidancePayload.CitedEvidence);
 
             var invalidPairResponse = await client.PostAsJsonAsync(
                 "/api/agent/query",

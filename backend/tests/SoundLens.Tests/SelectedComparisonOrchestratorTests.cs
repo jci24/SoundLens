@@ -24,6 +24,22 @@ public sealed class SelectedComparisonOrchestratorTests
         Assert.Equal(0, chatClientProvider.CallCount);
     }
 
+    [Fact]
+    public async Task BroadWorkspaceGuidanceBypassesSelectedMetricExplanation()
+    {
+        var resolver = new StubContextResolver(BuildContext());
+        var chatClientProvider = new ThrowingChatClientProvider();
+        var orchestrator = new SelectedComparisonOrchestrator(chatClientProvider, resolver);
+
+        var response = await orchestrator.TryBuildResponseAsync(
+            BuildCommand("What guidelines would you give me to analyse these files?"),
+            CancellationToken.None);
+
+        Assert.Null(response);
+        Assert.Equal(0, resolver.CallCount);
+        Assert.Equal(0, chatClientProvider.CallCount);
+    }
+
     [Theory]
     [InlineData("What is the calibrated dB SPL difference?", "cannot determine a calibrated dB SPL")]
     [InlineData("What caused this selected difference?", "does not establish a cause")]

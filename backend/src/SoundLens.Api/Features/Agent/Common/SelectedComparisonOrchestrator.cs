@@ -44,7 +44,8 @@ public sealed class SelectedComparisonOrchestrator(
         AgentQueryCommand command,
         CancellationToken ct)
     {
-        if (command.ComparisonContext is null)
+        if (command.ComparisonContext is null ||
+            !SelectedComparisonIntentPolicy.RequiresSelectedEvidence(command.Question))
         {
             return null;
         }
