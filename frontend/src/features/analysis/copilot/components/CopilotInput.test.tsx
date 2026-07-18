@@ -8,7 +8,6 @@ const renderInput = (onSubmit = vi.fn()) => {
       isLoading={false}
       recordings={[]}
       showSuggestions={false}
-      workspaceContextLabel="Selected comparison attached"
       onSubmit={onSubmit}
     />
   )
@@ -16,39 +15,29 @@ const renderInput = (onSubmit = vi.fn()) => {
 }
 
 describe('CopilotInput', () => {
-  it('defaults to Auto and exposes the attached workspace context', () => {
-    renderInput()
-
-    expect(screen.getByRole('combobox', { name: 'Context' })).toHaveValue('auto')
-    expect(screen.getByText('Selected comparison attached')).toBeInTheDocument()
-  })
-
-  it('submits the selected context mode and explains General isolation', () => {
+  it('submits a question without exposing an internal routing control', () => {
     const onSubmit = renderInput()
-    fireEvent.change(screen.getByRole('combobox', { name: 'Context' }), {
-      target: { value: 'general' },
-    })
     fireEvent.change(screen.getByRole('textbox', { name: 'Investigation question' }), {
       target: { value: 'What is the Nyquist theorem?' },
     })
 
-    expect(screen.getByText('Workspace context ignored')).toBeInTheDocument()
+    expect(screen.queryByRole('combobox', { name: 'Context' })).not.toBeInTheDocument()
     fireEvent.click(screen.getByRole('button', { name: 'Investigate' }))
 
-    expect(onSubmit).toHaveBeenCalledWith('What is the Nyquist theorem?', 'general')
+    expect(onSubmit).toHaveBeenCalledWith('What is the Nyquist theorem?')
   })
 
-  it('disables context changes while a request is running', () => {
+  it('disables question submission while a request is running', () => {
     render(
       <CopilotInput
         isLoading
         recordings={[]}
         showSuggestions={false}
-        workspaceContextLabel="No workspace evidence attached"
         onSubmit={vi.fn()}
       />
     )
 
-    expect(screen.getByRole('combobox', { name: 'Context' })).toBeDisabled()
+    expect(screen.getByRole('textbox', { name: 'Investigation question' })).toBeDisabled()
+    expect(screen.getByRole('button', { name: 'Investigate' })).toBeDisabled()
   })
 })

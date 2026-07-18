@@ -65,7 +65,7 @@ Turn the current analysis workspace into a focused comparison workflow for repea
 - selected-comparison orchestration extracted from `AgentQueryHandler` behind a feature-owned resolver, trust-guard, prompt, model, parser, and fallback boundary
 - comparison-to-Copilot workflow regression covering metric and ROI freshness, identifier-only requests, grounded responses, refusal presentation, failure recovery, Re-run context, and store cleanup
 - workspace-aware Copilot routing with explicit-mention precedence, detailed selected-evidence scope, focused-mode assigned A/B comparison scope, visible focused-signal inspection, and deterministic single-signal metrics
-- explicit Auto, Workspace, and General Copilot modes with backend-owned context routing, isolated general-knowledge responses, and answer-source labels
+- invisible backend-owned Copilot context routing with isolated general-knowledge responses, explicit signal-mention precedence, and answer-source labels
 - functional Home, Import, and guarded Evidence routes with temporary-session restoration, persistent navigation, breadcrumbs, and explicit bootstrap recovery
 
 ## Ordered Thin Tasks
@@ -98,7 +98,7 @@ User value:
 - Users can move from grounded acoustic evidence to broader technical support while always understanding whether an answer comes from SoundLens evidence, model knowledge, or a future external source.
 
 Ordered slices:
-1. completed: backend-owned context routing across Auto, Workspace, and General modes
+1. completed: automatic backend-owned routing between workspace evidence and general knowledge without a user-facing mode selector
 2. next: OpenAI Responses API web search with first-class source citations and explicit web-answer labelling
 3. bounded conversation history with explicit session lifecycle, context budgets, and Re-run semantics
 4. Copilot availability across the application shell without leaking stale Evidence-route context

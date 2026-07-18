@@ -1,7 +1,6 @@
 import { useRef, useState } from 'react'
 import { ArrowUp } from 'lucide-react'
 import type { ITimeWaveformRecording } from '../../types'
-import type { TCopilotContextMode } from '../types/copilot.types'
 import './CopilotInput.scss'
 
 const MAX_CHARS = 500
@@ -23,19 +22,16 @@ interface ICopilotInputProps {
   isLoading: boolean
   showSuggestions: boolean
   recordings: ITimeWaveformRecording[]
-  workspaceContextLabel: string
-  onSubmit: (question: string, contextMode: TCopilotContextMode) => void
+  onSubmit: (question: string) => void
 }
 
 const CopilotInput = ({
   isLoading,
   showSuggestions,
   recordings,
-  workspaceContextLabel,
   onSubmit,
 }: ICopilotInputProps) => {
   const [question, setQuestion] = useState('')
-  const [contextMode, setContextMode] = useState<TCopilotContextMode>('auto')
   const [mentionQuery, setMentionQuery] = useState<string | null>(null)
   const [mentionStart, setMentionStart] = useState(0)
   const textareaRef = useRef<HTMLTextAreaElement | null>(null)
@@ -57,7 +53,7 @@ const CopilotInput = ({
 
   const handleSubmit = () => {
     if (!canSubmit) return
-    onSubmit(trimmed, contextMode)
+    onSubmit(trimmed)
     setQuestion('')
     setMentionQuery(null)
   }
@@ -141,26 +137,6 @@ const CopilotInput = ({
           ))}
         </ul>
       )}
-
-      <div className="copilot-input__context-row">
-        <label className="copilot-input__context-label" htmlFor="copilot-context-mode">
-          Context
-        </label>
-        <select
-          id="copilot-context-mode"
-          className="copilot-input__context-select"
-          disabled={isLoading}
-          value={contextMode}
-          onChange={(event) => setContextMode(event.target.value as TCopilotContextMode)}
-        >
-          <option value="auto">Auto</option>
-          <option value="workspace">Workspace</option>
-          <option value="general">General</option>
-        </select>
-        <span className="copilot-input__context-summary">
-          {contextMode === 'general' ? 'Workspace context ignored' : workspaceContextLabel}
-        </span>
-      </div>
 
       <div className="copilot-input__field-row">
         <textarea

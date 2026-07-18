@@ -2,12 +2,10 @@ import { fireEvent, render, screen } from '@testing-library/react'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { useAnalysisWorkspaceStore } from '../../stores/useAnalysisWorkspaceStore'
 import type { ITimeWaveformRecording } from '../../types'
-import type { TCopilotContextMode } from '../types/copilot.types'
 import { CopilotPanel } from './CopilotPanel'
 
 const submitSpy = vi.fn()
 let submittedQuestion = 'Explain this difference'
-let submittedContextMode: TCopilotContextMode = 'auto'
 const recordings: ITimeWaveformRecording[] = [
   {
     recordingId: 'recording-a',
@@ -41,8 +39,8 @@ vi.mock('../hooks/useCopilotQuery', () => ({
 }))
 
 vi.mock('./CopilotInput', () => ({
-  CopilotInput: ({ onSubmit }: { onSubmit: (question: string, contextMode: TCopilotContextMode) => void }) => (
-    <button type="button" onClick={() => onSubmit(submittedQuestion, submittedContextMode)}>
+  CopilotInput: ({ onSubmit }: { onSubmit: (question: string) => void }) => (
+    <button type="button" onClick={() => onSubmit(submittedQuestion)}>
       Ask
     </button>
   ),
@@ -52,7 +50,6 @@ describe('CopilotPanel', () => {
   beforeEach(() => {
     submitSpy.mockReset()
     submittedQuestion = 'Explain this difference'
-    submittedContextMode = 'auto'
     useAnalysisWorkspaceStore.setState({
       recordingGroupAssignments: {},
       comparisonCopilotContext: {
@@ -194,31 +191,4 @@ describe('CopilotPanel', () => {
     })
   })
 
-  it('omits every workspace identifier when General mode is forced', () => {
-    submittedQuestion = 'Explain the Nyquist theorem.'
-    submittedContextMode = 'general'
-    render(
-      <CopilotPanel
-        recordings={recordings}
-        regionOfInterest={{
-          startTimeSeconds: 0.25,
-          endTimeSeconds: 0.75,
-          durationSeconds: 0.5,
-        }}
-        selectedSignalIds={['signal-a', 'signal-b']}
-      />
-    )
-
-    fireEvent.click(screen.getByRole('button', { name: 'Ask' }))
-
-    expect(submitSpy).toHaveBeenCalledWith({
-      question: 'Explain the Nyquist theorem.',
-      contextMode: 'general',
-      signalIds: undefined,
-      startTimeSeconds: undefined,
-      endTimeSeconds: undefined,
-      comparisonContext: undefined,
-      comparisonPair: undefined,
-    })
-  })
 })

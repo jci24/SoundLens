@@ -101,9 +101,9 @@ These findings are useful first-pass cues, but they should still be treated as b
 ## Current Copilot Behavior
 
 - `POST /api/agent/query` runs an OpenAI tool-calling loop against the current imported-session context.
-- Copilot requests now declare `auto`, `workspace`, or `general` context. Auto mode preserves deterministic evidence responders first, then uses a bounded backend classifier to choose between workspace evidence and general knowledge without receiving measurements.
-- General mode is isolated from imported recordings, signals, comparison identifiers, and ROI. Its responses are labelled as general knowledge and cannot cite SoundLens evidence or inherit workspace-specific dBFS, calibration, or ROI limitations.
-- Workspace mode retains the existing deterministic tools, backend evidence reconstruction, selected-comparison trust guards, citations, and fail-closed structured response parsing. Explicit signal mentions always select this path.
+- Normal Copilot questions route automatically without a user-facing mode selector. Existing deterministic evidence responders run first, then a bounded backend classifier chooses between workspace evidence and general knowledge without receiving measurements.
+- General answers are isolated from imported recordings, signals, comparison identifiers, and ROI. They are labelled as general knowledge and cannot cite SoundLens evidence or inherit workspace-specific dBFS, calibration, or ROI limitations.
+- Workspace answers retain deterministic tools, backend evidence reconstruction, selected-comparison trust guards, citations, and fail-closed structured response parsing. Explicit signal mentions are treated as a strong workspace instruction.
 - Simple factual questions about one visible signal's RMS level, peak amplitude, or clipping now use backend-owned `get_signal_metrics` evidence without requiring a second signal or an OpenAI API key.
 - Explicit comparison questions about RMS loudness, peak amplitude, or clipping use backend-owned `compare_signals` evidence. In Focused mode, a valid assigned A/B recording pair supplies comparison scope without replacing the visible signal used by single-signal questions.
 - Copilot scope follows explicit signal mentions first, then detailed selected-comparison evidence, then an assigned A/B recording pair for explicit comparison intent, and finally the visible focused-workspace signal. The current ROI is retained in every scope.

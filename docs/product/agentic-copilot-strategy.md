@@ -78,7 +78,8 @@ ChatGPT, VS Code Copilot, Claude Code, Devin, and Jack & Jill demonstrate that a
 
 Implication for SoundLens:
 
-- keep one Copilot surface with explicit Auto, Workspace, and General context choices
+- keep one Copilot surface and make source routing automatic rather than asking users to understand internal context modes
+- treat explicit evidence mentions and explicit requests for general or current knowledge as natural-language routing signals
 - run deterministic workspace responders before model intent classification
 - keep general model knowledge isolated from recordings, DSP tools, measurements, and evidence citations
 - label answer provenance so model knowledge is never mistaken for measured evidence
