@@ -1,3 +1,4 @@
+using System.ClientModel;
 using System.Text.Json;
 using OpenAI.Chat;
 using SoundLens.Api.Configuration;
@@ -5,7 +6,9 @@ using SoundLens.Api.Features.Agent.Commands;
 
 namespace SoundLens.Api.Features.Agent.Common;
 
-public sealed class AgentContextRouter(IChatClientProvider chatClientProvider)
+public sealed class AgentContextRouter(
+    IChatClientProvider chatClientProvider,
+    ILogger<AgentContextRouter> logger)
 {
     private static readonly string[] ClearWorkspaceTerms =
     [
@@ -34,7 +37,7 @@ public sealed class AgentContextRouter(IChatClientProvider chatClientProvider)
 
     private const string SystemPrompt = """
         Classify whether the question requires the user's SoundLens workspace evidence.
-        Return only {"contextMode":"workspace"} or {"contextMode":"general"}.
+        Return only a JSON object: {"contextMode":"workspace"} or {"contextMode":"general"}.
 
         Choose workspace when the user asks to inspect, compare, explain, or reason about loaded recordings,
         selected signals, selected metrics, an ROI, visible findings, or "this" currently selected evidence.
@@ -83,14 +86,23 @@ public sealed class AgentContextRouter(IChatClientProvider chatClientProvider)
             ResponseFormat = ChatResponseFormat.CreateJsonObjectFormat(),
             MaxOutputTokenCount = 40
         };
-        var completion = await client.CompleteChatAsync(
-            [new SystemChatMessage(SystemPrompt), new UserChatMessage(descriptor)],
-            options,
-            ct);
+        ClientResult<ChatCompletion> completion;
+        try
+        {
+            completion = await client.CompleteChatAsync(
+                [new SystemChatMessage(SystemPrompt), new UserChatMessage(descriptor)],
+                options,
+                ct);
+        }
+        catch (ClientResultException exception)
+        {
+            logger.LogWarning(exception, "Copilot context classification failed; applying conservative fallback routing.");
+            return FallbackMode(hasExplicitIdentifiers);
+        }
 
         return TryParseMode(completion.Value.Content.FirstOrDefault()?.Text, out var mode)
             ? mode
-            : hasExplicitIdentifiers ? AgentContextModes.Workspace : AgentContextModes.General;
+            : FallbackMode(hasExplicitIdentifiers);
     }
 
     public static bool IsClearlyWorkspaceQuestion(string question)
@@ -98,6 +110,9 @@ public sealed class AgentContextRouter(IChatClientProvider chatClientProvider)
         var normalized = $" {question.Trim().ToLowerInvariant()} ";
         return ClearWorkspaceTerms.Any(term => normalized.Contains(term, StringComparison.Ordinal));
     }
+
+    private static string FallbackMode(bool hasExplicitIdentifiers) =>
+        hasExplicitIdentifiers ? AgentContextModes.Workspace : AgentContextModes.General;
 
     private static bool TryParseMode(string? rawText, out string mode)
     {

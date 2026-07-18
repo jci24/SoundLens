@@ -213,6 +213,8 @@ public sealed class AgentQueryEndpointTests : IClassFixture<WebApplicationFactor
 
         Assert.Equal(AgentAnswerModes.General, payload!.AnswerMode);
         Assert.Equal(2, chatClientProvider.UserMessages.Count);
+        Assert.NotEmpty(chatClientProvider.SystemMessages);
+        Assert.Contains("JSON", chatClientProvider.SystemMessages[0], StringComparison.OrdinalIgnoreCase);
         Assert.DoesNotContain("private-signal-id", chatClientProvider.UserMessages[0], StringComparison.Ordinal);
         Assert.DoesNotContain("private-a", chatClientProvider.UserMessages[0], StringComparison.Ordinal);
         Assert.Equal("Explain the Nyquist theorem in simple terms.", chatClientProvider.UserMessages[1]);
@@ -811,6 +813,8 @@ public sealed class AgentQueryEndpointTests : IClassFixture<WebApplicationFactor
 
         public List<string> UserMessages { get; } = [];
 
+        public List<string> SystemMessages { get; } = [];
+
         public int GetRequiredClientCallCount { get; private set; }
 
         public ChatClient GetRequiredClient()
@@ -821,6 +825,16 @@ public sealed class AgentQueryEndpointTests : IClassFixture<WebApplicationFactor
                 _responseJsons[responseIndex],
                 messages =>
                 {
+                    var systemMessage = messages
+                        .OfType<SystemChatMessage>()
+                        .LastOrDefault()?
+                        .Content
+                        .FirstOrDefault()?
+                        .Text;
+                    if (systemMessage is not null)
+                    {
+                        SystemMessages.Add(systemMessage);
+                    }
                     LastUserMessage = messages
                         .OfType<UserChatMessage>()
                         .LastOrDefault()?
