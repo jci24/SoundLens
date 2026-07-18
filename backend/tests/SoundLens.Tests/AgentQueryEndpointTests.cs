@@ -102,6 +102,32 @@ public sealed class AgentQueryEndpointTests : IClassFixture<WebApplicationFactor
             limitation.Contains("dBFS", StringComparison.OrdinalIgnoreCase));
     }
 
+    [Theory]
+    [InlineData("Give me some guidelines to analyse the different files in here.")]
+    [InlineData("No, I want guidelines, not the values.")]
+    public async Task AnalysisGuidanceBypassesMeasurementsAndModelRouting(string question)
+    {
+        using var client = _factory.CreateClient();
+        var response = await client.PostAsJsonAsync(
+            "/api/agent/query",
+            new
+            {
+                question,
+                contextMode = "auto",
+                signalIds = new[] { "attached-but-unused-signal" }
+            });
+
+        response.EnsureSuccessStatusCode();
+        var payload = await response.Content.ReadFromJsonAsync<AgentQueryResponse>();
+
+        Assert.NotNull(payload);
+        Assert.Equal(AgentAnswerModes.General, payload!.AnswerMode);
+        Assert.Contains("decision-led acoustic workflow", payload.Answer, StringComparison.OrdinalIgnoreCase);
+        Assert.Empty(payload.CitedEvidence);
+        Assert.Empty(payload.ToolsUsed);
+        Assert.DoesNotContain("attached-but-unused-signal", payload.Answer, StringComparison.Ordinal);
+    }
+
     [Fact]
     public async Task ReplacesMalformedGenericModelOutputWithSafeFallback()
     {
@@ -847,9 +873,11 @@ public sealed class AgentQueryEndpointTests : IClassFixture<WebApplicationFactor
             Assert.Equal(HttpStatusCode.OK, guidanceResponse.StatusCode);
             var guidancePayload = await guidanceResponse.Content.ReadFromJsonAsync<AgentQueryResponse>();
             Assert.NotNull(guidancePayload);
-            Assert.Contains("recording conditions", guidancePayload!.Answer, StringComparison.OrdinalIgnoreCase);
+            Assert.Equal(AgentAnswerModes.General, guidancePayload!.AnswerMode);
+            Assert.Contains("decision-led acoustic workflow", guidancePayload.Answer, StringComparison.OrdinalIgnoreCase);
             Assert.DoesNotContain("mean A-B", guidancePayload.Answer, StringComparison.OrdinalIgnoreCase);
             Assert.Empty(guidancePayload.CitedEvidence);
+            Assert.Empty(guidancePayload.ToolsUsed);
 
             var invalidPairResponse = await client.PostAsJsonAsync(
                 "/api/agent/query",

@@ -77,6 +77,12 @@ public sealed class AgentQueryHandler(
 
     public override async Task<AgentQueryResponse> ExecuteAsync(AgentQueryCommand command, CancellationToken ct = default)
     {
+        var guidanceResponse = AcousticAnalysisGuidanceResponder.TryBuild(command.Question);
+        if (guidanceResponse is not null)
+        {
+            return guidanceResponse;
+        }
+
         var resolvedContextMode = await contextRouter.ResolveAsync(
             command,
             importedFileStore.CurrentFiles.Count,
