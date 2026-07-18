@@ -129,6 +129,14 @@ Chat remains the conversational control surface. The main workspace remains the 
 
 The conversational surface may answer general technical questions, but only workspace-grounded paths may claim SoundLens measurements. Future web answers must identify and cite external sources, and future workspace actions must pass policy and review gates.
 
+SoundLens must keep three authority categories explicit:
+
+1. measured evidence from deterministic SoundLens code and evidence references
+2. external research evidence from validated source references
+3. agent interpretation labelled as a hypothesis, unresolved question, or supported conclusion
+
+The categories may be connected in an investigation but never silently merged. External literature cannot override measured evidence, and model prose cannot become a measurement. See [Research Source And Privacy Policy](research-source-policy.md) for source and query boundaries and [ROADMAP.md](../../ROADMAP.md) for maturity gates.
+
 ## Capability Families
 
 Capabilities should be grouped into a small number of bounded families. The model should receive only the subset relevant to the current step.

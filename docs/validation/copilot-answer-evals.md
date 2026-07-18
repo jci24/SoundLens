@@ -100,3 +100,19 @@ The uncalibrated SPL case exercises a deterministic backend trust guard rather t
 The unsupported-cause case also exercises a deterministic backend trust guard. A passing response may describe the selected difference and associated findings, but it must state that the observational evidence does not establish a cause, retain ROI and coverage limitations, and avoid treating detector findings as causal proof. Repeated runs should be identical because the matching request never reaches the model.
 
 A true calibrated-versus-uncalibrated mismatch is deferred. Imported evidence currently remains uncalibrated, so adding such a fixture would invent unsupported product state rather than test the real contract.
+
+## Maturity Coverage Gaps
+
+The current harness supports Level 2 trust validation and a small part of Level 3 routing. It does not yet demonstrate Level 3, Level 4, or Level 5 maturity.
+
+Next evaluation layers, in dependency order:
+
+1. routing accuracy across deterministic fact, evidence explanation, guidance, conceptual knowledge, web research, clarification, and unsupported requests
+2. evidence-sufficiency decisions for missing, incompatible, partial, contradicted, and unavailable evidence
+3. structured-observation grounding and stable evidence-reference resolution
+4. plan validity, capability selection, parameters, dependencies, cost class, and approval requirements
+5. source quality, applicability, disagreement, citation integrity, and privacy-safe research queries
+6. plan revision, partial failure, cancellation, recovery, and report traceability after those product contracts exist
+7. complete long-horizon investigation workflows only after persistence and policy-controlled execution exist
+
+Critical release properties may require zero fabricated measurements, citations, unauthorized external actions, unsupported calibration or compliance claims, and untraceable conclusions. Non-critical thresholds must be chosen after reviewing real eval distributions rather than declared in advance.

@@ -105,9 +105,11 @@ Ordered slices:
 5. completed: deterministic clarification for undefined “best” or “better” judgments before tools run, plus accumulated activity rows for repeated evidence-tool calls
 6. completed: user-centered answer-preparation traces for model-backed general and investigation turns, with internal answer-mode badges removed from the response UI
 7. completed: bounded industry-practice routing for organization workflows such as evaluating, testing, validating, comparing, and benchmarking product sound, without overriding explicit workspace references
-8. next: bounded conversation history with explicit session lifecycle, context budgets, and Re-run semantics
-9. Copilot availability across the application shell without leaking stale Evidence-route context
-10. reviewable investigation plans and reversible workspace actions after the capability and policy contracts are validated
+8. next agent hardening: routing evaluation coverage and an explicit acceptance threshold; do not add autonomy
+9. evidence-sufficiency contract for the existing comparison intents and evidence types
+10. structured observation contract over stable comparison evidence
+11. typed investigation-plan contract after sufficiency and observation contracts exist
+12. research source-quality and applicability contract after the source/privacy policy and routing eval gate
 
 Boundary:
 - general knowledge is not measured evidence
@@ -119,6 +121,58 @@ Boundary:
 
 Priority:
 - high trust and product-platform work after the current Evidence composition slice
+
+#### First actionable agent tasks
+
+**`codex/copilot-routing-evals`**
+
+- User value: predictable selection of deterministic facts, workspace explanation, guidance, general knowledge, web research, clarification, and unsupported-request paths.
+- Dependency: shipped automatic routing and the current eval harness.
+- Scope: add representative and adversarial routing cases, grading, baseline results, and an acceptance-threshold proposal derived from observed failures.
+- Out of scope: production prompt changes, conversation history, plans, or workspace actions.
+- Acceptance criteria: deterministic facts never require model calculation; research questions do not receive DSP context; selected-evidence questions remain workspace-grounded; every failure is diagnostic.
+- Tests or evals: pure dataset/grader tests plus repeated live routing baselines.
+- Validation gate: no critical route crosses the measured/general/research trust boundary.
+
+**`codex/comparison-evidence-sufficiency`**
+
+- User value: users see whether an intended comparison claim is supported, partial, missing, contradicted, or unavailable with current tools.
+- Dependency: current pairwise comparison, alignment, coverage, limitations, and routing eval baseline.
+- Scope: a backend-owned typed sufficiency result for existing level, clipping, selected-spectrum, calibration, and causal intents.
+- Out of scope: new DSP, model confidence scores, executable plans, or physical root-cause claims.
+- Acceptance criteria: each supported intent declares required evidence; missing or incompatible evidence produces a deterministic bounded result; the model cannot promote support status.
+- Tests or evals: unit, endpoint, missing-alignment, low-coverage, zero-difference, ROI, calibration, and refusal cases.
+- Validation gate: the same evidence and intent always produce the same sufficiency status.
+
+**`codex/structured-comparison-observations`**
+
+- User value: comparison claims remain inspectable and reusable without relying on prose.
+- Dependency: sufficiency contract and stable current comparison identifiers.
+- Scope: typed measured observations with evidence references, scope, status, and limitations.
+- Out of scope: hypotheses, conclusions, persistence, or external research synthesis.
+- Acceptance criteria: every measured claim resolves to deterministic evidence; heterogeneous metrics are not ranked by raw magnitude; report and Copilot consumers cannot supply values.
+- Tests or evals: serialization, evidence-resolution, unit, ROI, missing-reference, and consumer compatibility tests.
+- Validation gate: deleting or changing referenced evidence invalidates the observation rather than leaving an unsupported claim.
+
+**`codex/investigation-plan-contract`**
+
+- User value: substantial Copilot work can be previewed as an explicit bounded plan before execution is considered.
+- Dependency: capability catalog, routing eval gate, sufficiency, and structured observations.
+- Scope: versioned plan and step contracts, dependencies, required evidence, completion criteria, approval flags, and validation rules.
+- Out of scope: execution, persistence, automatic plan revision, or workspace mutation.
+- Acceptance criteria: invalid capabilities, parameters, scope, cost class, or evidence requirements are rejected deterministically.
+- Tests or evals: contract, validation, unsupported-capability, ambiguous-goal, and planning eval cases.
+- Validation gate: representative plans are inspectable and numerically empty until deterministic tools run.
+
+**`codex/research-source-quality-contract`**
+
+- User value: cited technical guidance communicates source type, applicability, access limits, and disagreement instead of treating every URL equally.
+- Dependency: routing eval gate, research source/privacy policy, and continued user demand for embedded research.
+- Scope: source-reference metadata, source class, applicability and access limitations, and citation validation.
+- Out of scope: multi-step literature agents, confidential queries, measured-plus-research conclusions, or standards compliance.
+- Acceptance criteria: unsupported citations fail closed; source type and limitations remain explicit; research claims never become measured evidence.
+- Tests or evals: malformed citation, duplicate source, abstract-only, stale source, disagreement, unsafe URL, and privacy-query cases.
+- Validation gate: every displayed research claim resolves to a validated source reference.
 
 ### Product discovery. Validate the automotive NVH workflow hypothesis
 

@@ -130,6 +130,12 @@ These findings are useful first-pass cues, but they should still be treated as b
 
 The current Copilot supports bounded workspace evidence, isolated general model knowledge, bounded cited web research, adaptive investigation guidance, and ephemeral per-turn activity traces. It has no conversation history, shell-wide availability, workspace-plus-web synthesis, deep-research jobs, persisted trace, or workspace actions. It still operates over a temporary workspace rather than a first-class persisted comparison object.
 
+### Current maturity assessment
+
+The Copilot is approximately a strong Level 2 tool-using assistant with early Level 3 foundations. Routing, deterministic tools, selected-evidence reconstruction, trust refusals, structured response validation, bounded cited web research, and observable activity are implemented. Investigation guidance, source quality, calibration compatibility, evidence identity, and trace completeness are partial. Typed executable plans, evidence-sufficiency status, structured hypotheses and conclusions, persistent investigations, resumable jobs, approval policy, and workspace-operating autonomy are not implemented.
+
+This classification is about product responsibility, not model intelligence. The current model may suggest next steps, but it cannot execute an investigation plan or turn model-authored prose into measured evidence.
+
 ## Current Report Export
 
 - `POST /api/report/export` creates a normalized deterministic workspace snapshot.

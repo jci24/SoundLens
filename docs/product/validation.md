@@ -149,3 +149,16 @@ Agentic disconfirming evidence:
 - Delay larger persistence or platform work until users demonstrate that session-only behavior is a real blocker.
 - Start agentic capability work only after the A/B wedge is validated; expand autonomy only when the preceding trust and usability gate passes.
 - Add a new deterministic analysis only after the customer-driven analysis program passes its problem-evidence and capability-priority gates.
+
+## Agent Maturity Validation Gates
+
+Agent responsibility expands only when the preceding product and trust evidence exists:
+
+- After A/B comparison and drill-down, verify that users understand the scope, trust the evidence, and save time without AI.
+- Before typed investigation planning, verify that users want reviewable plans and that routing, capability selection, sufficiency, and trace inspection meet agreed thresholds.
+- Before measured-plus-research synthesis, verify that embedded source support solves a real workflow problem and that users distinguish measured evidence, external theory, and agent hypotheses.
+- Before persistence, verify that users need to reopen, resume, share, or regenerate investigations rather than merely wanting longer chat history.
+- Before long-running execution, verify that workflows are repetitive and costly enough to justify progress, cancellation, recovery, and resource controls.
+- Before bounded autonomy, verify that users understand action classes, approvals, stopping conditions, privacy boundaries, and final engineering responsibility.
+
+After approximately every two meaningful product slices, conduct at least one external workflow review. A polished internal demo is not sufficient evidence to advance maturity.

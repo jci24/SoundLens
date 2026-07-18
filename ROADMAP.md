@@ -299,156 +299,190 @@ Explicitly deferred work:
 - distributed workers
 - generalized platform infrastructure
 
-## Milestone 8 — Agent Capability And Action Foundation
+## Cross-Cutting Program — Evidence-Grounded Agent Maturity
 
-User outcome:
-- A user can ask the Copilot to propose a small acoustic investigation and understand exactly which supported actions and evidence it would use.
+This program is conditional on the comparison wedge. It does not replace Milestones 1–7, customer discovery, or deterministic analysis expansion. The authoritative strategy is [Agentic Copilot Strategy](docs/product/agentic-copilot-strategy.md); external source and privacy boundaries are defined in [Research Source And Privacy Policy](docs/product/research-source-policy.md).
 
-Major capabilities:
-- typed, versioned capability catalog
-- adaptive AI-generated investigation guidance that responds to the user's objective and backend-resolved workspace descriptors rather than returning canned methodology
-- investigation plan preview
-- action policy and risk classes
-- workspace revision checks
-- progress, cancellation, failure, and trace contracts
-- progressively disclosed investigation activity showing plans, actions, tool calls, evidence checks, and execution states without exposing private chain-of-thought
-- read-only context and deterministic analysis capabilities
+### 1. Current maturity
 
-Current foundation:
-- Copilot signal scope follows explicit mentions, selected aligned A/B evidence, an assigned A/B pair for focused-mode comparison intent, or the visible focused-workspace signal instead of treating every metric question as a comparison
-- deterministic RMS, peak, and clipping inspection supports one visible signal, while explicitly comparative questions can resolve all signals in the assigned A/B recordings through backend-owned session data
-- unsupported analyses remain bounded by the available backend capability set and must state missing evidence rather than inventing results
-- Copilot context is routed automatically without a user-facing mode selector; deterministic workspace responders retain precedence, while isolated general answers receive no recording, signal, comparison, ROI, DSP-tool, or measured-evidence context
-- internal answer modes continue to enforce isolation between workspace, general, guidance, and web paths without adding routing badges to completed answers; evidence sections and external citations communicate the sources users need
-- current-information, source, standards, product, research, and industry-practice questions can use one bounded hosted web-search lifecycle; the responder receives only the question and must return validated HTTP(S) citations or fail explicitly
-- methodology requests can receive adaptive investigation guidance from the user's objective and backend-resolved filenames, recording metadata, validated A/B state, ROI scope, selected metric label, and an allowlisted shipped-capability catalog; no measurements or frontend-authored evidence enter this planning path
-- model-backed general answers and nontrivial Copilot investigations stream a bounded backend-authored preparation trace while answer prose remains hidden until complete schema and evidence validation; direct deterministic metrics remain trace-free
-- undefined evaluative requests do not trigger an overall recording or signal ranking; the backend asks for a metric and preferred direction, target, or reference before running tools
+SoundLens is approximately a **Level 2 tool-using Copilot with early Level 3 foundations**.
 
-Ordered Copilot platform follow-ups:
-1. completed: investigation activity trace with a collapsed-by-default UI and typed backend events for plan, routing, tool execution, evidence validation, fallback, completion, and failure; never expose private model reasoning, raw prompts, or internal identifiers
-2. completed: ambiguous-quality clarification and consolidated repeated-tool activity without treating acoustic measurements as an overall quality score
-3. completed: neutral answer-preparation traces across model-backed general and investigation paths, with internal routing badges removed from the user-facing response
-4. completed: explicit organization-plus-practice routing for external questions about how companies, manufacturers, laboratories, and engineering teams evaluate, test, validate, compare, or benchmark sound
-5. next: bounded conversation history and explicit session lifecycle
-6. Copilot availability across the application shell with route-safe context attachment
-7. hybrid workspace-plus-web synthesis with separate evidence and external-source sections
-8. deep research with background execution, progress, cancellation, cost limits, and source-quality evaluation
-8. reviewable plans and reversible workspace actions under the Milestone 8 and 9 policy gates
+| Capability | Status | Repository evidence and boundary |
+| --- | --- | --- |
+| Context-aware conversational UI | Implemented | Receives selected recording, signal, pair, metric, and ROI identifiers. |
+| Deterministic factual routing | Implemented | RMS, peak, and clipping questions bypass model calculation. |
+| Bounded deterministic tools | Implemented | Metrics, findings, spectrum summaries, and signal comparison are backend-owned. |
+| Selected-comparison explanation | Implemented | Backend reconstructs evidence and validates model output. |
+| Trust refusals | Implemented | Unsupported SPL and causal conclusions are rejected deterministically. |
+| General, workspace, and web routing | Implemented | Automatic backend routing isolates measurements from general and web paths. |
+| Source-backed web answers | Partially implemented | Validated HTTP(S) citations exist; source quality, applicability, and literature disagreement do not. |
+| Investigation guidance | Partially implemented | Produces bounded advice and allowlisted next steps, not a typed executable plan. |
+| Investigation trace | Partially implemented | Observable per-turn activity is ephemeral and is not a complete persisted audit. |
+| Stable evidence identity and provenance | Partially implemented | Session identifiers and evidence citations exist; algorithm, parameter, content-hash, and persisted lineage do not. |
+| Calibration compatibility | Partially implemented | Uncalibrated limitations and refusals exist; multiple real calibration states do not. |
+| Evidence sufficiency and structured claims | Missing | No first-class sufficiency, hypothesis, conclusion, or validation-status contract exists. |
+| Persistent investigations and jobs | Missing | The workspace is temporary and has no resumable execution model. |
+| Policy-controlled workspace actions | Missing | Guidance cannot execute or mutate workspace state. |
 
-Dependencies:
-- validated A/B workflow
-- stable evidence contracts
-- enough persistence to retain an investigation trace where validation requires it
+Cross-unit metric ranking by raw magnitude is **no longer appropriate**. Comparison metrics retain a fixed domain presentation order. Future prioritization must use comparable within-metric evidence, a validated domain rule, or an explicit user criterion, target, or reference.
 
-Validation gate:
-- realistic planning evals select only valid capabilities, preserve scope and units, request clarification for ambiguity, and never place model-authored measurements into an action
+### 2. Target maturity
 
-Explicitly deferred work:
-- autonomous workspace modification
-- multi-agent orchestration
-- external integrations
+**Level 3 — Structured Investigation Agent**
 
-## Milestone 9 — Reversible Workspace-Operating Copilot
+- routes requests into deterministic fact, evidence explanation, open investigation, conceptual knowledge, external research, clarification, or unsupported paths
+- creates a typed, reviewable plan against approved capabilities
+- evaluates required evidence and stops or qualifies conclusions when evidence is insufficient
+- separates measured observations, research-backed theory, hypotheses, and supported conclusions
+- revises plans only from traceable evidence or sources
+- produces an inspectable investigation trace without exposing private chain-of-thought
 
-User outcome:
-- A user can ask the Copilot to configure and navigate a comparison while retaining visibility, control, and undo.
+**Level 4 — Persistent Workflow Agent**
 
-Major capabilities:
-- recording, channel, A/B pair, ROI, metric, and evidence-navigation actions
-- visible activity and action status
-- atomic reversible workspace changes
-- stale-state rejection and idempotent retries
-- deep links from Copilot evidence to the workspace
+- saves and resumes first-class investigations
+- versions scope, evidence, analysis parameters, algorithms, sources, and reports
+- runs bounded longer jobs with progress, cancellation, retry, and partial-failure recovery
+- reuses valid evidence and invalidates stale results
+- retrieves prior investigations without treating generated text as authoritative measurement
 
-Dependencies:
-- Milestone 8
+**Level 5 — Bounded Autonomous Acoustic Engineer**
 
-Validation gate:
-- users complete representative setup and drill-down tasks faster than manually, with no hidden changes, duplicate assignments, stale actions, or failed undo paths
+- accepts a broad acoustic goal, validates scope and data, proposes a bounded plan, and executes approved deterministic analyses
+- conducts privacy-safe, source-quality-aware research only when needed
+- revises hypotheses and plans from measured and researched evidence while keeping them separate
+- pauses for consequential approval and stops for insufficient evidence, calibration, source quality, privacy, cost, or policy
+- prepares a traceable draft report but leaves engineering judgment, physical root cause, compliance, and final approval with the human
 
-Explicitly deferred work:
-- arbitrary UI manipulation
-- background autonomy
-- destructive actions
+### 3. Capability tracks
 
-## Milestone 10 — Agentic Analysis And Evidence Composition
+| Track | Near-term responsibility | Later responsibility |
+| --- | --- | --- |
+| Product and comparison | Preserve explicit A/B scope, strict alignment, ROI, fixed-order metrics, drill-down, reports, and customer validation. | Add decision-specific prioritization and batch comparison only after validated demand. |
+| Deterministic evidence and provenance | Define sufficiency for existing metrics and strengthen evidence identity. | Add calibration compatibility, algorithm and parameter versions, hashes, lineage, and reproducible reuse. |
+| Investigation intelligence | Harden routing evals and define typed observations and plans. | Add evidence-driven plan revision, structured hypotheses, conclusions, and reviewable workspace actions. |
+| External scientific research | Keep current bounded cited search isolated from measurements. | Add source quality, applicability, conflicting-source handling, literature briefs, and measured-plus-research synthesis. |
+| Persistence and long-running execution | Validate need before building. | Add investigation state, resumable jobs, report lifecycle, cache invalidation, and historical retrieval. |
+| Controlled autonomy | Define action classes and approval boundaries before execution. | Progress from suggestions to reversible actions and only then policy-controlled bounded autonomy. |
+| Evaluation and validation | Expand routing, grounding, refusal, and comparison evals. | Add planning, privacy, source-quality, recovery, approval, long-horizon, and report-traceability evals. |
 
-User outcome:
-- A user can describe an acoustic question and receive a reviewable workspace investigation containing deterministic analyses, charts, tables, and bounded interpretation.
+The information categories remain separate:
 
-Major capabilities:
-- multi-step deterministic analysis orchestration
-- investigation as a first-class product object
-- allowlisted declarative evidence-view specifications
-- editable and reorderable evidence blocks
-- selected-evidence interpretation and next-measurement guidance
-- partial-failure, retry, and cancellation behavior
+1. **Measured evidence:** deterministic SoundLens results linked to evidence references.
+2. **External research evidence:** source-backed claims linked to source references.
+3. **Agent interpretation:** explicitly labelled hypotheses, unresolved questions, or supported conclusions that cite the relevant evidence and sources.
 
-Dependencies:
-- Milestone 9
-- validated visualization and investigation-state architecture
+### 4. Dependency map
 
-Validation gate:
-- generated investigations are numerically faithful, correctly scoped, reproducible, materially faster than the manual workflow, and trusted by target engineers
+```text
+A/B comparison and alignment
+  -> deterministic observations and coverage
+  -> stable evidence references
+  -> evidence-sufficiency rules
+  -> structured observations
+  -> typed investigation plans
+  -> evidence-driven plan revision
 
-Explicitly deferred work:
-- arbitrary model-generated code or chart data
-- unbounded batch execution
-- specialist subagents without benchmark evidence
+Routing + source policy + privacy controls
+  -> source-backed conceptual research
+  -> research linked to stable observations
+  -> multi-step literature investigation
 
-## Milestone 11 — Reusable Investigation Recipes And Batch Workflows
+Customer validation + investigation contracts
+  -> persistence
+  -> resumable job execution
+  -> report lifecycle and historical retrieval
 
-User outcome:
-- A user can turn a successful investigation into a controlled recipe and rerun it across compatible product variants or conditions.
+Plans + sufficiency + provenance + eval maturity + persistence + jobs + privacy
+  -> policy-controlled actions
+  -> Level 5 bounded autonomy
+```
 
-Major capabilities:
-- save, inspect, edit, and version recipes
-- compatibility and prerequisite checks
-- bounded batch execution
-- per-item progress, cancellation, retry, and failure isolation
-- comparison of investigation runs
-- reproducible report generation
+Key gates:
 
-Dependencies:
-- Milestone 10
-- customer evidence that repeated workflows justify persistence and batch investment
+- stable evidence references depend on a current consumer in comparison explanation, reports, or investigation state
+- structured observations depend on deterministic evidence and sufficiency status
+- plans depend on an allowlisted capability catalog, parameter validation, cost boundaries, and eval coverage
+- measured-plus-research synthesis depends on separate evidence and source identities plus privacy-safe query generation
+- persistence depends on users needing to resume or revisit investigations
+- long-running execution depends on persisted step state and demonstrated batch demand
+- Level 5 depends on Level 3 and Level 4 success, not only model capability
 
-Validation gate:
-- target teams successfully reuse recipes on real repeated work, understand every step, and reduce setup and reporting time without losing traceability
+### 5. Near-term committed milestones
 
-Explicitly deferred work:
-- generalized no-code automation platform
-- distributed execution without demonstrated scale need
+The committed product order remains:
 
-## Milestone 12 — Collaborative And Extensible Acoustic Agent
+1. finish the Figma Evidence workflow and responsive utility-state polish
+2. conduct direct automotive NVH and adjacent workflow validation
+3. maintain the shipped A/B comparison, evidence drill-down, Copilot trust guards, and reports
+4. expand routing and trust eval coverage without adding autonomy
+5. specify evidence-sufficiency and structured-observation contracts over existing comparison evidence
 
-User outcome:
-- A team can review, govern, and extend trusted SoundLens investigations across its existing engineering workflow.
+No persistent investigation, background research, or workspace-operating agent is committed yet.
 
-Major capabilities:
-- annotations, review, approvals, and shared investigation history
-- organization-level capability and model policies
-- constrained external integrations
-- validated domain capability and recipe packs
-- production monitoring, feedback, and incident review
-- specialist agents only where benchmarked bounded contexts justify them
+### 6. Conditional later milestones
 
-Dependencies:
-- Milestone 11
-- validated collaboration and integration demand
-- security, privacy, deployment, and operational requirements from target customers
+**Stage B — Level 3 structured investigation** starts only when the comparison workflow and evidence contracts are stable enough to support a typed plan. It adds sufficiency, structured claims, plan validation, revision, and a complete auditable trace.
 
-Validation gate:
-- teams adopt shared investigations in production-like reviews while permission, provenance, privacy, reliability, latency, and cost targets remain within agreed limits
+**Stage C — External scientific research** advances from bounded cited answers to measured-plus-research synthesis only after source policy, stable evidence references, structured observations, privacy controls, and research evals exist.
 
-Explicitly deferred work:
-- open-ended computer control
-- unsupported standards decisions
-- autonomy beyond the organization's explicit policy
+**Stage D — Level 4 persistence and execution** starts only when users demonstrate a need to reopen, resume, share, or run longer investigations.
+
+**Stage E — Level 5 bounded autonomy** starts only after controlled long-horizon evaluations prove the Level 3 and Level 4 foundations and users understand the approval model.
+
+### 7. Deferred capabilities
+
+- collaborating agent networks or agent-framework migration
+- arbitrary code execution, browser control unrelated to acoustic research, or autonomous code generation
+- AI-created DSP algorithms or autonomous detector-threshold tuning
+- unrestricted internet access or confidential research without approval
+- multi-tenant collaboration, enterprise permissions, or distributed infrastructure without validated need
+- generic wiki memory or generated chat history as authoritative evidence
+- automatic external sharing, standards certification, or compliance decisions
+- autonomous physical root-cause diagnosis or unsupported causal conclusions
+
+### 8. Validation gates
+
+| Gate | Must be proven before continuing |
+| --- | --- |
+| Comparison foundation | Users can prepare, understand, and inspect a valid comparison without AI; fixed-order evidence is useful without unsupported ranking. |
+| Level 2 trust | Deterministic tests and relevant evals pass; no invented measurements, units, calibration, citations, or unsupported claims. |
+| Level 3 planning | Plans use only approved capabilities and validated parameters; sufficiency and refusal behavior are consistent; traces are inspectable; users value reviewable plans. |
+| Research expansion | Users want source support; citations substantiate claims; query privacy is verified; measured and researched evidence remain visibly separate. |
+| Level 4 persistence | Users need resume/revisit behavior; reopening preserves meaning and provenance; interrupted jobs recover without invalidating completed evidence. |
+| Level 5 autonomy | Long-horizon evals show reliable routing, planning, execution, research, recovery, approval, and traceability with zero critical evidence or authorization failures. |
+
+After approximately every two meaningful product slices, run at least one external workflow review before expanding responsibility further.
+
+### 9. Level mapping
+
+| Product milestone | Agent level contribution |
+| --- | --- |
+| Milestones 1–3: A/B assignment, comparison, and drill-down | Evidence foundation required by Level 2 and all later levels. |
+| Milestones 4–6: grounded explanation, reports, and trust | Current Level 2 plus early Level 3 routing and refusal foundations. |
+| Stage B: sufficiency, structured claims, plans, revisions, complete trace | Level 3. |
+| Stage C R1: isolated source-backed conceptual answers | Level 2/3 support; current bounded implementation is partial. |
+| Stage C R2–R5: research connected to evidence and autonomous research | Conditional Level 3 through Level 5. |
+| Stage D: investigation persistence, reproducibility, jobs, reports | Level 4. |
+| Stage E: action policy, bounded execution, historical retrieval, long-horizon evals | Level 5. |
+
+### 10. Success criteria
+
+**Level 2 is achieved when:** supported factual questions resolve to deterministic evidence; tool and evidence references validate; conceptual and web paths cannot claim workspace measurements; critical trust refusals pass repeatedly; and no model output becomes numerical truth.
+
+**Level 3 is achieved when:** substantial investigations have typed validated plans; evidence sufficiency controls conclusions; observations, hypotheses, and conclusions remain distinct; plan revisions are evidence-driven; every consequential answer is auditable; and representative planning and grounding evals meet thresholds selected from observed distributions.
+
+**Level 4 is achieved when:** investigations reopen with equivalent meaning and provenance; unchanged inputs and versions reproduce equivalent deterministic outputs; valid completed work survives interruption; reports remain traceable; and customer workflows demonstrate that persistence is valuable.
+
+**Level 5 is achieved when:** bounded end-to-end investigations reliably route, plan, compute, research, revise, request approval, stop safely, and draft traceable reports; critical release gates show zero fabricated measurements or citations, zero unauthorized external actions, zero unsupported calibration/compliance/root-cause claims, and zero untraceable final conclusions. Final non-critical thresholds must be set from actual eval distributions rather than invented in advance.
+
+### Human approval boundary
+
+- **Automatically allowed:** approved deterministic analysis, valid evidence reuse, within-criterion result prioritization, draft observations or hypotheses, privacy-safe abstracted research, draft reports, and non-destructive progress saving.
+- **Approval required:** scope or exclusion changes, calibration assumptions, expensive jobs, experimental detectors, confidential external context, final report approval, and deletion.
+- **Never autonomous:** fabricated evidence or citations, hidden exclusions, source-recording modification, autonomous DSP changes or threshold tuning, unsupported compliance or causal claims, confidential raw-audio upload without explicit confirmation, or final physical root-cause declarations.
 
 ## Agentic Copilot Delivery Rule
 
-The Copilot initiative must progress from observation to suggestion, reversible action, reproducible workflow, and only then guarded autonomy. Each milestone must pass numerical-fidelity, scope, safety, usability, latency, cost, and trust evaluations before autonomy expands.
+The Copilot progresses from deterministic observation to structured suggestion, validated planning, persistent execution, reversible action, and only then guarded autonomy. No framework adoption or autonomy increase bypasses evidence, provenance, customer, privacy, evaluation, and human-approval gates.
 
-See [docs/product/agentic-copilot-strategy.md](docs/product/agentic-copilot-strategy.md) for the capability model, architecture direction, research synthesis, risks, and validation framework.
+See [docs/product/agentic-copilot-strategy.md](docs/product/agentic-copilot-strategy.md) for the capability model and [docs/product/research-source-policy.md](docs/product/research-source-policy.md) for external-source boundaries.
