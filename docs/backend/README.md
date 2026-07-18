@@ -33,7 +33,9 @@ Copy `backend/src/SoundLens.Api/appsettings.Development.local.example.json` to
 `appsettings.Development.local.json` in the same directory before adding local
 backend overrides. The local file is ignored by Git. Keep `OpenAI:ApiKey` empty
 when Copilot is not needed, or set the key there or through the
-`OPENAI__APIKEY` environment variable. Never commit a populated local override.
+`OPENAI__APIKEY` environment variable. `OpenAI:WebSearchModel` configures the
+Responses API model used for cited web research and defaults to `gpt-5.6`.
+Never commit a populated local override.
 
 ## Backend Responsibilities
 
@@ -103,9 +105,11 @@ When using external tools for comparison, match the window, FFT size, overlap, s
 
 The OpenAI-powered agent should receive structured evidence by default, not raw audio.
 
-`AgentContextRouter` owns the additive `auto | workspace | general` request boundary. Forced General mode discards every workspace identifier before response generation. Forced Workspace mode preserves the evidence pipeline. Auto mode runs existing deterministic evidence responders first, then classifies only unresolved questions using the question plus bounded context-availability descriptors; the classifier never receives measurements, filenames, recording IDs, signal IDs, findings, coverage, or limitations. Malformed classification falls back to Workspace only when explicit identifiers are attached and to General otherwise.
+`AgentContextRouter` owns the additive `auto | workspace | general` request boundary and an internal `web` result. Forced General mode discards every workspace identifier before response generation. Forced Workspace mode preserves the evidence pipeline. Auto mode runs existing deterministic evidence responders first, recognizes explicit research/current-information intent, then classifies only unresolved questions using the question plus bounded context-availability descriptors; the classifier never receives measurements, filenames, recording IDs, signal IDs, findings, coverage, or limitations. Malformed classification falls back to Workspace only when explicit identifiers are attached and to General otherwise. Web is intentionally not a client-forced request mode.
 
-`GeneralKnowledgeResponder` is a separate no-tool path with its own prompt and fail-closed parser. It receives no imported-session or comparison context and returns `answerMode: general` with no SoundLens evidence citations. General answers must not inherit automatic dBFS, calibration, ROI, or comparison limitations. Live web access and external citations are not available in this path yet.
+`GeneralKnowledgeResponder` is a separate no-tool path with its own prompt and fail-closed parser. It receives no imported-session or comparison context and returns `answerMode: general` with no SoundLens evidence citations. General answers must not inherit automatic dBFS, calibration, ROI, or comparison limitations.
+
+`WebResearchResponder` is a separate question-only path over the OpenAI Responses API hosted `web_search` tool. It caps tool calls and output size, disables response storage, and accepts only nonempty answers with bounded, in-range HTTP(S) citation annotations. It returns `answerMode: web`, external citations, and no SoundLens evidence badges. Missing, malformed, unsafe, or failed research returns an explicit unavailable response instead of falling back to unsourced model knowledge. Hybrid workspace-plus-web synthesis and multi-step deep research remain deferred.
 
 Copilot signal routing distinguishes inspection from comparison. A factual RMS, peak, or clipping question over one resolved signal uses `get_signal_metrics`; an explicitly comparative question uses `compare_signals`. Detailed selected-comparison context reconstructs and validates the aligned pair. Outside that context, clients may provide only the assigned A/B recording IDs; the backend resolves those recordings against the current import session and derives their signals rather than trusting frontend-authored channel lists or measurements. Physical-SPL and causal intent are excluded from this metric shortcut so they continue through the applicable trust boundary. Signal IDs are always resolved against the current backend import session before evidence is returned.
 

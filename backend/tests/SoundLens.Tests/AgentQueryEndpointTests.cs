@@ -7,6 +7,7 @@ using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using OpenAI.Chat;
+using OpenAI.Responses;
 using SoundLens.Api.Features.Agent.Common;
 using SoundLens.Api.Configuration;
 using SoundLens.Api.Features.Agent.Responses;
@@ -25,6 +26,9 @@ public sealed class AgentQueryEndpointTests : IClassFixture<WebApplicationFactor
             builder.ConfigureServices(services =>
             {
                 services.RemoveAll<ChatClient>();
+#pragma warning disable OPENAI001
+                services.RemoveAll<ResponsesClient>();
+#pragma warning restore OPENAI001
                 services.AddSingleton<ChatClient>(_ =>
                     throw new InvalidOperationException(
                         "OpenAI API key is not configured. Set OpenAI:ApiKey in appsettings or the OPENAI__APIKEY environment variable."));
@@ -221,26 +225,25 @@ public sealed class AgentQueryEndpointTests : IClassFixture<WebApplicationFactor
     }
 
     [Fact]
-    public async Task AutoModeRoutesIndustryPracticeQuestionToGeneralWithoutClassifier()
+    public async Task AutoModeRoutesIndustryPracticeQuestionToWebWithoutWorkspaceContext()
     {
-        var chatClientProvider = new StubChatClientProvider(
-            """
-            {
-              "answer": "Companies usually define a controlled comparison procedure before evaluating signals.",
-              "limitations": [],
-              "nextSteps": []
-            }
-            """);
-        var generalFactory = _factory.WithWebHostBuilder(builder =>
+        var webResearchClient = new StubWebResearchClient(new WebResearchResult(
+            "Companies use controlled comparison procedures.",
+            [new WebResearchCitation(
+                "Engineering guidance",
+                new Uri("https://example.com/guidance"),
+                0,
+                40)]));
+        var webFactory = _factory.WithWebHostBuilder(builder =>
         {
             builder.ConfigureServices(services =>
             {
-                services.RemoveAll<IChatClientProvider>();
-                services.AddSingleton<IChatClientProvider>(chatClientProvider);
+                services.RemoveAll<IWebResearchClient>();
+                services.AddSingleton<IWebResearchClient>(webResearchClient);
             });
         });
 
-        using var client = generalFactory.CreateClient();
+        using var client = webFactory.CreateClient();
         var response = await client.PostAsJsonAsync(
             "/api/agent/query",
             new
@@ -254,10 +257,129 @@ public sealed class AgentQueryEndpointTests : IClassFixture<WebApplicationFactor
         response.EnsureSuccessStatusCode();
         var payload = await response.Content.ReadFromJsonAsync<AgentQueryResponse>();
 
-        Assert.Equal(AgentAnswerModes.General, payload!.AnswerMode);
-        Assert.Equal("How do usually companies compare these different signals?", Assert.Single(chatClientProvider.UserMessages));
-        Assert.DoesNotContain("private-signal-id", chatClientProvider.UserMessages[0], StringComparison.Ordinal);
-        Assert.DoesNotContain("private-a", chatClientProvider.UserMessages[0], StringComparison.Ordinal);
+        Assert.Equal(AgentAnswerModes.Web, payload!.AnswerMode);
+        Assert.Empty(payload.CitedEvidence);
+        Assert.Equal(["web_search"], payload.ToolsUsed);
+        Assert.Equal("How do usually companies compare these different signals?", Assert.Single(webResearchClient.Questions));
+        var citation = Assert.Single(payload.ExternalCitations);
+        Assert.Equal("https://example.com/guidance", citation.Url);
+        Assert.DoesNotContain("private-signal-id", webResearchClient.Questions[0], StringComparison.Ordinal);
+        Assert.DoesNotContain("private-a", webResearchClient.Questions[0], StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public async Task AutoModeCanClassifyAnAmbiguousQuestionAsWebResearch()
+    {
+        var chatClientProvider = new StubChatClientProvider("""{"contextMode":"web"}""");
+        var webResearchClient = new StubWebResearchClient(new WebResearchResult(
+            "External guidance is available.",
+            [new WebResearchCitation(
+                "External guidance",
+                new Uri("https://example.com/external-guidance"),
+                0,
+                17)]));
+        var webFactory = _factory.WithWebHostBuilder(builder =>
+        {
+            builder.ConfigureServices(services =>
+            {
+                services.RemoveAll<IChatClientProvider>();
+                services.AddSingleton<IChatClientProvider>(chatClientProvider);
+                services.RemoveAll<IWebResearchClient>();
+                services.AddSingleton<IWebResearchClient>(webResearchClient);
+            });
+        });
+
+        using var client = webFactory.CreateClient();
+        var response = await client.PostAsJsonAsync(
+            "/api/agent/query",
+            new
+            {
+                question = "Could external guidance apply here?",
+                contextMode = "auto",
+                signalIds = new[] { "private-signal-id" }
+            });
+
+        response.EnsureSuccessStatusCode();
+        var payload = await response.Content.ReadFromJsonAsync<AgentQueryResponse>();
+
+        Assert.Equal(AgentAnswerModes.Web, payload!.AnswerMode);
+        Assert.Equal("Could external guidance apply here?", Assert.Single(webResearchClient.Questions));
+        Assert.Single(chatClientProvider.UserMessages);
+        Assert.DoesNotContain("private-signal-id", webResearchClient.Questions[0], StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public async Task UnsafeWebCitationProducesExplicitResearchFailure()
+    {
+        var webResearchClient = new StubWebResearchClient(new WebResearchResult(
+            "Unsafe answer",
+            [new WebResearchCitation("Unsafe", new Uri("file:///tmp/private.wav"), 0, 6)]));
+        var webFactory = _factory.WithWebHostBuilder(builder =>
+        {
+            builder.ConfigureServices(services =>
+            {
+                services.RemoveAll<IWebResearchClient>();
+                services.AddSingleton<IWebResearchClient>(webResearchClient);
+            });
+        });
+
+        using var client = webFactory.CreateClient();
+        var response = await client.PostAsJsonAsync(
+            "/api/agent/query",
+            new { question = "Search the web for current acoustic standards.", contextMode = "auto" });
+
+        response.EnsureSuccessStatusCode();
+        var payload = await response.Content.ReadFromJsonAsync<AgentQueryResponse>();
+
+        Assert.Equal(AgentAnswerModes.Web, payload!.AnswerMode);
+        Assert.Contains("temporarily unavailable", payload.Answer, StringComparison.OrdinalIgnoreCase);
+        Assert.Empty(payload.ExternalCitations);
+        Assert.Empty(payload.CitedEvidence);
+        Assert.Empty(payload.ToolsUsed);
+    }
+
+    [Fact]
+    public async Task WebTransportFailureProducesExplicitResearchFailure()
+    {
+        var webFactory = _factory.WithWebHostBuilder(builder =>
+        {
+            builder.ConfigureServices(services =>
+            {
+                services.RemoveAll<IWebResearchClient>();
+                services.AddSingleton<IWebResearchClient, ThrowingWebResearchClient>();
+            });
+        });
+
+        using var client = webFactory.CreateClient();
+        var response = await client.PostAsJsonAsync(
+            "/api/agent/query",
+            new { question = "Search the web for current acoustic standards.", contextMode = "auto" });
+
+        response.EnsureSuccessStatusCode();
+        var payload = await response.Content.ReadFromJsonAsync<AgentQueryResponse>();
+
+        Assert.Equal(AgentAnswerModes.Web, payload!.AnswerMode);
+        Assert.Contains("temporarily unavailable", payload.Answer, StringComparison.OrdinalIgnoreCase);
+        Assert.Empty(payload.ExternalCitations);
+        Assert.Empty(payload.CitedEvidence);
+        Assert.Empty(payload.ToolsUsed);
+    }
+
+    [Fact]
+    public async Task MissingApiKeyReturnsWebSpecificUnavailableResponseForResearchIntent()
+    {
+        using var client = _factory.CreateClient();
+        var response = await client.PostAsJsonAsync(
+            "/api/agent/query",
+            new { question = "Research the latest acoustic camera products.", contextMode = "auto" });
+
+        response.EnsureSuccessStatusCode();
+        var payload = await response.Content.ReadFromJsonAsync<AgentQueryResponse>();
+
+        Assert.Equal(AgentAnswerModes.Web, payload!.AnswerMode);
+        Assert.Contains(payload.Limitations, limitation =>
+            limitation.Contains("web research", StringComparison.OrdinalIgnoreCase));
+        Assert.Empty(payload.ExternalCitations);
     }
 
     [Fact]
@@ -889,6 +1011,23 @@ public sealed class AgentQueryEndpointTests : IClassFixture<WebApplicationFactor
         }
     }
 
+    private sealed class StubWebResearchClient(WebResearchResult result) : IWebResearchClient
+    {
+        public List<string> Questions { get; } = [];
+
+        public Task<WebResearchResult> SearchAsync(string question, CancellationToken ct)
+        {
+            Questions.Add(question);
+            return Task.FromResult(result);
+        }
+    }
+
+    private sealed class ThrowingWebResearchClient : IWebResearchClient
+    {
+        public Task<WebResearchResult> SearchAsync(string question, CancellationToken ct) =>
+            throw new HttpRequestException("Simulated search transport failure.");
+    }
+
     private sealed class StubChatClient(
         string responseJson,
         Action<IEnumerable<ChatMessage>>? captureMessages = null) : ChatClient
@@ -913,7 +1052,7 @@ public sealed class AgentQueryEndpointTests : IClassFixture<WebApplicationFactor
                 messageType,
                 BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Public,
                 binder: null,
-                args: new object[] { null!, ChatMessageRole.Assistant, new ChatMessageContent(responseJson) },
+                args: new object?[] { new ChatMessageContent(responseJson), null },
                 culture: null)!;
 
             var choice = Activator.CreateInstance(
@@ -932,9 +1071,9 @@ public sealed class AgentQueryEndpointTests : IClassFixture<WebApplicationFactor
                 args: new object[]
                 {
                     "chatcmpl-test",
-                    "gpt-5",
                     choices,
-                    DateTimeOffset.UtcNow
+                    DateTimeOffset.UtcNow,
+                    "gpt-5"
                 },
                 culture: null)!;
         }

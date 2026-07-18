@@ -17,6 +17,7 @@ public static class AgentContextModes
     public const string Auto = "auto";
     public const string Workspace = "workspace";
     public const string General = "general";
+    internal const string Web = "web";
 
     public static string Normalize(string? contextMode) =>
         string.IsNullOrWhiteSpace(contextMode)

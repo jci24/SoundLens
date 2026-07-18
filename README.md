@@ -96,7 +96,7 @@ cp backend/src/SoundLens.Api/appsettings.Development.local.example.json \
 ./scripts/run-backend.sh
 ```
 
-The local override is ignored by Git. Leave `OpenAI:ApiKey` empty for deterministic analysis without Copilot, or set it in that file or through the `OPENAI__APIKEY` environment variable.
+The local override is ignored by Git. Leave `OpenAI:ApiKey` empty for deterministic analysis without Copilot, or set it in that file or through the `OPENAI__APIKEY` environment variable. `OpenAI:WebSearchModel` optionally selects the model used for cited web research and defaults to `gpt-5.6`.
 
 ### Frontend
 

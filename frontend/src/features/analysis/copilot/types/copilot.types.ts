@@ -1,7 +1,7 @@
 import type { IComparisonCopilotSelection } from '../../types'
 
 export type TCopilotContextMode = 'auto' | 'workspace' | 'general'
-export type TCopilotAnswerMode = 'workspace' | 'general'
+export type TCopilotAnswerMode = 'workspace' | 'general' | 'web'
 
 export interface IAgentQueryRequest {
   question: string
@@ -29,4 +29,12 @@ export interface IAgentQueryResponse {
   limitations: string[]
   nextSteps: string[]
   toolsUsed: string[]
+  externalCitations?: IAgentExternalCitation[]
+}
+
+export interface IAgentExternalCitation {
+  title: string
+  url: string
+  startIndex: number
+  endIndex: number
 }

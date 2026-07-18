@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { AlertCircle, ChevronDown, ChevronUp, RefreshCw } from 'lucide-react'
 import { CopilotEvidenceBadge } from './CopilotEvidenceBadge'
+import { CopilotCitedAnswer } from './CopilotCitedAnswer'
 import type { IAgentQueryResponse } from '../types/copilot.types'
 import './CopilotResponse.scss'
 
@@ -9,6 +10,7 @@ const TOOL_DISPLAY_NAMES: Record<string, string> = {
   get_signal_findings: 'Signal findings',
   get_spectrum_summary: 'Spectrum summary',
   compare_signals: 'Compare signals',
+  web_search: 'Web search',
 }
 
 interface ICopilotResponseProps {
@@ -18,13 +20,36 @@ interface ICopilotResponseProps {
 
 const CopilotResponse = ({ response, onRegenerate }: ICopilotResponseProps) => {
   const [isToolsOpen, setIsToolsOpen] = useState(false)
+  const externalCitations = response.externalCitations ?? []
+  const answerModeLabel = response.answerMode === 'web'
+    ? 'Web research'
+    : response.answerMode === 'general'
+      ? 'General knowledge'
+      : 'Workspace evidence'
 
   return (
     <div className="copilot-response">
       <p className="copilot-response__answer-mode">
-        {response.answerMode === 'general' ? 'General knowledge' : 'Workspace evidence'}
+        {answerModeLabel}
       </p>
-      <p className="copilot-response__answer">{response.answer}</p>
+      {externalCitations.length > 0
+        ? <CopilotCitedAnswer answer={response.answer} citations={externalCitations} />
+        : <p className="copilot-response__answer">{response.answer}</p>}
+
+      {externalCitations.length > 0 && (
+        <section className="copilot-response__section" aria-label="Sources">
+          <p className="copilot-response__section-label">Sources</p>
+          <ol className="copilot-response__sources">
+            {externalCitations.map((citation, index) => (
+              <li key={`${citation.url}-${citation.startIndex}-${citation.endIndex}`}>
+                <a href={citation.url} rel="noreferrer" target="_blank">
+                  <span aria-hidden="true">{index + 1}. </span>{citation.title}
+                </a>
+              </li>
+            ))}
+          </ol>
+        </section>
+      )}
 
       {response.citedEvidence.length > 0 && (
         <section className="copilot-response__section" aria-label="Evidence used">

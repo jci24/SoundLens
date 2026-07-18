@@ -83,7 +83,7 @@ Implication for SoundLens:
 - run deterministic workspace responders before model intent classification
 - keep general model knowledge isolated from recordings, DSP tools, measurements, and evidence citations
 - label answer provenance so model knowledge is never mistaken for measured evidence
-- introduce live web retrieval only with first-class citations and a separate source contract
+- keep live web retrieval bounded behind a separate source contract with first-class citations; do not mix external claims with SoundLens measurements
 - add bounded conversation history before treating the Copilot as a persistent assistant
 - make application actions reviewable, traceable, stale-state-safe, and reversible before expanding autonomy
 

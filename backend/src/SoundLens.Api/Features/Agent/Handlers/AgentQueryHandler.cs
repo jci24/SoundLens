@@ -25,6 +25,7 @@ public sealed class AgentQueryHandler(
     DeterministicSignalQueryResponder deterministicSignalQueryResponder,
     AgentContextRouter contextRouter,
     GeneralKnowledgeResponder generalKnowledgeResponder,
+    WebResearchResponder webResearchResponder,
     SelectedComparisonOrchestrator selectedComparisonOrchestrator) : CommandHandler<AgentQueryCommand, AgentQueryResponse>
 {
     private sealed record AgentAvailableSignal(string SignalId, string DisplayName, string FileName);
@@ -102,6 +103,10 @@ public sealed class AgentQueryHandler(
         if (resolvedContextMode == AgentContextModes.General)
         {
             return await generalKnowledgeResponder.BuildAsync(command.Question, ct);
+        }
+        if (resolvedContextMode == AgentContextModes.Web)
+        {
+            return await webResearchResponder.BuildAsync(command.Question, ct);
         }
 
         AgentQueryResponse? comparisonExplanationResponse;

@@ -35,6 +35,36 @@
     white-space: pre-wrap;
   }
 
+  &__inline-citation {
+    margin-left: 0.15rem;
+    color: var(--foreground);
+    font-family: var(--font-mono);
+    font-size: 0.72em;
+    font-weight: 650;
+    text-decoration: underline;
+    text-underline-offset: 0.16em;
+  }
+
+  &__sources {
+    display: flex;
+    flex-direction: column;
+    gap: 0.28rem;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    font-size: var(--font-xs);
+
+    a {
+      color: var(--foreground);
+      text-decoration-color: var(--border);
+      text-underline-offset: 0.18em;
+
+      &:hover {
+        text-decoration-color: currentColor;
+      }
+    }
+  }
+
   &__evidence-badges {
     display: flex;
     flex-wrap: wrap;

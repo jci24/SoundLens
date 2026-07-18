@@ -104,7 +104,9 @@ These findings are useful first-pass cues, but they should still be treated as b
 
 - `POST /api/agent/query` runs an OpenAI tool-calling loop against the current imported-session context.
 - Normal Copilot questions route automatically without a user-facing mode selector. Existing deterministic evidence responders run first, then a bounded backend classifier chooses between workspace evidence and general knowledge without receiving measurements.
+- Questions that explicitly require current information, external sources, standards, products, research, or industry practice route to a bounded web-research path. It uses one OpenAI Responses API lifecycle with hosted web search and returns visible validated HTTP(S) citations.
 - General answers are isolated from imported recordings, signals, comparison identifiers, and ROI. They are labelled as general knowledge and cannot cite SoundLens evidence or inherit workspace-specific dBFS, calibration, or ROI limitations.
+- Web-research answers receive only the question, are labelled separately from general knowledge and workspace evidence, and cannot cite or receive SoundLens measurements or identifiers. Missing or unsafe citations and search failures produce an explicit unavailable response rather than an unsourced answer.
 - Workspace answers retain deterministic tools, backend evidence reconstruction, selected-comparison trust guards, citations, and fail-closed structured response parsing. Explicit signal mentions are treated as a strong workspace instruction.
 - Simple factual questions about one visible signal's RMS level, peak amplitude, or clipping now use backend-owned `get_signal_metrics` evidence without requiring a second signal or an OpenAI API key.
 - Explicit comparison questions about RMS loudness, peak amplitude, or clipping use backend-owned `compare_signals` evidence. In Focused mode, a valid assigned A/B recording pair supplies comparison scope without replacing the visible signal used by single-signal questions.
@@ -120,7 +122,7 @@ These findings are useful first-pass cues, but they should still be treated as b
 - Copilot model output must pass strict JSON shape and evidence-tool validation before any model-authored answer is shown. Malformed, truncated, fenced-invalid, schema-invalid, or raw structured answer content is replaced with a concise deterministic fallback while backend-known comparison evidence and limitations remain available.
 - If the OpenAI API key is missing, the endpoint returns a mode-appropriate structured unavailable response instead of a bare `503`.
 
-The current Copilot supports bounded workspace evidence and general model knowledge, but it has no live web search, citations for external knowledge, bounded conversation history, shell-wide availability, or workspace actions. It still operates over a temporary workspace rather than a first-class persisted comparison object.
+The current Copilot supports bounded workspace evidence, isolated general model knowledge, and bounded cited web research. It has no conversation history, shell-wide availability, workspace-plus-web synthesis, deep-research jobs, or workspace actions. It still operates over a temporary workspace rather than a first-class persisted comparison object.
 
 ## Current Report Export
 

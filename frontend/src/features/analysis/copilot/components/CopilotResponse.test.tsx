@@ -49,4 +49,38 @@ describe('CopilotResponse', () => {
     expect(screen.getByText('General knowledge')).toBeInTheDocument()
     expect(screen.queryByText('Evidence used')).not.toBeInTheDocument()
   })
+
+  it('renders web answers with claim-adjacent and listed clickable citations', () => {
+    render(
+      <CopilotResponse
+        response={{
+          answer: 'The current standard was updated in 2026.',
+          answerMode: 'web',
+          citedEvidence: [],
+          externalCitations: [
+            {
+              title: 'Standards body',
+              url: 'https://example.com/standard',
+              startIndex: 4,
+              endIndex: 27,
+            },
+          ],
+          limitations: [],
+          nextSteps: [],
+          toolsUsed: ['web_search'],
+        }}
+        onRegenerate={() => {}}
+      />
+    )
+
+    expect(screen.getByText('Web research')).toBeInTheDocument()
+    expect(screen.queryByText('Evidence used')).not.toBeInTheDocument()
+    expect(screen.getByRole('link', { name: 'Source: Standards body' })).toHaveAttribute(
+      'href',
+      'https://example.com/standard',
+    )
+    screen.getAllByRole('link', { name: /Standards body/ }).forEach((link) => {
+      expect(link).toHaveAttribute('target', '_blank')
+    })
+  })
 })

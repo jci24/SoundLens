@@ -1,6 +1,7 @@
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using OpenAI.Chat;
+using OpenAI.Responses;
 using SoundLens.Api.Features.Comparisons.Common;
 using SoundLens.Api.Features.Agent.Common;
 using SoundLens.Api.Features.Agent.Tools;
@@ -11,6 +12,7 @@ using SoundLens.Api.Features.Waveforms.Common;
 
 namespace SoundLens.Api.Configuration;
 
+#pragma warning disable OPENAI001
 public static class DependencyInjection
 {
     public static IServiceCollection AddApplication(this IServiceCollection services)
@@ -26,6 +28,7 @@ public static class DependencyInjection
         services.AddSingleton<DeterministicSignalQueryResponder>();
         services.AddSingleton<AgentContextRouter>();
         services.AddSingleton<GeneralKnowledgeResponder>();
+        services.AddSingleton<WebResearchResponder>();
         services.AddSingleton<SelectedComparisonOrchestrator>();
         services.AddSingleton<ComparisonReportPreparationService>();
 
@@ -40,9 +43,12 @@ public static class DependencyInjection
         if (!string.IsNullOrWhiteSpace(openAiApiKey))
         {
             services.AddSingleton(new ChatClient(model: openAiModel, apiKey: openAiApiKey));
+            services.AddSingleton(new ResponsesClient(openAiApiKey));
         }
 
         services.AddSingleton<IChatClientProvider, ChatClientProvider>();
+        services.AddSingleton<IResponsesClientProvider, ResponsesClientProvider>();
+        services.AddSingleton<IWebResearchClient, OpenAiWebResearchClient>();
         services.AddSingleton<AgentToolDispatcher>();
         services.AddSingleton<IReportNarrativeService, OpenAiReportNarrativeService>();
         services.AddSingleton<IComparisonReportNarrativeService, OpenAiComparisonReportNarrativeService>();
@@ -50,3 +56,4 @@ public static class DependencyInjection
         return services;
     }
 }
+#pragma warning restore OPENAI001

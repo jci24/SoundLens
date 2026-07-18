@@ -317,13 +317,15 @@ Current foundation:
 - deterministic RMS, peak, and clipping inspection supports one visible signal, while explicitly comparative questions can resolve all signals in the assigned A/B recordings through backend-owned session data
 - unsupported analyses remain bounded by the available backend capability set and must state missing evidence rather than inventing results
 - Copilot context is routed automatically without a user-facing mode selector; deterministic workspace responders retain precedence, while isolated general answers receive no recording, signal, comparison, ROI, DSP-tool, or measured-evidence context
-- completed answers identify whether they use Workspace evidence or General knowledge
+- completed answers identify whether they use Workspace evidence, General knowledge, or Web research
+- current-information, source, standards, product, research, and industry-practice questions can use one bounded hosted web-search lifecycle; the responder receives only the question and must return validated HTTP(S) citations or fail explicitly
 
 Ordered Copilot platform follow-ups:
-1. OpenAI Responses API web search with first-class citations and a distinct answer-source contract
-2. bounded conversation history and explicit session lifecycle
-3. Copilot availability across the application shell with route-safe context attachment
-4. reviewable plans and reversible workspace actions under the Milestone 8 and 9 policy gates
+1. bounded conversation history and explicit session lifecycle
+2. Copilot availability across the application shell with route-safe context attachment
+3. hybrid workspace-plus-web synthesis with separate evidence and external-source sections
+4. deep research with background execution, progress, cancellation, cost limits, and source-quality evaluation
+5. reviewable plans and reversible workspace actions under the Milestone 8 and 9 policy gates
 
 Dependencies:
 - validated A/B workflow

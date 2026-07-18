@@ -121,17 +121,27 @@ public sealed class AgentQuery : Endpoint<AgentQueryCommand, AgentQueryResponse>
             var hasExplicitIdentifiers = req.SignalIds is { Count: > 0 } ||
                 req.ComparisonContext is not null ||
                 req.ComparisonPair is not null;
-            var isGeneral = requestedMode == AgentContextModes.General ||
-                (requestedMode == AgentContextModes.Auto &&
-                 (AgentContextRouter.IsClearlyGeneralQuestion(req.Question) ||
-                  (!hasExplicitIdentifiers &&
-                   !AgentContextRouter.IsClearlyWorkspaceQuestion(req.Question))));
+            var answerMode = requestedMode == AgentContextModes.General
+                ? AgentAnswerModes.General
+                : requestedMode == AgentContextModes.Auto &&
+                  (AgentContextRouter.IsClearlyWebQuestion(req.Question) ||
+                   AgentContextRouter.IsClearlyIndustryPracticeQuestion(req.Question))
+                    ? AgentAnswerModes.Web
+                    : requestedMode == AgentContextModes.Auto &&
+                      !hasExplicitIdentifiers &&
+                      !AgentContextRouter.IsClearlyWorkspaceQuestion(req.Question)
+                        ? AgentAnswerModes.General
+                        : AgentAnswerModes.Workspace;
+            var isGeneral = answerMode == AgentAnswerModes.General;
+            var isWeb = answerMode == AgentAnswerModes.Web;
             await Send.OkAsync(
                 new AgentQueryResponse(
                     Answer: MissingApiKeyMessage,
                     CitedEvidence: [],
                     Limitations: isGeneral
                         ? ["No general answer was generated because the OpenAI API key is missing on the backend."]
+                        : isWeb
+                            ? ["No web research was run because the OpenAI API key is missing on the backend."]
                         :
                         [
                             "Values are in dBFS, not calibrated to physical SPL.",
@@ -143,7 +153,7 @@ public sealed class AgentQuery : Endpoint<AgentQueryCommand, AgentQueryResponse>
                         "Restart the backend and re-run the question."
                     ],
                     ToolsUsed: [],
-                    AnswerMode: isGeneral ? AgentAnswerModes.General : AgentAnswerModes.Workspace),
+                    AnswerMode: answerMode),
                 ct);
         }
     }

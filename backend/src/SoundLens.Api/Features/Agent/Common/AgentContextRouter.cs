@@ -57,16 +57,34 @@ public sealed class AgentContextRouter(
         "approach"
     ];
 
+    private static readonly string[] ClearWebTerms =
+    [
+        "search the web",
+        "search online",
+        "look online",
+        "look up",
+        "research this",
+        "research the",
+        "cite sources",
+        "with sources",
+        "latest",
+        "current version",
+        "current standard",
+        "current regulation",
+        "today",
+        "recent"
+    ];
+
     private const string SystemPrompt = """
         Classify whether the question requires the user's SoundLens workspace evidence.
-        Return only a JSON object: {"contextMode":"workspace"} or {"contextMode":"general"}.
+        Return only a JSON object: {"contextMode":"workspace"}, {"contextMode":"general"}, or {"contextMode":"web"}.
 
         Choose workspace when the user asks to inspect, compare, explain, or reason about loaded recordings,
         selected signals, selected metrics, an ROI, visible findings, or "this" currently selected evidence.
-        Choose general for theory, definitions, general technical support, unrelated knowledge, or questions that
-        can be answered without inspecting the user's recordings. A metric name alone does not require workspace
-        evidence when the user is asking for its general definition. Questions about how companies, engineers,
-        professionals, or an industry usually approach a task are general even when workspace context is available.
+        Choose general for timeless theory, definitions, general technical support, or unrelated knowledge that
+        does not need current external sources. A metric name alone does not require workspace evidence when the
+        user is asking for its general definition. Choose web for current information, explicit research or source
+        requests, standards, regulations, products, software versions, or questions about current industry practice.
         """;
 
     public async Task<string> ResolveAsync(
@@ -83,12 +101,17 @@ public sealed class AgentContextRouter(
         var hasExplicitIdentifiers = command.SignalIds is { Count: > 0 } ||
             command.ComparisonContext is not null ||
             command.ComparisonPair is not null;
-        if (!hasExplicitIdentifiers && importedRecordingCount == 0)
+        if (IsClearlyIndustryPracticeQuestion(command.Question))
         {
-            return AgentContextModes.General;
+            return AgentContextModes.Web;
         }
 
-        if (IsClearlyGeneralQuestion(command.Question))
+        if (IsClearlyWebQuestion(command.Question))
+        {
+            return AgentContextModes.Web;
+        }
+
+        if (!hasExplicitIdentifiers && importedRecordingCount == 0)
         {
             return AgentContextModes.General;
         }
@@ -139,11 +162,17 @@ public sealed class AgentContextRouter(
         return ClearWorkspaceTerms.Any(term => normalized.Contains(term, StringComparison.Ordinal));
     }
 
-    public static bool IsClearlyGeneralQuestion(string question)
+    public static bool IsClearlyIndustryPracticeQuestion(string question)
     {
         var normalized = $" {question.Trim().ToLowerInvariant()} ";
         return GeneralPracticeActors.Any(actor => normalized.Contains(actor, StringComparison.Ordinal)) &&
             GeneralPracticeIndicators.Any(indicator => normalized.Contains(indicator, StringComparison.Ordinal));
+    }
+
+    public static bool IsClearlyWebQuestion(string question)
+    {
+        var normalized = $" {question.Trim().ToLowerInvariant()} ";
+        return ClearWebTerms.Any(term => normalized.Contains(term, StringComparison.Ordinal));
     }
 
     private static string FallbackMode(bool hasExplicitIdentifiers) =>
@@ -163,7 +192,7 @@ public sealed class AgentContextRouter(
             }
 
             var candidate = AgentContextModes.Normalize(element.GetString());
-            if (candidate is not (AgentContextModes.Workspace or AgentContextModes.General))
+            if (candidate is not (AgentContextModes.Workspace or AgentContextModes.General or AgentContextModes.Web))
             {
                 return false;
             }
