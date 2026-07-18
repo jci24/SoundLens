@@ -47,6 +47,7 @@ public sealed class AgentQueryHandler(
         - Once you have called a tool and received its results, you MUST immediately produce your final JSON answer. Do NOT call additional tools unless the first tool result was an error or explicitly insufficient to answer the question.
         - You MUST only cite values that were returned by a tool call in this conversation. Never estimate or invent measurements, frequency values, levels, or root causes.
         - If a value was not returned by a tool, say "not measured in this session".
+        - Never call a signal or recording "best", "better", "worst", or "superior" unless the user supplied an explicit decision criterion and direction or target. Measurements are not an overall quality score.
         - All amplitude values are in dBFS (relative to digital full scale), not calibrated to physical SPL. State this when relevant to the user's question.
         - If the question cannot be answered from available tools, say so clearly and suggest what analysis would be needed.
         - Keep answers concise and engineering-focused. Use the exact values from tool results.
@@ -150,6 +151,11 @@ public sealed class AgentQueryHandler(
             return await generalKnowledgeResponder.BuildAsync(command.Question, ct);
         }
 
+        if (AmbiguousQualityIntentPolicy.RequiresCriterion(command.Question))
+        {
+            return AmbiguousQualityIntentPolicy.BuildClarificationResponse();
+        }
+
         AgentQueryResponse? deterministicSignalResponse;
         try
         {
@@ -241,6 +247,7 @@ public sealed class AgentQueryHandler(
 
         var toolsUsed = new List<string>();
         var compareEvidence = new List<CompareEvidence>();
+        var toolActivity = new Dictionary<string, (int Sequence, int Count)>(StringComparer.Ordinal);
         var toolRounds = 0;
 
         while (toolRounds < MaxToolRounds)
@@ -274,17 +281,25 @@ public sealed class AgentQueryHandler(
 
                 foreach (var toolCall in completion.Value.ToolCalls)
                 {
-                    var toolStep = command.ActivitySink.Start(
-                        AgentActivityKinds.Tool,
-                        $"Running {GetToolDisplayName(toolCall.FunctionName)}",
-                        "A deterministic analysis tool is checking workspace evidence.");
+                    if (!toolActivity.TryGetValue(toolCall.FunctionName, out var activity))
+                    {
+                        activity = (
+                            command.ActivitySink.Start(
+                                AgentActivityKinds.Tool,
+                                $"Checking {GetToolDisplayName(toolCall.FunctionName).ToLowerInvariant()}",
+                                "A deterministic analysis tool is checking workspace evidence."),
+                            0);
+                    }
+
                     var toolResult = await toolDispatcher.DispatchAsync(
                         toolCall.FunctionName,
                         toolCall.FunctionArguments.ToString(),
                         ct);
+                    activity = (activity.Sequence, activity.Count + 1);
+                    toolActivity[toolCall.FunctionName] = activity;
                     command.ActivitySink.Complete(
-                        toolStep,
-                        $"{GetToolDisplayName(toolCall.FunctionName)} completed.");
+                        activity.Sequence,
+                        BuildToolActivitySummary(toolCall.FunctionName, activity.Count));
 
                     messages.Add(new ToolChatMessage(toolCall.Id, toolResult));
 
@@ -347,6 +362,28 @@ public sealed class AgentQueryHandler(
         AgentToolDefinitions.CompareSignals => "Signal comparison",
         _ => "Analysis tool"
     };
+
+    internal static string BuildToolActivitySummary(string toolName, int invocationCount)
+    {
+        var displayName = GetToolDisplayName(toolName);
+        if (invocationCount <= 1)
+        {
+            return $"{displayName} completed.";
+        }
+
+        return toolName switch
+        {
+            AgentToolDefinitions.GetSignalMetrics =>
+                $"{invocationCount} signal metric checks completed.",
+            AgentToolDefinitions.GetSignalFindings =>
+                $"{invocationCount} signal finding checks completed.",
+            AgentToolDefinitions.GetSpectrumSummary =>
+                $"{invocationCount} spectrum checks completed.",
+            AgentToolDefinitions.CompareSignals =>
+                $"{invocationCount} signal comparisons completed.",
+            _ => $"{displayName} completed across {invocationCount} requests."
+        };
+    }
 
     private static string BuildUserMessage(AgentQueryCommand command, IReadOnlyList<AgentAvailableSignal> availableSignals)
     {

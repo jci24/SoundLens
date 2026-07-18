@@ -50,6 +50,19 @@ public sealed class AgentIntentPolicyTests
     }
 
     [Theory]
+    [InlineData("Which is the best file in here?")]
+    [InlineData("Which signal sounds better?")]
+    [InlineData("Choose the best recording.")]
+    public void UndefinedWorkspaceEvaluation_IsClearlyWorkspace(string question)
+    {
+        Assert.True(AgentIntentPolicy.TryResolveHighConfidence(
+            question,
+            hasWorkspaceContext: true,
+            out var mode));
+        Assert.Equal(AgentContextModes.Workspace, mode);
+    }
+
+    [Theory]
     [InlineData("Search the web for current ISO standards.")]
     [InlineData("What is the latest version of this library?")]
     [InlineData("Research the current market for acoustic cameras.")]

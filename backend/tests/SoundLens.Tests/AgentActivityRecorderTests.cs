@@ -1,10 +1,22 @@
 using SoundLens.Api.Features.Agent.Common;
+using SoundLens.Api.Features.Agent.Handlers;
 using SoundLens.Api.Features.Agent.Responses;
 
 namespace SoundLens.Tests;
 
 public sealed class AgentActivityRecorderTests
 {
+    [Fact]
+    public void RepeatedMetricActivity_UsesOneAccumulatedSummary()
+    {
+        Assert.Equal(
+            "4 signal metric checks completed.",
+            AgentQueryHandler.BuildToolActivitySummary("get_signal_metrics", 4));
+        Assert.Equal(
+            "Signal comparison completed.",
+            AgentQueryHandler.BuildToolActivitySummary("compare_signals", 1));
+    }
+
     [Fact]
     public void BuffersUntilActivatedAndUpdatesOneSequenceInPlace()
     {

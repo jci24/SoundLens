@@ -81,6 +81,42 @@ public sealed class AgentQueryEndpointTests : IClassFixture<WebApplicationFactor
     }
 
     [Fact]
+    public async Task UndefinedBestQuestion_AsksForCriterionWithoutModelOrTools()
+    {
+        var tempPath = Path.Combine(Path.GetTempPath(), $"soundlens_ambiguous_quality_{Guid.NewGuid():N}.wav");
+        await File.WriteAllBytesAsync(tempPath, CreateMono16BitWav(
+            sampleRate: 4,
+            samples: [-32768, 32767, -16384, 16384]));
+
+        using var client = _factory.CreateClient();
+        try
+        {
+            var importResponse = await client.PostAsJsonAsync(
+                "/api/import",
+                new { filePaths = new[] { tempPath } });
+            importResponse.EnsureSuccessStatusCode();
+
+            var response = await client.PostAsJsonAsync(
+                "/api/agent/query",
+                new { question = "Which is the best file in here?" });
+
+            response.EnsureSuccessStatusCode();
+            var payload = await response.Content.ReadFromJsonAsync<AgentQueryResponse>();
+
+            Assert.Equal(AgentAnswerModes.Workspace, payload!.AnswerMode);
+            Assert.Contains("Which criterion", payload.Answer, StringComparison.Ordinal);
+            Assert.Empty(payload.CitedEvidence);
+            Assert.Empty(payload.ToolsUsed);
+            Assert.Empty(payload.ActivityTrace);
+            Assert.DoesNotContain("dBFS", payload.Answer, StringComparison.OrdinalIgnoreCase);
+        }
+        finally
+        {
+            File.Delete(tempPath);
+        }
+    }
+
+    [Fact]
     public async Task ReturnsGuidanceUnavailableResponseWhenApiKeyIsMissing()
     {
         using var client = _factory.CreateClient();
