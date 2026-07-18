@@ -39,7 +39,7 @@ describe('AnalysisWorkspaceHeader', () => {
 
     render(<AnalysisWorkspaceHeader {...props} />)
 
-    expect(screen.getByText('Time analysis')).toBeInTheDocument()
+    expect(screen.queryByText('Time analysis')).not.toBeInTheDocument()
     expect(screen.getByRole('heading', { name: 'Waveform overview' })).toBeInTheDocument()
     expect(screen.getByRole('button', { name: 'Export report' })).toBeInTheDocument()
     expect(screen.getByRole('tab', { name: 'Waveform' })).toHaveAttribute('data-state', 'active')

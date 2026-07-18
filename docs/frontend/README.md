@@ -86,7 +86,9 @@ Foundation rules:
 - The optional Configure route reuses the real A/B picker and Zustand assignment actions. Multi-file imports recommend it, but users can continue directly to focused Evidence; channel selection and ROI remain in Evidence where their visual context exists.
 - The optional Analysis route exposes only the shipped waveform and spectrum methods. Both are selected by default, at least one remains selected, and the workspace does not request or render a disabled method.
 - Comparison metrics are disclosed as an automatic backend-owned output of a valid A/B pair rather than presented as another selectable analysis.
-- Remaining migration work proceeds through Evidence composition, report, and responsive utility slices so behavior remains reviewable.
+- The Evidence route composes one compact analysis toolbar, an adjacent recording context rail, and a padded evidence canvas. It removes redundant visible workspace titling and persistent nested frames while retaining an accessible active-view heading.
+- Comparison guidance, metric cells, playback, tables, and chart shells should read as one evidence canvas with hairline grouping rather than independent elevated cards. Overlay elevation remains reserved for popovers, dialogs, and utility surfaces.
+- Remaining migration work proceeds through report and responsive utility slices so behavior remains reviewable.
 
 ## Routing And Temporary Session Ownership
 

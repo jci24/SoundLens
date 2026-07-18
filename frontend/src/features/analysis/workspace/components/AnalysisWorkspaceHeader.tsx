@@ -1,4 +1,4 @@
-import { PanelRightClose, PanelRightOpen } from 'lucide-react'
+import { Bot, FileText, PanelRightClose } from 'lucide-react'
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Button } from '@/components/ui/button'
 import { SpectrumControlsPopover } from '../../spectrum/components/SpectrumControlsPopover'
@@ -64,7 +64,6 @@ const AnalysisWorkspaceHeader = ({
   spectrumViewport,
 }: IAnalysisWorkspaceHeaderProps) => {
   const {
-    activeEyebrow,
     activeTitle,
     isSpectrumRangeFiltered,
     spectrumRangeLabel,
@@ -85,38 +84,9 @@ const AnalysisWorkspaceHeader = ({
   } = useSpectrumControlsPopover()
 
   return (
-    <>
-      <header className="time-waveform-workspace__header">
-        <div>
-          <p className="time-waveform-workspace__eyebrow">{activeEyebrow}</p>
-          <h2 className="time-waveform-workspace__title">{activeTitle}</h2>
-        </div>
-        <div className="time-waveform-workspace__header-actions">
-          <Button
-            className="time-waveform-workspace__export-button"
-            disabled={!canExportReport || isExporting}
-            onClick={onExportReport}
-            type="button"
-            variant="outline"
-          >
-            {isExporting ? 'Preparing export...' : 'Export report'}
-          </Button>
-          <Button
-            aria-label={isCopilotOpen ? 'Close Copilot' : 'Open Copilot'}
-            className={`time-waveform-workspace__copilot-toggle${isCopilotOpen ? ' time-waveform-workspace__copilot-toggle--active' : ''}`}
-            size="icon"
-            title={isCopilotOpen ? 'Close Copilot' : 'Open Copilot'}
-            type="button"
-            variant={isCopilotOpen ? 'secondary' : 'ghost'}
-            onClick={onCopilotToggle}
-          >
-            {isCopilotOpen ? <PanelRightClose size={18} /> : <PanelRightOpen size={18} />}
-          </Button>
-        </div>
-      </header>
-
-      <div className="time-waveform-workspace__toolbar">
-        <div className="time-waveform-workspace__view-controls-nav">
+    <header className="time-waveform-workspace__toolbar">
+      <h2 className="time-waveform-workspace__visually-hidden">{activeTitle}</h2>
+      <div className="time-waveform-workspace__view-controls-nav">
           {enabledAnalysisSurfaces.length > 1 && (
             <>
               <Tabs
@@ -163,8 +133,9 @@ const AnalysisWorkspaceHeader = ({
               </TabsList>
             </Tabs>
           )}
-        </div>
+      </div>
 
+      <div className="time-waveform-workspace__toolbar-actions">
         {showSpectrumPanel && spectrumViewport && (
           <SpectrumControlsPopover
             isOpen={isOpen}
@@ -184,8 +155,31 @@ const AnalysisWorkspaceHeader = ({
             spectrumRangeStartHz={spectrumRangeStartHz}
           />
         )}
+        <span aria-hidden="true" className="time-waveform-workspace__toolbar-divider" />
+        <Button
+          aria-label={isExporting ? 'Preparing export...' : 'Export report'}
+          className="time-waveform-workspace__export-button"
+          disabled={!canExportReport || isExporting}
+          onClick={onExportReport}
+          type="button"
+          variant="ghost"
+        >
+          <FileText aria-hidden="true" size={14} />
+          {isExporting ? 'Preparing...' : 'Report'}
+        </Button>
+        <Button
+          aria-label={isCopilotOpen ? 'Close Copilot' : 'Open Copilot'}
+          className={`time-waveform-workspace__copilot-toggle${isCopilotOpen ? ' time-waveform-workspace__copilot-toggle--active' : ''}`}
+          title={isCopilotOpen ? 'Close Copilot' : 'Open Copilot'}
+          type="button"
+          variant={isCopilotOpen ? 'secondary' : 'ghost'}
+          onClick={onCopilotToggle}
+        >
+          {isCopilotOpen ? <PanelRightClose aria-hidden="true" size={14} /> : <Bot aria-hidden="true" size={14} />}
+          Copilot
+        </Button>
       </div>
-    </>
+    </header>
   )
 }
 

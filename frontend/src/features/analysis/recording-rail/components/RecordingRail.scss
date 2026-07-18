@@ -6,11 +6,12 @@
     min-width: 0;
     min-height: auto;
     max-height: min(32rem, 100%);
-    padding: 0.25rem 0.75rem 0.25rem 0;
+    padding: 0.7rem 0.7rem 0.5rem;
     border-right: 1px solid var(--sl-hairline);
+    background: var(--sl-surface-subtle);
     overflow: hidden;
-    opacity: 0;
-    transform: translateY(14px);
+    opacity: 1;
+    transform: none;
   }
 
   &__recording-list {
@@ -276,11 +277,11 @@
   }
 }
 
-@media (max-width: 1280px) {
+@media (max-width: 1100px) {
   .time-waveform-workspace {
     &__recording-rail {
       max-height: 15rem;
-      padding: 0 0 0.6rem;
+      padding: 0.65rem 0.75rem;
       border-right: 0;
       border-bottom: 1px solid var(--sl-hairline);
     }

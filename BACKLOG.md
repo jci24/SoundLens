@@ -79,9 +79,9 @@ Ordered slices:
 1. completed: functional workflow shell with Home, dedicated Import, guarded Evidence, safe temporary-session restoration, navigation, and breadcrumbs
 2. completed: optional investigation setup with backend-owned recording inventory, explicit A/B configuration, and direct focused-evidence escape path
 3. completed: optional analysis review with real waveform and spectrum selection, request suppression, comparison-output disclosure, and direct Evidence access
-4. next: Figma-composed Evidence workspace using the already shipped visual foundation, context rail, and evidence canvas
+4. completed: Figma-composed Evidence workspace with one compact toolbar, an adjacent recording context rail, a padded evidence canvas, and flatter metric and chart structure
 5. report workflow and persisted platform pages only as their behavior becomes real
-6. responsive states and utility-surface polish across import, loading, empty, error, narrow-screen, Evidence, Copilot, dialogs, and popovers
+6. next: responsive states and utility-surface polish across import, loading, empty, error, narrow-screen, Evidence, Copilot, dialogs, and popovers
 
 Boundary:
 - reuse current React, shadcn, Radix, SCSS, and feature components

@@ -1,6 +1,6 @@
 # Roadmap
 
-Last updated: 2026-07-17
+Last updated: 2026-07-18
 
 ## Cross-Cutting Program — Figma Visual-System Migration
 
@@ -22,7 +22,8 @@ Current status:
 - the first functional Figma workflow now exposes Home, Import, and Evidence through real URLs, persistent navigation, breadcrumbs, guarded direct access, and retryable temporary-session restoration
 - optional investigation setup now exposes backend-owned recording metadata and reuses the existing explicit A/B builder without blocking focused evidence
 - optional Analysis review exposes only the shipped waveform and spectrum methods, keeps at least one selected, and suppresses requests and panels for disabled analyses without fabricating job progress
-- Figma-composed Evidence is the next ordered workflow slice
+- the Figma-composed Evidence route now combines one compact analysis toolbar, an adjacent recording context rail, a padded evidence canvas, and flatter comparison and chart surfaces without changing evidence behavior
+- responsive states and utility-surface polish are the next ordered workflow slice
 - future platform pages remain out of navigation until they have functional product scope
 
 Validation gate:

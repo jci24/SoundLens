@@ -1,6 +1,6 @@
 # Current State
 
-Last updated: 2026-07-17
+Last updated: 2026-07-18
 
 ## What Users Can Currently Do
 
@@ -39,7 +39,9 @@ The current product is strong as an analysis workspace, but it is not yet a full
 - Comparison metrics now read as one selectable evidence grid rather than four independent cards; selection uses a restrained analysis accent without changing metric order.
 - Playback, metrics tables, ROI summaries, and chart shells share compact hairline structure, while numerical values and axes use Geist Mono.
 - Waveform and spectrum series use the analysis teal plus neutral comparison tones instead of unrelated multicolor accents.
-- Optional recording-level investigation setup and Analysis review now follow the Figma workflow without blocking direct Evidence access; Figma-composed Evidence, report workflow, and responsive utility refinements remain separate follow-up slices.
+- Optional recording-level investigation setup and Analysis review follow the Figma workflow without blocking direct Evidence access.
+- The Evidence route now uses one compact analysis toolbar, an adjacent recording context rail, and a padded evidence canvas. Comparison guidance, metric cells, and chart shells use flat hairline structure instead of stacked framed containers while retaining the existing evidence, playback, ROI, report, and Copilot behavior.
+- Report workflow, persisted platform pages, and responsive utility-state refinements remain separate follow-up slices.
 
 ## Import And Temporary Workspace Model
 
