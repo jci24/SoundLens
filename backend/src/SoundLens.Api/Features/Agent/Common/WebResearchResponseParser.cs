@@ -1,4 +1,5 @@
 using SoundLens.Api.Features.Agent.Responses;
+using System.Text.RegularExpressions;
 
 namespace SoundLens.Api.Features.Agent.Common;
 
@@ -13,7 +14,10 @@ public static class WebResearchResponseParser
     {
         answer = result.Answer.Trim();
         citations = [];
-        if (string.IsNullOrWhiteSpace(answer) || result.Citations.Count == 0)
+        if (string.IsNullOrWhiteSpace(answer) ||
+            result.Citations.Count == 0 ||
+            answer.Contains('\uFFFD') ||
+            Regex.IsMatch(answer, @"\[[^\]]+\]\([^\)]+\)"))
         {
             return false;
         }
@@ -42,11 +46,45 @@ public static class WebResearchResponseParser
             }
         }
 
-        citations = validated
+        var boundedCitations = validated
             .OrderBy(citation => citation.StartIndex)
             .ThenBy(citation => citation.EndIndex)
             .Take(MaxCitations)
             .ToList();
-        return citations.Count > 0;
+        if (boundedCitations.Count == 0 || !HasCitationCoverage(answer, boundedCitations))
+        {
+            return false;
+        }
+
+        citations = boundedCitations;
+        return true;
+    }
+
+    private static bool HasCitationCoverage(
+        string answer,
+        IReadOnlyList<AgentExternalCitation> citations)
+    {
+        var blocks = Regex.Matches(answer, @"(?ms)(?<block>\S.*?)(?=\r?\n\s*\r?\n|\z)");
+        foreach (Match match in blocks)
+        {
+            var text = match.Groups["block"].Value.Trim();
+            var isShortHeading = text.Length <= 80 &&
+                !text.Contains('\n') &&
+                (text.EndsWith(':') || text.StartsWith('#'));
+            if (isShortHeading || !Regex.IsMatch(text, @"[\p{L}\p{N}]"))
+            {
+                continue;
+            }
+
+            var blockStart = match.Groups["block"].Index;
+            var blockEnd = blockStart + match.Groups["block"].Length;
+            if (!citations.Any(citation =>
+                    citation.StartIndex < blockEnd && citation.EndIndex > blockStart))
+            {
+                return false;
+            }
+        }
+
+        return true;
     }
 }

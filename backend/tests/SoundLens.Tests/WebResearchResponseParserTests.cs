@@ -56,4 +56,38 @@ public sealed class WebResearchResponseParserTests
         Assert.False(WebResearchResponseParser.TryParse(
             new WebResearchResult("No sources", []), out _, out _));
     }
+
+    [Theory]
+    [InlineData("Broken source \uFFFD")]
+    [InlineData("A sourced claim ([source](https://example.com)).")]
+    public void BrokenOrSelfAuthoredCitationText_IsRejected(string answer)
+    {
+        var result = new WebResearchResult(
+            answer,
+            [new WebResearchCitation("Source", new Uri("https://example.com"), 0, 6)]);
+
+        Assert.False(WebResearchResponseParser.TryParse(result, out _, out _));
+    }
+
+    [Fact]
+    public void UncitedSubstantiveParagraph_IsRejected()
+    {
+        const string answer = "A cited claim is available.\n\nA second claim has no source.";
+        var result = new WebResearchResult(
+            answer,
+            [new WebResearchCitation("Source", new Uri("https://example.com"), 0, 13)]);
+
+        Assert.False(WebResearchResponseParser.TryParse(result, out _, out _));
+    }
+
+    [Fact]
+    public void LabelBlockDoesNotRequireItsOwnCitation()
+    {
+        const string answer = "Current guidance:\n\nA sourced claim is available.";
+        var result = new WebResearchResult(
+            answer,
+            [new WebResearchCitation("Source", new Uri("https://example.com"), 19, 33)]);
+
+        Assert.True(WebResearchResponseParser.TryParse(result, out _, out _));
+    }
 }
