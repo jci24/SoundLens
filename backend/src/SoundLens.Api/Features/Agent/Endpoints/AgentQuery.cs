@@ -124,14 +124,17 @@ public sealed class AgentQuery : Endpoint<AgentQueryCommand, AgentQueryResponse>
             var answerMode = requestedMode == AgentContextModes.General
                 ? AgentAnswerModes.General
                 : requestedMode == AgentContextModes.Auto &&
-                  (AgentContextRouter.IsClearlyWebQuestion(req.Question) ||
-                   AgentContextRouter.IsClearlyIndustryPracticeQuestion(req.Question))
-                    ? AgentAnswerModes.Web
+                  AgentContextRouter.IsClearlyDefinitionQuestion(req.Question)
+                    ? AgentAnswerModes.General
                     : requestedMode == AgentContextModes.Auto &&
-                      !hasExplicitIdentifiers &&
-                      !AgentContextRouter.IsClearlyWorkspaceQuestion(req.Question)
-                        ? AgentAnswerModes.General
-                        : AgentAnswerModes.Workspace;
+                      (AgentContextRouter.IsClearlyWebQuestion(req.Question) ||
+                       AgentContextRouter.IsClearlyIndustryPracticeQuestion(req.Question))
+                        ? AgentAnswerModes.Web
+                        : requestedMode == AgentContextModes.Auto &&
+                          !hasExplicitIdentifiers &&
+                          !AgentContextRouter.IsClearlyWorkspaceQuestion(req.Question)
+                            ? AgentAnswerModes.General
+                            : AgentAnswerModes.Workspace;
             var isGeneral = answerMode == AgentAnswerModes.General;
             var isWeb = answerMode == AgentAnswerModes.Web;
             await Send.OkAsync(

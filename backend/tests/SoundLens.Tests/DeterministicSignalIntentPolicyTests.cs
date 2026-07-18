@@ -41,4 +41,14 @@ public sealed class DeterministicSignalIntentPolicyTests
         Assert.Null(DeterministicSignalIntentPolicy.Classify("What caused this RMS level?"));
         Assert.Null(DeterministicSignalIntentPolicy.Classify("What is the sound pressure level of this signal?"));
     }
+
+    [Theory]
+    [InlineData("What is RMS?")]
+    [InlineData("Explain what RMS means.")]
+    [InlineData("What is peak amplitude?")]
+    [InlineData("What does clipping mean?")]
+    public void Classify_LeavesMetricDefinitionsForGeneralKnowledge(string question)
+    {
+        Assert.Null(DeterministicSignalIntentPolicy.Classify(question));
+    }
 }

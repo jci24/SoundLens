@@ -36,7 +36,8 @@ public static class DeterministicSignalIntentPolicy
     public static DeterministicSignalIntent? Classify(string question)
     {
         if (UncalibratedSplRefusalPolicy.IsPhysicalSplRequest(question) ||
-            UnsupportedCausalRefusalPolicy.IsUnsupportedCausalRequest(question))
+            UnsupportedCausalRefusalPolicy.IsUnsupportedCausalRequest(question) ||
+            AgentContextRouter.IsClearlyDefinitionQuestion(question))
         {
             return null;
         }

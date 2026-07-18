@@ -75,6 +75,45 @@ public sealed class AgentContextRouter(
         "recent"
     ];
 
+    private static readonly string[] DefinitionTerms =
+    [
+        "what is rms",
+        "what is the rms",
+        "what does rms mean",
+        "what rms means",
+        "define rms",
+        "explain rms",
+        "meaning of rms",
+        "what is root mean square",
+        "what is peak amplitude",
+        "what does peak amplitude mean",
+        "define peak amplitude",
+        "explain peak amplitude",
+        "what is clipping",
+        "what does clipping mean",
+        "define clipping",
+        "explain clipping"
+    ];
+
+    private static readonly string[] DefinitionEvidenceTerms =
+    [
+        "this signal",
+        "this recording",
+        "these signals",
+        "these recordings",
+        "selected",
+        "current signal",
+        "current recording",
+        "channel",
+        "difference",
+        "compare",
+        "between",
+        "which signal",
+        "which recording",
+        "level of",
+        "amplitude of"
+    ];
+
     private const string SystemPrompt = """
         Classify whether the question requires the user's SoundLens workspace evidence.
         Return only a JSON object: {"contextMode":"workspace"}, {"contextMode":"general"}, or {"contextMode":"web"}.
@@ -109,6 +148,11 @@ public sealed class AgentContextRouter(
         if (IsClearlyWebQuestion(command.Question))
         {
             return AgentContextModes.Web;
+        }
+
+        if (IsClearlyDefinitionQuestion(command.Question))
+        {
+            return AgentContextModes.General;
         }
 
         if (!hasExplicitIdentifiers && importedRecordingCount == 0)
@@ -173,6 +217,13 @@ public sealed class AgentContextRouter(
     {
         var normalized = $" {question.Trim().ToLowerInvariant()} ";
         return ClearWebTerms.Any(term => normalized.Contains(term, StringComparison.Ordinal));
+    }
+
+    public static bool IsClearlyDefinitionQuestion(string question)
+    {
+        var normalized = $" {question.Trim().ToLowerInvariant()} ";
+        return DefinitionTerms.Any(term => normalized.Contains(term, StringComparison.Ordinal)) &&
+            !DefinitionEvidenceTerms.Any(term => normalized.Contains(term, StringComparison.Ordinal));
     }
 
     private static string FallbackMode(bool hasExplicitIdentifiers) =>

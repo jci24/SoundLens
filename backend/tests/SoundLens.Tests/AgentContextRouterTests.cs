@@ -29,4 +29,23 @@ public sealed class AgentContextRouterTests
         Assert.True(AgentContextRouter.IsClearlyIndustryPracticeQuestion(
             "How do companies usually compare product sound recordings?"));
     }
+
+    [Theory]
+    [InlineData("What is RMS?")]
+    [InlineData("Explain what RMS means.")]
+    [InlineData("What is peak amplitude?")]
+    [InlineData("What does clipping mean?")]
+    public void MetricDefinitionQuestion_IsClearlyGeneral(string question)
+    {
+        Assert.True(AgentContextRouter.IsClearlyDefinitionQuestion(question));
+    }
+
+    [Theory]
+    [InlineData("What is the RMS level of this signal?")]
+    [InlineData("Explain the RMS difference between these recordings.")]
+    [InlineData("What is the peak amplitude of Channel 1?")]
+    public void MetricEvidenceQuestion_IsNotTreatedAsDefinition(string question)
+    {
+        Assert.False(AgentContextRouter.IsClearlyDefinitionQuestion(question));
+    }
 }

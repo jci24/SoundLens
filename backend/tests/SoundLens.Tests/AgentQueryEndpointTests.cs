@@ -225,6 +225,46 @@ public sealed class AgentQueryEndpointTests : IClassFixture<WebApplicationFactor
     }
 
     [Fact]
+    public async Task AutoModeRoutesMetricDefinitionToGeneralDespiteWorkspaceIdentifiers()
+    {
+        var chatClientProvider = new StubChatClientProvider(
+            """
+            {
+              "answer": "RMS is the square root of the mean of a signal's squared values.",
+              "limitations": [],
+              "nextSteps": ["Ask how RMS relates to signal energy."]
+            }
+            """);
+        var generalFactory = _factory.WithWebHostBuilder(builder =>
+        {
+            builder.ConfigureServices(services =>
+            {
+                services.RemoveAll<IChatClientProvider>();
+                services.AddSingleton<IChatClientProvider>(chatClientProvider);
+            });
+        });
+
+        using var client = generalFactory.CreateClient();
+        var response = await client.PostAsJsonAsync(
+            "/api/agent/query",
+            new
+            {
+                question = "Explain what RMS means.",
+                contextMode = "auto",
+                signalIds = new[] { "private-signal-id" },
+                comparisonPair = new { recordingIdA = "private-a", recordingIdB = "private-b" }
+            });
+
+        response.EnsureSuccessStatusCode();
+        var payload = await response.Content.ReadFromJsonAsync<AgentQueryResponse>();
+
+        Assert.Equal(AgentAnswerModes.General, payload!.AnswerMode);
+        Assert.Empty(payload.CitedEvidence);
+        Assert.Empty(payload.ToolsUsed);
+        Assert.Equal("Explain what RMS means.", Assert.Single(chatClientProvider.UserMessages));
+    }
+
+    [Fact]
     public async Task AutoModeRoutesIndustryPracticeQuestionToWebWithoutWorkspaceContext()
     {
         var webResearchClient = new StubWebResearchClient(new WebResearchResult(
