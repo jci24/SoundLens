@@ -18,14 +18,22 @@ public static partial class AmbiguousQualityIntentPolicy
         RegexOptions.IgnoreCase | RegexOptions.CultureInvariant)]
     private static partial Regex ExplicitCriterionPattern();
 
+    [GeneratedRegex(
+        @"^\s*(?:loudest|highest\s+peak(?:\s+amplitude)?|least\s+clipping|no\s+clipping)\s*[.!?]?\s*$",
+        RegexOptions.IgnoreCase | RegexOptions.CultureInvariant)]
+    private static partial Regex ConciseCriterionPattern();
+
     public static bool RequiresCriterion(string question) =>
         !string.IsNullOrWhiteSpace(question) &&
         EvaluationPattern().IsMatch(question) &&
         SelectionPattern().IsMatch(question) &&
         !ExplicitCriterionPattern().IsMatch(question);
 
+    public static bool IsConciseCriterionReply(string question) =>
+        !string.IsNullOrWhiteSpace(question) && ConciseCriterionPattern().IsMatch(question);
+
     public static AgentQueryResponse BuildClarificationResponse() => new(
-        Answer: "Which criterion should define best for your decision? For example: loudest or quietest by RMS, highest or lowest peak amplitude, higher or lower crest factor, least clipping, or closeness to a target or reference.",
+        Answer: "Which criterion should define best for your decision? For example: loudest by RMS, highest peak amplitude, least clipping, or closeness to a named target or reference.",
         CitedEvidence: [],
         Limitations: ["No decision criterion was specified, so SoundLens did not rank the recordings."],
         NextSteps: ["State the metric and preferred direction or target, then ask again."],

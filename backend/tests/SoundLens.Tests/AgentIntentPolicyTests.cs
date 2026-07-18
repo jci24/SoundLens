@@ -62,6 +62,21 @@ public sealed class AgentIntentPolicyTests
         Assert.Equal(AgentContextModes.Workspace, mode);
     }
 
+    [Fact]
+    public void ConciseSupportedCriterion_IsWorkspaceOnlyWhenContextExists()
+    {
+        Assert.True(AgentIntentPolicy.TryResolveHighConfidence(
+            "loudest",
+            hasWorkspaceContext: true,
+            out var mode));
+        Assert.Equal(AgentContextModes.Workspace, mode);
+
+        Assert.False(AgentIntentPolicy.TryResolveHighConfidence(
+            "loudest",
+            hasWorkspaceContext: false,
+            out _));
+    }
+
     [Theory]
     [InlineData("Search the web for current ISO standards.")]
     [InlineData("What is the latest version of this library?")]

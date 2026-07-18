@@ -125,6 +125,12 @@ public static class AgentIntentPolicy
             return true;
         }
 
+        if (hasWorkspaceContext && AmbiguousQualityIntentPolicy.IsConciseCriterionReply(question))
+        {
+            mode = AgentContextModes.Workspace;
+            return true;
+        }
+
         if (hasWorkspaceContext && AmbiguousQualityIntentPolicy.RequiresCriterion(question))
         {
             mode = AgentContextModes.Workspace;

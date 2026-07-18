@@ -716,6 +716,24 @@ public sealed class AgentQueryEndpointTests : IClassFixture<WebApplicationFactor
             Assert.Contains("loudest by RMS", focusedPairPayload!.Answer, StringComparison.OrdinalIgnoreCase);
             Assert.DoesNotContain("at least two", focusedPairPayload.Answer, StringComparison.OrdinalIgnoreCase);
             Assert.Equal(["compare_signals"], focusedPairPayload.ToolsUsed);
+
+            var conciseCriterionResponse = await client.PostAsJsonAsync(
+                "/api/agent/query",
+                new
+                {
+                    question = "loudest",
+                    signalIds = new[] { signalIds[0] },
+                    comparisonPair = new
+                    {
+                        recordingIdA = waveformPayload.Recordings[0].RecordingId,
+                        recordingIdB = waveformPayload.Recordings[1].RecordingId
+                    }
+                });
+
+            Assert.Equal(HttpStatusCode.OK, conciseCriterionResponse.StatusCode);
+            var conciseCriterionPayload = await conciseCriterionResponse.Content.ReadFromJsonAsync<AgentQueryResponse>();
+            Assert.Contains("loudest by RMS", conciseCriterionPayload!.Answer, StringComparison.OrdinalIgnoreCase);
+            Assert.Equal(["compare_signals"], conciseCriterionPayload.ToolsUsed);
         }
         finally
         {

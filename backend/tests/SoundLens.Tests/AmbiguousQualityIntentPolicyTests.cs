@@ -29,6 +29,26 @@ public sealed class AmbiguousQualityIntentPolicyTests
         Assert.False(AmbiguousQualityIntentPolicy.RequiresCriterion(question));
     }
 
+    [Theory]
+    [InlineData("loudest")]
+    [InlineData("Highest peak amplitude.")]
+    [InlineData("least clipping")]
+    [InlineData("No clipping")]
+    public void SupportedConciseCriterion_IsRecognized(string question)
+    {
+        Assert.True(AmbiguousQualityIntentPolicy.IsConciseCriterionReply(question));
+    }
+
+    [Theory]
+    [InlineData("quietest")]
+    [InlineData("lowest peak")]
+    [InlineData("best")]
+    [InlineData("What does loudest mean?")]
+    public void UnsupportedOrGeneralConciseText_IsNotTreatedAsCriterionReply(string question)
+    {
+        Assert.False(AmbiguousQualityIntentPolicy.IsConciseCriterionReply(question));
+    }
+
     [Fact]
     public void Clarification_DoesNotInventEvidenceOrRankings()
     {

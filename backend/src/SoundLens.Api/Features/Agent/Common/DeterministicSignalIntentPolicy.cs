@@ -52,6 +52,7 @@ public static class DeterministicSignalIntentPolicy
         var requiresComparison =
             normalizedQuestion.Contains("louder", StringComparison.Ordinal) ||
             normalizedQuestion.Contains("loudest", StringComparison.Ordinal) ||
+            AmbiguousQualityIntentPolicy.IsConciseCriterionReply(question) ||
             ComparisonTerms.Any(term => normalizedQuestion.Contains(term, StringComparison.Ordinal));
 
         return new DeterministicSignalIntent(metric.Value, requiresComparison);

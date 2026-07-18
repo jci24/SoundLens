@@ -23,6 +23,9 @@ public sealed class DeterministicSignalIntentPolicyTests
     [InlineData("Which signal is louder by RMS?", DeterministicSignalMetric.Rms)]
     [InlineData("Compare the peak levels.", DeterministicSignalMetric.Peak)]
     [InlineData("What is the clipping difference between these recordings?", DeterministicSignalMetric.Clipping)]
+    [InlineData("loudest", DeterministicSignalMetric.Rms)]
+    [InlineData("highest peak", DeterministicSignalMetric.Peak)]
+    [InlineData("least clipping", DeterministicSignalMetric.Clipping)]
     public void Classify_RequiresMultipleSignalsForExplicitComparisons(
         string question,
         DeterministicSignalMetric expectedMetric)
