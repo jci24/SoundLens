@@ -306,10 +306,12 @@ User outcome:
 
 Major capabilities:
 - typed, versioned capability catalog
+- adaptive AI-generated investigation guidance that responds to the user's objective and backend-resolved workspace descriptors rather than returning canned methodology
 - investigation plan preview
 - action policy and risk classes
 - workspace revision checks
 - progress, cancellation, failure, and trace contracts
+- progressively disclosed investigation activity showing plans, actions, tool calls, evidence checks, and execution states without exposing private chain-of-thought
 - read-only context and deterministic analysis capabilities
 
 Current foundation:
@@ -321,11 +323,13 @@ Current foundation:
 - current-information, source, standards, product, research, and industry-practice questions can use one bounded hosted web-search lifecycle; the responder receives only the question and must return validated HTTP(S) citations or fail explicitly
 
 Ordered Copilot platform follow-ups:
-1. bounded conversation history and explicit session lifecycle
-2. Copilot availability across the application shell with route-safe context attachment
-3. hybrid workspace-plus-web synthesis with separate evidence and external-source sections
-4. deep research with background execution, progress, cancellation, cost limits, and source-quality evaluation
-5. reviewable plans and reversible workspace actions under the Milestone 8 and 9 policy gates
+1. adaptive workspace investigation guidance using the user's objective, safe backend-resolved workspace descriptors, and the validated capability catalog; unclear objectives should produce a concise clarification rather than a canned checklist
+2. investigation activity trace with a collapsed-by-default UI and typed backend events for plan, routing, tool execution, evidence validation, fallback, completion, and failure; never expose private model reasoning, raw prompts, or internal identifiers
+3. bounded conversation history and explicit session lifecycle
+4. Copilot availability across the application shell with route-safe context attachment
+5. hybrid workspace-plus-web synthesis with separate evidence and external-source sections
+6. deep research with background execution, progress, cancellation, cost limits, and source-quality evaluation
+7. reviewable plans and reversible workspace actions under the Milestone 8 and 9 policy gates
 
 Dependencies:
 - validated A/B workflow
