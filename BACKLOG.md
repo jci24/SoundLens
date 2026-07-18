@@ -101,8 +101,8 @@ Ordered slices:
 1. completed: automatic backend-owned routing between workspace evidence and general knowledge without a user-facing mode selector
 2. completed: bounded OpenAI Responses API web search with validated source citations, explicit web-answer labelling, and fail-closed research errors
 3. completed: adaptive AI-generated investigation guidance based on the user's objective, safe backend-resolved workspace descriptors, and an allowlisted shipped-capability catalog, with clarification when the objective is underspecified and no canned answer body
-4. next: progressively disclosed investigation activity trace with typed plan, routing, tool, evidence-check, fallback, completion, and failure events; expose observable execution rather than private model chain-of-thought
-5. bounded conversation history with explicit session lifecycle, context budgets, and Re-run semantics
+4. completed: progressively disclosed investigation activity trace with typed plan, routing, tool, evidence-check, fallback, completion, and failure events; expose observable execution rather than private model chain-of-thought
+5. next: bounded conversation history with explicit session lifecycle, context budgets, and Re-run semantics
 6. Copilot availability across the application shell without leaking stale Evidence-route context
 7. reviewable investigation plans and reversible workspace actions after the capability and policy contracts are validated
 

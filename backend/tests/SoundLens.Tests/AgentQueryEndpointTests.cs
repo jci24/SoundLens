@@ -1,6 +1,7 @@
 using System.Net;
 using System.Net.Http.Json;
 using System.Reflection;
+using System.Text.Json;
 using System.ClientModel;
 using System.ClientModel.Primitives;
 using Microsoft.AspNetCore.Mvc.Testing;
@@ -95,6 +96,61 @@ public sealed class AgentQueryEndpointTests : IClassFixture<WebApplicationFactor
             limitation.Contains("adaptive investigation guidance", StringComparison.OrdinalIgnoreCase));
         Assert.DoesNotContain(payload.Limitations, limitation =>
             limitation.Contains("dBFS", StringComparison.OrdinalIgnoreCase));
+        Assert.NotEmpty(payload.ActivityTrace);
+        Assert.Contains(payload.ActivityTrace, step => step.Kind == AgentActivityKinds.Fallback);
+        Assert.DoesNotContain(payload.ActivityTrace, step =>
+            step.Summary.Contains("recording-", StringComparison.OrdinalIgnoreCase) ||
+            step.Summary.Contains(" dB", StringComparison.OrdinalIgnoreCase));
+    }
+
+    [Fact]
+    public async Task StreamsActivityBeforeAtomicGuidanceFallbackResult()
+    {
+        using var client = _factory.CreateClient();
+        using var request = new HttpRequestMessage(HttpMethod.Post, "/api/agent/query/stream")
+        {
+            Content = JsonContent.Create(new { question = "What workflow should I use to analyse these files?" })
+        };
+        using var response = await client.SendAsync(request, HttpCompletionOption.ResponseHeadersRead);
+
+        response.EnsureSuccessStatusCode();
+        Assert.Equal("text/event-stream", response.Content.Headers.ContentType?.MediaType);
+        Assert.Contains("no-store", response.Headers.CacheControl?.ToString() ?? string.Empty);
+
+        var body = await response.Content.ReadAsStringAsync();
+        var activityIndex = body.IndexOf("\"eventType\":\"activity\"", StringComparison.Ordinal);
+        var resultIndex = body.IndexOf("\"eventType\":\"result\"", StringComparison.Ordinal);
+
+        Assert.True(activityIndex >= 0, body);
+        Assert.True(resultIndex > activityIndex, body);
+        Assert.Contains("\"activityTrace\"", body, StringComparison.Ordinal);
+        Assert.DoesNotContain("signalId", body, StringComparison.OrdinalIgnoreCase);
+        Assert.DoesNotContain("recordingId", body, StringComparison.OrdinalIgnoreCase);
+
+        var envelopes = body
+            .Split("\n\n", StringSplitOptions.RemoveEmptyEntries)
+            .Select(block => block.Split('\n').FirstOrDefault(line => line.StartsWith("data:", StringComparison.Ordinal)))
+            .Where(line => line is not null)
+            .Select(line => JsonDocument.Parse(line![5..].Trim()).RootElement.Clone())
+            .ToList();
+        var latestStreamedSteps = envelopes
+            .Where(envelope => envelope.GetProperty("eventType").GetString() == "activity")
+            .Select(envelope => envelope.GetProperty("activity"))
+            .GroupBy(activity => activity.GetProperty("sequence").GetInt32())
+            .ToDictionary(group => group.Key, group => group.Last().GetProperty("status").GetString());
+        var finalTrace = envelopes
+            .Single(envelope => envelope.GetProperty("eventType").GetString() == "result")
+            .GetProperty("response")
+            .GetProperty("activityTrace")
+            .EnumerateArray()
+            .ToList();
+
+        Assert.Equal(latestStreamedSteps.Count, finalTrace.Count);
+        Assert.All(finalTrace, step =>
+        {
+            var sequence = step.GetProperty("sequence").GetInt32();
+            Assert.Equal(latestStreamedSteps[sequence], step.GetProperty("status").GetString());
+        });
     }
 
     [Fact]
@@ -322,6 +378,7 @@ public sealed class AgentQueryEndpointTests : IClassFixture<WebApplicationFactor
         Assert.Equal(AgentAnswerModes.General, payload!.AnswerMode);
         Assert.Empty(payload.CitedEvidence);
         Assert.Empty(payload.ToolsUsed);
+        Assert.Empty(payload.ActivityTrace);
         Assert.Equal(question, Assert.Single(chatClientProvider.UserMessages));
     }
 
@@ -684,12 +741,14 @@ public sealed class AgentQueryEndpointTests : IClassFixture<WebApplicationFactor
             Assert.DoesNotContain("at least two", rmsPayload.Answer, StringComparison.OrdinalIgnoreCase);
             Assert.Equal(["get_signal_metrics"], rmsPayload.ToolsUsed);
             Assert.Contains(rmsPayload.CitedEvidence, item => item.SignalId == signalId);
+            Assert.Empty(rmsPayload.ActivityTrace);
 
             Assert.Equal(HttpStatusCode.OK, clippingResponse.StatusCode);
             var clippingPayload = await clippingResponse.Content.ReadFromJsonAsync<AgentQueryResponse>();
             Assert.Contains("No clipping", clippingPayload!.Answer, StringComparison.OrdinalIgnoreCase);
             Assert.Contains(clippingPayload.Limitations, item =>
                 item.Contains("selected ROI only", StringComparison.OrdinalIgnoreCase));
+            Assert.Empty(clippingPayload.ActivityTrace);
         }
         finally
         {

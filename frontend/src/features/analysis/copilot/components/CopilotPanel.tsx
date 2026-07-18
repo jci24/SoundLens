@@ -2,6 +2,7 @@ import { useEffect, useRef } from 'react'
 import { Loader2 } from 'lucide-react'
 import { CopilotInput } from './CopilotInput'
 import { CopilotResponse } from './CopilotResponse'
+import { CopilotActivityTrace } from './CopilotActivityTrace'
 import { useCopilotQuery } from '../hooks/useCopilotQuery'
 import { useAnalysisWorkspaceStore } from '../../stores/useAnalysisWorkspaceStore'
 import type { IAnalysisRegionOfInterest, ITimeWaveformRecording } from '../../types'
@@ -74,7 +75,13 @@ const CopilotPanel = ({ selectedSignalIds, regionOfInterest, recordings }: ICopi
                   <span>{turn.question}</span>
                 </div>
 
-                {turn.isLoading && (
+                <CopilotActivityTrace
+                  activity={turn.activity}
+                  isRunning={turn.isLoading}
+                  isStopped={!turn.isLoading && Boolean(turn.error)}
+                />
+
+                {turn.isLoading && turn.activity.length === 0 && (
                   <div className="copilot-panel__status-marker" aria-live="polite" role="status">
                     <Loader2 className="copilot-panel__spinner" size={13} />
                     <span>Thinking…</span>
@@ -89,7 +96,11 @@ const CopilotPanel = ({ selectedSignalIds, regionOfInterest, recordings }: ICopi
 
                 {!turn.isLoading && !turn.error && turn.response && (
                   <div className="copilot-panel__assistant-response">
-                    <CopilotResponse response={turn.response} onRegenerate={() => retry(turn.id)} />
+                    <CopilotResponse
+                      response={turn.response}
+                      hasActivityTrace={turn.activity.length > 0}
+                      onRegenerate={() => retry(turn.id)}
+                    />
                   </div>
                 )}
               </div>

@@ -124,8 +124,10 @@ These findings are useful first-pass cues, but they should still be treated as b
 - The response returns structured answer text, cited evidence, limitations, next steps, and tools used.
 - Copilot model output must pass strict JSON shape and evidence-tool validation before any model-authored answer is shown. Malformed, truncated, fenced-invalid, schema-invalid, or raw structured answer content is replaced with a concise deterministic fallback while backend-known comparison evidence and limitations remain available.
 - If the OpenAI API key is missing, the endpoint returns a mode-appropriate structured unavailable response instead of a bare `503`.
+- `POST /api/agent/query/stream` accepts the same identifier-only request as the standard endpoint and streams backend-authored routing, tool, evidence-check, fallback, completion, and failure activity before one atomic validated result. The completed response carries the same bounded activity snapshot.
+- Nontrivial turns show only closed-template observable system activity. Simple general definitions and direct deterministic RMS, peak, or clipping answers remain trace-free; prompts, tool arguments and results, internal identifiers, measurements, raw model output, and private chain-of-thought are never exposed.
 
-The current Copilot supports bounded workspace evidence, isolated general model knowledge, bounded cited web research, and adaptive investigation guidance. It has no conversation history, shell-wide availability, workspace-plus-web synthesis, deep-research jobs, activity trace, or workspace actions. It still operates over a temporary workspace rather than a first-class persisted comparison object.
+The current Copilot supports bounded workspace evidence, isolated general model knowledge, bounded cited web research, adaptive investigation guidance, and ephemeral per-turn activity traces. It has no conversation history, shell-wide availability, workspace-plus-web synthesis, deep-research jobs, persisted trace, or workspace actions. It still operates over a temporary workspace rather than a first-class persisted comparison object.
 
 ## Current Report Export
 
@@ -184,7 +186,7 @@ The repo is still intentionally simple: no extra backend projects, no persistenc
 - Coverage visibility is still lightweight: users see evidence-strength cues, limitation counts, and limitation text, but not yet a dedicated coverage breakdown view
 - Deterministic factual Copilot answers currently cover RMS, peak amplitude, and clipping for one visible signal or the signals backend-resolved from an assigned A/B recording pair; these comparisons remain signal-level rather than recording-level aggregate loudness claims, and broader analyses still use the bounded tool-calling path
 - General Copilot answers use isolated model knowledge and must not be treated as measured SoundLens evidence; questions requiring current external information use the separately labelled cited web-research path.
-- Adaptive objective-aware investigation guidance is shipped as advice and clarification, not an executable plan. A progressively disclosed activity trace and reviewable execution plans remain deferred.
+- Adaptive objective-aware investigation guidance is shipped as advice and clarification, not an executable plan. Its observable preparation can be reviewed through the activity trace; reviewable execution plans remain deferred.
 - Comparison explanation remains bounded to the current selected metric and active aligned pair
 - No persisted project or dataset model
 - Calibration handling remains lightweight and mostly limited to dBFS caveats plus calibrated flags

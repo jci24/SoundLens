@@ -8,9 +8,6 @@ namespace SoundLens.Api.Features.Agent.Endpoints;
 
 public sealed class AgentQuery : Endpoint<AgentQueryCommand, AgentQueryResponse>
 {
-    private const string MissingApiKeyMessage =
-        "Copilot is unavailable because the OpenAI API key is not configured on the backend. Set OpenAI:ApiKey or OPENAI__APIKEY and retry.";
-
     public override void Configure()
     {
         Post("/agent/query");
@@ -110,52 +107,39 @@ public sealed class AgentQuery : Endpoint<AgentQueryCommand, AgentQueryResponse>
 
     public override async Task HandleAsync(AgentQueryCommand req, CancellationToken ct)
     {
+        var recorder = new AgentActivityRecorder();
+        var command = req with { ActivitySink = recorder };
         try
         {
-            var result = await req.ExecuteAsync(ct);
-            await Send.OkAsync(result, ct);
+            var result = await command.ExecuteAsync(ct);
+            await Send.OkAsync(result with { ActivityTrace = recorder.Snapshot() }, ct);
         }
         catch (InvalidOperationException ex) when (ex.Message.Contains("API key"))
         {
-            var requestedMode = AgentContextModes.Normalize(req.ContextMode);
-            var hasExplicitIdentifiers = req.SignalIds is { Count: > 0 } ||
-                req.ComparisonContext is not null ||
-                req.ComparisonPair is not null;
-            var answerMode = AgentIntentPolicy.ResolveWithoutModel(
-                req.Question,
-                requestedMode,
-                hasExplicitIdentifiers);
-            var isWeb = answerMode == AgentAnswerModes.Web;
-            if (requestedMode != AgentContextModes.General &&
-                !isWeb &&
-                InvestigationGuidanceIntentPolicy.IsGuidanceRequest(req.Question))
+            AddUnavailableTrace(recorder);
+            var response = AgentUnavailableResponseFactory.ForMissingApiKey(command) with
             {
-                answerMode = AgentAnswerModes.Guidance;
-            }
-            var isGeneral = answerMode == AgentAnswerModes.General;
-            await Send.OkAsync(
-                new AgentQueryResponse(
-                    Answer: MissingApiKeyMessage,
-                    CitedEvidence: [],
-                    Limitations: isGeneral
-                        ? ["No general answer was generated because the OpenAI API key is missing on the backend."]
-                        : isWeb
-                            ? ["No web research was run because the OpenAI API key is missing on the backend."]
-                        : answerMode == AgentAnswerModes.Guidance
-                            ? ["No adaptive investigation guidance was generated because the OpenAI API key is missing on the backend."]
-                        :
-                        [
-                            "Values are in dBFS, not calibrated to physical SPL.",
-                            "No grounded investigation was run because the OpenAI API key is missing on the backend."
-                        ],
-                    NextSteps:
-                    [
-                        "Set OpenAI:ApiKey in backend configuration or OPENAI__APIKEY in the backend environment.",
-                        "Restart the backend and re-run the question."
-                    ],
-                    ToolsUsed: [],
-                    AnswerMode: answerMode),
-                ct);
+                ActivityTrace = recorder.Snapshot()
+            };
+            await Send.OkAsync(response, ct);
         }
+    }
+
+    internal static void AddUnavailableTrace(IAgentActivitySink activitySink)
+    {
+        if (activitySink.Snapshot().Count == 0)
+        {
+            return;
+        }
+
+        activitySink.FailRunning("The configured response service is unavailable.");
+        activitySink.AddCompleted(
+            AgentActivityKinds.Fallback,
+            "Copilot unavailable",
+            "The configured response service is unavailable.");
+        activitySink.AddCompleted(
+            AgentActivityKinds.Completion,
+            "Fallback response prepared",
+            "A safe availability response is ready.");
     }
 }

@@ -9,6 +9,38 @@ public sealed record AgentQueryResponse(
     string AnswerMode = AgentAnswerModes.Workspace)
 {
     public IReadOnlyList<AgentExternalCitation> ExternalCitations { get; init; } = [];
+    public IReadOnlyList<AgentActivityEvent> ActivityTrace { get; init; } = [];
+}
+
+public sealed record AgentActivityEvent(
+    int Sequence,
+    string Kind,
+    string Status,
+    string Title,
+    string Summary);
+
+public sealed record AgentStreamEnvelope(
+    string EventType,
+    AgentActivityEvent? Activity = null,
+    AgentQueryResponse? Response = null,
+    string? Message = null);
+
+public static class AgentActivityKinds
+{
+    public const string Plan = "plan";
+    public const string Routing = "routing";
+    public const string Tool = "tool";
+    public const string EvidenceCheck = "evidence_check";
+    public const string Fallback = "fallback";
+    public const string Completion = "completion";
+    public const string Failure = "failure";
+}
+
+public static class AgentActivityStatuses
+{
+    public const string Running = "running";
+    public const string Completed = "completed";
+    public const string Failed = "failed";
 }
 
 public sealed record AgentExternalCitation(

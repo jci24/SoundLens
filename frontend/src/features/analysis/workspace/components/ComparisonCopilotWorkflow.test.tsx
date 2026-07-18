@@ -15,7 +15,7 @@ vi.mock('../../services/recordingComparison', () => ({
 }))
 
 vi.mock('../../copilot/services/copilotService', () => ({
-  postAgentQuery: (...args: unknown[]) => mockPostAgentQuery(...args),
+  streamAgentQuery: (...args: unknown[]) => mockPostAgentQuery(...args),
 }))
 
 vi.mock('../hooks/useTimeWaveformWorkspace', () => ({

@@ -1,18 +1,126 @@
 import { API_BASE_URL } from '../../../../common/api/config'
-import type { IAgentQueryRequest, IAgentQueryResponse } from '../types/copilot.types'
+import type {
+  IAgentActivityEvent,
+  IAgentQueryRequest,
+  IAgentQueryResponse,
+} from '../types/copilot.types'
 
-export const postAgentQuery = async (request: IAgentQueryRequest): Promise<IAgentQueryResponse> => {
-  const response = await fetch(`${API_BASE_URL}/api/agent/query`, {
+interface IAgentStreamEnvelope {
+  eventType: 'activity' | 'result' | 'error'
+  activity?: IAgentActivityEvent
+  response?: IAgentQueryResponse
+  message?: string
+}
+
+export const streamAgentQuery = async (
+  request: IAgentQueryRequest,
+  onActivity: (activity: IAgentActivityEvent) => void,
+  signal?: AbortSignal
+): Promise<IAgentQueryResponse> => {
+  const response = await fetch(`${API_BASE_URL}/api/agent/query/stream`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(request),
+    signal,
   })
 
   if (!response.ok) {
     throw new Error(await readCopilotError(response))
   }
 
-  return response.json() as Promise<IAgentQueryResponse>
+  if (!response.body) {
+    throw new Error('The investigation stream was unavailable.')
+  }
+  if (!response.headers.get('Content-Type')?.includes('text/event-stream')) {
+    throw new Error('The investigation stream returned an unexpected response type.')
+  }
+
+  return readAgentStream(response.body, onActivity)
+}
+
+export const readAgentStream = async (
+  stream: ReadableStream<Uint8Array>,
+  onActivity: (activity: IAgentActivityEvent) => void
+): Promise<IAgentQueryResponse> => {
+  const reader = stream.getReader()
+  const decoder = new TextDecoder()
+  let buffer = ''
+  let result: IAgentQueryResponse | null = null
+
+  const consumeEvent = (eventText: string) => {
+    const data = eventText
+      .split(/\r?\n/)
+      .filter((line) => line.startsWith('data:'))
+      .map((line) => line.slice(5).trimStart())
+      .join('\n')
+
+    if (!data) return
+
+    let envelope: IAgentStreamEnvelope
+    try {
+      envelope = JSON.parse(data) as IAgentStreamEnvelope
+    } catch {
+      throw new Error('The investigation stream returned malformed activity data.')
+    }
+
+    if (envelope.eventType === 'activity' && isAgentActivityEvent(envelope.activity)) {
+      onActivity(envelope.activity)
+      return
+    }
+    if (envelope.eventType === 'result' && isAgentQueryResponse(envelope.response) && !result) {
+      result = envelope.response
+      return
+    }
+    if (envelope.eventType === 'error') {
+      throw new Error(envelope.message || 'The investigation could not be completed.')
+    }
+    throw new Error('The investigation stream returned an invalid event.')
+  }
+
+  try {
+    while (true) {
+      const { done, value } = await reader.read()
+      buffer += decoder.decode(value, { stream: !done }).replace(/\r\n/g, '\n')
+
+      let boundary = buffer.indexOf('\n\n')
+      while (boundary >= 0) {
+        consumeEvent(buffer.slice(0, boundary))
+        buffer = buffer.slice(boundary + 2)
+        boundary = buffer.indexOf('\n\n')
+      }
+
+      if (done) break
+    }
+
+    if (buffer.trim()) consumeEvent(buffer)
+  } finally {
+    reader.releaseLock()
+  }
+
+  if (!result) {
+    throw new Error('The investigation stream ended before a validated response was received.')
+  }
+  return result
+}
+
+const isAgentActivityEvent = (value: unknown): value is IAgentActivityEvent => {
+  if (!value || typeof value !== 'object') return false
+  const activity = value as Partial<IAgentActivityEvent>
+  return Number.isInteger(activity.sequence) && Number(activity.sequence) > 0 &&
+    ['plan', 'routing', 'tool', 'evidence_check', 'fallback', 'completion', 'failure'].includes(activity.kind ?? '') &&
+    ['running', 'completed', 'failed'].includes(activity.status ?? '') &&
+    typeof activity.title === 'string' && activity.title.trim().length > 0 &&
+    typeof activity.summary === 'string' && activity.summary.trim().length > 0
+}
+
+const isAgentQueryResponse = (value: unknown): value is IAgentQueryResponse => {
+  if (!value || typeof value !== 'object') return false
+  const response = value as Partial<IAgentQueryResponse>
+  return typeof response.answer === 'string' &&
+    Array.isArray(response.citedEvidence) &&
+    Array.isArray(response.limitations) &&
+    Array.isArray(response.nextSteps) &&
+    Array.isArray(response.toolsUsed)
 }
 
 const readCopilotError = async (response: Response) => {

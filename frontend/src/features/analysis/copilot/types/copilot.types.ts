@@ -2,6 +2,8 @@ import type { IComparisonCopilotSelection } from '../../types'
 
 export type TCopilotContextMode = 'auto' | 'workspace' | 'general'
 export type TCopilotAnswerMode = 'workspace' | 'general' | 'web' | 'guidance'
+export type TAgentActivityKind = 'plan' | 'routing' | 'tool' | 'evidence_check' | 'fallback' | 'completion' | 'failure'
+export type TAgentActivityStatus = 'running' | 'completed' | 'failed'
 
 export interface IAgentQueryRequest {
   question: string
@@ -30,6 +32,15 @@ export interface IAgentQueryResponse {
   nextSteps: string[]
   toolsUsed: string[]
   externalCitations?: IAgentExternalCitation[]
+  activityTrace?: IAgentActivityEvent[]
+}
+
+export interface IAgentActivityEvent {
+  sequence: number
+  kind: TAgentActivityKind
+  status: TAgentActivityStatus
+  title: string
+  summary: string
 }
 
 export interface IAgentExternalCitation {

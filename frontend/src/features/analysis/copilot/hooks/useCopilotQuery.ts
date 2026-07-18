@@ -1,6 +1,6 @@
-import { useCallback, useMemo, useRef, useState } from 'react'
-import { postAgentQuery } from '../services/copilotService'
-import type { IAgentQueryRequest, IAgentQueryResponse } from '../types/copilot.types'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { streamAgentQuery } from '../services/copilotService'
+import type { IAgentActivityEvent, IAgentQueryRequest, IAgentQueryResponse } from '../types/copilot.types'
 
 interface ICopilotConversationTurn {
   id: string
@@ -8,6 +8,7 @@ interface ICopilotConversationTurn {
   response: IAgentQueryResponse | null
   error: string | null
   isLoading: boolean
+  activity: IAgentActivityEvent[]
 }
 
 interface ICopilotConversationTurnState extends ICopilotConversationTurn {
@@ -25,8 +26,14 @@ interface IUseCopilotQueryResult {
 const useCopilotQuery = (): IUseCopilotQueryResult => {
   const [turns, setTurns] = useState<ICopilotConversationTurnState[]>([])
   const nextTurnIdRef = useRef(0)
+  const activeRequestRef = useRef<AbortController | null>(null)
+
+  useEffect(() => () => activeRequestRef.current?.abort(), [])
 
   const executeRequest = useCallback(async (request: IAgentQueryRequest, existingTurnId?: string) => {
+    activeRequestRef.current?.abort()
+    const controller = new AbortController()
+    activeRequestRef.current = controller
     const turnId = existingTurnId ?? `turn-${nextTurnIdRef.current++}`
 
     setTurns((currentTurns) => {
@@ -39,6 +46,8 @@ const useCopilotQuery = (): IUseCopilotQueryResult => {
                 request,
                 isLoading: true,
                 error: null,
+                response: null,
+                activity: [],
               }
             : turn
         )
@@ -53,12 +62,28 @@ const useCopilotQuery = (): IUseCopilotQueryResult => {
           response: null,
           error: null,
           isLoading: true,
+          activity: [],
         },
       ]
     })
 
     try {
-      const result = await postAgentQuery(request)
+      const result = await streamAgentQuery(
+        request,
+        (activity) => {
+          setTurns((currentTurns) =>
+            currentTurns.map((turn) => {
+              if (turn.id !== turnId) return turn
+              const existingIndex = turn.activity.findIndex((step) => step.sequence === activity.sequence)
+              const nextActivity = existingIndex >= 0
+                ? turn.activity.map((step, index) => index === existingIndex ? activity : step)
+                : [...turn.activity, activity].sort((left, right) => left.sequence - right.sequence)
+              return { ...turn, activity: nextActivity }
+            })
+          )
+        },
+        controller.signal
+      )
       setTurns((currentTurns) =>
         currentTurns.map((turn) =>
           turn.id === turnId
@@ -72,6 +97,7 @@ const useCopilotQuery = (): IUseCopilotQueryResult => {
         )
       )
     } catch (err) {
+      if (controller.signal.aborted) return
       setTurns((currentTurns) =>
         currentTurns.map((turn) =>
           turn.id === turnId
@@ -83,6 +109,10 @@ const useCopilotQuery = (): IUseCopilotQueryResult => {
             : turn
         )
       )
+    } finally {
+      if (activeRequestRef.current === controller) {
+        activeRequestRef.current = null
+      }
     }
   }, [])
 
@@ -106,6 +136,8 @@ const useCopilotQuery = (): IUseCopilotQueryResult => {
   )
 
   const reset = useCallback(() => {
+    activeRequestRef.current?.abort()
+    activeRequestRef.current = null
     setTurns([])
   }, [])
 
@@ -117,6 +149,7 @@ const useCopilotQuery = (): IUseCopilotQueryResult => {
         response: turn.response,
         error: turn.error,
         isLoading: turn.isLoading,
+        activity: turn.activity,
       })),
     [turns]
   )

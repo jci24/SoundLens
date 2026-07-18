@@ -1,0 +1,103 @@
+.copilot-activity {
+  display: grid;
+  gap: 0.35rem;
+  padding: 0.45rem 0;
+  color: var(--muted-foreground);
+  font-size: 0.72rem;
+
+  &__current,
+  &__toggle {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+  }
+
+  &__current {
+    min-height: 1.25rem;
+  }
+
+  &__spinner {
+    animation: copilot-activity-spin 0.8s linear infinite;
+  }
+
+  &__toggle {
+    width: max-content;
+    border: 0;
+    padding: 0;
+    background: transparent;
+    color: inherit;
+    font: inherit;
+    cursor: pointer;
+
+    &:hover {
+      color: var(--foreground);
+    }
+
+    &:focus-visible {
+      border-radius: var(--radius-sm);
+      outline: 2px solid var(--ring);
+      outline-offset: 3px;
+    }
+  }
+
+  &__steps {
+    display: grid;
+    gap: 0;
+    margin: 0.2rem 0 0;
+    padding: 0 0 0 0.15rem;
+    list-style: none;
+  }
+
+  &__step {
+    position: relative;
+    display: grid;
+    grid-template-columns: 0.65rem minmax(0, 1fr);
+    gap: 0.4rem;
+    padding: 0.25rem 0 0.45rem;
+
+    &:not(:last-child)::after {
+      position: absolute;
+      top: 0.7rem;
+      bottom: -0.15rem;
+      left: 0.27rem;
+      width: 1px;
+      background: var(--border);
+      content: '';
+    }
+
+    p {
+      margin: 0;
+      color: var(--foreground);
+      font-weight: 560;
+    }
+
+    span {
+      display: block;
+      margin-top: 0.08rem;
+      line-height: 1.35;
+    }
+  }
+
+  &__marker {
+    z-index: 1;
+    width: 0.5rem;
+    height: 0.5rem;
+    margin-top: 0.25rem;
+    border: 1px solid var(--muted-foreground);
+    border-radius: 50%;
+    background: var(--background);
+  }
+
+  &__step--completed &__marker {
+    background: var(--foreground);
+  }
+
+  &__step--failed &__marker {
+    border-color: var(--destructive);
+    background: var(--destructive);
+  }
+}
+
+@keyframes copilot-activity-spin {
+  to { transform: rotate(360deg); }
+}

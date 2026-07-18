@@ -2,19 +2,19 @@ import { act, renderHook, waitFor } from '@testing-library/react'
 import { describe, expect, it, vi, beforeEach } from 'vitest'
 import { useCopilotQuery } from './useCopilotQuery'
 
-const mockPostAgentQuery = vi.fn()
+const mockStreamAgentQuery = vi.fn()
 
 vi.mock('../services/copilotService', () => ({
-  postAgentQuery: (...args: unknown[]) => mockPostAgentQuery(...args),
+  streamAgentQuery: (...args: unknown[]) => mockStreamAgentQuery(...args),
 }))
 
 describe('useCopilotQuery', () => {
   beforeEach(() => {
-    mockPostAgentQuery.mockReset()
+    mockStreamAgentQuery.mockReset()
   })
 
   it('preserves earlier turns when a new question is submitted', async () => {
-    mockPostAgentQuery
+    mockStreamAgentQuery
       .mockResolvedValueOnce({
         answer: 'First answer',
         citedEvidence: [],
@@ -50,7 +50,7 @@ describe('useCopilotQuery', () => {
   })
 
   it('re-runs an existing turn in place instead of clearing the conversation', async () => {
-    mockPostAgentQuery
+    mockStreamAgentQuery
       .mockResolvedValueOnce({
         answer: 'Initial answer',
         citedEvidence: [],
@@ -88,10 +88,49 @@ describe('useCopilotQuery', () => {
       expect(result.current.turns[0]?.response?.answer).toBe('Updated answer')
       expect(result.current.turns[0]?.response?.nextSteps).toEqual(['Try a narrower ROI'])
     })
-    expect(mockPostAgentQuery).toHaveBeenLastCalledWith({
+    expect(mockStreamAgentQuery.mock.calls.at(-1)?.[0]).toEqual({
       question: 'Why is this sharp?',
       contextMode: 'workspace',
       signalIds: ['signal-1'],
     })
+  })
+
+  it('upserts streamed activity and resets it when re-running the original request', async () => {
+    mockStreamAgentQuery
+      .mockImplementationOnce(async (_request, onActivity) => {
+        onActivity({ sequence: 1, kind: 'routing', status: 'running', title: 'Selecting', summary: 'Checking.' })
+        onActivity({ sequence: 1, kind: 'routing', status: 'completed', title: 'Selecting', summary: 'Selected.' })
+        return { answer: 'Answer', citedEvidence: [], limitations: [], nextSteps: [], toolsUsed: [], activityTrace: [] }
+      })
+      .mockImplementationOnce(async () => ({
+        answer: 'Updated', citedEvidence: [], limitations: [], nextSteps: [], toolsUsed: [], activityTrace: [],
+      }))
+
+    const { result } = renderHook(() => useCopilotQuery())
+    await act(async () => result.current.submit({ question: 'Investigate this.' }))
+
+    expect(result.current.turns[0]?.activity).toEqual([
+      expect.objectContaining({ sequence: 1, status: 'completed', summary: 'Selected.' }),
+    ])
+
+    await act(async () => result.current.retry(result.current.turns[0]!.id))
+    expect(result.current.turns[0]?.activity).toEqual([])
+    expect(mockStreamAgentQuery.mock.calls[1]?.[0]).toEqual({ question: 'Investigate this.' })
+  })
+
+  it('aborts the active stream when the hook unmounts', async () => {
+    let capturedSignal: AbortSignal | undefined
+    mockStreamAgentQuery.mockImplementation((_request, _onActivity, signal) => {
+      capturedSignal = signal
+      return new Promise(() => undefined)
+    })
+
+    const { result, unmount } = renderHook(() => useCopilotQuery())
+    void act(() => result.current.submit({ question: 'Research this.' }))
+
+    await waitFor(() => expect(capturedSignal).toBeDefined())
+    expect(capturedSignal?.aborted).toBe(false)
+    unmount()
+    expect(capturedSignal?.aborted).toBe(true)
   })
 })

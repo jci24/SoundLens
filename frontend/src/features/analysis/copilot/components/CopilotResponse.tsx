@@ -15,10 +15,11 @@ const TOOL_DISPLAY_NAMES: Record<string, string> = {
 
 interface ICopilotResponseProps {
   response: IAgentQueryResponse
+  hasActivityTrace?: boolean
   onRegenerate: () => void
 }
 
-const CopilotResponse = ({ response, onRegenerate }: ICopilotResponseProps) => {
+const CopilotResponse = ({ response, hasActivityTrace = false, onRegenerate }: ICopilotResponseProps) => {
   const [isToolsOpen, setIsToolsOpen] = useState(false)
   const externalCitations = response.externalCitations ?? []
   const answerModeLabel = response.answerMode === 'web'
@@ -88,7 +89,7 @@ const CopilotResponse = ({ response, onRegenerate }: ICopilotResponseProps) => {
       )}
 
       <div className="copilot-response__footer">
-        {response.toolsUsed.length > 0 && (
+        {!hasActivityTrace && response.toolsUsed.length > 0 && (
           <button
             className="copilot-response__tools-toggle"
             type="button"

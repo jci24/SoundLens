@@ -1,4 +1,6 @@
 using FastEndpoints;
+using System.Text.Json.Serialization;
+using SoundLens.Api.Features.Agent.Common;
 using SoundLens.Api.Features.Agent.Responses;
 
 namespace SoundLens.Api.Features.Agent.Commands;
@@ -10,7 +12,11 @@ public sealed record AgentQueryCommand(
     double? EndTimeSeconds,
     AgentComparisonSelection? ComparisonContext = null,
     AgentComparisonPair? ComparisonPair = null,
-    string? ContextMode = null) : ICommand<AgentQueryResponse>;
+    string? ContextMode = null) : ICommand<AgentQueryResponse>
+{
+    [JsonIgnore]
+    internal IAgentActivitySink ActivitySink { get; init; } = NullAgentActivitySink.Instance;
+}
 
 public static class AgentContextModes
 {

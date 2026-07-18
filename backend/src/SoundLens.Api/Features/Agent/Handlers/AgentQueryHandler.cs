@@ -78,19 +78,72 @@ public sealed class AgentQueryHandler(
 
     public override async Task<AgentQueryResponse> ExecuteAsync(AgentQueryCommand command, CancellationToken ct = default)
     {
+        try
+        {
+            return await ExecuteCoreAsync(command, ct);
+        }
+        catch (Exception exception) when (!ct.IsCancellationRequested && !IsMissingApiKey(exception))
+        {
+            command.ActivitySink.Activate();
+            command.ActivitySink.FailRunning("The investigation stopped before this step completed.");
+            command.ActivitySink.AddFailed(
+                AgentActivityKinds.Failure,
+                "Investigation stopped",
+                "The investigation could not be completed safely.");
+            throw;
+        }
+    }
+
+    private async Task<AgentQueryResponse> ExecuteCoreAsync(AgentQueryCommand command, CancellationToken ct)
+    {
+        var routingStep = command.ActivitySink.Start(
+            AgentActivityKinds.Routing,
+            "Selecting answer source",
+            "Checking which evidence source can answer this request.");
         var resolvedContextMode = await contextRouter.ResolveAsync(
             command,
             importedFileStore.CurrentFiles.Count,
             ct);
         if (resolvedContextMode == AgentContextModes.Web)
         {
-            return await webResearchResponder.BuildAsync(command.Question, ct);
+            command.ActivitySink.Activate();
+            command.ActivitySink.Complete(routingStep, "Using current external sources.");
+            var webStep = command.ActivitySink.Start(
+                AgentActivityKinds.Tool,
+                "Searching current sources",
+                "Web search is gathering cited information.");
+            var response = await webResearchResponder.BuildAsync(command.Question, ct);
+            command.ActivitySink.Complete(webStep, "Web search finished.");
+            command.ActivitySink.AddCompleted(
+                response.ExternalCitations.Count > 0 ? AgentActivityKinds.EvidenceCheck : AgentActivityKinds.Fallback,
+                response.ExternalCitations.Count > 0 ? "Sources validated" : "Research unavailable",
+                response.ExternalCitations.Count > 0
+                    ? "External citations passed source validation."
+                    : "No validated sourced answer was returned.");
+            CompleteTrace(command.ActivitySink);
+            return response;
         }
         var requestedContextMode = AgentContextModes.Normalize(command.ContextMode);
         if (requestedContextMode != AgentContextModes.General &&
             InvestigationGuidanceIntentPolicy.IsGuidanceRequest(command.Question))
         {
-            return await investigationGuidanceResponder.BuildAsync(command, ct);
+            command.ActivitySink.Activate();
+            command.ActivitySink.Complete(routingStep, "Using investigation guidance.");
+            var planStep = command.ActivitySink.Start(
+                AgentActivityKinds.Plan,
+                "Preparing investigation guidance",
+                "Reviewing available analysis capabilities and workspace context.");
+            var response = await investigationGuidanceResponder.BuildAsync(command, ct);
+            command.ActivitySink.Complete(planStep, "Investigation guidance prepared.");
+            var usedFallback = response.Limitations.Contains(InvestigationGuidanceResponseParser.InvalidOutputLimitation);
+            command.ActivitySink.AddCompleted(
+                usedFallback ? AgentActivityKinds.Fallback : AgentActivityKinds.EvidenceCheck,
+                usedFallback ? "Safe guidance fallback used" : "Guidance validated",
+                usedFallback
+                    ? "The generated guidance did not pass validation."
+                    : "The proposed capabilities passed validation.");
+            CompleteTrace(command.ActivitySink);
+            return response;
         }
         if (resolvedContextMode == AgentContextModes.General)
         {
@@ -112,7 +165,21 @@ public sealed class AgentQueryHandler(
             return deterministicSignalResponse;
         }
 
+        var requiresSelectedEvidence = command.ComparisonContext is not null &&
+            SelectedComparisonIntentPolicy.RequiresSelectedEvidence(command.Question);
+        if (requiresSelectedEvidence)
+        {
+            command.ActivitySink.Activate();
+            command.ActivitySink.Complete(routingStep, "Using selected workspace evidence.");
+        }
+
         AgentQueryResponse? comparisonExplanationResponse;
+        var selectedEvidenceStep = requiresSelectedEvidence
+            ? command.ActivitySink.Start(
+                AgentActivityKinds.EvidenceCheck,
+                "Checking selected evidence",
+                "Reconstructing the selected comparison from backend evidence.")
+            : 0;
         try
         {
             comparisonExplanationResponse = await selectedComparisonOrchestrator.TryBuildResponseAsync(
@@ -126,8 +193,20 @@ public sealed class AgentQueryHandler(
         }
         if (comparisonExplanationResponse is not null)
         {
+            command.ActivitySink.Complete(selectedEvidenceStep, "Selected comparison evidence validated.");
+            if (comparisonExplanationResponse.Limitations.Contains(AgentStructuredResponseParser.InvalidOutputLimitation))
+            {
+                command.ActivitySink.AddCompleted(
+                    AgentActivityKinds.Fallback,
+                    "Safe explanation fallback used",
+                    "The generated explanation did not pass validation.");
+            }
+            CompleteTrace(command.ActivitySink);
             return comparisonExplanationResponse;
         }
+
+        command.ActivitySink.Activate();
+        command.ActivitySink.Complete(routingStep, "Using workspace analysis tools.");
 
         var availableSignals = importedFileStore.CurrentFiles.Count > 0
             ? waveformService.BuildTimeWaveforms(
@@ -170,7 +249,23 @@ public sealed class AgentQueryHandler(
 
             if (completion.Value.FinishReason == ChatFinishReason.Stop)
             {
-                return ParseFinalAnswer(completion.Value, toolsUsed, compareEvidence);
+                var response = ParseFinalAnswer(completion.Value, toolsUsed, compareEvidence);
+                if (response.Limitations.Contains(AgentStructuredResponseParser.InvalidOutputLimitation))
+                {
+                    command.ActivitySink.AddCompleted(
+                        AgentActivityKinds.Fallback,
+                        "Safe answer fallback used",
+                        "The generated answer did not pass evidence validation.");
+                }
+                else
+                {
+                    command.ActivitySink.AddCompleted(
+                        AgentActivityKinds.EvidenceCheck,
+                        "Answer evidence validated",
+                        "Citations and evidence references passed validation.");
+                }
+                CompleteTrace(command.ActivitySink);
+                return response;
             }
 
             if (completion.Value.FinishReason == ChatFinishReason.ToolCalls)
@@ -179,10 +274,17 @@ public sealed class AgentQueryHandler(
 
                 foreach (var toolCall in completion.Value.ToolCalls)
                 {
+                    var toolStep = command.ActivitySink.Start(
+                        AgentActivityKinds.Tool,
+                        $"Running {GetToolDisplayName(toolCall.FunctionName)}",
+                        "A deterministic analysis tool is checking workspace evidence.");
                     var toolResult = await toolDispatcher.DispatchAsync(
                         toolCall.FunctionName,
                         toolCall.FunctionArguments.ToString(),
                         ct);
+                    command.ActivitySink.Complete(
+                        toolStep,
+                        $"{GetToolDisplayName(toolCall.FunctionName)} completed.");
 
                     messages.Add(new ToolChatMessage(toolCall.Id, toolResult));
 
@@ -214,6 +316,11 @@ public sealed class AgentQueryHandler(
         }
 
         // If we exhausted tool rounds or hit an unexpected finish, return a safe fallback.
+        command.ActivitySink.AddCompleted(
+            AgentActivityKinds.Fallback,
+            "Investigation limit reached",
+            "The investigation stopped at its bounded execution limit.");
+        CompleteTrace(command.ActivitySink);
         return new AgentQueryResponse(
             Answer: "The investigation could not be completed. The model did not produce a final answer within the allowed number of analysis steps. Please try rephrasing your question.",
             CitedEvidence: [],
@@ -221,6 +328,25 @@ public sealed class AgentQueryHandler(
             NextSteps: ["Try a more specific question about a single signal or metric."],
             ToolsUsed: toolsUsed);
     }
+
+    private static void CompleteTrace(IAgentActivitySink activitySink) =>
+        activitySink.AddCompleted(
+            AgentActivityKinds.Completion,
+            "Response prepared",
+            "The validated response is ready.");
+
+    private static bool IsMissingApiKey(Exception exception) =>
+        exception is InvalidOperationException &&
+        exception.Message.Contains("API key", StringComparison.OrdinalIgnoreCase);
+
+    private static string GetToolDisplayName(string toolName) => toolName switch
+    {
+        AgentToolDefinitions.GetSignalMetrics => "Signal metrics",
+        AgentToolDefinitions.GetSignalFindings => "Signal findings",
+        AgentToolDefinitions.GetSpectrumSummary => "Spectrum summary",
+        AgentToolDefinitions.CompareSignals => "Signal comparison",
+        _ => "Analysis tool"
+    };
 
     private static string BuildUserMessage(AgentQueryCommand command, IReadOnlyList<AgentAvailableSignal> availableSignals)
     {

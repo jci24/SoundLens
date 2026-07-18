@@ -31,6 +31,13 @@ describe('CopilotResponse', () => {
     expect(screen.getByText('Spectrum summary')).toBeInTheDocument()
   })
 
+  it('does not duplicate tool disclosure when activity already presents the tools', () => {
+    render(<CopilotResponse response={response} hasActivityTrace onRegenerate={() => {}} />)
+
+    expect(screen.queryByRole('button', { name: /tool used/i })).not.toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Re-run' })).toBeVisible()
+  })
+
   it('labels general answers without rendering evidence-only sections', () => {
     render(
       <CopilotResponse

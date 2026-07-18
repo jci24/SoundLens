@@ -322,10 +322,11 @@ Current foundation:
 - completed answers identify whether they use Workspace evidence, General knowledge, or Web research
 - current-information, source, standards, product, research, and industry-practice questions can use one bounded hosted web-search lifecycle; the responder receives only the question and must return validated HTTP(S) citations or fail explicitly
 - methodology requests can receive adaptive investigation guidance from the user's objective and backend-resolved filenames, recording metadata, validated A/B state, ROI scope, selected metric label, and an allowlisted shipped-capability catalog; no measurements or frontend-authored evidence enter this planning path
+- nontrivial Copilot turns can stream a bounded backend-authored activity trace while answer prose remains hidden until complete schema and evidence validation; simple definitions and direct deterministic metrics remain trace-free
 
 Ordered Copilot platform follow-ups:
-1. investigation activity trace with a collapsed-by-default UI and typed backend events for plan, routing, tool execution, evidence validation, fallback, completion, and failure; never expose private model reasoning, raw prompts, or internal identifiers
-2. bounded conversation history and explicit session lifecycle
+1. completed: investigation activity trace with a collapsed-by-default UI and typed backend events for plan, routing, tool execution, evidence validation, fallback, completion, and failure; never expose private model reasoning, raw prompts, or internal identifiers
+2. next: bounded conversation history and explicit session lifecycle
 3. Copilot availability across the application shell with route-safe context attachment
 4. hybrid workspace-plus-web synthesis with separate evidence and external-source sections
 5. deep research with background execution, progress, cancellation, cost limits, and source-quality evaluation
