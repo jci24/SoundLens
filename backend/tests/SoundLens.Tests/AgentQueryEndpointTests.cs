@@ -326,6 +326,16 @@ public sealed class AgentQueryEndpointTests : IClassFixture<WebApplicationFactor
         Assert.Empty(payload.ToolsUsed);
         Assert.DoesNotContain(payload.Limitations, limitation => limitation.Contains("dBFS", StringComparison.OrdinalIgnoreCase));
         Assert.Equal("What is a Fourier transform?", Assert.Single(chatClientProvider.UserMessages));
+        Assert.Contains(payload.ActivityTrace, step =>
+            step.Title == "Preparing a technical explanation");
+        Assert.Contains(payload.ActivityTrace, step =>
+            step.Title == "Response validated");
+        Assert.DoesNotContain(payload.ActivityTrace, step =>
+            step.Title.Contains("general", StringComparison.OrdinalIgnoreCase) ||
+            step.Summary.Contains("general", StringComparison.OrdinalIgnoreCase) ||
+            step.Title.Contains("workspace", StringComparison.OrdinalIgnoreCase) ||
+            step.Summary.Contains("workspace", StringComparison.OrdinalIgnoreCase) ||
+            step.Title.Contains("answer source", StringComparison.OrdinalIgnoreCase));
     }
 
     [Fact]
@@ -370,6 +380,7 @@ public sealed class AgentQueryEndpointTests : IClassFixture<WebApplicationFactor
         Assert.DoesNotContain("private-signal-id", chatClientProvider.UserMessages[0], StringComparison.Ordinal);
         Assert.DoesNotContain("private-a", chatClientProvider.UserMessages[0], StringComparison.Ordinal);
         Assert.Equal("Could Nyquist constraints matter in that situation?", chatClientProvider.UserMessages[1]);
+        Assert.NotEmpty(payload.ActivityTrace);
     }
 
     [Theory]
@@ -414,7 +425,13 @@ public sealed class AgentQueryEndpointTests : IClassFixture<WebApplicationFactor
         Assert.Equal(AgentAnswerModes.General, payload!.AnswerMode);
         Assert.Empty(payload.CitedEvidence);
         Assert.Empty(payload.ToolsUsed);
-        Assert.Empty(payload.ActivityTrace);
+        Assert.Contains(payload.ActivityTrace, step =>
+            step.Title == "Preparing a technical explanation");
+        Assert.All(payload.ActivityTrace, step =>
+        {
+            Assert.DoesNotContain("General knowledge", step.Title, StringComparison.OrdinalIgnoreCase);
+            Assert.DoesNotContain("Workspace evidence", step.Summary, StringComparison.OrdinalIgnoreCase);
+        });
         Assert.Equal(question, Assert.Single(chatClientProvider.UserMessages));
     }
 

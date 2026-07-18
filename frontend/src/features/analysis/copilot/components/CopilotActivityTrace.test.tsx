@@ -7,8 +7,8 @@ const activity = [
     sequence: 1,
     kind: 'routing' as const,
     status: 'completed' as const,
-    title: 'Answer source selected',
-    summary: 'Using workspace evidence.',
+    title: 'Understanding your question',
+    summary: 'The request depends on the selected comparison.',
   },
   {
     sequence: 2,
@@ -24,13 +24,14 @@ describe('CopilotActivityTrace', () => {
     render(<CopilotActivityTrace activity={activity} isRunning isStopped={false} />)
 
     expect(screen.getByRole('status')).toHaveTextContent('Checking selected evidence…')
-    const toggle = screen.getByRole('button', { name: 'View activity' })
+    const toggle = screen.getByRole('button', { name: 'How this answer was prepared' })
     expect(toggle).toHaveAttribute('aria-expanded', 'false')
-    expect(screen.queryByText('Using workspace evidence.')).not.toBeInTheDocument()
+    expect(screen.queryByText('The request depends on the selected comparison.')).not.toBeInTheDocument()
 
     fireEvent.click(toggle)
-    expect(screen.getByRole('button', { name: 'Hide activity' })).toHaveAttribute('aria-expanded', 'true')
-    expect(screen.getByText('Using workspace evidence.')).toBeVisible()
+    expect(screen.getByRole('button', { name: 'Hide preparation details' })).toHaveAttribute('aria-expanded', 'true')
+    expect(screen.getByText('The request depends on the selected comparison.')).toBeVisible()
+    expect(screen.getByRole('region', { name: 'How this answer was prepared' })).toBeVisible()
   })
 
   it('uses completed and stopped summaries without reasoning language', () => {

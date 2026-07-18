@@ -22,19 +22,9 @@ interface ICopilotResponseProps {
 const CopilotResponse = ({ response, hasActivityTrace = false, onRegenerate }: ICopilotResponseProps) => {
   const [isToolsOpen, setIsToolsOpen] = useState(false)
   const externalCitations = response.externalCitations ?? []
-  const answerModeLabel = response.answerMode === 'web'
-    ? 'Web research'
-    : response.answerMode === 'guidance'
-      ? 'Investigation guidance'
-    : response.answerMode === 'general'
-      ? 'General knowledge'
-      : 'Workspace evidence'
 
   return (
     <div className="copilot-response">
-      <p className="copilot-response__answer-mode">
-        {answerModeLabel}
-      </p>
       {externalCitations.length > 0
         ? <CopilotCitedAnswer answer={response.answer} citations={externalCitations} />
         : <p className="copilot-response__answer">{response.answer}</p>}

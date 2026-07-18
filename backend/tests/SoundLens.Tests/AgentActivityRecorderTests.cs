@@ -28,9 +28,9 @@ public sealed class AgentActivityRecorderTests
 
         var sequence = recorder.Start(
             AgentActivityKinds.Routing,
-            "Selecting answer source",
-            "Checking available sources.");
-        recorder.Complete(sequence, "Using workspace evidence.");
+            "Understanding your question",
+            "Reviewing available context.");
+        recorder.Complete(sequence, "The request depends on selected evidence.");
 
         Assert.Empty(recorder.Snapshot());
         Assert.Empty(streamed);

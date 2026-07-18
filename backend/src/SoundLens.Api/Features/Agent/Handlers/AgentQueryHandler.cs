@@ -99,8 +99,8 @@ public sealed class AgentQueryHandler(
     {
         var routingStep = command.ActivitySink.Start(
             AgentActivityKinds.Routing,
-            "Selecting answer source",
-            "Checking which evidence source can answer this request.");
+            "Understanding your question",
+            "Reviewing the request and available context.");
         var resolvedContextMode = await contextRouter.ResolveAsync(
             command,
             importedFileStore.CurrentFiles.Count,
@@ -108,7 +108,7 @@ public sealed class AgentQueryHandler(
         if (resolvedContextMode == AgentContextModes.Web)
         {
             command.ActivitySink.Activate();
-            command.ActivitySink.Complete(routingStep, "Using current external sources.");
+            command.ActivitySink.Complete(routingStep, "Current-source research is needed.");
             var webStep = command.ActivitySink.Start(
                 AgentActivityKinds.Tool,
                 "Searching current sources",
@@ -129,7 +129,7 @@ public sealed class AgentQueryHandler(
             InvestigationGuidanceIntentPolicy.IsGuidanceRequest(command.Question))
         {
             command.ActivitySink.Activate();
-            command.ActivitySink.Complete(routingStep, "Using investigation guidance.");
+            command.ActivitySink.Complete(routingStep, "An investigation workflow is needed.");
             var planStep = command.ActivitySink.Start(
                 AgentActivityKinds.Plan,
                 "Preparing investigation guidance",
@@ -148,7 +148,23 @@ public sealed class AgentQueryHandler(
         }
         if (resolvedContextMode == AgentContextModes.General)
         {
-            return await generalKnowledgeResponder.BuildAsync(command.Question, ct);
+            command.ActivitySink.Activate();
+            command.ActivitySink.Complete(routingStep, "A technical explanation is appropriate.");
+            var explanationStep = command.ActivitySink.Start(
+                AgentActivityKinds.Plan,
+                "Preparing a technical explanation",
+                "Building a concise response to the question.");
+            var response = await generalKnowledgeResponder.BuildAsync(command.Question, ct);
+            command.ActivitySink.Complete(explanationStep, "Technical explanation prepared.");
+            var usedFallback = response.Limitations.Contains(GeneralKnowledgeResponseParser.InvalidOutputLimitation);
+            command.ActivitySink.AddCompleted(
+                usedFallback ? AgentActivityKinds.Fallback : AgentActivityKinds.EvidenceCheck,
+                usedFallback ? "Safe response fallback used" : "Response validated",
+                usedFallback
+                    ? "The generated response did not pass validation."
+                    : "The response passed structure and safety checks.");
+            CompleteTrace(command.ActivitySink);
+            return response;
         }
 
         if (AmbiguousQualityIntentPolicy.RequiresCriterion(command.Question))
@@ -176,7 +192,9 @@ public sealed class AgentQueryHandler(
         if (requiresSelectedEvidence)
         {
             command.ActivitySink.Activate();
-            command.ActivitySink.Complete(routingStep, "Using selected workspace evidence.");
+            command.ActivitySink.Complete(
+                routingStep,
+                "The requested explanation depends on the selected comparison.");
         }
 
         AgentQueryResponse? comparisonExplanationResponse;
@@ -212,7 +230,9 @@ public sealed class AgentQueryHandler(
         }
 
         command.ActivitySink.Activate();
-        command.ActivitySink.Complete(routingStep, "Using workspace analysis tools.");
+        command.ActivitySink.Complete(
+            routingStep,
+            "The request requires analysis of the current recordings.");
 
         var availableSignals = importedFileStore.CurrentFiles.Count > 0
             ? waveformService.BuildTimeWaveforms(

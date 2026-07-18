@@ -21,7 +21,7 @@ describe('CopilotResponse', () => {
   it('renders next steps inside a labeled section with tool details toggle', () => {
     render(<CopilotResponse response={response} onRegenerate={() => {}} />)
 
-    expect(screen.getByText('Workspace evidence')).toBeInTheDocument()
+    expect(screen.queryByText('Workspace evidence')).not.toBeInTheDocument()
     expect(screen.getByText('Suggested next steps')).toBeInTheDocument()
     expect(screen.getByText('Zoom into 1 to 3 kHz.')).toBeInTheDocument()
     expect(screen.getByText('Compare against the ROI spectrum.')).toBeInTheDocument()
@@ -38,7 +38,7 @@ describe('CopilotResponse', () => {
     expect(screen.getByRole('button', { name: 'Re-run' })).toBeVisible()
   })
 
-  it('labels general answers without rendering evidence-only sections', () => {
+  it('renders general answers without exposing the internal answer mode', () => {
     render(
       <CopilotResponse
         response={{
@@ -53,7 +53,7 @@ describe('CopilotResponse', () => {
       />
     )
 
-    expect(screen.getByText('General knowledge')).toBeInTheDocument()
+    expect(screen.queryByText('General knowledge')).not.toBeInTheDocument()
     expect(screen.queryByText('Evidence used')).not.toBeInTheDocument()
   })
 
@@ -80,7 +80,7 @@ describe('CopilotResponse', () => {
       />
     )
 
-    expect(screen.getByText('Web research')).toBeInTheDocument()
+    expect(screen.queryByText('Web research')).not.toBeInTheDocument()
     expect(screen.queryByText('Evidence used')).not.toBeInTheDocument()
     expect(screen.getByRole('link', { name: 'Source: Standards body' })).toHaveAttribute(
       'href',
@@ -91,7 +91,7 @@ describe('CopilotResponse', () => {
     })
   })
 
-  it('labels adaptive investigation guidance without evidence-only sections', () => {
+  it('renders adaptive investigation guidance without exposing the internal answer mode', () => {
     render(
       <CopilotResponse
         response={{
@@ -106,7 +106,7 @@ describe('CopilotResponse', () => {
       />
     )
 
-    expect(screen.getByText('Investigation guidance')).toBeInTheDocument()
+    expect(screen.queryByText('Investigation guidance')).not.toBeInTheDocument()
     expect(screen.queryByText('Evidence used')).not.toBeInTheDocument()
   })
 })

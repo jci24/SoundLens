@@ -22,7 +22,7 @@ const CopilotActivityTrace = ({ activity, isRunning, isStopped }: ICopilotActivi
       : `Prepared with ${activity.length} step${activity.length === 1 ? '' : 's'}`
 
   return (
-    <section className="copilot-activity" aria-label="Investigation activity">
+    <section className="copilot-activity" aria-label="How this answer was prepared">
       <div className="copilot-activity__current" aria-live="polite" role="status">
         {isRunning ? <Loader2 className="copilot-activity__spinner" size={12} /> : isStopped ? <OctagonX size={12} /> : <Check size={12} />}
         <span>{summary}{isRunning ? '…' : ''}</span>
@@ -34,7 +34,7 @@ const CopilotActivityTrace = ({ activity, isRunning, isStopped }: ICopilotActivi
         aria-controls={detailsId}
         onClick={() => setIsOpen((open) => !open)}
       >
-        <span>{isOpen ? 'Hide activity' : 'View activity'}</span>
+        <span>{isOpen ? 'Hide preparation details' : 'How this answer was prepared'}</span>
         {isOpen ? <ChevronUp size={12} /> : <ChevronDown size={12} />}
       </button>
       {isOpen && (

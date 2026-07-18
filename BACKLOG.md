@@ -65,7 +65,7 @@ Turn the current analysis workspace into a focused comparison workflow for repea
 - selected-comparison orchestration extracted from `AgentQueryHandler` behind a feature-owned resolver, trust-guard, prompt, model, parser, and fallback boundary
 - comparison-to-Copilot workflow regression covering metric and ROI freshness, identifier-only requests, grounded responses, refusal presentation, failure recovery, Re-run context, and store cleanup
 - workspace-aware Copilot routing with explicit-mention precedence, detailed selected-evidence scope, focused-mode assigned A/B comparison scope, visible focused-signal inspection, and deterministic single-signal metrics
-- invisible backend-owned Copilot context routing with isolated general-knowledge responses, explicit signal-mention precedence, and answer-source labels
+- invisible backend-owned Copilot context routing with isolated general responses and explicit signal-mention precedence
 - functional Home, Import, and guarded Evidence routes with temporary-session restoration, persistent navigation, breadcrumbs, and explicit bootstrap recovery
 
 ## Ordered Thin Tasks
@@ -103,9 +103,10 @@ Ordered slices:
 3. completed: adaptive AI-generated investigation guidance based on the user's objective, safe backend-resolved workspace descriptors, and an allowlisted shipped-capability catalog, with clarification when the objective is underspecified and no canned answer body
 4. completed: progressively disclosed investigation activity trace with typed plan, routing, tool, evidence-check, fallback, completion, and failure events; expose observable execution rather than private model chain-of-thought
 5. completed: deterministic clarification for undefined “best” or “better” judgments before tools run, plus accumulated activity rows for repeated evidence-tool calls
-6. next: bounded conversation history with explicit session lifecycle, context budgets, and Re-run semantics
-7. Copilot availability across the application shell without leaking stale Evidence-route context
-8. reviewable investigation plans and reversible workspace actions after the capability and policy contracts are validated
+6. completed: user-centered answer-preparation traces for model-backed general and investigation turns, with internal answer-mode badges removed from the response UI
+7. next: bounded conversation history with explicit session lifecycle, context budgets, and Re-run semantics
+8. Copilot availability across the application shell without leaking stale Evidence-route context
+9. reviewable investigation plans and reversible workspace actions after the capability and policy contracts are validated
 
 Boundary:
 - general knowledge is not measured evidence
