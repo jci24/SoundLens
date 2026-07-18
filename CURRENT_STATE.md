@@ -181,7 +181,8 @@ The repo is still intentionally simple: no extra backend projects, no persistenc
 - Multi-recording group comparison is not yet available; the current interaction and backend contract support one recording per side
 - Coverage visibility is still lightweight: users see evidence-strength cues, limitation counts, and limitation text, but not yet a dedicated coverage breakdown view
 - Deterministic factual Copilot answers currently cover RMS, peak amplitude, and clipping for one visible signal or the signals backend-resolved from an assigned A/B recording pair; these comparisons remain signal-level rather than recording-level aggregate loudness claims, and broader analyses still use the bounded tool-calling path
-- General Copilot answers use model knowledge only. They have no live web access or external citations and must not be treated as measured SoundLens evidence.
+- General Copilot answers use isolated model knowledge and must not be treated as measured SoundLens evidence; questions requiring current external information use the separately labelled cited web-research path.
+- Adaptive objective-aware investigation guidance and a progressively disclosed activity trace are planned but not shipped. Broad methodology requests do not yet produce a reviewable, workspace-tailored investigation plan.
 - Comparison explanation remains bounded to the current selected metric and active aligned pair
 - No persisted project or dataset model
 - Calibration handling remains lightweight and mostly limited to dBFS caveats plus calibrated flags
