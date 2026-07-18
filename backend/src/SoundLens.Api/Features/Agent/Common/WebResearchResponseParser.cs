@@ -1,4 +1,5 @@
 using SoundLens.Api.Features.Agent.Responses;
+using System.Text;
 using System.Text.RegularExpressions;
 
 namespace SoundLens.Api.Features.Agent.Common;
@@ -12,17 +13,15 @@ public static class WebResearchResponseParser
         out string answer,
         out IReadOnlyList<AgentExternalCitation> citations)
     {
-        answer = result.Answer.Trim();
+        var rawAnswer = result.Answer.Trim();
+        answer = string.Empty;
         citations = [];
-        if (string.IsNullOrWhiteSpace(answer) ||
-            result.Citations.Count == 0 ||
-            answer.Contains('\uFFFD') ||
-            Regex.IsMatch(answer, @"\[[^\]]+\]\([^\)]+\)"))
+        if (string.IsNullOrWhiteSpace(rawAnswer) || result.Citations.Count == 0)
         {
             return false;
         }
 
-        var validated = new List<AgentExternalCitation>();
+        var validated = new List<WebResearchCitation>();
         foreach (var citation in result.Citations)
         {
             if (string.IsNullOrWhiteSpace(citation.Title) ||
@@ -30,23 +29,27 @@ public static class WebResearchResponseParser
                  !string.Equals(citation.Uri.Scheme, Uri.UriSchemeHttps, StringComparison.OrdinalIgnoreCase)) ||
                 citation.StartIndex < 0 ||
                 citation.EndIndex <= citation.StartIndex ||
-                citation.EndIndex > answer.Length)
+                citation.EndIndex > rawAnswer.Length)
             {
                 return false;
             }
 
-            var item = new AgentExternalCitation(
-                citation.Title.Trim(),
-                citation.Uri.AbsoluteUri,
-                citation.StartIndex,
-                citation.EndIndex);
-            if (!validated.Contains(item))
+            if (!validated.Contains(citation))
             {
-                validated.Add(item);
+                validated.Add(citation);
             }
         }
 
+        if (!TryNormalizeAnswer(rawAnswer, validated, out answer, out var indexMap))
+        {
+            return false;
+        }
+
         var boundedCitations = validated
+            .Select(citation => MapCitation(citation, indexMap))
+            .Where(citation => citation is not null)
+            .Select(citation => citation!)
+            .Distinct()
             .OrderBy(citation => citation.StartIndex)
             .ThenBy(citation => citation.EndIndex)
             .Take(MaxCitations)
@@ -58,6 +61,100 @@ public static class WebResearchResponseParser
 
         citations = boundedCitations;
         return true;
+    }
+
+    private static bool TryNormalizeAnswer(
+        string rawAnswer,
+        IReadOnlyList<WebResearchCitation> citations,
+        out string answer,
+        out IReadOnlyList<int> indexMap)
+    {
+        var removed = new bool[rawAnswer.Length];
+        var citationUrls = citations
+            .Select(citation => citation.Uri.AbsoluteUri)
+            .ToHashSet(StringComparer.Ordinal);
+
+        foreach (Match link in Regex.Matches(
+                     rawAnswer,
+                     @"\[(?<label>[^\]]+)\]\((?<url>https?://[^\s\)]+)\)"))
+        {
+            if (!Uri.TryCreate(link.Groups["url"].Value, UriKind.Absolute, out var linkUri) ||
+                !citationUrls.Contains(linkUri.AbsoluteUri))
+            {
+                answer = string.Empty;
+                indexMap = [];
+                return false;
+            }
+
+            var start = link.Index;
+            var end = link.Index + link.Length;
+            if (start > 0 && end < rawAnswer.Length &&
+                rawAnswer[start - 1] == '(' && rawAnswer[end] == ')')
+            {
+                start--;
+                end++;
+            }
+            while (start > 0 && char.IsWhiteSpace(rawAnswer[start - 1]))
+            {
+                start--;
+            }
+            for (var index = start; index < end; index++)
+            {
+                removed[index] = true;
+            }
+        }
+
+        for (var index = 0; index < rawAnswer.Length; index++)
+        {
+            if (rawAnswer[index] != '\uFFFD')
+            {
+                continue;
+            }
+
+            var hasAdjacentText = index > 0 && char.IsLetterOrDigit(rawAnswer[index - 1]) ||
+                index + 1 < rawAnswer.Length && char.IsLetterOrDigit(rawAnswer[index + 1]);
+            if (hasAdjacentText)
+            {
+                answer = string.Empty;
+                indexMap = [];
+                return false;
+            }
+            removed[index] = true;
+        }
+
+        var builder = new StringBuilder(rawAnswer.Length);
+        var mappedIndexes = new int[rawAnswer.Length + 1];
+        for (var index = 0; index < rawAnswer.Length; index++)
+        {
+            mappedIndexes[index] = builder.Length;
+            if (!removed[index])
+            {
+                builder.Append(rawAnswer[index]);
+            }
+        }
+        mappedIndexes[rawAnswer.Length] = builder.Length;
+
+        answer = builder.ToString().Trim();
+        indexMap = mappedIndexes;
+        return !string.IsNullOrWhiteSpace(answer);
+    }
+
+    private static AgentExternalCitation? MapCitation(
+        WebResearchCitation citation,
+        IReadOnlyList<int> indexMap)
+    {
+        var endIndex = indexMap[citation.EndIndex];
+        if (endIndex <= 0)
+        {
+            return null;
+        }
+
+        var startIndex = Math.Min(indexMap[citation.StartIndex], endIndex - 1);
+        return new AgentExternalCitation(
+            citation.Title.Trim(),
+            citation.Uri.AbsoluteUri,
+            startIndex,
+            endIndex);
     }
 
     private static bool HasCitationCoverage(

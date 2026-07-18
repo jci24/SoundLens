@@ -57,14 +57,50 @@ public sealed class WebResearchResponseParserTests
             new WebResearchResult("No sources", []), out _, out _));
     }
 
-    [Theory]
-    [InlineData("Broken source \uFFFD")]
-    [InlineData("A sourced claim ([source](https://example.com)).")]
-    public void BrokenOrSelfAuthoredCitationText_IsRejected(string answer)
+    [Fact]
+    public void NativeMarkdownCitation_IsRemovedAndRemapped()
     {
+        const string answer = "A sourced claim. ([source](https://example.com))";
         var result = new WebResearchResult(
             answer,
-            [new WebResearchCitation("Source", new Uri("https://example.com"), 0, 6)]);
+            [new WebResearchCitation("Source", new Uri("https://example.com"), 17, answer.Length)]);
+
+        Assert.True(WebResearchResponseParser.TryParse(result, out var normalized, out var citations));
+        Assert.Equal("A sourced claim.", normalized);
+        var citation = Assert.Single(citations);
+        Assert.Equal(normalized.Length, citation.EndIndex);
+    }
+
+    [Fact]
+    public void UnannotatedMarkdownLink_IsRejected()
+    {
+        const string answer = "A claim ([source](https://untrusted.example.com)).";
+        var result = new WebResearchResult(
+            answer,
+            [new WebResearchCitation("Source", new Uri("https://example.com"), 0, 7)]);
+
+        Assert.False(WebResearchResponseParser.TryParse(result, out _, out _));
+    }
+
+    [Fact]
+    public void StandaloneReplacementGlyph_IsRemoved()
+    {
+        const string answer = "A sourced claim. \uFFFD";
+        var result = new WebResearchResult(
+            answer,
+            [new WebResearchCitation("Source", new Uri("https://example.com"), 0, 15)]);
+
+        Assert.True(WebResearchResponseParser.TryParse(result, out var normalized, out _));
+        Assert.Equal("A sourced claim.", normalized);
+    }
+
+    [Fact]
+    public void ReplacementGlyphInsideText_IsRejected()
+    {
+        const string answer = "A sour\uFFFDced claim.";
+        var result = new WebResearchResult(
+            answer,
+            [new WebResearchCitation("Source", new Uri("https://example.com"), 0, answer.Length)]);
 
         Assert.False(WebResearchResponseParser.TryParse(result, out _, out _));
     }
