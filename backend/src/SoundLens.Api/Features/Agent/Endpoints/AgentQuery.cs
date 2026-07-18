@@ -123,8 +123,9 @@ public sealed class AgentQuery : Endpoint<AgentQueryCommand, AgentQueryResponse>
                 req.ComparisonPair is not null;
             var isGeneral = requestedMode == AgentContextModes.General ||
                 (requestedMode == AgentContextModes.Auto &&
-                 !hasExplicitIdentifiers &&
-                 !AgentContextRouter.IsClearlyWorkspaceQuestion(req.Question));
+                 (AgentContextRouter.IsClearlyGeneralQuestion(req.Question) ||
+                  (!hasExplicitIdentifiers &&
+                   !AgentContextRouter.IsClearlyWorkspaceQuestion(req.Question))));
             await Send.OkAsync(
                 new AgentQueryResponse(
                     Answer: MissingApiKeyMessage,

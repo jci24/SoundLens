@@ -9,21 +9,36 @@ export const postAgentQuery = async (request: IAgentQueryRequest): Promise<IAgen
   })
 
   if (!response.ok) {
-    const fallback = 'The investigation could not be completed.'
-    try {
-      const body = await response.json()
-      if (Array.isArray(body?.errors)) {
-        const reasons = body.errors
-          .map((e: { reason?: string }) => e.reason)
-          .filter(Boolean)
-          .join('. ')
-        throw new Error(reasons || fallback)
-      }
-      throw new Error(body?.message ?? fallback)
-    } catch {
-      throw new Error(fallback)
-    }
+    throw new Error(await readCopilotError(response))
   }
 
   return response.json() as Promise<IAgentQueryResponse>
+}
+
+const readCopilotError = async (response: Response) => {
+  const fallback = 'The investigation could not be completed.'
+  const text = await response.text()
+
+  if (!text) return fallback
+
+  try {
+    const body = JSON.parse(text)
+
+    if (Array.isArray(body?.errors)) {
+      return body.errors
+        .map((error: { reason?: string }) => error.reason)
+        .filter(Boolean)
+        .join('. ') || fallback
+    }
+
+    if (Array.isArray(body?.errors?.generalErrors)) {
+      return body.errors.generalErrors
+        .filter((error: unknown): error is string => typeof error === 'string')
+        .join('. ') || fallback
+    }
+
+    return typeof body?.message === 'string' ? body.message : fallback
+  } catch {
+    return text
+  }
 }

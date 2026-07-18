@@ -221,6 +221,46 @@ public sealed class AgentQueryEndpointTests : IClassFixture<WebApplicationFactor
     }
 
     [Fact]
+    public async Task AutoModeRoutesIndustryPracticeQuestionToGeneralWithoutClassifier()
+    {
+        var chatClientProvider = new StubChatClientProvider(
+            """
+            {
+              "answer": "Companies usually define a controlled comparison procedure before evaluating signals.",
+              "limitations": [],
+              "nextSteps": []
+            }
+            """);
+        var generalFactory = _factory.WithWebHostBuilder(builder =>
+        {
+            builder.ConfigureServices(services =>
+            {
+                services.RemoveAll<IChatClientProvider>();
+                services.AddSingleton<IChatClientProvider>(chatClientProvider);
+            });
+        });
+
+        using var client = generalFactory.CreateClient();
+        var response = await client.PostAsJsonAsync(
+            "/api/agent/query",
+            new
+            {
+                question = "How do usually companies compare these different signals?",
+                contextMode = "auto",
+                signalIds = new[] { "private-signal-id" },
+                comparisonPair = new { recordingIdA = "private-a", recordingIdB = "private-b" }
+            });
+
+        response.EnsureSuccessStatusCode();
+        var payload = await response.Content.ReadFromJsonAsync<AgentQueryResponse>();
+
+        Assert.Equal(AgentAnswerModes.General, payload!.AnswerMode);
+        Assert.Equal("How do usually companies compare these different signals?", Assert.Single(chatClientProvider.UserMessages));
+        Assert.DoesNotContain("private-signal-id", chatClientProvider.UserMessages[0], StringComparison.Ordinal);
+        Assert.DoesNotContain("private-a", chatClientProvider.UserMessages[0], StringComparison.Ordinal);
+    }
+
+    [Fact]
     public async Task MalformedAutoClassificationFallsBackToExplicitWorkspaceIdentifiers()
     {
         var chatClientProvider = new StubChatClientProvider(

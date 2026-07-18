@@ -35,6 +35,28 @@ public sealed class AgentContextRouter(
         "analysis workspace"
     ];
 
+    private static readonly string[] GeneralPracticeActors =
+    [
+        "company",
+        "companies",
+        "industry",
+        "engineers",
+        "professionals",
+        "teams"
+    ];
+
+    private static readonly string[] GeneralPracticeIndicators =
+    [
+        "usually",
+        "typically",
+        "generally",
+        "normally",
+        "common practice",
+        "best practice",
+        "standard practice",
+        "approach"
+    ];
+
     private const string SystemPrompt = """
         Classify whether the question requires the user's SoundLens workspace evidence.
         Return only a JSON object: {"contextMode":"workspace"} or {"contextMode":"general"}.
@@ -43,7 +65,8 @@ public sealed class AgentContextRouter(
         selected signals, selected metrics, an ROI, visible findings, or "this" currently selected evidence.
         Choose general for theory, definitions, general technical support, unrelated knowledge, or questions that
         can be answered without inspecting the user's recordings. A metric name alone does not require workspace
-        evidence when the user is asking for its general definition.
+        evidence when the user is asking for its general definition. Questions about how companies, engineers,
+        professionals, or an industry usually approach a task are general even when workspace context is available.
         """;
 
     public async Task<string> ResolveAsync(
@@ -61,6 +84,11 @@ public sealed class AgentContextRouter(
             command.ComparisonContext is not null ||
             command.ComparisonPair is not null;
         if (!hasExplicitIdentifiers && importedRecordingCount == 0)
+        {
+            return AgentContextModes.General;
+        }
+
+        if (IsClearlyGeneralQuestion(command.Question))
         {
             return AgentContextModes.General;
         }
@@ -109,6 +137,13 @@ public sealed class AgentContextRouter(
     {
         var normalized = $" {question.Trim().ToLowerInvariant()} ";
         return ClearWorkspaceTerms.Any(term => normalized.Contains(term, StringComparison.Ordinal));
+    }
+
+    public static bool IsClearlyGeneralQuestion(string question)
+    {
+        var normalized = $" {question.Trim().ToLowerInvariant()} ";
+        return GeneralPracticeActors.Any(actor => normalized.Contains(actor, StringComparison.Ordinal)) &&
+            GeneralPracticeIndicators.Any(indicator => normalized.Contains(indicator, StringComparison.Ordinal));
     }
 
     private static string FallbackMode(bool hasExplicitIdentifiers) =>
