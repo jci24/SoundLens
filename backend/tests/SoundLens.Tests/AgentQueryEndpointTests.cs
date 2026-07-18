@@ -791,6 +791,7 @@ public sealed class AgentQueryEndpointTests : IClassFixture<WebApplicationFactor
             Assert.Contains("Mean delta A-B: 0 ratio", chatClientProvider.LastUserMessage, StringComparison.Ordinal);
             Assert.DoesNotContain("999", chatClientProvider.LastUserMessage, StringComparison.Ordinal);
             Assert.DoesNotContain("invented-unit", chatClientProvider.LastUserMessage, StringComparison.Ordinal);
+            Assert.NotNull(Assert.Single(chatClientProvider.CompletionOptions).ResponseFormat);
 
             var malformedResponse = await client.PostAsJsonAsync(
                 "/api/agent/query",
@@ -1027,6 +1028,8 @@ public sealed class AgentQueryEndpointTests : IClassFixture<WebApplicationFactor
 
         public List<string> SystemMessages { get; } = [];
 
+        public List<ChatCompletionOptions> CompletionOptions { get; } = [];
+
         public int GetRequiredClientCallCount { get; private set; }
 
         public ChatClient GetRequiredClient()
@@ -1035,8 +1038,9 @@ public sealed class AgentQueryEndpointTests : IClassFixture<WebApplicationFactor
             var responseIndex = Math.Min(GetRequiredClientCallCount - 1, _responseJsons.Count - 1);
             return new StubChatClient(
                 _responseJsons[responseIndex],
-                messages =>
+                (messages, options) =>
                 {
+                    CompletionOptions.Add(options);
                     var systemMessage = messages
                         .OfType<SystemChatMessage>()
                         .LastOrDefault()?
@@ -1080,14 +1084,14 @@ public sealed class AgentQueryEndpointTests : IClassFixture<WebApplicationFactor
 
     private sealed class StubChatClient(
         string responseJson,
-        Action<IEnumerable<ChatMessage>>? captureMessages = null) : ChatClient
+        Action<IEnumerable<ChatMessage>, ChatCompletionOptions>? captureRequest = null) : ChatClient
     {
         public override Task<ClientResult<ChatCompletion>> CompleteChatAsync(
             IEnumerable<ChatMessage> messages,
             ChatCompletionOptions options,
             CancellationToken cancellationToken = default)
         {
-            captureMessages?.Invoke(messages);
+            captureRequest?.Invoke(messages, options);
             return Task.FromResult(ClientResult.FromValue(CreateChatCompletion(responseJson), new StubPipelineResponse()));
         }
 

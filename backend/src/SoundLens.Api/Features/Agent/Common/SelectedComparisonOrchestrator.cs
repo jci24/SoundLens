@@ -85,7 +85,12 @@ public sealed class SelectedComparisonOrchestrator(
             new UserChatMessage(BuildUserMessage(command, comparisonContext))
         };
 
-        var completion = await chatClient.CompleteChatAsync(messages, new ChatCompletionOptions(), ct);
+        var options = new ChatCompletionOptions
+        {
+            ResponseFormat = ChatResponseFormat.CreateJsonObjectFormat(),
+            MaxOutputTokenCount = 900
+        };
+        var completion = await chatClient.CompleteChatAsync(messages, options, ct);
         var parseResult = AgentStructuredResponseParser.Parse(
             completion.Value.Content.FirstOrDefault()?.Text ?? string.Empty,
             []);
