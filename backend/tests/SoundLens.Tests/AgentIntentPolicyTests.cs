@@ -83,6 +83,10 @@ public sealed class AgentIntentPolicyTests
     [InlineData("Research the current market for acoustic cameras.")]
     [InlineData("Answer with sources about recent NVH practices.")]
     [InlineData("How do companies usually compare product sound recordings?")]
+    [InlineData("How do companies evaluate hearing aid sound quality?")]
+    [InlineData("What tests do manufacturers use for product sound?")]
+    [InlineData("How do NVH teams validate recordings?")]
+    [InlineData("How do acoustic labs benchmark product variants?")]
     public void ResearchAndIndustryPracticeQuestions_AreClearlyWeb(string question)
     {
         Assert.True(AgentIntentPolicy.TryResolveHighConfidence(
@@ -90,6 +94,39 @@ public sealed class AgentIntentPolicyTests
             hasWorkspaceContext: true,
             out var mode));
         Assert.Equal("web", mode);
+    }
+
+    [Theory]
+    [InlineData("Compare these recordings.")]
+    [InlineData("How should engineers assess the selected evidence?")]
+    [InlineData("How should I evaluate this signal?")]
+    public void ExplicitWorkspaceEvaluation_IsNotReclassifiedAsIndustryResearch(string question)
+    {
+        Assert.True(AgentIntentPolicy.TryResolveHighConfidence(
+            question,
+            hasWorkspaceContext: true,
+            out var mode));
+        Assert.Equal(AgentContextModes.Workspace, mode);
+    }
+
+    [Fact]
+    public void TimelessEvaluationDefinition_RemainsGeneralKnowledge()
+    {
+        Assert.True(AgentIntentPolicy.TryResolveHighConfidence(
+            "What does evaluation mean?",
+            hasWorkspaceContext: true,
+            out var mode));
+        Assert.Equal(AgentContextModes.General, mode);
+    }
+
+    [Fact]
+    public void ActorFragments_DoNotTriggerIndustryResearch()
+    {
+        Assert.True(AgentIntentPolicy.TryResolveHighConfidence(
+            "How do collaboration tools compare?",
+            hasWorkspaceContext: true,
+            out var mode));
+        Assert.Equal(AgentContextModes.General, mode);
     }
 
     [Fact]

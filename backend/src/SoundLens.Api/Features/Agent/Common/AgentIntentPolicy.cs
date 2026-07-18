@@ -64,16 +64,6 @@ public static class AgentIntentPolicy
         "recent"
     ];
 
-    private static readonly string[] IndustryActors =
-    [
-        "company",
-        "companies",
-        "industry",
-        "engineers",
-        "professionals",
-        "teams"
-    ];
-
     private static readonly string[] IndustryIndicators =
     [
         "usually",
@@ -86,6 +76,14 @@ public static class AgentIntentPolicy
         "standard practice",
         "approach"
     ];
+
+    private static readonly Regex IndustryActorPattern = new(
+        @"\b(?:compan(?:y|ies)|engineers?|industry|labs?|laborator(?:y|ies)|manufacturers?|oems?|organizations?|professionals?|teams?)\b",
+        RegexOptions.IgnoreCase | RegexOptions.CultureInvariant);
+
+    private static readonly Regex IndustryPracticeActionPattern = new(
+        @"\b(?:assess(?:es|ed|ing)?|benchmark(?:s|ed|ing)?|compar(?:e|es|ed|ing)|decid(?:e|es|ed|ing)|determin(?:e|es|ed|ing)|evaluat(?:e|es|ed|ing)|judg(?:e|es|ed|ing)|measur(?:e|es|ed|ing)|test(?:s|ed|ing)?|validat(?:e|es|ed|ing))\b",
+        RegexOptions.IgnoreCase | RegexOptions.CultureInvariant);
 
     private static readonly string[] ContextualMetricTerms =
     [
@@ -200,9 +198,25 @@ public static class AgentIntentPolicy
     public static bool IsClearlyWebQuestion(string question)
     {
         var normalized = $" {question.Trim().ToLowerInvariant()} ";
-        return WebTerms.Any(term => normalized.Contains(term, StringComparison.Ordinal)) ||
-            IndustryActors.Any(actor => normalized.Contains(actor, StringComparison.Ordinal)) &&
-            IndustryIndicators.Any(indicator => normalized.Contains(indicator, StringComparison.Ordinal));
+        if (WebTerms.Any(term => normalized.Contains(term, StringComparison.Ordinal)))
+        {
+            return true;
+        }
+
+        if (!IndustryActorPattern.IsMatch(question))
+        {
+            return false;
+        }
+
+        var hasIndustryIndicator = IndustryIndicators.Any(
+            indicator => normalized.Contains(indicator, StringComparison.Ordinal));
+        if (hasIndustryIndicator)
+        {
+            return true;
+        }
+
+        return IndustryPracticeActionPattern.IsMatch(question) &&
+            !HasExplicitWorkspaceReference(question, normalized);
     }
 
     public static bool IsClearlyGeneralKnowledgeQuestion(string question)
@@ -210,5 +224,11 @@ public static class AgentIntentPolicy
         var normalized = $" {question.Trim().ToLowerInvariant()} ";
         return GeneralQuestionPattern.IsMatch(question) &&
             !WorkspaceTerms.Any(term => normalized.Contains(term, StringComparison.Ordinal));
+    }
+
+    private static bool HasExplicitWorkspaceReference(string question, string normalized)
+    {
+        return WorkspaceTerms.Any(term => normalized.Contains(term, StringComparison.Ordinal)) ||
+            WorkspaceEntityPattern.IsMatch(question);
     }
 }

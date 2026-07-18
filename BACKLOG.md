@@ -104,9 +104,10 @@ Ordered slices:
 4. completed: progressively disclosed investigation activity trace with typed plan, routing, tool, evidence-check, fallback, completion, and failure events; expose observable execution rather than private model chain-of-thought
 5. completed: deterministic clarification for undefined “best” or “better” judgments before tools run, plus accumulated activity rows for repeated evidence-tool calls
 6. completed: user-centered answer-preparation traces for model-backed general and investigation turns, with internal answer-mode badges removed from the response UI
-7. next: bounded conversation history with explicit session lifecycle, context budgets, and Re-run semantics
-8. Copilot availability across the application shell without leaking stale Evidence-route context
-9. reviewable investigation plans and reversible workspace actions after the capability and policy contracts are validated
+7. completed: bounded industry-practice routing for organization workflows such as evaluating, testing, validating, comparing, and benchmarking product sound, without overriding explicit workspace references
+8. next: bounded conversation history with explicit session lifecycle, context budgets, and Re-run semantics
+9. Copilot availability across the application shell without leaking stale Evidence-route context
+10. reviewable investigation plans and reversible workspace actions after the capability and policy contracts are validated
 
 Boundary:
 - general knowledge is not measured evidence

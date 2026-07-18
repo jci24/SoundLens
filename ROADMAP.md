@@ -329,10 +329,11 @@ Ordered Copilot platform follow-ups:
 1. completed: investigation activity trace with a collapsed-by-default UI and typed backend events for plan, routing, tool execution, evidence validation, fallback, completion, and failure; never expose private model reasoning, raw prompts, or internal identifiers
 2. completed: ambiguous-quality clarification and consolidated repeated-tool activity without treating acoustic measurements as an overall quality score
 3. completed: neutral answer-preparation traces across model-backed general and investigation paths, with internal routing badges removed from the user-facing response
-4. next: bounded conversation history and explicit session lifecycle
-5. Copilot availability across the application shell with route-safe context attachment
-6. hybrid workspace-plus-web synthesis with separate evidence and external-source sections
-7. deep research with background execution, progress, cancellation, cost limits, and source-quality evaluation
+4. completed: explicit organization-plus-practice routing for external questions about how companies, manufacturers, laboratories, and engineering teams evaluate, test, validate, compare, or benchmark sound
+5. next: bounded conversation history and explicit session lifecycle
+6. Copilot availability across the application shell with route-safe context attachment
+7. hybrid workspace-plus-web synthesis with separate evidence and external-source sections
+8. deep research with background execution, progress, cancellation, cost limits, and source-quality evaluation
 8. reviewable plans and reversible workspace actions under the Milestone 8 and 9 policy gates
 
 Dependencies:

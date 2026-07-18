@@ -459,7 +459,7 @@ public sealed class AgentQueryEndpointTests : IClassFixture<WebApplicationFactor
             "/api/agent/query",
             new
             {
-                question = "How do usually companies compare these different signals?",
+                question = "How do companies evaluate hearing aid sound quality?",
                 contextMode = "auto",
                 signalIds = new[] { "private-signal-id" },
                 comparisonPair = new { recordingIdA = "private-a", recordingIdB = "private-b" }
@@ -471,7 +471,7 @@ public sealed class AgentQueryEndpointTests : IClassFixture<WebApplicationFactor
         Assert.Equal(AgentAnswerModes.Web, payload!.AnswerMode);
         Assert.Empty(payload.CitedEvidence);
         Assert.Equal(["web_search"], payload.ToolsUsed);
-        Assert.Equal("How do usually companies compare these different signals?", Assert.Single(webResearchClient.Questions));
+        Assert.Equal("How do companies evaluate hearing aid sound quality?", Assert.Single(webResearchClient.Questions));
         var citation = Assert.Single(payload.ExternalCitations);
         Assert.Equal("https://example.com/guidance", citation.Url);
         Assert.DoesNotContain("private-signal-id", webResearchClient.Questions[0], StringComparison.Ordinal);
