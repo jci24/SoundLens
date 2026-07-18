@@ -80,7 +80,8 @@ Implication for SoundLens:
 
 - keep one Copilot surface and make source routing automatic rather than asking users to understand internal context modes
 - treat explicit evidence mentions and explicit requests for general or current knowledge as natural-language routing signals
-- run deterministic workspace responders before model intent classification
+- treat automatically attached workspace context as availability rather than intent; only explicit wording or a validated classifier decision may activate evidence tools
+- resolve answer intent before running deterministic workspace responders so auto-attached context cannot capture general or research questions
 - keep general model knowledge isolated from recordings, DSP tools, measurements, and evidence citations
 - label answer provenance so model knowledge is never mistaken for measured evidence
 - keep live web retrieval bounded behind a separate source contract with first-class citations; do not mix external claims with SoundLens measurements

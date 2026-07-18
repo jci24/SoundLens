@@ -10,110 +10,6 @@ public sealed class AgentContextRouter(
     IChatClientProvider chatClientProvider,
     ILogger<AgentContextRouter> logger)
 {
-    private static readonly string[] ClearWorkspaceTerms =
-    [
-        "this signal",
-        "this recording",
-        "these signals",
-        "these recordings",
-        "selected signal",
-        "selected recording",
-        "selected comparison",
-        "selected difference",
-        "selected evidence",
-        "current signal",
-        "current recording",
-        "current comparison",
-        "current workspace",
-        "loaded signal",
-        "loaded recording",
-        "compare a",
-        "compare b",
-        " roi",
-        "region of interest",
-        "visible finding",
-        "analysis workspace"
-    ];
-
-    private static readonly string[] GeneralPracticeActors =
-    [
-        "company",
-        "companies",
-        "industry",
-        "engineers",
-        "professionals",
-        "teams"
-    ];
-
-    private static readonly string[] GeneralPracticeIndicators =
-    [
-        "usually",
-        "typically",
-        "generally",
-        "normally",
-        "common practice",
-        "best practice",
-        "standard practice",
-        "approach"
-    ];
-
-    private static readonly string[] ClearWebTerms =
-    [
-        "search the web",
-        "search online",
-        "look online",
-        "look up",
-        "research this",
-        "research the",
-        "cite sources",
-        "with sources",
-        "latest",
-        "current version",
-        "current standard",
-        "current regulation",
-        "today",
-        "recent"
-    ];
-
-    private static readonly string[] DefinitionTerms =
-    [
-        "what is rms",
-        "what is the rms",
-        "what does rms mean",
-        "what rms means",
-        "define rms",
-        "explain rms",
-        "meaning of rms",
-        "what is root mean square",
-        "what is peak amplitude",
-        "what does peak amplitude mean",
-        "define peak amplitude",
-        "explain peak amplitude",
-        "what is clipping",
-        "what does clipping mean",
-        "define clipping",
-        "explain clipping"
-    ];
-
-    private static readonly string[] DefinitionEvidenceTerms =
-    [
-        "this signal",
-        "this recording",
-        "these signals",
-        "these recordings",
-        "selected",
-        "current signal",
-        "current recording",
-        "channel",
-        "difference",
-        "compare",
-        "between",
-        "which signal",
-        "which recording",
-        "level of",
-        "amplitude of"
-    ];
-
     private const string SystemPrompt = """
         Classify whether the question requires the user's SoundLens workspace evidence.
         Return only a JSON object: {"contextMode":"workspace"}, {"contextMode":"general"}, or {"contextMode":"web"}.
@@ -137,32 +33,21 @@ public sealed class AgentContextRouter(
             return requestedMode;
         }
 
-        var hasExplicitIdentifiers = command.SignalIds is { Count: > 0 } ||
+        var hasWorkspaceContext = importedRecordingCount > 0 ||
+            command.SignalIds is { Count: > 0 } ||
             command.ComparisonContext is not null ||
             command.ComparisonPair is not null;
-        if (IsClearlyIndustryPracticeQuestion(command.Question))
+        if (AgentIntentPolicy.TryResolveHighConfidence(
+                command.Question,
+                hasWorkspaceContext,
+                out var highConfidenceMode))
         {
-            return AgentContextModes.Web;
+            return highConfidenceMode;
         }
 
-        if (IsClearlyWebQuestion(command.Question))
-        {
-            return AgentContextModes.Web;
-        }
-
-        if (IsClearlyDefinitionQuestion(command.Question))
+        if (!hasWorkspaceContext)
         {
             return AgentContextModes.General;
-        }
-
-        if (!hasExplicitIdentifiers && importedRecordingCount == 0)
-        {
-            return AgentContextModes.General;
-        }
-
-        if (IsClearlyWorkspaceQuestion(command.Question))
-        {
-            return AgentContextModes.Workspace;
         }
 
         var descriptor = $"""
@@ -173,6 +58,9 @@ public sealed class AgentContextRouter(
             - selected comparison evidence available: {command.ComparisonContext is not null}
             - assigned A/B pair available: {command.ComparisonPair is not null}
             - ROI available: {command.StartTimeSeconds.HasValue && command.EndTimeSeconds.HasValue}
+
+            Availability does not mean the question is about the workspace. Use only the wording of the question
+            to decide whether the user is asking about that available evidence.
             """;
 
         var client = chatClientProvider.GetRequiredClient();
@@ -192,42 +80,13 @@ public sealed class AgentContextRouter(
         catch (ClientResultException exception)
         {
             logger.LogWarning(exception, "Copilot context classification failed; applying conservative fallback routing.");
-            return FallbackMode(hasExplicitIdentifiers);
+            return AgentContextModes.General;
         }
 
         return TryParseMode(completion.Value.Content.FirstOrDefault()?.Text, out var mode)
             ? mode
-            : FallbackMode(hasExplicitIdentifiers);
+            : AgentContextModes.General;
     }
-
-    public static bool IsClearlyWorkspaceQuestion(string question)
-    {
-        var normalized = $" {question.Trim().ToLowerInvariant()} ";
-        return ClearWorkspaceTerms.Any(term => normalized.Contains(term, StringComparison.Ordinal));
-    }
-
-    public static bool IsClearlyIndustryPracticeQuestion(string question)
-    {
-        var normalized = $" {question.Trim().ToLowerInvariant()} ";
-        return GeneralPracticeActors.Any(actor => normalized.Contains(actor, StringComparison.Ordinal)) &&
-            GeneralPracticeIndicators.Any(indicator => normalized.Contains(indicator, StringComparison.Ordinal));
-    }
-
-    public static bool IsClearlyWebQuestion(string question)
-    {
-        var normalized = $" {question.Trim().ToLowerInvariant()} ";
-        return ClearWebTerms.Any(term => normalized.Contains(term, StringComparison.Ordinal));
-    }
-
-    public static bool IsClearlyDefinitionQuestion(string question)
-    {
-        var normalized = $" {question.Trim().ToLowerInvariant()} ";
-        return DefinitionTerms.Any(term => normalized.Contains(term, StringComparison.Ordinal)) &&
-            !DefinitionEvidenceTerms.Any(term => normalized.Contains(term, StringComparison.Ordinal));
-    }
-
-    private static string FallbackMode(bool hasExplicitIdentifiers) =>
-        hasExplicitIdentifiers ? AgentContextModes.Workspace : AgentContextModes.General;
 
     private static bool TryParseMode(string? rawText, out string mode)
     {

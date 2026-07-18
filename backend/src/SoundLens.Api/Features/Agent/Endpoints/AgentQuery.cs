@@ -121,20 +121,10 @@ public sealed class AgentQuery : Endpoint<AgentQueryCommand, AgentQueryResponse>
             var hasExplicitIdentifiers = req.SignalIds is { Count: > 0 } ||
                 req.ComparisonContext is not null ||
                 req.ComparisonPair is not null;
-            var answerMode = requestedMode == AgentContextModes.General
-                ? AgentAnswerModes.General
-                : requestedMode == AgentContextModes.Auto &&
-                  AgentContextRouter.IsClearlyDefinitionQuestion(req.Question)
-                    ? AgentAnswerModes.General
-                    : requestedMode == AgentContextModes.Auto &&
-                      (AgentContextRouter.IsClearlyWebQuestion(req.Question) ||
-                       AgentContextRouter.IsClearlyIndustryPracticeQuestion(req.Question))
-                        ? AgentAnswerModes.Web
-                        : requestedMode == AgentContextModes.Auto &&
-                          !hasExplicitIdentifiers &&
-                          !AgentContextRouter.IsClearlyWorkspaceQuestion(req.Question)
-                            ? AgentAnswerModes.General
-                            : AgentAnswerModes.Workspace;
+            var answerMode = AgentIntentPolicy.ResolveWithoutModel(
+                req.Question,
+                requestedMode,
+                hasExplicitIdentifiers);
             var isGeneral = answerMode == AgentAnswerModes.General;
             var isWeb = answerMode == AgentAnswerModes.Web;
             await Send.OkAsync(

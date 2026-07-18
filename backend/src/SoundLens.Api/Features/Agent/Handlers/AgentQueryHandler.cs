@@ -77,25 +77,6 @@ public sealed class AgentQueryHandler(
 
     public override async Task<AgentQueryResponse> ExecuteAsync(AgentQueryCommand command, CancellationToken ct = default)
     {
-        var requestedContextMode = AgentContextModes.Normalize(command.ContextMode);
-        if (requestedContextMode != AgentContextModes.General)
-        {
-            AgentQueryResponse? deterministicSignalResponse;
-            try
-            {
-                deterministicSignalResponse = await deterministicSignalQueryResponder.TryBuildAsync(command, ct);
-            }
-            catch (ArgumentException exception)
-            {
-                ThrowError(exception.Message);
-                throw;
-            }
-            if (deterministicSignalResponse is not null)
-            {
-                return deterministicSignalResponse;
-            }
-        }
-
         var resolvedContextMode = await contextRouter.ResolveAsync(
             command,
             importedFileStore.CurrentFiles.Count,
@@ -107,6 +88,21 @@ public sealed class AgentQueryHandler(
         if (resolvedContextMode == AgentContextModes.Web)
         {
             return await webResearchResponder.BuildAsync(command.Question, ct);
+        }
+
+        AgentQueryResponse? deterministicSignalResponse;
+        try
+        {
+            deterministicSignalResponse = await deterministicSignalQueryResponder.TryBuildAsync(command, ct);
+        }
+        catch (ArgumentException exception)
+        {
+            ThrowError(exception.Message);
+            throw;
+        }
+        if (deterministicSignalResponse is not null)
+        {
+            return deterministicSignalResponse;
         }
 
         AgentQueryResponse? comparisonExplanationResponse;

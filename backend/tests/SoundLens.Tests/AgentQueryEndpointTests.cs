@@ -80,7 +80,7 @@ public sealed class AgentQueryEndpointTests : IClassFixture<WebApplicationFactor
     }
 
     [Fact]
-    public async Task MissingClassifierClientFallsBackToWorkspaceWhenIdentifiersAreAttached()
+    public async Task MissingClassifierClientDoesNotTreatAttachedIdentifiersAsWorkspaceIntent()
     {
         using var client = _factory.CreateClient();
         var response = await client.PostAsJsonAsync(
@@ -95,8 +95,10 @@ public sealed class AgentQueryEndpointTests : IClassFixture<WebApplicationFactor
         response.EnsureSuccessStatusCode();
         var payload = await response.Content.ReadFromJsonAsync<AgentQueryResponse>();
 
-        Assert.Equal(AgentAnswerModes.Workspace, payload!.AnswerMode);
+        Assert.Equal(AgentAnswerModes.General, payload!.AnswerMode);
         Assert.Contains(payload.Limitations, limitation =>
+            limitation.Contains("general answer", StringComparison.OrdinalIgnoreCase));
+        Assert.DoesNotContain(payload.Limitations, limitation =>
             limitation.Contains("dBFS", StringComparison.OrdinalIgnoreCase));
     }
 
@@ -206,7 +208,7 @@ public sealed class AgentQueryEndpointTests : IClassFixture<WebApplicationFactor
             "/api/agent/query",
             new
             {
-                question = "Explain the Nyquist theorem in simple terms.",
+                question = "Could Nyquist constraints matter in that situation?",
                 contextMode = "auto",
                 signalIds = new[] { "private-signal-id" },
                 comparisonPair = new { recordingIdA = "private-a", recordingIdB = "private-b" }
@@ -221,11 +223,17 @@ public sealed class AgentQueryEndpointTests : IClassFixture<WebApplicationFactor
         Assert.Contains("JSON", chatClientProvider.SystemMessages[0], StringComparison.OrdinalIgnoreCase);
         Assert.DoesNotContain("private-signal-id", chatClientProvider.UserMessages[0], StringComparison.Ordinal);
         Assert.DoesNotContain("private-a", chatClientProvider.UserMessages[0], StringComparison.Ordinal);
-        Assert.Equal("Explain the Nyquist theorem in simple terms.", chatClientProvider.UserMessages[1]);
+        Assert.Equal("Could Nyquist constraints matter in that situation?", chatClientProvider.UserMessages[1]);
     }
 
-    [Fact]
-    public async Task AutoModeRoutesMetricDefinitionToGeneralDespiteWorkspaceIdentifiers()
+    [Theory]
+    [InlineData("Explain what RMS means.")]
+    [InlineData("What is RMS?")]
+    [InlineData("How does an FFT work?")]
+    [InlineData("What is CPB analysis?")]
+    [InlineData("What could I analyze to assess sharpness?")]
+    public async Task AutoModeRoutesTheoryAndMethodQuestionsToGeneralDespiteWorkspaceIdentifiers(
+        string question)
     {
         var chatClientProvider = new StubChatClientProvider(
             """
@@ -249,7 +257,7 @@ public sealed class AgentQueryEndpointTests : IClassFixture<WebApplicationFactor
             "/api/agent/query",
             new
             {
-                question = "Explain what RMS means.",
+                question,
                 contextMode = "auto",
                 signalIds = new[] { "private-signal-id" },
                 comparisonPair = new { recordingIdA = "private-a", recordingIdB = "private-b" }
@@ -261,7 +269,7 @@ public sealed class AgentQueryEndpointTests : IClassFixture<WebApplicationFactor
         Assert.Equal(AgentAnswerModes.General, payload!.AnswerMode);
         Assert.Empty(payload.CitedEvidence);
         Assert.Empty(payload.ToolsUsed);
-        Assert.Equal("Explain what RMS means.", Assert.Single(chatClientProvider.UserMessages));
+        Assert.Equal(question, Assert.Single(chatClientProvider.UserMessages));
     }
 
     [Fact]
@@ -423,19 +431,18 @@ public sealed class AgentQueryEndpointTests : IClassFixture<WebApplicationFactor
     }
 
     [Fact]
-    public async Task MalformedAutoClassificationFallsBackToExplicitWorkspaceIdentifiers()
+    public async Task MalformedAutoClassificationFallsBackToGeneralDespiteAttachedIdentifiers()
     {
         var chatClientProvider = new StubChatClientProvider(
             "not valid classifier output",
             """
             {
-              "answer": "The requested workspace question could not be tied to measured evidence.",
-              "citedEvidence": [],
-              "limitations": ["Values are in dBFS, not calibrated to physical SPL."],
-              "nextSteps": ["Ask about a specific metric."]
+              "answer": "I can help explain the topic in general terms.",
+              "limitations": [],
+              "nextSteps": ["Ask a more specific question if needed."]
             }
             """);
-        var workspaceFactory = _factory.WithWebHostBuilder(builder =>
+        var generalFactory = _factory.WithWebHostBuilder(builder =>
         {
             builder.ConfigureServices(services =>
             {
@@ -444,7 +451,7 @@ public sealed class AgentQueryEndpointTests : IClassFixture<WebApplicationFactor
             });
         });
 
-        using var client = workspaceFactory.CreateClient();
+        using var client = generalFactory.CreateClient();
         var response = await client.PostAsJsonAsync(
             "/api/agent/query",
             new { question = "Could you help me understand it?", signalIds = new[] { "signal-1" } });
@@ -452,8 +459,11 @@ public sealed class AgentQueryEndpointTests : IClassFixture<WebApplicationFactor
         response.EnsureSuccessStatusCode();
         var payload = await response.Content.ReadFromJsonAsync<AgentQueryResponse>();
 
-        Assert.Equal(AgentAnswerModes.Workspace, payload!.AnswerMode);
-        Assert.Contains(payload.Limitations, limitation => limitation.Contains("dBFS", StringComparison.OrdinalIgnoreCase));
+        Assert.Equal(AgentAnswerModes.General, payload!.AnswerMode);
+        Assert.Empty(payload.CitedEvidence);
+        Assert.DoesNotContain(payload.Limitations, limitation =>
+            limitation.Contains("dBFS", StringComparison.OrdinalIgnoreCase));
+        Assert.DoesNotContain("signal-1", chatClientProvider.UserMessages[0], StringComparison.Ordinal);
     }
 
     [Fact]
