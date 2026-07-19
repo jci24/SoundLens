@@ -1,6 +1,6 @@
 # Roadmap
 
-Last updated: 2026-07-18
+Last updated: 2026-07-19
 
 ## Cross-Cutting Program — Figma Visual-System Migration
 
@@ -23,7 +23,8 @@ Current status:
 - optional investigation setup now exposes backend-owned recording metadata and reuses the existing explicit A/B builder without blocking focused evidence
 - optional Analysis review exposes only the shipped waveform and spectrum methods, keeps at least one selected, and suppresses requests and panels for disabled analyses without fabricating job progress
 - the Figma-composed Evidence route now combines one compact analysis toolbar, an adjacent recording context rail, a padded evidence canvas, and flatter comparison and chart surfaces without changing evidence behavior
-- responsive states and utility-surface polish are the next ordered workflow slice
+- responsive Evidence utility surfaces now preserve the canvas through a modal recording drawer, overlay Copilot, one-action mutual exclusion, and stacked narrow evidence
+- automatic compact navigation plus global loading, empty, error, dialog, and popover states remain the final responsive migration slice
 - future platform pages remain out of navigation until they have functional product scope
 
 Validation gate:

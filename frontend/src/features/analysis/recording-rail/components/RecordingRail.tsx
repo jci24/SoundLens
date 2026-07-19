@@ -1,8 +1,11 @@
+import * as Dialog from '@radix-ui/react-dialog'
 import { useDeferredValue, useRef, useState } from 'react'
 import { observeElementRect, useVirtualizer } from '@tanstack/react-virtual'
 import { ChevronRight, Search, X } from 'lucide-react'
+import { Button } from '@/components/ui/button'
 import { Checkbox } from '@/components/ui/checkbox'
 import { Field, FieldLabel } from '@/components/ui/field'
+import { useMediaQuery } from '@/common/hooks/useMediaQuery'
 import type { ITimeWaveformRecording, TComparisonGroupAssignment } from '../../types'
 import {
   buildRecordingRailRows,
@@ -18,6 +21,8 @@ const recordingListFallbackRect = { height: 320, width: 240 }
 
 interface IRecordingRailProps {
   expandedRecordings: string[]
+  isDrawerOpen?: boolean
+  onDrawerOpenChange?: (isOpen: boolean) => void
   onComparisonTargetsSwap: () => void
   onRecordingGroupAssignment: (recordingId: string, assignment: TComparisonGroupAssignment) => void
   onRecordingToggle: (recordingId: string) => void
@@ -29,6 +34,8 @@ interface IRecordingRailProps {
 
 const RecordingRail = ({
   expandedRecordings,
+  isDrawerOpen = false,
+  onDrawerOpenChange,
   onComparisonTargetsSwap,
   onRecordingGroupAssignment,
   onRecordingToggle,
@@ -37,6 +44,7 @@ const RecordingRail = ({
   recordingGroupAssignments,
   selectedSignalIds,
 }: IRecordingRailProps) => {
+  const isNarrowWorkspace = useMediaQuery('(max-width: 900px)')
   const [searchQuery, setSearchQuery] = useState('')
   const deferredSearchQuery = useDeferredValue(searchQuery)
   const listRef = useRef<HTMLDivElement | null>(null)
@@ -73,7 +81,7 @@ const RecordingRail = ({
     virtualizer.scrollToOffset(0)
   }
 
-  return (
+  const rail = (
     <aside className="time-waveform-workspace__recording-rail" aria-label="Imported recordings and channels">
       <ComparePairBuilder
         onRecordingGroupAssignment={onRecordingGroupAssignment}
@@ -192,6 +200,34 @@ const RecordingRail = ({
         </div>
       </div>
     </aside>
+  )
+
+  if (!isNarrowWorkspace) {
+    return rail
+  }
+
+  return (
+    <Dialog.Root modal onOpenChange={onDrawerOpenChange} open={isDrawerOpen}>
+      <Dialog.Portal>
+        <Dialog.Overlay className="recording-drawer__overlay" />
+        <Dialog.Content className="recording-drawer__content">
+          <header className="recording-drawer__header">
+            <div>
+              <Dialog.Title className="recording-drawer__title">Recordings</Dialog.Title>
+              <Dialog.Description className="recording-drawer__description">
+                Choose the active pair and evidence channels.
+              </Dialog.Description>
+            </div>
+            <Dialog.Close asChild>
+              <Button aria-label="Close recordings drawer" size="icon-sm" type="button" variant="ghost">
+                <X aria-hidden="true" />
+              </Button>
+            </Dialog.Close>
+          </header>
+          {rail}
+        </Dialog.Content>
+      </Dialog.Portal>
+    </Dialog.Root>
   )
 }
 

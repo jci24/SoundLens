@@ -32,6 +32,7 @@ const EvidencePage = ({ importedRecordingCount }: IEvidencePageProps) => {
       </div>
       <CopilotSidebar
         isOpen={isCopilotOpen}
+        onClose={() => setIsCopilotOpen(false)}
         recordings={recordings}
         regionOfInterest={regionOfInterest}
         selectedSignalIds={selectedSignalIds}

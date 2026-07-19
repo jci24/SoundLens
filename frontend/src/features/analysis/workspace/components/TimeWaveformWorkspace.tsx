@@ -54,6 +54,7 @@ const TimeWaveformWorkspace = ({ importedRecordingCount, isCopilotOpen, onCopilo
     results: null,
   })
   const [isEvidenceInspectorOpen, setIsEvidenceInspectorOpen] = useState(false)
+  const [isRecordingDrawerOpen, setIsRecordingDrawerOpen] = useState(false)
   const [isCopilotHandoffActive, setIsCopilotHandoffActive] = useState(false)
   const evidenceInspectorTriggerRef = useRef<HTMLElement | null>(null)
   const workspaceRef = useRef<HTMLElement | null>(null)
@@ -347,6 +348,8 @@ const TimeWaveformWorkspace = ({ importedRecordingCount, isCopilotOpen, onCopilo
       return
     }
 
+    setIsRecordingDrawerOpen(false)
+
     if (isCopilotOpen) {
       if (isCopilotHandoffActive) {
         return
@@ -395,6 +398,23 @@ const TimeWaveformWorkspace = ({ importedRecordingCount, isCopilotOpen, onCopilo
     onRecordingGroupAssignment(recordingId, assignment)
   }
 
+  const handleCopilotToggle = () => {
+    setIsRecordingDrawerOpen(false)
+    setIsEvidenceInspectorOpen(false)
+    setIsCopilotHandoffActive(false)
+    onCopilotToggle()
+  }
+
+  const handleRecordingsOpen = () => {
+    setIsEvidenceInspectorOpen(false)
+    setIsCopilotHandoffActive(false)
+    setIsRecordingDrawerOpen(true)
+
+    if (isCopilotOpen) {
+      onCopilotToggle()
+    }
+  }
+
   return (
     <section
       className={`time-waveform-workspace${hasActiveChart ? ' time-waveform-workspace--revealed' : ''}${layoutMode === 'compare' ? ' time-waveform-workspace--compare' : ''}`}
@@ -409,8 +429,9 @@ const TimeWaveformWorkspace = ({ importedRecordingCount, isCopilotOpen, onCopilo
         isCopilotOpen={isCopilotOpen}
         isExporting={isExporting}
         layoutMode={layoutMode}
-        onCopilotToggle={onCopilotToggle}
+        onCopilotToggle={handleCopilotToggle}
         onExportReport={handleExportReport}
+        onRecordingsOpen={handleRecordingsOpen}
         onLayoutModeChange={handleLayoutModeChange}
         onSignalChartModeChange={onSignalChartModeChange}
         onSpectrumPresetChange={onSpectrumPresetChange}
@@ -465,6 +486,8 @@ const TimeWaveformWorkspace = ({ importedRecordingCount, isCopilotOpen, onCopilo
       <div className="time-waveform-workspace__body">
         <RecordingRail
           expandedRecordings={expandedRecordings}
+          isDrawerOpen={isRecordingDrawerOpen}
+          onDrawerOpenChange={setIsRecordingDrawerOpen}
           onComparisonTargetsSwap={onComparisonTargetsSwap}
           onRecordingGroupAssignment={handleRecordingGroupAssignment}
           onRecordingToggle={onRecordingToggle}

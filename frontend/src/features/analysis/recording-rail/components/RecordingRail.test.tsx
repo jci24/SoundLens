@@ -1,5 +1,5 @@
 import { fireEvent, render, screen, waitFor } from '@testing-library/react'
-import { describe, expect, it, vi } from 'vitest'
+import { afterEach, describe, expect, it, vi } from 'vitest'
 import { RecordingRail } from './RecordingRail'
 import type { ITimeWaveformRecording } from '../../types'
 
@@ -43,7 +43,40 @@ const recordings: ITimeWaveformRecording[] = [
   },
 ]
 
+afterEach(() => {
+  vi.unstubAllGlobals()
+})
+
 describe('RecordingRail', () => {
+  it('renders as a dismissible drawer in a narrow workspace', () => {
+    const onDrawerOpenChange = vi.fn()
+
+    vi.stubGlobal('matchMedia', vi.fn().mockReturnValue({
+      matches: true,
+      addEventListener: vi.fn(),
+      removeEventListener: vi.fn(),
+    }))
+
+    render(
+      <RecordingRail
+        expandedRecordings={[]}
+        isDrawerOpen
+        onComparisonTargetsSwap={vi.fn()}
+        onDrawerOpenChange={onDrawerOpenChange}
+        onRecordingGroupAssignment={vi.fn()}
+        onRecordingToggle={vi.fn()}
+        onSignalSelection={vi.fn()}
+        recordings={recordings}
+        recordingGroupAssignments={{}}
+        selectedSignalIds={[]}
+      />
+    )
+
+    expect(screen.getByRole('dialog', { name: 'Recordings' })).toBeInTheDocument()
+    fireEvent.click(screen.getByRole('button', { name: 'Close recordings drawer' }))
+    expect(onDrawerOpenChange).toHaveBeenCalledWith(false)
+  })
+
   it('renders expanded signals and dispatches recording and signal actions', () => {
     const onRecordingGroupAssignment = vi.fn()
     const onComparisonTargetsSwap = vi.fn()

@@ -1,6 +1,6 @@
 # Current State
 
-Last updated: 2026-07-18
+Last updated: 2026-07-19
 
 ## What Users Can Currently Do
 
@@ -41,7 +41,10 @@ The current product is strong as an analysis workspace, but it is not yet a full
 - Waveform and spectrum series use the analysis teal plus neutral comparison tones instead of unrelated multicolor accents.
 - Optional recording-level investigation setup and Analysis review follow the Figma workflow without blocking direct Evidence access.
 - The Evidence route now uses one compact analysis toolbar, an adjacent recording context rail, and a padded evidence canvas. Comparison guidance, metric cells, and chart shells use flat hairline structure instead of stacked framed containers while retaining the existing evidence, playback, ROI, report, and Copilot behavior.
-- Report workflow, persisted platform pages, and responsive utility-state refinements remain separate follow-up slices.
+- Below 900px, the recording context rail moves into a modal drawer and Copilot becomes an overlay sheet so utility surfaces no longer compress or vertically displace the evidence canvas.
+- Narrow evidence layouts stack charts and metric cells, reflow playback controls, and keep evidence/report surfaces internally scrollable while preserving desktop composition above the breakpoint.
+- Automatic compact primary navigation and full-workspace route/import states remain the immediate responsive follow-up.
+- Persisted platform pages remain separate follow-up slices and will not appear until their storage and behavior contracts exist.
 
 ## Import And Temporary Workspace Model
 

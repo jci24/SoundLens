@@ -57,16 +57,19 @@ vi.mock('./AnalysisWorkspaceHeader', () => ({
   AnalysisWorkspaceHeader: ({
     canExportReport,
     canEnterCompareMode,
+    onRecordingsOpen,
     onExportReport,
   }: {
     canExportReport: boolean
     canEnterCompareMode: boolean
+    onRecordingsOpen: () => void
     onExportReport: () => void
   }) => (
     <div>
       <button data-testid="workspace-header" disabled={!canExportReport} onClick={onExportReport} type="button">
         Export report
       </button>
+      <button onClick={onRecordingsOpen} type="button">Open recordings drawer</button>
       <span>{canEnterCompareMode ? 'Compare enabled' : 'Compare disabled'}</span>
     </div>
   ),
@@ -75,10 +78,12 @@ vi.mock('./AnalysisWorkspaceHeader', () => ({
 vi.mock('../../recording-rail/components/RecordingRail', () => ({
   RecordingRail: ({
     onComparisonTargetsSwap,
+    isDrawerOpen,
     onRecordingGroupAssignment,
     recordingGroupAssignments,
   }: {
     onComparisonTargetsSwap: () => void
+    isDrawerOpen?: boolean
     onRecordingGroupAssignment: (recordingId: string, assignment: 'A' | 'B' | 'unassigned') => void
     recordingGroupAssignments: Record<string, 'A' | 'B' | 'unassigned'>
   }) => (
@@ -89,6 +94,7 @@ vi.mock('../../recording-rail/components/RecordingRail', () => ({
       <button onClick={onComparisonTargetsSwap} type="button">
         Swap pair
       </button>
+      <span>{isDrawerOpen ? 'Recording drawer open' : 'Recording drawer closed'}</span>
       <span>{recordingGroupAssignments['recording-1'] ?? 'unassigned'}</span>
     </div>
   ),
@@ -775,6 +781,24 @@ describe('TimeWaveformWorkspace', () => {
     expect(screen.getByRole('dialog', { name: 'Peak amplitude' })).toBeInTheDocument()
     expect(onCopilotToggle).toHaveBeenCalledTimes(1)
     expect(mockGetRecordingComparison).toHaveBeenCalledTimes(1)
+  })
+
+  it('opens the recording drawer while closing Copilot in one action', () => {
+    const onCopilotToggle = vi.fn()
+
+    mockUseTimeWaveformWorkspace.mockReturnValue(createWorkspaceState())
+    render(
+      <TimeWaveformWorkspace
+        importedRecordingCount={importedFiles.length}
+        isCopilotOpen
+        onCopilotToggle={onCopilotToggle}
+      />
+    )
+
+    fireEvent.click(screen.getByRole('button', { name: 'Open recordings drawer' }))
+
+    expect(onCopilotToggle).toHaveBeenCalledOnce()
+    expect(screen.getByText('Recording drawer open')).toBeInTheDocument()
   })
 
   it('keeps Copilot open when a metric card changes its grounded context', async () => {
