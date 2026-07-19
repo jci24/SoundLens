@@ -81,6 +81,8 @@
 
 @media (max-width: 720px) {
   .file-picker-importer {
+    min-height: 13rem;
+
     &__target {
       padding: 1.35rem 1rem;
     }

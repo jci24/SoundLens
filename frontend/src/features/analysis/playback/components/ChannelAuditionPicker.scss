@@ -34,7 +34,7 @@
 .channel-audition-picker__popover {
   z-index: 60;
   width: min(15rem, calc(100vw - 1.5rem));
-  max-height: min(20rem, 55vh);
+  max-height: min(20rem, calc(100svh - 1.5rem));
   overflow-y: auto;
   padding: 0.4rem;
   border: 1px solid var(--border);

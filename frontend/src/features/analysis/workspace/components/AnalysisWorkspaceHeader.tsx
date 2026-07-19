@@ -82,6 +82,7 @@ const AnalysisWorkspaceHeader = ({
     isOpen,
     open,
     popoverRef,
+    triggerRef,
     toggle,
   } = useSpectrumControlsPopover()
 
@@ -165,6 +166,7 @@ const AnalysisWorkspaceHeader = ({
             spectrumMaximumHz={spectrumMaximumHz}
             spectrumRangeEndHz={spectrumRangeEndHz}
             spectrumRangeStartHz={spectrumRangeStartHz}
+            triggerRef={triggerRef}
           />
         )}
         <span aria-hidden="true" className="time-waveform-workspace__toolbar-divider" />

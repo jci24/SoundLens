@@ -40,3 +40,21 @@
     text-transform: uppercase;
   }
 }
+
+@media (max-width: 600px) {
+  .import-page {
+    padding: 1.25rem 1rem;
+
+    &__heading {
+      gap: 0.5rem;
+
+      h2 {
+        font-size: 1.5rem;
+      }
+
+      p:last-child {
+        font-size: var(--font-sm);
+      }
+    }
+  }
+}

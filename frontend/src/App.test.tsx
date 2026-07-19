@@ -66,9 +66,11 @@ describe('App workflow routes', () => {
     renderApp()
 
     expect(screen.getByText('Restoring temporary workspace')).toBeInTheDocument()
+    expect(screen.queryByRole('heading', { name: 'Turn repeated recordings into reviewable evidence.' })).not.toBeInTheDocument()
     expect(await screen.findByRole('heading', { name: 'Current investigation' })).toBeInTheDocument()
     expect(screen.getByText('baseline.wav')).toBeInTheDocument()
     expect(screen.getByRole('link', { name: 'Evidence' })).toHaveAttribute('href', '/evidence')
+    expect(screen.getByRole('link', { name: 'Evidence' })).toHaveAttribute('title', 'Evidence')
     expect(screen.getByRole('link', { name: 'Analysis setup' })).toHaveAttribute('href', '/analysis')
     expect(screen.getAllByRole('link', { name: 'Configure comparison' })).toHaveLength(2)
     expect(screen.getAllByRole('link', { name: 'Configure comparison' })).toEqual(

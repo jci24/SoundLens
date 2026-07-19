@@ -18,6 +18,7 @@ interface ISpectrumControlsPopoverProps {
   spectrumMaximumHz: number
   spectrumRangeEndHz: number
   spectrumRangeStartHz: number
+  triggerRef: RefObject<HTMLButtonElement | null>
 }
 
 const SpectrumControlsPopover = ({
@@ -36,6 +37,7 @@ const SpectrumControlsPopover = ({
   spectrumMaximumHz,
   spectrumRangeEndHz,
   spectrumRangeStartHz,
+  triggerRef,
 }: ISpectrumControlsPopoverProps) => (
   <div className="time-waveform-workspace__surface-controls">
     {isRangeFiltered && (
@@ -54,6 +56,7 @@ const SpectrumControlsPopover = ({
         aria-haspopup="dialog"
         aria-label="Spectrum settings"
         className={`time-waveform-workspace__controls-trigger${isOpen ? ' time-waveform-workspace__controls-trigger--open' : ''}`}
+        ref={triggerRef}
         type="button"
         onClick={onToggle}
       >

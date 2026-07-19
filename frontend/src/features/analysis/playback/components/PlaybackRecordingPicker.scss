@@ -48,6 +48,8 @@
 .playback-recording-picker__popover {
   z-index: 60;
   width: min(23rem, calc(100vw - 1.5rem));
+  max-height: calc(100svh - 1.5rem);
+  overflow: hidden;
   padding: 0.45rem;
   border: 1px solid var(--border);
   border-radius: 0.75rem;
@@ -86,7 +88,7 @@
 
 .playback-recording-picker__options {
   display: grid;
-  max-height: min(21rem, 55vh);
+  max-height: min(21rem, calc(100svh - 9rem));
   overflow-y: auto;
 }
 

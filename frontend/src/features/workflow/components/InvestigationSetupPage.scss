@@ -162,3 +162,24 @@
     }
   }
 }
+
+@media (max-width: 600px) {
+  .investigation-setup {
+    padding: 1rem;
+
+    &__body {
+      gap: 2rem;
+      padding: 1.5rem 0;
+    }
+
+    &__section-heading {
+      align-items: flex-start;
+      flex-direction: column;
+      gap: 0.25rem;
+    }
+
+    &__footer > div > * {
+      width: 100%;
+    }
+  }
+}

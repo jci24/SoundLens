@@ -130,6 +130,8 @@
 .compare-pair-builder__popover {
   z-index: 50;
   width: min(20rem, calc(100vw - 1.5rem));
+  max-height: calc(100svh - 1.5rem);
+  overflow: hidden;
   padding: 0.4rem;
   border: 1px solid var(--sl-hairline);
   border-radius: var(--sl-radius-panel);
@@ -191,7 +193,7 @@
 .compare-pair-builder__options {
   display: grid;
   gap: 0.1rem;
-  max-height: min(20rem, 55vh);
+  max-height: min(20rem, calc(100svh - 10rem));
   overflow-y: auto;
 }
 

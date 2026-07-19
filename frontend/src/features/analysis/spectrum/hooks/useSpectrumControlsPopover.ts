@@ -4,12 +4,14 @@ interface IUseSpectrumControlsPopoverResult {
   isOpen: boolean
   open: () => void
   popoverRef: RefObject<HTMLDivElement | null>
+  triggerRef: RefObject<HTMLButtonElement | null>
   toggle: () => void
 }
 
 const useSpectrumControlsPopover = (): IUseSpectrumControlsPopoverResult => {
   const [isOpen, setIsOpen] = useState(false)
   const popoverRef = useRef<HTMLDivElement | null>(null)
+  const triggerRef = useRef<HTMLButtonElement | null>(null)
 
   useEffect(() => {
     if (!isOpen) {
@@ -31,6 +33,7 @@ const useSpectrumControlsPopover = (): IUseSpectrumControlsPopoverResult => {
     const handleKeyDown = (event: KeyboardEvent) => {
       if (event.key === 'Escape') {
         setIsOpen(false)
+        requestAnimationFrame(() => triggerRef.current?.focus())
       }
     }
 
@@ -47,6 +50,7 @@ const useSpectrumControlsPopover = (): IUseSpectrumControlsPopoverResult => {
     isOpen,
     open: () => setIsOpen(true),
     popoverRef,
+    triggerRef,
     toggle: () => setIsOpen((current) => !current),
   }
 }
