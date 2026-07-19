@@ -14,6 +14,14 @@ interface IHomePageProps {
 }
 
 const HomePage = ({ error, files, onRetry, status }: IHomePageProps) => {
+  if (status === 'loading') {
+    return <RouteState title="Restoring temporary workspace" />
+  }
+
+  if (status === 'error') {
+    return <RouteState error={error} onRetry={onRetry} title="Workspace restoration failed" />
+  }
+
   const hasRecordings = files.length > 0
 
   return (
@@ -34,10 +42,6 @@ const HomePage = ({ error, files, onRetry, status }: IHomePageProps) => {
         )}
       </header>
 
-      {status === 'loading' && <RouteState title="Restoring temporary workspace" />}
-      {status === 'error' && (
-        <RouteState error={error} onRetry={onRetry} title="Workspace restoration failed" />
-      )}
       {status === 'ready' && hasRecordings && (
         <section className="home-page__current" aria-labelledby="current-investigation-title">
           <div className="home-page__current-heading">

@@ -90,7 +90,10 @@ Foundation rules:
 - Comparison guidance, metric cells, playback, tables, and chart shells should read as one evidence canvas with hairline grouping rather than independent elevated cards. Overlay elevation remains reserved for popovers, dialogs, and utility surfaces.
 - Below 900px, the recording context rail becomes a modal left drawer and Copilot becomes a modal right sheet. These surfaces overlay rather than resize the evidence canvas and retain explicit close, Escape, outside-dismiss, and focus-restoration behavior through Radix Dialog.
 - Evidence and Copilot remain mutually exclusive on narrow screens. Waveform and spectrum panels stack, playback controls reflow, metric cells remain unit-preserving, and route-level loading or failure states fill the available workspace.
-- Automatic compact navigation plus global route, dialog, and popover states remain a separate responsive follow-up. Future report-library and persisted platform surfaces remain gated by functional contracts rather than placeholder navigation.
+- Below 900px, persistent primary navigation becomes an icon-only rail with accessible names and native hover titles. Home, Import, Configure, and Analysis use the remaining route canvas rather than introducing a second mobile navigation model.
+- Route-level loading and retryable failure states fill the available workspace. Popovers and dialogs are bounded by the visual viewport and move overflow into their own content areas rather than the page.
+- Figma is part of the implementation loop, not the runtime: compare approved target frames with current viewport captures, implement approved differences through existing components and semantic tokens, then recapture the shipped UI before merge.
+- Future report-library and persisted platform surfaces remain gated by functional contracts rather than placeholder navigation.
 
 ## Routing And Temporary Session Ownership
 

@@ -15,7 +15,7 @@
     z-index: 51;
     display: grid;
     width: min(92vw, 620px);
-    max-height: min(84vh, 720px);
+    max-height: min(84svh, 720px);
     transform: translate(-50%, -50%);
     overflow: hidden;
     border: 1px solid var(--border);
@@ -247,7 +247,7 @@
   .comparison-report-dialog {
     &__content {
       width: calc(100vw - 24px);
-      max-height: calc(100vh - 24px);
+      max-height: calc(100svh - 24px);
       border-radius: 14px;
     }
 

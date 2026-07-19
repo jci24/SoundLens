@@ -43,7 +43,9 @@ The current product is strong as an analysis workspace, but it is not yet a full
 - The Evidence route now uses one compact analysis toolbar, an adjacent recording context rail, and a padded evidence canvas. Comparison guidance, metric cells, and chart shells use flat hairline structure instead of stacked framed containers while retaining the existing evidence, playback, ROI, report, and Copilot behavior.
 - Below 900px, the recording context rail moves into a modal drawer and Copilot becomes an overlay sheet so utility surfaces no longer compress or vertically displace the evidence canvas.
 - Narrow evidence layouts stack charts and metric cells, reflow playback controls, and keep evidence/report surfaces internally scrollable while preserving desktop composition above the breakpoint.
-- Automatic compact primary navigation and full-workspace route/import states remain the immediate responsive follow-up.
+- Below 900px, primary navigation automatically becomes an icon rail with persistent accessible names, while Home, Import, Configure, and Analysis reflow into the available route canvas without introducing placeholder mobile navigation.
+- Session restoration, loading, and retryable route failures occupy the full available workspace. Recording, playback, spectrum-control, evidence, and report overlays are viewport-bounded and internally scroll where needed.
+- Responsive design review uses the Figma Make prototype as the target hierarchy, verifies the current implementation at explicit desktop, tablet, and mobile viewports, and feeds only approved differences back into existing React, Radix, shadcn, and SCSS components.
 - Persisted platform pages remain separate follow-up slices and will not appear until their storage and behavior contracts exist.
 
 ## Import And Temporary Workspace Model

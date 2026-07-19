@@ -24,7 +24,8 @@ Current status:
 - optional Analysis review exposes only the shipped waveform and spectrum methods, keeps at least one selected, and suppresses requests and panels for disabled analyses without fabricating job progress
 - the Figma-composed Evidence route now combines one compact analysis toolbar, an adjacent recording context rail, a padded evidence canvas, and flatter comparison and chart surfaces without changing evidence behavior
 - responsive Evidence utility surfaces now preserve the canvas through a modal recording drawer, overlay Copilot, one-action mutual exclusion, and stacked narrow evidence
-- automatic compact navigation plus global loading, empty, error, dialog, and popover states remain the final responsive migration slice
+- the responsive migration is complete for shipped routes: primary navigation becomes an icon rail below 900px, route states fill the workspace, workflow pages reflow, and overlays remain viewport-bounded with explicit dismissal and focus behavior
+- Figma remains the target and review surface: each meaningful UX slice should compare approved frames with current and implemented viewport captures without importing generated application code
 - future platform pages remain out of navigation until they have functional product scope
 
 Validation gate:
@@ -412,7 +413,7 @@ Key gates:
 
 The committed product order remains:
 
-1. finish the Figma Evidence workflow and responsive utility-state polish
+1. validate the completed Figma-aligned workflow through direct automotive NVH and adjacent-user walkthroughs
 2. conduct direct automotive NVH and adjacent workflow validation
 3. maintain the shipped A/B comparison, evidence drill-down, Copilot trust guards, and reports
 4. expand routing and trust eval coverage without adding autonomy

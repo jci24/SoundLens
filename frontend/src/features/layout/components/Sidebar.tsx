@@ -16,6 +16,7 @@ const Sidebar = ({ hasRecordings, isCollapsed, onToggleCollapse }: ISidebarProps
     <aside className={`sidebar${isCollapsed ? ' sidebar--collapsed' : ''}`}>
       <div className="sidebar__header">
         <h1 className={`sidebar__logo${isCollapsed ? ' sidebar__logo--collapsed' : ''}`}>SoundLens</h1>
+        <span aria-hidden="true" className="sidebar__mark">SL</span>
         <button
           aria-label={isCollapsed ? 'Expand sidebar' : 'Collapse sidebar'}
           className="sidebar__collapse-button"
@@ -31,7 +32,7 @@ const Sidebar = ({ hasRecordings, isCollapsed, onToggleCollapse }: ISidebarProps
           aria-label="Home"
           className={({ isActive }) => `sidebar__nav-item${isActive ? ' sidebar__nav-item--active' : ''}`}
           end
-          title={isCollapsed ? 'Home' : undefined}
+          title="Home"
           to="/"
         >
           <Home size={18} />
@@ -40,7 +41,7 @@ const Sidebar = ({ hasRecordings, isCollapsed, onToggleCollapse }: ISidebarProps
         <NavLink
           aria-label="Import recordings"
           className={({ isActive }) => `sidebar__nav-item${isActive ? ' sidebar__nav-item--active' : ''}`}
-          title={isCollapsed ? 'Import' : undefined}
+          title="Import"
           to="/import"
         >
           <Upload size={18} />
@@ -51,7 +52,7 @@ const Sidebar = ({ hasRecordings, isCollapsed, onToggleCollapse }: ISidebarProps
             <NavLink
               aria-label="Configure comparison"
               className={({ isActive }) => `sidebar__nav-item${isActive ? ' sidebar__nav-item--active' : ''}`}
-              title={isCollapsed ? 'Configure' : undefined}
+              title="Configure"
               to="/setup"
             >
               <SlidersHorizontal size={18} />
@@ -60,7 +61,7 @@ const Sidebar = ({ hasRecordings, isCollapsed, onToggleCollapse }: ISidebarProps
             <NavLink
               aria-label="Analysis setup"
               className={({ isActive }) => `sidebar__nav-item${isActive ? ' sidebar__nav-item--active' : ''}`}
-              title={isCollapsed ? 'Analysis' : undefined}
+              title="Analysis"
               to="/analysis"
             >
               <ListChecks size={18} />
@@ -69,7 +70,7 @@ const Sidebar = ({ hasRecordings, isCollapsed, onToggleCollapse }: ISidebarProps
             <NavLink
               aria-label="Evidence"
               className={({ isActive }) => `sidebar__nav-item${isActive ? ' sidebar__nav-item--active' : ''}`}
-              title={isCollapsed ? 'Evidence' : undefined}
+              title="Evidence"
               to="/evidence"
             >
               <ChartNoAxesCombined size={18} />
@@ -82,7 +83,7 @@ const Sidebar = ({ hasRecordings, isCollapsed, onToggleCollapse }: ISidebarProps
               aria-disabled="true"
               aria-label="Configure unavailable until recordings are imported"
               className="sidebar__nav-item sidebar__nav-item--disabled"
-              title={isCollapsed ? 'Import recordings to configure a comparison' : undefined}
+              title="Import recordings to configure a comparison"
             >
               <SlidersHorizontal size={18} />
               <span className={labelClassName}>Configure</span>
@@ -91,7 +92,7 @@ const Sidebar = ({ hasRecordings, isCollapsed, onToggleCollapse }: ISidebarProps
               aria-disabled="true"
               aria-label="Analysis unavailable until recordings are imported"
               className="sidebar__nav-item sidebar__nav-item--disabled"
-              title={isCollapsed ? 'Import recordings to select analyses' : undefined}
+              title="Import recordings to select analyses"
             >
               <ListChecks size={18} />
               <span className={labelClassName}>Analysis</span>
@@ -100,7 +101,7 @@ const Sidebar = ({ hasRecordings, isCollapsed, onToggleCollapse }: ISidebarProps
               aria-disabled="true"
               aria-label="Evidence unavailable until recordings are imported"
               className="sidebar__nav-item sidebar__nav-item--disabled"
-              title={isCollapsed ? 'Import recordings to view evidence' : undefined}
+              title="Import recordings to view evidence"
             >
               <ChartNoAxesCombined size={18} />
               <span className={labelClassName}>Evidence</span>

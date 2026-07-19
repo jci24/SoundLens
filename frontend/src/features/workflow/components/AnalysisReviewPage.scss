@@ -211,3 +211,29 @@
     }
   }
 }
+
+@media (max-width: 600px) {
+  .analysis-review {
+    padding: 1rem;
+
+    &__body {
+      gap: 2rem;
+      padding: 1.5rem 0;
+    }
+
+    &__method {
+      gap: 0.65rem;
+      padding-block: 1rem;
+    }
+
+    &__summary dl > div {
+      grid-template-columns: 1fr;
+      gap: 0.25rem;
+    }
+
+    &__footer > div > *,
+    &__footer > * {
+      width: 100%;
+    }
+  }
+}
