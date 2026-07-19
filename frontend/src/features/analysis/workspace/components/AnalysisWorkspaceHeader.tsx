@@ -1,4 +1,4 @@
-import { Bot, FileText, PanelRightClose } from 'lucide-react'
+import { Bot, FileAudio, FileText, PanelRightClose } from 'lucide-react'
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Button } from '@/components/ui/button'
 import { SpectrumControlsPopover } from '../../spectrum/components/SpectrumControlsPopover'
@@ -18,6 +18,7 @@ interface IAnalysisWorkspaceHeaderProps {
   layoutMode: TAnalysisLayoutMode
   onCopilotToggle: () => void
   onExportReport: () => void
+  onRecordingsOpen?: () => void
   onSpectrumPresetChange: (preset: string) => void
   onSpectrumRangeEndChange: (value: string) => void
   onSpectrumRangeReset: () => void
@@ -46,6 +47,7 @@ const AnalysisWorkspaceHeader = ({
   layoutMode,
   onCopilotToggle,
   onExportReport,
+  onRecordingsOpen,
   onLayoutModeChange,
   onSignalChartModeChange,
   onSpectrumPresetChange,
@@ -136,6 +138,16 @@ const AnalysisWorkspaceHeader = ({
       </div>
 
       <div className="time-waveform-workspace__toolbar-actions">
+        <Button
+          aria-label="Open recordings drawer"
+          className="time-waveform-workspace__recordings-toggle"
+          onClick={onRecordingsOpen}
+          type="button"
+          variant="ghost"
+        >
+          <FileAudio aria-hidden="true" size={14} />
+          Recordings
+        </Button>
         {showSpectrumPanel && spectrumViewport && (
           <SpectrumControlsPopover
             isOpen={isOpen}

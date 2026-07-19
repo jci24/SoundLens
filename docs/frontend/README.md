@@ -88,7 +88,9 @@ Foundation rules:
 - Comparison metrics are disclosed as an automatic backend-owned output of a valid A/B pair rather than presented as another selectable analysis.
 - The Evidence route composes one compact analysis toolbar, an adjacent recording context rail, and a padded evidence canvas. It removes redundant visible workspace titling and persistent nested frames while retaining an accessible active-view heading.
 - Comparison guidance, metric cells, playback, tables, and chart shells should read as one evidence canvas with hairline grouping rather than independent elevated cards. Overlay elevation remains reserved for popovers, dialogs, and utility surfaces.
-- Remaining migration work proceeds through report and responsive utility slices so behavior remains reviewable.
+- Below 900px, the recording context rail becomes a modal left drawer and Copilot becomes a modal right sheet. These surfaces overlay rather than resize the evidence canvas and retain explicit close, Escape, outside-dismiss, and focus-restoration behavior through Radix Dialog.
+- Evidence and Copilot remain mutually exclusive on narrow screens. Waveform and spectrum panels stack, playback controls reflow, metric cells remain unit-preserving, and route-level loading or failure states fill the available workspace.
+- Automatic compact navigation plus global route, dialog, and popover states remain a separate responsive follow-up. Future report-library and persisted platform surfaces remain gated by functional contracts rather than placeholder navigation.
 
 ## Routing And Temporary Session Ownership
 

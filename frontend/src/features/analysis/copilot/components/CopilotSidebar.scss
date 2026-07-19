@@ -36,3 +36,70 @@
     }
   }
 }
+
+@media (max-width: 900px) {
+  .copilot-sidebar {
+    &__overlay {
+      position: fixed;
+      inset: 0;
+      z-index: 55;
+      background: rgb(15 23 42 / 24%);
+      animation: copilot-sidebar-overlay-in 160ms ease-out;
+    }
+
+    &__sheet {
+      position: fixed;
+      top: 0;
+      right: 0;
+      bottom: 0;
+      z-index: 56;
+      display: grid;
+      grid-template-rows: auto minmax(0, 1fr);
+      width: min(25rem, calc(100vw - 2.5rem));
+      overflow: hidden;
+      border-left: 1px solid var(--sl-hairline);
+      background: var(--sl-surface);
+      box-shadow: var(--sl-shadow-overlay);
+      animation: copilot-sidebar-sheet-in 180ms cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    &__sheet-header {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 1rem;
+      padding: 0.8rem 0.75rem;
+      border-bottom: 1px solid var(--sl-hairline);
+    }
+
+    &__sheet-title {
+      margin: 0;
+      color: var(--sl-text);
+      font-size: var(--font-md);
+      font-weight: 680;
+    }
+
+    &__sheet-description {
+      margin: 0.18rem 0 0;
+      color: var(--sl-text-muted);
+      font-size: var(--font-xs);
+    }
+  }
+}
+
+@keyframes copilot-sidebar-sheet-in {
+  from {
+    opacity: 0;
+    transform: translateX(1.5rem);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes copilot-sidebar-overlay-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}

@@ -81,7 +81,7 @@ Ordered slices:
 3. completed: optional analysis review with real waveform and spectrum selection, request suppression, comparison-output disclosure, and direct Evidence access
 4. completed: Figma-composed Evidence workspace with one compact toolbar, an adjacent recording context rail, a padded evidence canvas, and flatter metric and chart structure
 5. report workflow and persisted platform pages only as their behavior becomes real
-6. next: responsive states and utility-surface polish across import, loading, empty, error, narrow-screen, Evidence, Copilot, dialogs, and popovers
+6. in progress: completed responsive Evidence utility surfaces with a recording drawer, overlay Copilot, one-action mutual exclusion, and stacked narrow evidence; next thin slice owns automatic compact navigation plus global loading, empty, error, dialog, and popover states
 
 Boundary:
 - reuse current React, shadcn, Radix, SCSS, and feature components
