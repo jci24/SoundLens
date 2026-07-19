@@ -8,6 +8,8 @@ public sealed class SelectedComparisonIntentPolicyTests
     [InlineData("Explain the selected comparison evidence.")]
     [InlineData("Why does this selected difference matter?")]
     [InlineData("What does this crest factor difference suggest?")]
+    [InlineData("What does this selected spectrum suggest?")]
+    [InlineData("How should I interpret this spectrum?")]
     [InlineData("What caused this difference?")]
     [InlineData("What is the calibrated dB SPL difference?")]
     public void SelectedEvidenceQuestionsUseTheBoundedComparisonResponder(string question)

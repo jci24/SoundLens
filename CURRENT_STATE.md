@@ -121,6 +121,8 @@ These findings are useful first-pass cues, but they should still be treated as b
 - Explicit comparison questions about RMS loudness, peak amplitude, or clipping use backend-owned `compare_signals` evidence. In Focused mode, a valid assigned A/B recording pair supplies comparison scope without replacing the visible signal used by single-signal questions.
 - Copilot scope follows explicit signal mentions first, then detailed selected-comparison evidence, then an assigned A/B recording pair for explicit comparison intent, and finally the visible focused-workspace signal. The current ROI is retained in every scope.
 - In compare mode, Copilot now also accepts a bounded selected-comparison context from the selected metric, active aligned pair, visible findings, and ROI scope.
+- Selected-comparison Copilot responses carry a backend-owned evidence-sufficiency result. Digital metric, clipping, crest-factor, selected-spectrum, physical-SPL, and causal intents resolve deterministically to supported, partial, missing, contradicted, or unavailable before any explanation is displayed.
+- Sufficiency treats a measured zero difference as valid evidence, marks mixed aligned directions as contradicted, and cannot be promoted or replaced by model output. The frontend renders the result as one compact status line and does not recompute it.
 - The frontend sends only comparison selection identifiers. The backend re-runs the deterministic recording comparison, validates the aligned pair, resolves the selected metric, and rebuilds findings and limitations before asking the model to explain anything.
 - That explanation path asks the model to explain only backend-owned selected comparison evidence instead of rediscovering or widening the workspace scope.
 - Selected-comparison requests for calibrated dB SPL or physical sound-pressure conclusions now bypass OpenAI and return a deterministic refusal. The response preserves the available digital metric values, active pair, aligned signals, ROI, and calibration limitation without relabelling digital evidence as physical SPL.
@@ -137,7 +139,7 @@ The current Copilot supports bounded workspace evidence, isolated general model 
 
 ### Current maturity assessment
 
-The Copilot is approximately a strong Level 2 tool-using assistant with early Level 3 foundations. Routing, deterministic tools, selected-evidence reconstruction, trust refusals, structured response validation, bounded cited web research, and observable activity are implemented. Investigation guidance, source quality, calibration compatibility, evidence identity, and trace completeness are partial. Typed executable plans, evidence-sufficiency status, structured hypotheses and conclusions, persistent investigations, resumable jobs, approval policy, and workspace-operating autonomy are not implemented.
+The Copilot is approximately a strong Level 2 tool-using assistant with early Level 3 foundations. Routing, deterministic tools, selected-evidence reconstruction, typed selected-comparison sufficiency, trust refusals, structured response validation, bounded cited web research, and observable activity are implemented. Investigation guidance, source quality, calibration compatibility, evidence identity, and trace completeness are partial. Typed executable plans, structured hypotheses and conclusions, persistent investigations, resumable jobs, approval policy, and workspace-operating autonomy are not implemented.
 
 This classification is about product responsibility, not model intelligence. The current model may suggest next steps, but it cannot execute an investigation plan or turn model-authored prose into measured evidence.
 
@@ -177,6 +179,7 @@ Eval harness:
 - comparison evals resolve recording and aligned-signal identifiers from backend responses and reconstruct deterministic comparison evidence before querying Copilot
 - strict graders cover ambiguous overall criteria, zero difference, missing aligned evidence, ROI-bounded causal uncertainty, and uncalibrated SPL refusal
 - a separate routing corpus covers deterministic facts, selected evidence, general theory, adaptive guidance, cited web research, criterion clarification, and trust refusals while active workspace identifiers remain available
+- deterministic sufficiency fixtures and graders cover supported zero-difference evidence, partial coverage, missing spectrum findings, conflicting aligned directions, and unavailable SPL or causal evidence
 - routing grading verifies answer mode, SoundLens-evidence isolation, external-citation expectations, limitations, tool boundaries, overall accuracy, and per-mode mismatches
 - every live run writes a diagnostic JSON artifact; pure dataset, grading, routing-summary, and committed-dataset tests run in CI without OpenAI
 - the 2026-07-19 routing baseline passed 27 of 27 repeated runs with 100% routing accuracy; an earlier fail-closed citation-validation response remains an external-research availability observation

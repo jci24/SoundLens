@@ -120,8 +120,26 @@ const isAgentQueryResponse = (value: unknown): value is IAgentQueryResponse => {
     Array.isArray(response.citedEvidence) &&
     Array.isArray(response.limitations) &&
     Array.isArray(response.nextSteps) &&
-    Array.isArray(response.toolsUsed)
+    Array.isArray(response.toolsUsed) &&
+    isEvidenceSufficiency(response.evidenceSufficiency)
 }
+
+const isEvidenceSufficiency = (value: unknown) => {
+  if (value == null) return true
+  if (typeof value !== 'object') return false
+
+  const sufficiency = value as Record<string, unknown>
+  return typeof sufficiency.intent === 'string' && sufficiency.intent.trim().length > 0 &&
+    ['supported', 'partial', 'missing', 'contradicted', 'unavailable'].includes(String(sufficiency.status)) &&
+    typeof sufficiency.label === 'string' && sufficiency.label.trim().length > 0 &&
+    typeof sufficiency.reason === 'string' && sufficiency.reason.trim().length > 0 &&
+    isStringArray(sufficiency.requiredEvidence) &&
+    isStringArray(sufficiency.availableEvidence) &&
+    isStringArray(sufficiency.limitationCodes)
+}
+
+const isStringArray = (value: unknown): value is string[] =>
+  Array.isArray(value) && value.every((item) => typeof item === 'string')
 
 const readCopilotError = async (response: Response) => {
   const fallback = 'The investigation could not be completed.'

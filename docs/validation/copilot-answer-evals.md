@@ -40,6 +40,8 @@ Supported response assertions are:
 - `contextMode`: `auto`, `workspace`, or `general`; routing cases normally use `auto`
 - `evidenceExpectation`: require, forbid, or ignore SoundLens evidence citations
 - `externalCitationExpectation`: require, forbid, or ignore external citations
+- `expectedEvidenceSufficiencyStatus`: expected backend status for selected-comparison cases
+- `expectedEvidenceIntent`: expected backend intent identifier
 - `requiredAnswerPhrases`: every phrase must occur
 - `requiredAnswerAnyPhraseGroups`: at least one phrase from every group must occur
 - `forbiddenAnswerPhrases` and `forbiddenAnswerPatterns`
@@ -136,6 +138,18 @@ displayed citations, limitations, and tool use. Downstream request privacy remai
 covered by backend integration tests because the public agent response cannot
 reveal the payload sent to the model or hosted web-search tool.
 
+The routing corpus also grades all five selected-comparison sufficiency statuses.
+Synthetic stereo fixtures provide complete zero-difference evidence, mixed
+positive and negative aligned deltas, and silent signals without spectrum
+findings. Existing low-coverage, SPL-refusal, and causal-refusal cases cover
+partial and unavailable states. Pure policy tests additionally prove that zero
+is not treated as missing and that model output cannot own the status.
+
+The 2026-07-19 sufficiency baseline passed 18 of 18 repeated live runs across
+partial, supported, contradicted, missing, and unavailable states. The missing
+spectrum case also verifies that a low-level finding is not misclassified as
+tonal or harmonic evidence.
+
 The uncalibrated SPL case exercises a deterministic backend trust guard rather than model compliance. A passing response must refuse the physical conclusion, preserve the backend-resolved digital comparison evidence and calibration limitation, and contain no numeric dB SPL claim. This case should remain stable even when OpenAI is unavailable or returns malformed output because the matching request never reaches the model.
 
 The unsupported-cause case also exercises a deterministic backend trust guard. A passing response may describe the selected difference and associated findings, but it must state that the observational evidence does not establish a cause, retain ROI and coverage limitations, and avoid treating detector findings as causal proof. Repeated runs should be identical because the matching request never reaches the model.
@@ -148,11 +162,10 @@ The current harness supports Level 2 trust validation and a small part of Level 
 
 Next evaluation layers, in dependency order:
 
-1. evidence-sufficiency decisions for missing, incompatible, partial, contradicted, and unavailable evidence
-2. structured-observation grounding and stable evidence-reference resolution
-3. plan validity, capability selection, parameters, dependencies, cost class, and approval requirements
-4. source quality, applicability, disagreement, citation integrity, and privacy-safe research queries
-5. plan revision, partial failure, cancellation, recovery, and report traceability after those product contracts exist
-6. complete long-horizon investigation workflows only after persistence and policy-controlled execution exist
+1. structured-observation grounding and stable evidence-reference resolution
+2. plan validity, capability selection, parameters, dependencies, cost class, and approval requirements
+3. source quality, applicability, disagreement, citation integrity, and privacy-safe research queries
+4. plan revision, partial failure, cancellation, recovery, and report traceability after those product contracts exist
+5. complete long-horizon investigation workflows only after persistence and policy-controlled execution exist
 
 Critical release properties may require zero fabricated measurements, citations, unauthorized external actions, unsupported calibration or compliance claims, and untraceable conclusions. Non-critical thresholds must be chosen after reviewing real eval distributions rather than declared in advance.

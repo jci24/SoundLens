@@ -96,6 +96,8 @@ test('validates routing modes and evidence expectations', () => {
       expectedAnswerMode: 'general',
       evidenceExpectation: 'forbidden',
       externalCitationExpectation: 'forbidden',
+      expectedEvidenceSufficiencyStatus: 'supported',
+      expectedEvidenceIntent: 'digital_level_difference',
     }],
   })
   assert.deepEqual(valid, [])
@@ -109,12 +111,16 @@ test('validates routing modes and evidence expectations', () => {
       expectedAnswerMode: 'classifier',
       evidenceExpectation: 'sometimes',
       externalCitationExpectation: 'maybe',
+      expectedEvidenceSufficiencyStatus: 'certain',
+      expectedEvidenceIntent: '',
     }],
   })
   assert.ok(invalid.some((failure) => failure.includes('expectedAnswerMode')))
   assert.ok(invalid.some((failure) => failure.includes('contextMode')))
   assert.ok(invalid.some((failure) => failure.includes('evidenceExpectation')))
   assert.ok(invalid.some((failure) => failure.includes('externalCitationExpectation')))
+  assert.ok(invalid.some((failure) => failure.includes('expectedEvidenceSufficiencyStatus')))
+  assert.ok(invalid.some((failure) => failure.includes('expectedEvidenceIntent')))
 })
 
 test('validates the committed trust and routing datasets', async () => {
@@ -219,6 +225,28 @@ test('grades answer mode, evidence isolation, and valid external citations', () 
   assert.ok(leaked.failures.includes('unexpected external citations'))
   assert.ok(leaked.failures.includes('invalid external citation 1'))
   assert.ok(leaked.failures.some((failure) => failure.includes('forbidden limitation phrase')))
+})
+
+test('grades backend-owned evidence sufficiency status and intent', () => {
+  const result = gradeResponse({
+    evidenceExpectation: 'forbidden',
+    expectedEvidenceSufficiencyStatus: 'contradicted',
+    expectedEvidenceIntent: 'digital_level_difference',
+  }, {
+    answer: 'The aligned observations differ in direction.',
+    citedEvidence: [],
+    limitations: [],
+    nextSteps: [],
+    toolsUsed: [],
+    evidenceSufficiency: {
+      status: 'partial',
+      intent: 'digital_level_difference',
+    },
+  })
+
+  assert.equal(result.pass, false)
+  assert.ok(result.failures.some((failure) => failure.includes('expected evidence sufficiency contradicted')))
+  assert.ok(result.failures.every((failure) => !failure.includes('expected evidence intent')))
 })
 
 test('requires every repeated run and every setup to pass', () => {

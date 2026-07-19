@@ -976,6 +976,8 @@ public sealed class AgentQueryEndpointTests : IClassFixture<WebApplicationFactor
             Assert.Contains(payload.CitedEvidence, item => item.ToolName == "selected_comparison_context");
             Assert.Contains(payload.Limitations, item => item.Contains("unitless ratios", StringComparison.OrdinalIgnoreCase));
             Assert.DoesNotContain(payload.Limitations, item => item.Contains("dBFS", StringComparison.OrdinalIgnoreCase));
+            Assert.Equal(AgentEvidenceSufficiencyStatuses.Partial, payload.EvidenceSufficiency?.Status);
+            Assert.Equal(AgentEvidenceIntents.CrestFactorDifference, payload.EvidenceSufficiency?.Intent);
             Assert.NotNull(chatClientProvider.LastUserMessage);
             Assert.Contains("Compared pairs: 1", chatClientProvider.LastUserMessage, StringComparison.Ordinal);
             Assert.Contains("Mean delta A-B: 0 ratio", chatClientProvider.LastUserMessage, StringComparison.Ordinal);
@@ -1009,6 +1011,7 @@ public sealed class AgentQueryEndpointTests : IClassFixture<WebApplicationFactor
             Assert.Contains(malformedPayload.CitedEvidence, item => item.ToolName == "selected_comparison_context");
             Assert.Contains(malformedPayload.Limitations, item => item == AgentStructuredResponseParser.InvalidOutputLimitation);
             Assert.Contains(malformedPayload.Limitations, item => item.Contains("selected ROI only", StringComparison.OrdinalIgnoreCase));
+            Assert.Equal(AgentEvidenceSufficiencyStatuses.Partial, malformedPayload.EvidenceSufficiency?.Status);
 
             var guidanceResponse = await client.PostAsJsonAsync(
                 "/api/agent/query",
@@ -1034,6 +1037,7 @@ public sealed class AgentQueryEndpointTests : IClassFixture<WebApplicationFactor
             Assert.DoesNotContain("mean A-B", guidancePayload.Answer, StringComparison.OrdinalIgnoreCase);
             Assert.Empty(guidancePayload.CitedEvidence);
             Assert.Empty(guidancePayload.ToolsUsed);
+            Assert.Null(guidancePayload.EvidenceSufficiency);
             Assert.Contains(Path.GetFileName(quietPath), chatClientProvider.LastUserMessage, StringComparison.Ordinal);
             Assert.Contains(Path.GetFileName(loudPath), chatClientProvider.LastUserMessage, StringComparison.Ordinal);
             Assert.Contains("AVAILABLE SOUNDLENS CAPABILITIES", chatClientProvider.LastUserMessage, StringComparison.Ordinal);
@@ -1178,6 +1182,8 @@ public sealed class AgentQueryEndpointTests : IClassFixture<WebApplicationFactor
             Assert.Contains(fullDurationPayload.Limitations, item => item.Contains("not calibrated to physical SPL", StringComparison.OrdinalIgnoreCase));
             Assert.DoesNotContain(fullDurationPayload.Limitations, item => item.Contains("dBFS", StringComparison.OrdinalIgnoreCase));
             Assert.Empty(fullDurationPayload.ToolsUsed);
+            Assert.Equal(AgentEvidenceSufficiencyStatuses.Unavailable, fullDurationPayload.EvidenceSufficiency?.Status);
+            Assert.Equal(AgentEvidenceIntents.PhysicalSplConclusion, fullDurationPayload.EvidenceSufficiency?.Intent);
 
             Assert.Contains("selected ROI", roiPayload.Answer, StringComparison.OrdinalIgnoreCase);
             Assert.Contains(roiPayload.Limitations, item => item.Contains("selected ROI only", StringComparison.OrdinalIgnoreCase));
@@ -1190,6 +1196,8 @@ public sealed class AgentQueryEndpointTests : IClassFixture<WebApplicationFactor
             Assert.Contains(causalPayload.Limitations, item => item.Contains("selected ROI only", StringComparison.OrdinalIgnoreCase));
             Assert.Contains(causalPayload.CitedEvidence, item => item.ToolName == "selected_comparison_context");
             Assert.Empty(causalPayload.ToolsUsed);
+            Assert.Equal(AgentEvidenceSufficiencyStatuses.Unavailable, causalPayload.EvidenceSufficiency?.Status);
+            Assert.Equal(AgentEvidenceIntents.CausalExplanation, causalPayload.EvidenceSufficiency?.Intent);
         }
         finally
         {

@@ -10,6 +10,35 @@ public sealed record AgentQueryResponse(
 {
     public IReadOnlyList<AgentExternalCitation> ExternalCitations { get; init; } = [];
     public IReadOnlyList<AgentActivityEvent> ActivityTrace { get; init; } = [];
+    public AgentEvidenceSufficiency? EvidenceSufficiency { get; init; }
+}
+
+public sealed record AgentEvidenceSufficiency(
+    string Intent,
+    string Status,
+    string Label,
+    string Reason,
+    IReadOnlyList<string> RequiredEvidence,
+    IReadOnlyList<string> AvailableEvidence,
+    IReadOnlyList<string> LimitationCodes);
+
+public static class AgentEvidenceSufficiencyStatuses
+{
+    public const string Supported = "supported";
+    public const string Partial = "partial";
+    public const string Missing = "missing";
+    public const string Contradicted = "contradicted";
+    public const string Unavailable = "unavailable";
+}
+
+public static class AgentEvidenceIntents
+{
+    public const string DigitalLevelDifference = "digital_level_difference";
+    public const string CrestFactorDifference = "crest_factor_difference";
+    public const string ClippingDifference = "clipping_difference";
+    public const string SelectedSpectrumDescription = "selected_spectrum_description";
+    public const string PhysicalSplConclusion = "physical_spl_conclusion";
+    public const string CausalExplanation = "causal_explanation";
 }
 
 public sealed record AgentActivityEvent(

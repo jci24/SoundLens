@@ -8,6 +8,8 @@ public static class SelectedComparisonIntentPolicy
         "selected evidence",
         "selected difference",
         "selected metric",
+        "selected spectrum",
+        "this spectrum",
         "this comparison",
         "this difference",
         "aligned pair",

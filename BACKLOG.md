@@ -107,8 +107,8 @@ Ordered slices:
 6. completed: user-centered answer-preparation traces for model-backed general and investigation turns, with internal answer-mode badges removed from the response UI
 7. completed: bounded industry-practice routing for organization workflows such as evaluating, testing, validating, comparing, and benchmarking product sound, without overriding explicit workspace references
 8. completed: routing evaluation coverage across deterministic facts, selected evidence, theory, guidance, research, clarification, and trust refusals, with strict isolation checks and a threshold proposal derived from observed failures
-9. next agent hardening: evidence-sufficiency contract for the existing comparison intents and evidence types
-10. structured observation contract over stable comparison evidence
+9. completed: backend-owned selected-comparison evidence sufficiency for digital metrics, selected spectrum findings, physical SPL, and causal requests, with compact Copilot presentation
+10. next agent hardening: structured observation contract over stable comparison evidence
 11. typed investigation-plan contract after sufficiency and observation contracts exist
 12. research source-quality and applicability contract after the source/privacy policy and routing eval gate
 
@@ -139,6 +139,7 @@ Priority:
 **`codex/comparison-evidence-sufficiency`**
 
 - User value: users see whether an intended comparison claim is supported, partial, missing, contradicted, or unavailable with current tools.
+- Status: completed for selected-comparison Copilot responses; metric-level Evidence Inspector data quality remains intentionally separate.
 - Dependency: current pairwise comparison, alignment, coverage, limitations, and routing eval baseline.
 - Scope: a backend-owned typed sufficiency result for existing level, clipping, selected-spectrum, calibration, and causal intents.
 - Out of scope: new DSP, model confidence scores, executable plans, or physical root-cause claims.

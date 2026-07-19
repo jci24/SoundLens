@@ -1,4 +1,5 @@
 using SoundLens.Api.Features.Agent.Common;
+using SoundLens.Api.Features.Agent.Responses;
 using SoundLens.Api.Features.Comparisons.Common;
 
 namespace SoundLens.Tests;
@@ -27,6 +28,7 @@ public sealed class SelectedComparisonTrustGuardTests
         Assert.Contains("Tonal peak", response.CitedEvidence[1].Summary, StringComparison.Ordinal);
         Assert.Contains("Harmonic series", response.CitedEvidence[1].Summary, StringComparison.Ordinal);
         Assert.Empty(response.ToolsUsed);
+        Assert.Equal(AgentEvidenceSufficiencyStatuses.Unavailable, response.EvidenceSufficiency?.Status);
     }
 
     [Fact]
@@ -40,6 +42,7 @@ public sealed class SelectedComparisonTrustGuardTests
         Assert.NotNull(response);
         Assert.Contains("cannot determine a calibrated dB SPL", response.Answer, StringComparison.OrdinalIgnoreCase);
         Assert.DoesNotContain(response.Limitations, limitation => limitation.Contains("does not establish causation", StringComparison.OrdinalIgnoreCase));
+        Assert.Equal(AgentEvidenceIntents.PhysicalSplConclusion, response.EvidenceSufficiency?.Intent);
     }
 
     [Fact]
@@ -119,7 +122,7 @@ public sealed class SelectedComparisonTrustGuardTests
             Delta: -0.25),
         Findings:
         [
-            new ResolvedComparisonFinding("recording-a:ch:0", "Tonal peak", "Peak near 1 kHz"),
-            new ResolvedComparisonFinding("recording-a:ch:0", "Harmonic series", "Fundamental near 100 Hz")
+            new ResolvedComparisonFinding("recording-a:ch:0", "TonalPeak", "Tonal peak", "Peak near 1 kHz"),
+            new ResolvedComparisonFinding("recording-a:ch:0", "HarmonicSeries", "Harmonic series", "Fundamental near 100 Hz")
         ]);
 }

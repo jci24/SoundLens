@@ -25,6 +25,17 @@ const CopilotResponse = ({ response, hasActivityTrace = false, onRegenerate }: I
 
   return (
     <div className="copilot-response">
+      {response.evidenceSufficiency && (
+        <section
+          aria-label="Evidence sufficiency"
+          className="copilot-response__sufficiency"
+          data-status={response.evidenceSufficiency.status}
+        >
+          <span className="copilot-response__sufficiency-label">{response.evidenceSufficiency.label}</span>
+          <span className="copilot-response__sufficiency-reason">{response.evidenceSufficiency.reason}</span>
+        </section>
+      )}
+
       {externalCitations.length > 0
         ? <CopilotCitedAnswer answer={response.answer} citations={externalCitations} />
         : <p className="copilot-response__answer">{response.answer}</p>}

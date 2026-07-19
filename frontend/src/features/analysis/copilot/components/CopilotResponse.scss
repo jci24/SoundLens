@@ -4,6 +4,31 @@
   gap: 0.7rem;
   max-width: min(100%, 42rem);
 
+  &__sufficiency {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr);
+    align-items: baseline;
+    gap: 0.35rem 0.55rem;
+    font-size: var(--font-xs);
+    line-height: 1.45;
+  }
+
+  &__sufficiency-label {
+    font-weight: 650;
+    color: var(--foreground);
+  }
+
+  &__sufficiency-reason {
+    color: var(--muted-foreground);
+  }
+
+  &__sufficiency[data-status='contradicted'] &__sufficiency-label,
+  &__sufficiency[data-status='unavailable'] &__sufficiency-label {
+    text-decoration: underline;
+    text-decoration-color: var(--border);
+    text-underline-offset: 0.18em;
+  }
+
   &__section {
     display: flex;
     flex-direction: column;
@@ -142,5 +167,11 @@
     display: flex;
     flex-direction: column;
     gap: 0.15rem;
+  }
+
+  @media (max-width: 34rem) {
+    &__sufficiency {
+      grid-template-columns: 1fr;
+    }
   }
 }

@@ -32,6 +32,38 @@ describe('streamAgentQuery', () => {
     ), vi.fn())).rejects.toThrow('ended before a validated response')
   })
 
+  it('accepts a valid sufficiency contract and rejects malformed statuses', async () => {
+    const validResponse = {
+      answer: 'Bounded answer',
+      citedEvidence: [],
+      limitations: [],
+      nextSteps: [],
+      toolsUsed: [],
+      evidenceSufficiency: {
+        intent: 'digital_level_difference',
+        status: 'partial',
+        label: 'Partial evidence',
+        reason: 'Coverage is limited.',
+        requiredEvidence: ['Aligned observations'],
+        availableEvidence: ['Selected pair'],
+        limitationCodes: ['LowCoverage'],
+      },
+    }
+    const validStream = encodeChunks(`data: ${JSON.stringify({ eventType: 'result', response: validResponse })}\n\n`)
+    await expect(readAgentStream(validStream, vi.fn())).resolves.toMatchObject({
+      evidenceSufficiency: { status: 'partial' },
+    })
+
+    const malformedStream = encodeChunks(`data: ${JSON.stringify({
+      eventType: 'result',
+      response: {
+        ...validResponse,
+        evidenceSufficiency: { ...validResponse.evidenceSufficiency, status: 'confident' },
+      },
+    })}\n\n`)
+    await expect(readAgentStream(malformedStream, vi.fn())).rejects.toThrow('invalid event')
+  })
+
   it('surfaces FastEndpoints general errors before reading the stream', async () => {
     vi.stubGlobal('fetch', vi.fn().mockResolvedValue(new Response(JSON.stringify({
       errors: { generalErrors: ['Import at least one audio file before requesting a comparison contract.'] },

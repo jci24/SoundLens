@@ -24,7 +24,11 @@ public sealed record ResolvedComparisonExplanationContext(
     string CoverageCopy,
     IReadOnlyList<RecordingComparisonLimitation> Limitations,
     ResolvedComparisonObservation Observation,
-    IReadOnlyList<ResolvedComparisonFinding> Findings);
+    IReadOnlyList<ResolvedComparisonFinding> Findings)
+{
+    public double MinimumDifference { get; init; }
+    public double MaximumDifference { get; init; }
+}
 
 public sealed record ResolvedComparisonObservation(
     string SignalIdA,
@@ -37,6 +41,7 @@ public sealed record ResolvedComparisonObservation(
 
 public sealed record ResolvedComparisonFinding(
     string SignalId,
+    string Category,
     string Label,
     string? Detail);
 
@@ -100,7 +105,11 @@ public sealed class ComparisonExplanationContextResolver(
             coverageCopy,
             comparison.Limitations,
             BuildObservation(observation, aggregate.MetricKey),
-            findings);
+            findings)
+        {
+            MinimumDifference = aggregate.MinimumDifference,
+            MaximumDifference = aggregate.MaximumDifference
+        };
     }
 
     private IReadOnlyList<ResolvedComparisonFinding> BuildFindings(
@@ -121,6 +130,7 @@ public sealed class ComparisonExplanationContextResolver(
         return spectrum.SelectedSignals
             .SelectMany(signal => signal.Findings.Select(finding => new ResolvedComparisonFinding(
                 signal.SignalId,
+                finding.Category,
                 finding.Label,
                 finding.Detail)))
             .ToList();

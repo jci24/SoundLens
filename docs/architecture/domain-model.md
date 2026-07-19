@@ -45,6 +45,13 @@ The current application is still organized around an analysis workspace rather t
 - Generic questions are grounded in the current imported-session workspace.
 - Selected comparison explanations carry only selection identifiers from the frontend; the backend resolves the current pairwise comparison evidence before invoking the model.
 
+### Evidence Sufficiency
+
+- A backend-owned assessment of whether reconstructed selected-comparison evidence can support the intent expressed in the current Copilot question.
+- Status is one of `supported`, `partial`, `missing`, `contradicted`, or `unavailable` and is accompanied by a closed-template reason, required evidence, available evidence, and deterministic limitation codes.
+- Digital metric and selected-spectrum sufficiency derive from current aligned observations, aggregate direction, findings, coverage, and limitations. Physical-SPL and causal conclusions remain unavailable without validated calibration or controlled causal evidence.
+- Sufficiency is claim-specific and currently belongs to selected-comparison Copilot responses. It is not the same as the Evidence Inspector's metric-level coverage summary and is not supplied or computed by the frontend or model.
+
 ### Report Snapshot
 
 - A normalized export snapshot built from current workspace state, selected signals, and optional ROI.

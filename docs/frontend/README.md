@@ -204,6 +204,7 @@ Current report-export guidance:
 - Web-research turns render backend-validated citations as visible links beside supported claims and in a Sources list. They do not render SoundLens evidence badges; measurements and workspace tool traces remain workspace-only concepts.
 - General knowledge is not SoundLens evidence and does not inherit workspace limitations or citations.
 - Copilot question scope follows explicit `@signal` mentions first, then the active comparison's detailed aligned evidence. In Focused mode, a valid assigned A/B recording pair is included as identifier-only comparison scope while the visible focused signal remains available for inspection questions. An explicit mention removes both comparison scopes rather than mixing them.
+- Selected-comparison answers may include one backend-owned evidence-sufficiency result. The response renderer validates the additive contract and shows its label and reason as a compact text row; it does not derive status from measurements, duplicate the Evidence Inspector's metric coverage, or show sufficiency on general, guidance, web, or deterministic single-signal turns.
 - The backend-default visible signal is synchronized into shared workspace selection so focused charts, recording controls, reports, and Copilot refer to the same signal. The frontend sends identifiers and ROI only; it never serializes measurements or evidence summaries into a Copilot request.
 
 Current playback guidance:

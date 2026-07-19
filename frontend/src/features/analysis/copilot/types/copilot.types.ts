@@ -4,6 +4,7 @@ export type TCopilotContextMode = 'auto' | 'workspace' | 'general'
 export type TCopilotAnswerMode = 'workspace' | 'general' | 'web' | 'guidance'
 export type TAgentActivityKind = 'plan' | 'routing' | 'tool' | 'evidence_check' | 'fallback' | 'completion' | 'failure'
 export type TAgentActivityStatus = 'running' | 'completed' | 'failed'
+export type TAgentEvidenceSufficiencyStatus = 'supported' | 'partial' | 'missing' | 'contradicted' | 'unavailable'
 
 export interface IAgentQueryRequest {
   question: string
@@ -33,6 +34,17 @@ export interface IAgentQueryResponse {
   toolsUsed: string[]
   externalCitations?: IAgentExternalCitation[]
   activityTrace?: IAgentActivityEvent[]
+  evidenceSufficiency?: IAgentEvidenceSufficiency
+}
+
+export interface IAgentEvidenceSufficiency {
+  intent: string
+  status: TAgentEvidenceSufficiencyStatus
+  label: string
+  reason: string
+  requiredEvidence: string[]
+  availableEvidence: string[]
+  limitationCodes: string[]
 }
 
 export interface IAgentActivityEvent {

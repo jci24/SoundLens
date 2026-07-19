@@ -18,6 +18,36 @@ const response = {
 }
 
 describe('CopilotResponse', () => {
+  it.each([
+    ['supported', 'Evidence supported'],
+    ['partial', 'Partial evidence'],
+    ['missing', 'Evidence missing'],
+    ['contradicted', 'Evidence conflicts'],
+    ['unavailable', 'Evidence unavailable'],
+  ] as const)('renders the %s backend sufficiency status without another card', (status, label) => {
+    render(
+      <CopilotResponse
+        response={{
+          ...response,
+          evidenceSufficiency: {
+            intent: 'digital_level_difference',
+            status,
+            label,
+            reason: 'Backend-owned reason.',
+            requiredEvidence: ['Aligned observations'],
+            availableEvidence: ['Selected pair'],
+            limitationCodes: [],
+          },
+        }}
+        onRegenerate={() => {}}
+      />
+    )
+
+    const sufficiency = screen.getByRole('region', { name: 'Evidence sufficiency' })
+    expect(sufficiency).toHaveAttribute('data-status', status)
+    expect(sufficiency).toHaveTextContent(`${label}Backend-owned reason.`)
+  })
+
   it('renders next steps inside a labeled section with tool details toggle', () => {
     render(<CopilotResponse response={response} onRegenerate={() => {}} />)
 
@@ -55,6 +85,7 @@ describe('CopilotResponse', () => {
 
     expect(screen.queryByText('General knowledge')).not.toBeInTheDocument()
     expect(screen.queryByText('Evidence used')).not.toBeInTheDocument()
+    expect(screen.queryByRole('region', { name: 'Evidence sufficiency' })).not.toBeInTheDocument()
   })
 
   it('renders web answers with claim-adjacent and listed clickable citations', () => {

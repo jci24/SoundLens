@@ -7,6 +7,7 @@ const SUPPORTED_COMPARISON_METRICS = new Set([
 const SUPPORTED_ANSWER_MODES = new Set(['workspace', 'general', 'web', 'guidance'])
 const SUPPORTED_CONTEXT_MODES = new Set(['auto', 'workspace', 'general'])
 const SUPPORTED_EXPECTATIONS = new Set(['required', 'forbidden', 'optional'])
+const SUPPORTED_SUFFICIENCY_STATUSES = new Set(['supported', 'partial', 'missing', 'contradicted', 'unavailable'])
 
 export function validateDataset(dataset) {
   const failures = []
@@ -63,6 +64,13 @@ export function validateDataset(dataset) {
     }
     validateExpectation(evalCase, 'evidenceExpectation', prefix, failures)
     validateExpectation(evalCase, 'externalCitationExpectation', prefix, failures)
+    if (evalCase.expectedEvidenceSufficiencyStatus !== undefined &&
+        !SUPPORTED_SUFFICIENCY_STATUSES.has(evalCase.expectedEvidenceSufficiencyStatus)) {
+      failures.push(`${prefix}.expectedEvidenceSufficiencyStatus is not supported`)
+    }
+    if (evalCase.expectedEvidenceIntent !== undefined && !isNonEmptyString(evalCase.expectedEvidenceIntent)) {
+      failures.push(`${prefix}.expectedEvidenceIntent must be a non-empty string`)
+    }
 
     if (evalCase.requiredAnswerAnyPhraseGroups !== undefined) {
       if (!Array.isArray(evalCase.requiredAnswerAnyPhraseGroups) || evalCase.requiredAnswerAnyPhraseGroups.length === 0) {
@@ -154,6 +162,19 @@ export function gradeResponse(evalCase, response) {
 
   if (evalCase.expectedAnswerMode && response?.answerMode !== evalCase.expectedAnswerMode) {
     failures.push(`expected answer mode ${evalCase.expectedAnswerMode}, received ${response?.answerMode ?? 'missing'}`)
+  }
+
+  if (evalCase.expectedEvidenceSufficiencyStatus &&
+      response?.evidenceSufficiency?.status !== evalCase.expectedEvidenceSufficiencyStatus) {
+    failures.push(
+      `expected evidence sufficiency ${evalCase.expectedEvidenceSufficiencyStatus}, received ${response?.evidenceSufficiency?.status ?? 'missing'}`,
+    )
+  }
+  if (evalCase.expectedEvidenceIntent &&
+      response?.evidenceSufficiency?.intent !== evalCase.expectedEvidenceIntent) {
+    failures.push(
+      `expected evidence intent ${evalCase.expectedEvidenceIntent}, received ${response?.evidenceSufficiency?.intent ?? 'missing'}`,
+    )
   }
 
   if (evidenceExpectation === 'required' && citedEvidence.length === 0) {

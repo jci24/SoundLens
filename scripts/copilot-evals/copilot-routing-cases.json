@@ -4,7 +4,11 @@
     "./fixtures/eval-quiet-copy.wav",
     "./fixtures/eval-loud.wav",
     "./fixtures/eval-clipped.wav",
-    "./fixtures/eval-stereo.wav"
+    "./fixtures/eval-stereo.wav",
+    "./fixtures/eval-stereo-copy.wav",
+    "./fixtures/eval-stereo-crossed.wav",
+    "./fixtures/eval-silent-stereo.wav",
+    "./fixtures/eval-silent-stereo-copy.wav"
   ],
   "cases": [
     {
@@ -96,10 +100,78 @@
         "limitationCodes": ["LowCoverage"]
       },
       "expectedAnswerMode": "workspace",
+      "expectedEvidenceSufficiencyStatus": "partial",
+      "expectedEvidenceIntent": "digital_level_difference",
       "evidenceExpectation": "required",
       "externalCitationExpectation": "forbidden",
       "requiredEvidenceTools": ["selected_comparison_context"],
       "requiredAnswerPhrases": ["RMS"]
+    },
+    {
+      "id": "sufficiency-supported-zero-difference",
+      "question": "What does this selected difference suggest?",
+      "comparison": {
+        "recordingAFileName": "eval-stereo.wav",
+        "recordingBFileName": "eval-stereo-copy.wav",
+        "metricKey": "rmsAmplitudeDelta",
+        "signalDisplayNameA": "Channel 1",
+        "signalDisplayNameB": "Channel 1"
+      },
+      "expectedComparison": {
+        "meanDifference": 0,
+        "tolerance": 0.000001,
+        "limitationCodes": []
+      },
+      "expectedAnswerMode": "workspace",
+      "expectedEvidenceSufficiencyStatus": "supported",
+      "expectedEvidenceIntent": "digital_level_difference",
+      "evidenceExpectation": "required",
+      "externalCitationExpectation": "forbidden",
+      "requiredEvidenceTools": ["selected_comparison_context"]
+    },
+    {
+      "id": "sufficiency-contradicted-directions",
+      "question": "What does this selected difference suggest?",
+      "comparison": {
+        "recordingAFileName": "eval-stereo.wav",
+        "recordingBFileName": "eval-stereo-crossed.wav",
+        "metricKey": "rmsAmplitudeDelta",
+        "signalDisplayNameA": "Channel 1",
+        "signalDisplayNameB": "Channel 1"
+      },
+      "expectedComparison": {
+        "meanDifference": -0.0625,
+        "tolerance": 0.000001,
+        "limitationCodes": []
+      },
+      "expectedAnswerMode": "workspace",
+      "expectedEvidenceSufficiencyStatus": "contradicted",
+      "expectedEvidenceIntent": "digital_level_difference",
+      "evidenceExpectation": "required",
+      "externalCitationExpectation": "forbidden",
+      "requiredEvidenceTools": ["selected_comparison_context"]
+    },
+    {
+      "id": "sufficiency-missing-spectrum-findings",
+      "question": "What does this selected spectrum suggest?",
+      "comparison": {
+        "recordingAFileName": "eval-silent-stereo.wav",
+        "recordingBFileName": "eval-silent-stereo-copy.wav",
+        "metricKey": "rmsAmplitudeDelta",
+        "signalDisplayNameA": "Channel 1",
+        "signalDisplayNameB": "Channel 1"
+      },
+      "expectedComparison": {
+        "meanDifference": 0,
+        "tolerance": 0.000001,
+        "limitationCodes": []
+      },
+      "expectedAnswerMode": "workspace",
+      "expectedEvidenceSufficiencyStatus": "missing",
+      "expectedEvidenceIntent": "selected_spectrum_description",
+      "evidenceExpectation": "required",
+      "externalCitationExpectation": "forbidden",
+      "requiredEvidenceTools": ["selected_comparison_context"]
     },
     {
       "id": "routing-uncalibrated-spl-refusal",
@@ -117,6 +189,8 @@
         "limitationCodes": ["LowCoverage"]
       },
       "expectedAnswerMode": "workspace",
+      "expectedEvidenceSufficiencyStatus": "unavailable",
+      "expectedEvidenceIntent": "physical_spl_conclusion",
       "evidenceExpectation": "required",
       "externalCitationExpectation": "forbidden",
       "requiredEvidenceTools": ["selected_comparison_context"],
@@ -145,6 +219,8 @@
         "limitationCodes": ["LowCoverage"]
       },
       "expectedAnswerMode": "workspace",
+      "expectedEvidenceSufficiencyStatus": "unavailable",
+      "expectedEvidenceIntent": "causal_explanation",
       "evidenceExpectation": "required",
       "externalCitationExpectation": "forbidden",
       "requiredEvidenceTools": ["selected_comparison_context"],

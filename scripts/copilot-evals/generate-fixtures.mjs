@@ -17,6 +17,26 @@ await writeFixture('eval-stereo.wav', createStereo16BitWav(
   new Int16Array(16).fill(8_192),
   new Int16Array(16).fill(12_288),
 ))
+await writeFixture('eval-stereo-copy.wav', createStereo16BitWav(
+  8_000,
+  new Int16Array(16).fill(8_192),
+  new Int16Array(16).fill(12_288),
+))
+await writeFixture('eval-stereo-crossed.wav', createStereo16BitWav(
+  8_000,
+  new Int16Array(16).fill(16_384),
+  new Int16Array(16).fill(8_192),
+))
+await writeFixture('eval-silent-stereo.wav', createStereo16BitWav(
+  8_000,
+  new Int16Array(16),
+  new Int16Array(16),
+))
+await writeFixture('eval-silent-stereo-copy.wav', createStereo16BitWav(
+  8_000,
+  new Int16Array(16),
+  new Int16Array(16),
+))
 
 console.log(`Fixtures written to ${outputDirectory}`)
 

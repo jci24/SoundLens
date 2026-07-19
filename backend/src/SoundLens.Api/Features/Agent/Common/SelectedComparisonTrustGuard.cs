@@ -10,7 +10,18 @@ public static class SelectedComparisonTrustGuard
     public static AgentQueryResponse? TryBuildResponse(
         string question,
         ResolvedComparisonExplanationContext context,
-        bool isRoiScoped)
+        bool isRoiScoped) =>
+        TryBuildResponse(
+            question,
+            context,
+            isRoiScoped,
+            ComparisonEvidenceSufficiencyPolicy.Assess(question, context));
+
+    public static AgentQueryResponse? TryBuildResponse(
+        string question,
+        ResolvedComparisonExplanationContext context,
+        bool isRoiScoped,
+        AgentEvidenceSufficiency evidenceSufficiency)
     {
         if (UncalibratedSplRefusalPolicy.IsPhysicalSplRequest(question))
         {
@@ -23,7 +34,10 @@ public static class SelectedComparisonTrustGuard
                     "Provide a validated acoustic calibration reference if you need physical dB SPL values.",
                     "Use the available digital comparison evidence to compare the selected recordings without treating it as physical SPL."
                 ],
-                ToolsUsed: []);
+                ToolsUsed: [])
+            {
+                EvidenceSufficiency = evidenceSufficiency
+            };
         }
 
         if (!UnsupportedCausalRefusalPolicy.IsUnsupportedCausalRequest(question))
@@ -43,6 +57,9 @@ public static class SelectedComparisonTrustGuard
                 "Inspect the waveform and spectrum for the selected pair to identify associations worth testing.",
                 "Repeat the comparison while changing one controlled factor at a time and record the setup conditions before attributing a cause."
             ],
-            ToolsUsed: []);
+            ToolsUsed: [])
+        {
+            EvidenceSufficiency = evidenceSufficiency
+        };
     }
 }

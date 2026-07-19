@@ -64,10 +64,14 @@ public sealed class SelectedComparisonOrchestrator(
             throw new SelectedComparisonResolutionException(exception.Message, exception);
         }
         var isRoiScoped = command.StartTimeSeconds.HasValue && command.EndTimeSeconds.HasValue;
+        var evidenceSufficiency = ComparisonEvidenceSufficiencyPolicy.Assess(
+            command.Question,
+            comparisonContext);
         var trustGuardResponse = SelectedComparisonTrustGuard.TryBuildResponse(
             command.Question,
             comparisonContext,
-            isRoiScoped);
+            isRoiScoped,
+            evidenceSufficiency);
         if (trustGuardResponse is not null)
         {
             return trustGuardResponse;
@@ -101,7 +105,10 @@ public sealed class SelectedComparisonOrchestrator(
             SelectedComparisonResponseSupport.BuildExplanationEvidence(comparisonContext),
             limitations,
             BuildNextSteps(comparisonContext),
-            []);
+            [])
+        {
+            EvidenceSufficiency = evidenceSufficiency
+        };
     }
 
     private static string BuildUserMessage(
