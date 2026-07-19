@@ -8,6 +8,7 @@ import {
   gradeComparisonSetup,
   gradeResponse,
   summarize,
+  summarizeRouting,
   validateDataset,
   validateRunCount,
 } from './copilot-eval-lib.mjs'
@@ -100,6 +101,7 @@ async function execute(args) {
     console.log(`\nCase: ${evalCase.id}`)
     const caseResult = {
       id: evalCase.id,
+      expectedAnswerMode: evalCase.expectedAnswerMode ?? null,
       prompt: evalCase.question,
       metadata: evalCase.comparison ?? null,
       resolvedContext: null,
@@ -145,8 +147,10 @@ async function execute(args) {
   }
 
   const summary = summarize(results)
+  const routingSummary = summarizeRouting(results)
   artifact.results = results
   artifact.summary = summary
+  artifact.routingSummary = routingSummary
   artifact.completedAt = new Date().toISOString()
 
   console.log('\nSummary')
@@ -155,6 +159,9 @@ async function execute(args) {
   console.log(`  runs: ${summary.runCount}`)
   console.log(`  passed: ${summary.passedRuns}`)
   console.log(`  failed: ${summary.failedRuns}`)
+  if (routingSummary.evaluatedRuns > 0) {
+    console.log(`  routing accuracy: ${(routingSummary.accuracy * 100).toFixed(1)}% (${routingSummary.correctRuns}/${routingSummary.evaluatedRuns})`)
+  }
 
   if (!summary.pass) {
     process.exitCode = 1
@@ -206,6 +213,7 @@ async function prepareComparisonQuery(evalCase, recordingsByFileName, apiBaseUrl
     setup,
     resolvedContext,
     request: {
+      contextMode: evalCase.contextMode ?? 'auto',
       question: evalCase.question,
       signalIds: selectedPair ? [selectedPair.signalIdA, selectedPair.signalIdB] : [],
       startTimeSeconds: evalCase.startTimeSeconds ?? null,
@@ -227,6 +235,7 @@ function prepareGenericQuery(evalCase, signalMap) {
     setup: { pass: true, failures: [] },
     resolvedContext: { signalIds },
     request: {
+      contextMode: evalCase.contextMode ?? 'auto',
       question: evalCase.question,
       signalIds,
       startTimeSeconds: evalCase.startTimeSeconds ?? null,
@@ -326,12 +335,13 @@ function resolveSignalIds(evalCase, signalMap) {
 
 function createArtifact(date) {
   return {
-    schemaVersion: 1,
+    schemaVersion: 2,
     startedAt: date.toISOString(),
     completedAt: null,
     configuration: null,
     results: [],
     summary: null,
+    routingSummary: null,
     fatalError: null,
   }
 }

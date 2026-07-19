@@ -1,10 +1,12 @@
 import assert from 'node:assert/strict'
+import { readFile } from 'node:fs/promises'
 import test from 'node:test'
 
 import {
   gradeComparisonSetup,
   gradeResponse,
   summarize,
+  summarizeRouting,
   validateDataset,
   validateRunCount,
 } from './copilot-eval-lib.mjs'
@@ -84,6 +86,44 @@ test('rejects malformed phrase groups, patterns, ROI, and deterministic expectat
   assert.ok(failures.some((failure) => failure.includes('limitationCodes must contain non-empty strings')))
 })
 
+test('validates routing modes and evidence expectations', () => {
+  const valid = validateDataset({
+    filePaths: ['./a.wav'],
+    cases: [{
+      id: 'general-definition',
+      question: 'What is crest factor?',
+      contextMode: 'auto',
+      expectedAnswerMode: 'general',
+      evidenceExpectation: 'forbidden',
+      externalCitationExpectation: 'forbidden',
+    }],
+  })
+  assert.deepEqual(valid, [])
+
+  const invalid = validateDataset({
+    filePaths: ['./a.wav'],
+    cases: [{
+      id: 'invalid-routing',
+      question: 'Route this.',
+      contextMode: 'internet',
+      expectedAnswerMode: 'classifier',
+      evidenceExpectation: 'sometimes',
+      externalCitationExpectation: 'maybe',
+    }],
+  })
+  assert.ok(invalid.some((failure) => failure.includes('expectedAnswerMode')))
+  assert.ok(invalid.some((failure) => failure.includes('contextMode')))
+  assert.ok(invalid.some((failure) => failure.includes('evidenceExpectation')))
+  assert.ok(invalid.some((failure) => failure.includes('externalCitationExpectation')))
+})
+
+test('validates the committed trust and routing datasets', async () => {
+  for (const fileName of ['copilot-eval-cases.json', 'copilot-routing-cases.json']) {
+    const dataset = JSON.parse(await readFile(new URL(fileName, import.meta.url), 'utf8'))
+    assert.deepEqual(validateDataset(dataset), [], `${fileName} should satisfy the eval schema`)
+  }
+})
+
 test('grades all-of, any-of, limitations, evidence tools, and forbidden patterns', () => {
   const evalCase = {
     requiredAnswerPhrases: ['bounded'],
@@ -135,6 +175,52 @@ test('grades deterministic metric tolerance and comparison limitation codes', ()
   assert.ok(failed.failures.some((failure) => failure.includes('meanDifference expected')))
 })
 
+test('grades answer mode, evidence isolation, and valid external citations', () => {
+  const answer = 'Current product-sound practice uses controlled comparisons.'
+  const webResult = gradeResponse({
+    expectedAnswerMode: 'web',
+    evidenceExpectation: 'forbidden',
+    externalCitationExpectation: 'required',
+    expectedTools: ['web_search'],
+    forbiddenLimitationPhrases: ['dBFS'],
+  }, {
+    answer,
+    answerMode: 'web',
+    citedEvidence: [],
+    externalCitations: [{
+      title: 'Primary source',
+      url: 'https://example.com/source',
+      startIndex: 0,
+      endIndex: answer.length,
+    }],
+    limitations: [],
+    nextSteps: [],
+    toolsUsed: ['web_search'],
+  })
+  assert.deepEqual(webResult, { pass: true, failures: [] })
+
+  const leaked = gradeResponse({
+    expectedAnswerMode: 'general',
+    evidenceExpectation: 'forbidden',
+    externalCitationExpectation: 'forbidden',
+    forbiddenLimitationPhrases: ['dBFS'],
+  }, {
+    answer: 'A general answer.',
+    answerMode: 'workspace',
+    citedEvidence: [{ toolName: 'get_signal_metrics', signalId: 'private' }],
+    externalCitations: [{ title: '', url: 'file:///tmp/source', startIndex: -1, endIndex: 0 }],
+    limitations: ['Values are in dBFS.'],
+    nextSteps: [],
+    toolsUsed: [],
+  })
+  assert.equal(leaked.pass, false)
+  assert.ok(leaked.failures.some((failure) => failure.includes('expected answer mode general')))
+  assert.ok(leaked.failures.includes('unexpected SoundLens cited evidence'))
+  assert.ok(leaked.failures.includes('unexpected external citations'))
+  assert.ok(leaked.failures.includes('invalid external citation 1'))
+  assert.ok(leaked.failures.some((failure) => failure.includes('forbidden limitation phrase')))
+})
+
 test('requires every repeated run and every setup to pass', () => {
   const summary = summarize([
     {
@@ -155,6 +241,37 @@ test('requires every repeated run and every setup to pass', () => {
     setupFailures: 1,
     pass: false,
   })
+})
+
+test('summarizes routing accuracy by expected answer mode', () => {
+  const summary = summarizeRouting([
+    {
+      id: 'general',
+      expectedAnswerMode: 'general',
+      runs: [
+        { run: 1, response: { answerMode: 'general' } },
+        { run: 2, response: { answerMode: 'workspace' } },
+      ],
+    },
+    {
+      id: 'web',
+      expectedAnswerMode: 'web',
+      runs: [{ run: 1, response: { answerMode: 'web' } }],
+    },
+    { id: 'legacy', expectedAnswerMode: null, runs: [{ run: 1, response: {} }] },
+  ])
+
+  assert.equal(summary.evaluatedRuns, 3)
+  assert.equal(summary.correctRuns, 2)
+  assert.equal(summary.accuracy, 2 / 3)
+  assert.deepEqual(summary.byMode.general, { correctRuns: 1, evaluatedRuns: 2 })
+  assert.deepEqual(summary.byMode.web, { correctRuns: 1, evaluatedRuns: 1 })
+  assert.deepEqual(summary.failures, [{
+    actualMode: 'workspace',
+    caseId: 'general',
+    expectedMode: 'general',
+    run: 2,
+  }])
 })
 
 test('reports missing cited evidence and internal tool leakage actionably', () => {

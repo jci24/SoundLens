@@ -4,6 +4,9 @@ const SUPPORTED_COMPARISON_METRICS = new Set([
   'crestFactorDelta',
   'clippingSampleCountDelta',
 ])
+const SUPPORTED_ANSWER_MODES = new Set(['workspace', 'general', 'web', 'guidance'])
+const SUPPORTED_CONTEXT_MODES = new Set(['auto', 'workspace', 'general'])
+const SUPPORTED_EXPECTATIONS = new Set(['required', 'forbidden', 'optional'])
 
 export function validateDataset(dataset) {
   const failures = []
@@ -47,9 +50,19 @@ export function validateDataset(dataset) {
     validateStringArray(evalCase, 'forbiddenAnswerPhrases', prefix, failures)
     validateStringArray(evalCase, 'forbiddenAnswerPatterns', prefix, failures)
     validateStringArray(evalCase, 'requiredLimitationPhrases', prefix, failures)
+    validateStringArray(evalCase, 'forbiddenLimitationPhrases', prefix, failures)
     validateStringArray(evalCase, 'requiredEvidenceTools', prefix, failures)
     validateStringArray(evalCase, 'expectedTools', prefix, failures)
     validateStringArray(evalCase, 'forbiddenTools', prefix, failures)
+
+    if (evalCase.expectedAnswerMode !== undefined && !SUPPORTED_ANSWER_MODES.has(evalCase.expectedAnswerMode)) {
+      failures.push(`${prefix}.expectedAnswerMode must be workspace, general, web, or guidance`)
+    }
+    if (evalCase.contextMode !== undefined && !SUPPORTED_CONTEXT_MODES.has(evalCase.contextMode)) {
+      failures.push(`${prefix}.contextMode must be auto, workspace, or general`)
+    }
+    validateExpectation(evalCase, 'evidenceExpectation', prefix, failures)
+    validateExpectation(evalCase, 'externalCitationExpectation', prefix, failures)
 
     if (evalCase.requiredAnswerAnyPhraseGroups !== undefined) {
       if (!Array.isArray(evalCase.requiredAnswerAnyPhraseGroups) || evalCase.requiredAnswerAnyPhraseGroups.length === 0) {
@@ -135,9 +148,30 @@ export function gradeResponse(evalCase, response) {
   const toolsUsed = new Set(Array.isArray(response?.toolsUsed) ? response.toolsUsed : [])
   const evidenceTools = new Set(citedEvidence.map((item) => item.toolName))
   const limitations = Array.isArray(response?.limitations) ? response.limitations : []
+  const externalCitations = Array.isArray(response?.externalCitations) ? response.externalCitations : []
+  const evidenceExpectation = evalCase.evidenceExpectation ?? 'required'
+  const externalCitationExpectation = evalCase.externalCitationExpectation ?? 'optional'
 
-  if (!Array.isArray(response?.citedEvidence) || response.citedEvidence.length === 0) {
+  if (evalCase.expectedAnswerMode && response?.answerMode !== evalCase.expectedAnswerMode) {
+    failures.push(`expected answer mode ${evalCase.expectedAnswerMode}, received ${response?.answerMode ?? 'missing'}`)
+  }
+
+  if (evidenceExpectation === 'required' && citedEvidence.length === 0) {
     failures.push('missing cited evidence')
+  } else if (evidenceExpectation === 'forbidden' && citedEvidence.length > 0) {
+    failures.push('unexpected SoundLens cited evidence')
+  }
+
+  if (externalCitationExpectation === 'required' && externalCitations.length === 0) {
+    failures.push('missing external citations')
+  } else if (externalCitationExpectation === 'forbidden' && externalCitations.length > 0) {
+    failures.push('unexpected external citations')
+  }
+
+  for (const [index, citation] of externalCitations.entries()) {
+    if (!isValidExternalCitation(citation, String(response?.answer ?? ''))) {
+      failures.push(`invalid external citation ${index + 1}`)
+    }
   }
 
   for (const expectedTool of evalCase.expectedTools ?? []) {
@@ -189,6 +223,12 @@ export function gradeResponse(evalCase, response) {
     }
   }
 
+  for (const forbiddenPhrase of evalCase.forbiddenLimitationPhrases ?? []) {
+    if (normalizedLimitations.some((limitation) => limitation.includes(normalizeText(forbiddenPhrase)))) {
+      failures.push(`forbidden limitation phrase "${forbiddenPhrase}"`)
+    }
+  }
+
   if (Array.isArray(evalCase.expectedEvidenceSignalLabels) && evalCase.expectedEvidenceSignalLabels.length > 0) {
     const evidenceSignals = new Set(citedEvidence.map((item) => item.signalId).filter(Boolean))
     if (evidenceSignals.size < evalCase.expectedEvidenceSignalLabels.length) {
@@ -229,6 +269,46 @@ export function summarize(results) {
     failedRuns,
     setupFailures,
     pass: failedRuns === 0 && setupFailures === 0,
+  }
+}
+
+export function summarizeRouting(results) {
+  const byMode = {}
+  const failures = []
+  let evaluatedRuns = 0
+  let correctRuns = 0
+
+  for (const result of results) {
+    const expectedMode = result.expectedAnswerMode
+    if (!expectedMode) {
+      continue
+    }
+
+    byMode[expectedMode] ??= { correctRuns: 0, evaluatedRuns: 0 }
+    for (const run of result.runs ?? []) {
+      evaluatedRuns += 1
+      byMode[expectedMode].evaluatedRuns += 1
+      const actualMode = run.response?.answerMode ?? null
+      if (actualMode === expectedMode) {
+        correctRuns += 1
+        byMode[expectedMode].correctRuns += 1
+      } else {
+        failures.push({
+          actualMode,
+          caseId: result.id,
+          expectedMode,
+          run: run.run,
+        })
+      }
+    }
+  }
+
+  return {
+    accuracy: evaluatedRuns === 0 ? null : correctRuns / evaluatedRuns,
+    byMode,
+    correctRuns,
+    evaluatedRuns,
+    failures,
   }
 }
 
@@ -290,6 +370,30 @@ function validateStringArray(owner, property, prefix, failures) {
   if (!Array.isArray(owner[property]) || owner[property].some((value) => !isNonEmptyString(value))) {
     failures.push(`${prefix}.${property} must contain non-empty strings`)
   }
+}
+
+function validateExpectation(owner, property, prefix, failures) {
+  if (owner[property] !== undefined && !SUPPORTED_EXPECTATIONS.has(owner[property])) {
+    failures.push(`${prefix}.${property} must be required, forbidden, or optional`)
+  }
+}
+
+function isValidExternalCitation(citation, answer) {
+  if (!isObject(citation) || !isNonEmptyString(citation.title) || !isNonEmptyString(citation.url)) {
+    return false
+  }
+
+  let url
+  try {
+    url = new URL(citation.url)
+  } catch {
+    return false
+  }
+
+  return (url.protocol === 'http:' || url.protocol === 'https:') &&
+    Number.isInteger(citation.startIndex) && citation.startIndex >= 0 &&
+    Number.isInteger(citation.endIndex) && citation.endIndex > citation.startIndex &&
+    citation.endIndex <= answer.length
 }
 
 function hasInternalToolName(value) {

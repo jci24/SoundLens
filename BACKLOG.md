@@ -1,6 +1,6 @@
 # SoundLens Backlog
 
-Last updated: 2026-07-18
+Last updated: 2026-07-19
 
 This backlog reflects the immediate product direction: focused A/B comparison of repeated recordings with deterministic evidence, drill-down, grounded explanation, and report export. The later agentic Copilot initiative is sequenced in `ROADMAP.md` and is not yet part of the ordered implementation queue.
 
@@ -106,8 +106,8 @@ Ordered slices:
 5. completed: deterministic clarification for undefined “best” or “better” judgments before tools run, plus accumulated activity rows for repeated evidence-tool calls
 6. completed: user-centered answer-preparation traces for model-backed general and investigation turns, with internal answer-mode badges removed from the response UI
 7. completed: bounded industry-practice routing for organization workflows such as evaluating, testing, validating, comparing, and benchmarking product sound, without overriding explicit workspace references
-8. next agent hardening: routing evaluation coverage and an explicit acceptance threshold; do not add autonomy
-9. evidence-sufficiency contract for the existing comparison intents and evidence types
+8. completed: routing evaluation coverage across deterministic facts, selected evidence, theory, guidance, research, clarification, and trust refusals, with strict isolation checks and a threshold proposal derived from observed failures
+9. next agent hardening: evidence-sufficiency contract for the existing comparison intents and evidence types
 10. structured observation contract over stable comparison evidence
 11. typed investigation-plan contract after sufficiency and observation contracts exist
 12. research source-quality and applicability contract after the source/privacy policy and routing eval gate
@@ -128,6 +128,7 @@ Priority:
 **`codex/copilot-routing-evals`**
 
 - User value: predictable selection of deterministic facts, workspace explanation, guidance, general knowledge, web research, clarification, and unsupported-request paths.
+- Status: completed; the 2026-07-19 configured local baseline passed 27 of 27 runs with 100% routing accuracy.
 - Dependency: shipped automatic routing and the current eval harness.
 - Scope: add representative and adversarial routing cases, grading, baseline results, and an acceptance-threshold proposal derived from observed failures.
 - Out of scope: production prompt changes, conversation history, plans, or workspace actions.
@@ -215,6 +216,7 @@ Reason for deferral:
 High priority before hosted multi-user deployment:
 
 - remove backend filesystem paths from the browser upload response and retire or isolate the local path-import contract; the new session-restoration endpoint is safe, but the legacy import response remains unchanged in this slice
+- measure and harden bounded web-research availability before treating it as release-critical; citation-validation failures already fail closed, but one transient unavailable response appeared before the clean 27-run routing baseline
 
 Normal priority:
 

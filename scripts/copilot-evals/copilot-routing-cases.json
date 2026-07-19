@@ -1,0 +1,157 @@
+{
+  "filePaths": [
+    "./fixtures/eval-quiet.wav",
+    "./fixtures/eval-quiet-copy.wav",
+    "./fixtures/eval-loud.wav",
+    "./fixtures/eval-clipped.wav",
+    "./fixtures/eval-stereo.wav"
+  ],
+  "cases": [
+    {
+      "id": "routing-deterministic-rms",
+      "question": "What is the RMS level of this signal?",
+      "signals": [
+        {
+          "fileName": "eval-quiet.wav",
+          "displayName": "Channel 1"
+        }
+      ],
+      "expectedAnswerMode": "workspace",
+      "evidenceExpectation": "required",
+      "externalCitationExpectation": "forbidden",
+      "expectedTools": ["get_signal_metrics"],
+      "requiredEvidenceTools": ["get_signal_metrics"],
+      "requiredAnswerPhrases": ["eval-quiet.wav", "Channel 1", "RMS amplitude", "dBFS"]
+    },
+    {
+      "id": "routing-general-crest-factor-definition",
+      "question": "What does crest factor mean?",
+      "signals": [],
+      "expectedAnswerMode": "general",
+      "evidenceExpectation": "forbidden",
+      "externalCitationExpectation": "forbidden",
+      "forbiddenTools": ["get_signal_metrics", "compare_signals", "web_search"],
+      "requiredAnswerPhrases": ["crest factor", "peak", "RMS"],
+      "forbiddenLimitationPhrases": ["dBFS", "calibrated", "selected ROI"]
+    },
+    {
+      "id": "routing-general-spectrogram-definition",
+      "question": "What is a spectrogram and when is it useful?",
+      "signals": [],
+      "expectedAnswerMode": "general",
+      "evidenceExpectation": "forbidden",
+      "externalCitationExpectation": "forbidden",
+      "forbiddenTools": ["get_signal_metrics", "compare_signals", "web_search"],
+      "requiredAnswerPhrases": ["spectrogram", "frequency", "time"],
+      "forbiddenLimitationPhrases": ["dBFS", "calibrated", "selected ROI"]
+    },
+    {
+      "id": "routing-investigation-guidance",
+      "question": "What guidelines would you give me to analyze these files for a repeatable A/B decision?",
+      "signals": [],
+      "expectedAnswerMode": "guidance",
+      "evidenceExpectation": "forbidden",
+      "externalCitationExpectation": "forbidden",
+      "forbiddenTools": ["get_signal_metrics", "compare_signals", "web_search"],
+      "requiredAnswerAnyPhraseGroups": [
+        ["objective", "decision", "criterion"]
+      ],
+      "forbiddenLimitationPhrases": ["dBFS", "selected ROI"]
+    },
+    {
+      "id": "routing-web-industry-practice",
+      "question": "How do companies currently compare product-sound recordings? Cite sources.",
+      "signals": [],
+      "expectedAnswerMode": "web",
+      "evidenceExpectation": "forbidden",
+      "externalCitationExpectation": "required",
+      "expectedTools": ["web_search"],
+      "forbiddenTools": ["get_signal_metrics", "compare_signals"],
+      "forbiddenLimitationPhrases": ["dBFS", "calibrated", "selected ROI"]
+    },
+    {
+      "id": "routing-undefined-quality-criterion",
+      "question": "Which recording is best overall?",
+      "signals": [],
+      "expectedAnswerMode": "workspace",
+      "evidenceExpectation": "forbidden",
+      "externalCitationExpectation": "forbidden",
+      "forbiddenTools": ["get_signal_metrics", "compare_signals", "web_search"],
+      "requiredAnswerPhrases": ["criterion"],
+      "requiredLimitationPhrases": ["did not rank"]
+    },
+    {
+      "id": "routing-selected-comparison-explanation",
+      "question": "What does this selected difference suggest?",
+      "comparison": {
+        "recordingAFileName": "eval-quiet.wav",
+        "recordingBFileName": "eval-loud.wav",
+        "metricKey": "rmsAmplitudeDelta",
+        "signalDisplayNameA": "Channel 1",
+        "signalDisplayNameB": "Channel 1"
+      },
+      "expectedComparison": {
+        "meanDifference": -0.25,
+        "tolerance": 0.000001,
+        "limitationCodes": ["LowCoverage"]
+      },
+      "expectedAnswerMode": "workspace",
+      "evidenceExpectation": "required",
+      "externalCitationExpectation": "forbidden",
+      "requiredEvidenceTools": ["selected_comparison_context"],
+      "requiredAnswerPhrases": ["RMS"]
+    },
+    {
+      "id": "routing-uncalibrated-spl-refusal",
+      "question": "What is the calibrated dB SPL difference between these recordings?",
+      "comparison": {
+        "recordingAFileName": "eval-quiet.wav",
+        "recordingBFileName": "eval-loud.wav",
+        "metricKey": "rmsAmplitudeDelta",
+        "signalDisplayNameA": "Channel 1",
+        "signalDisplayNameB": "Channel 1"
+      },
+      "expectedComparison": {
+        "meanDifference": -0.25,
+        "tolerance": 0.000001,
+        "limitationCodes": ["LowCoverage"]
+      },
+      "expectedAnswerMode": "workspace",
+      "evidenceExpectation": "required",
+      "externalCitationExpectation": "forbidden",
+      "requiredEvidenceTools": ["selected_comparison_context"],
+      "requiredAnswerAnyPhraseGroups": [
+        ["cannot determine a calibrated dB SPL", "not calibrated to physical SPL"]
+      ],
+      "forbiddenAnswerPatterns": [
+        "\\b(?:difference|level) (?:is|of) [-+]?\\d+(?:\\.\\d+)?\\s*dB\\s*SPL\\b"
+      ]
+    },
+    {
+      "id": "routing-roi-causal-refusal",
+      "question": "What caused this selected difference in this region?",
+      "startTimeSeconds": 0.0005,
+      "endTimeSeconds": 0.0015,
+      "comparison": {
+        "recordingAFileName": "eval-quiet.wav",
+        "recordingBFileName": "eval-loud.wav",
+        "metricKey": "rmsAmplitudeDelta",
+        "signalDisplayNameA": "Channel 1",
+        "signalDisplayNameB": "Channel 1"
+      },
+      "expectedComparison": {
+        "meanDifference": -0.25,
+        "tolerance": 0.000001,
+        "limitationCodes": ["LowCoverage"]
+      },
+      "expectedAnswerMode": "workspace",
+      "evidenceExpectation": "required",
+      "externalCitationExpectation": "forbidden",
+      "requiredEvidenceTools": ["selected_comparison_context"],
+      "requiredAnswerAnyPhraseGroups": [
+        ["does not establish a cause", "cannot determine the cause", "causal explanation is not supported"]
+      ],
+      "requiredLimitationPhrases": ["selected ROI only"]
+    }
+  ]
+}

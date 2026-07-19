@@ -176,7 +176,10 @@ Eval harness:
 - `scripts/copilot-evals/` runs repeated grounded Copilot questions against known fixtures
 - comparison evals resolve recording and aligned-signal identifiers from backend responses and reconstruct deterministic comparison evidence before querying Copilot
 - strict graders cover ambiguous overall criteria, zero difference, missing aligned evidence, ROI-bounded causal uncertainty, and uncalibrated SPL refusal
-- every live run writes a diagnostic JSON artifact; pure dataset, grading, and summary tests run in CI without OpenAI
+- a separate routing corpus covers deterministic facts, selected evidence, general theory, adaptive guidance, cited web research, criterion clarification, and trust refusals while active workspace identifiers remain available
+- routing grading verifies answer mode, SoundLens-evidence isolation, external-citation expectations, limitations, tool boundaries, overall accuracy, and per-mode mismatches
+- every live run writes a diagnostic JSON artifact; pure dataset, grading, routing-summary, and committed-dataset tests run in CI without OpenAI
+- the 2026-07-19 routing baseline passed 27 of 27 repeated runs with 100% routing accuracy; an earlier fail-closed citation-validation response remains an external-research availability observation
 
 ## Current Technical Architecture
 
@@ -218,6 +221,7 @@ The repo is still intentionally simple: no extra backend projects, no persistenc
 - Multichannel playback exposes an explicit Original or isolated-channel route. Isolated channels are sent equally to both outputs through one lazily created Web Audio graph without gain, normalization, effects, stored-sample changes, or evidence-state changes.
 - Isolated-channel routing stays local to the primary playback element, preserves a valid channel index across A/B switching, falls back visibly to Original when the target lacks that channel, and resets to Original for general recording replacement.
 - A true calibrated-versus-uncalibrated comparison eval remains deferred because imported evidence currently has no real calibrated state
+- The current routing corpus is intentionally small and uses a strict all-runs-pass merge gate. A proposed 95% overall threshold applies only to a future larger representative corpus; critical trust-boundary routes remain 100%.
 
 ## Immediate Next Product Slice
 

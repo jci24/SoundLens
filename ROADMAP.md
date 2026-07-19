@@ -317,6 +317,7 @@ SoundLens is approximately a **Level 2 tool-using Copilot with early Level 3 fou
 | Selected-comparison explanation | Implemented | Backend reconstructs evidence and validates model output. |
 | Trust refusals | Implemented | Unsupported SPL and causal conclusions are rejected deterministically. |
 | General, workspace, and web routing | Implemented | Automatic backend routing isolates measurements from general and web paths. |
+| Routing evaluation gate | Implemented | A diagnostic corpus grades deterministic facts, selected evidence, theory, guidance, cited research, clarification, and trust refusals with per-mode accuracy and boundary-isolation assertions. |
 | Source-backed web answers | Partially implemented | Validated HTTP(S) citations exist; source quality, applicability, and literature disagreement do not. |
 | Investigation guidance | Partially implemented | Produces bounded advice and allowlisted next steps, not a typed executable plan. |
 | Investigation trace | Partially implemented | Observable per-turn activity is ephemeral and is not a complete persisted audit. |
@@ -416,7 +417,7 @@ The committed product order remains:
 1. validate the completed Figma-aligned workflow through direct automotive NVH and adjacent-user walkthroughs
 2. conduct direct automotive NVH and adjacent workflow validation
 3. maintain the shipped A/B comparison, evidence drill-down, Copilot trust guards, and reports
-4. expand routing and trust eval coverage without adding autonomy
+4. maintain the strict routing and trust eval gate without adding autonomy
 5. specify evidence-sufficiency and structured-observation contracts over existing comparison evidence
 
 No persistent investigation, background research, or workspace-operating agent is committed yet.

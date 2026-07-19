@@ -36,10 +36,14 @@ The dataset remains compatible with generic `signals` cases. A comparison case a
 
 Supported response assertions are:
 
+- `expectedAnswerMode`: `workspace`, `general`, `web`, or `guidance`
+- `contextMode`: `auto`, `workspace`, or `general`; routing cases normally use `auto`
+- `evidenceExpectation`: require, forbid, or ignore SoundLens evidence citations
+- `externalCitationExpectation`: require, forbid, or ignore external citations
 - `requiredAnswerPhrases`: every phrase must occur
 - `requiredAnswerAnyPhraseGroups`: at least one phrase from every group must occur
 - `forbiddenAnswerPhrases` and `forbiddenAnswerPatterns`
-- `requiredLimitationPhrases`
+- `requiredLimitationPhrases` and `forbiddenLimitationPhrases`
 - `expectedTools`, `forbiddenTools`, and `requiredEvidenceTools`
 - `expectedComparison.limitationCodes`
 - deterministic `meanDifference` with an explicit tolerance
@@ -67,6 +71,15 @@ node scripts/copilot-evals/run-copilot-evals.mjs
 node scripts/copilot-evals/run-copilot-evals.mjs --case comparison-zero-rms-difference
 ```
 
+Run the routing corpus, which deliberately keeps workspace identifiers available
+for theory, guidance, and research questions:
+
+```bash
+node scripts/copilot-evals/run-copilot-evals.mjs \
+  --dataset scripts/copilot-evals/copilot-routing-cases.json \
+  --runs 3
+```
+
 Available options:
 
 ```text
@@ -77,11 +90,29 @@ Available options:
 --output <json-path>
 ```
 
-Every run is persisted by default to ignored timestamped JSON under `artifacts/copilot-evals/`. Artifacts contain case metadata, resolved identifier context, deterministic setup checks, complete agent responses, grading failures, and summary counts. They do not contain API keys or raw waveform data.
+Every run is persisted by default to ignored timestamped JSON under `artifacts/copilot-evals/`. Artifacts contain case metadata, resolved identifier context, deterministic setup checks, complete agent responses, grading failures, summary counts, overall routing accuracy, per-mode routing counts, and mismatches. They do not contain API keys or raw waveform data.
 
 ## Pass Policy
 
 Every repeated run and deterministic setup must pass. A failed run, request, or comparison setup produces exit code 1, while remaining cases continue so the artifact retains the complete baseline. Dataset parsing, fixture import, and initial backend-session failures remain fatal.
+
+The current routing corpus is a critical trust gate, so its merge policy is 100%
+across every repeated run. The observed UI failures that motivated this gate were
+theory questions routed to workspace metrics, guidance requests reduced to values,
+criterion follow-ups routed to general knowledge, and research failures while
+workspace context was active. For a future larger and more varied corpus, the
+initial acceptance proposal is at least 95% overall routing accuracy while keeping
+deterministic facts, workspace/general/research isolation, undefined-criterion
+clarification, and SPL/causal refusals at 100%. This proposal is not a mature SLA
+and does not permit failures in the current critical corpus.
+
+The 2026-07-19 local baseline executed 9 cases 3 times each. All 27 final
+repeated runs passed, with 100% routing accuracy in workspace, general,
+guidance, and web modes. An earlier diagnostic run contained one fail-closed
+web response after citation metadata could not be validated; the user received
+no unsourced research answer, and the subsequent complete baseline passed.
+This is an external-research reliability observation, not a trust-boundary or
+routing failure.
 
 Fast pure grader tests run in CI without OpenAI or a backend:
 
@@ -95,6 +126,16 @@ Live model failures are production-behavior evidence, not harness defects. Recor
 
 Comparison cases cover an undefined overall criterion, zero RMS difference, missing aligned evidence with low coverage, unsupported causal explanation over an ROI, and refusal of calibrated dB SPL conclusions from uncalibrated evidence.
 
+The separate routing corpus covers deterministic RMS facts, selected-comparison
+explanation, general crest-factor and spectrogram theory, adaptive investigation
+guidance, cited current industry-practice research, undefined quality criteria,
+and deterministic SPL and causal refusals. General, guidance, and web cases attach
+the current session's signal identifiers to prove that context availability alone
+does not authorize measured evidence. The live harness verifies response mode,
+displayed citations, limitations, and tool use. Downstream request privacy remains
+covered by backend integration tests because the public agent response cannot
+reveal the payload sent to the model or hosted web-search tool.
+
 The uncalibrated SPL case exercises a deterministic backend trust guard rather than model compliance. A passing response must refuse the physical conclusion, preserve the backend-resolved digital comparison evidence and calibration limitation, and contain no numeric dB SPL claim. This case should remain stable even when OpenAI is unavailable or returns malformed output because the matching request never reaches the model.
 
 The unsupported-cause case also exercises a deterministic backend trust guard. A passing response may describe the selected difference and associated findings, but it must state that the observational evidence does not establish a cause, retain ROI and coverage limitations, and avoid treating detector findings as causal proof. Repeated runs should be identical because the matching request never reaches the model.
@@ -107,12 +148,11 @@ The current harness supports Level 2 trust validation and a small part of Level 
 
 Next evaluation layers, in dependency order:
 
-1. routing accuracy across deterministic fact, evidence explanation, guidance, conceptual knowledge, web research, clarification, and unsupported requests
-2. evidence-sufficiency decisions for missing, incompatible, partial, contradicted, and unavailable evidence
-3. structured-observation grounding and stable evidence-reference resolution
-4. plan validity, capability selection, parameters, dependencies, cost class, and approval requirements
-5. source quality, applicability, disagreement, citation integrity, and privacy-safe research queries
-6. plan revision, partial failure, cancellation, recovery, and report traceability after those product contracts exist
-7. complete long-horizon investigation workflows only after persistence and policy-controlled execution exist
+1. evidence-sufficiency decisions for missing, incompatible, partial, contradicted, and unavailable evidence
+2. structured-observation grounding and stable evidence-reference resolution
+3. plan validity, capability selection, parameters, dependencies, cost class, and approval requirements
+4. source quality, applicability, disagreement, citation integrity, and privacy-safe research queries
+5. plan revision, partial failure, cancellation, recovery, and report traceability after those product contracts exist
+6. complete long-horizon investigation workflows only after persistence and policy-controlled execution exist
 
 Critical release properties may require zero fabricated measurements, citations, unauthorized external actions, unsupported calibration or compliance claims, and untraceable conclusions. Non-critical thresholds must be chosen after reviewing real eval distributions rather than declared in advance.
