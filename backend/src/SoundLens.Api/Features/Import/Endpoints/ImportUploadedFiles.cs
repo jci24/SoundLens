@@ -45,11 +45,16 @@ public sealed class ImportUploadedFiles : EndpointWithoutRequest<ImportFilesResp
         {
             if (file.Length <= 0)
             {
-                failedFiles.Add(file.FileName);
+                failedFiles.Add(GetSafeFileName(file.FileName));
                 continue;
             }
 
-            var safeFileName = Path.GetFileName(file.FileName);
+            var safeFileName = Path.GetFileName(file.FileName.Replace('\\', '/'));
+            if (string.IsNullOrWhiteSpace(safeFileName))
+            {
+                failedFiles.Add("Unknown file");
+                continue;
+            }
             var destinationPath = CreateUniqueFilePath(importDirectory, safeFileName);
 
             await using var targetStream = File.Create(destinationPath);
@@ -72,7 +77,18 @@ public sealed class ImportUploadedFiles : EndpointWithoutRequest<ImportFilesResp
 
         importedFileStore.Replace(succeededFiles);
 
-        await Send.OkAsync(new ImportFilesResponse(succeededFiles, failedFiles), ct);
+        await Send.OkAsync(new ImportFilesResponse(
+            succeededFiles.Select(ToPublicResult).ToArray(),
+            failedFiles), ct);
+    }
+
+    private static ImportedFileResult ToPublicResult(ImportedFileSummary file) =>
+        new(file.FileName, file.SizeBytes, file.ContentType);
+
+    private static string GetSafeFileName(string fileName)
+    {
+        var safeFileName = Path.GetFileName(fileName.Replace('\\', '/'));
+        return string.IsNullOrWhiteSpace(safeFileName) ? "Unknown file" : safeFileName;
     }
 
     private static string CreateImportDirectory()

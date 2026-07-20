@@ -55,8 +55,10 @@ The backend should not rely on the frontend or the LLM for numerical truth.
 
 Current import guidance:
 
-- Keep the path-based JSON import endpoint for local debugging and controlled desktop flows.
-- Support a browser-friendly multipart upload path for demo readiness and self-serve trials.
+- Treat `ImportedFileSummary` and its filesystem path as backend-internal state used by DSP, playback, and temporary-file management. Public import results expose only filename, byte size, and content type.
+- Keep the path-based JSON import endpoint available only in Development for controlled local debugging. It returns `404` outside Development so production does not advertise a local-filesystem capability.
+- Use the browser-friendly multipart upload path for demo readiness and self-serve trials in every environment.
+- Sanitize failed import entries to filenames before serialization; submitted paths and generated temporary paths must never cross the browser contract.
 - Normalize both import modes to the same imported-file session contract so downstream DSP and evidence code can stay transport-agnostic.
 - Set explicit bounded upload limits for Kestrel request bodies and multipart form parsing; do not rely on defaults for audio import flows.
 - `GET /api/import/session` remains the lightweight route-restoration contract. `GET /api/import/session/recordings` is the configuration inventory contract and returns backend-owned stable IDs plus WAV header metadata without waveform bins, measurements, calibration claims, or filesystem paths.

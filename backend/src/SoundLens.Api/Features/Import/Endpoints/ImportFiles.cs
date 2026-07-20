@@ -1,5 +1,4 @@
 using FastEndpoints;
-using FluentValidation;
 using SoundLens.Api.Features.Import.Commands;
 using SoundLens.Api.Features.Import.Common;
 
@@ -19,20 +18,20 @@ public sealed class ImportFiles : Endpoint<ImportFilesCommand, ImportFilesRespon
         });
     }
 
-    internal sealed class ImportFilesCommandValidator : Validator<ImportFilesCommand>
-    {
-        public ImportFilesCommandValidator()
-        {
-            RuleFor(command => command.FilePaths)
-                .NotNull()
-                .WithMessage("FilePaths must be provided.")
-                .Must(filePaths => filePaths.Count > 0)
-                .WithMessage("At least one file path must be provided.");
-        }
-    }
-
     public override async Task HandleAsync(ImportFilesCommand req, CancellationToken ct)
     {
+        var environment = HttpContext.RequestServices.GetRequiredService<IHostEnvironment>();
+        if (!environment.IsDevelopment())
+        {
+            await Send.NotFoundAsync(ct);
+            return;
+        }
+
+        if (req.FilePaths is null || req.FilePaths.Count == 0)
+        {
+            ThrowError("At least one file path must be provided.");
+        }
+
         var result = await req.ExecuteAsync(ct);
         await Send.OkAsync(result, ct);
     }

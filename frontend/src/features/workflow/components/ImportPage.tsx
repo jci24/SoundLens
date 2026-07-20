@@ -1,19 +1,19 @@
 import { ArrowLeft } from 'lucide-react'
 import { Link, useNavigate } from 'react-router'
 import { Button } from '../../../components/ui/button'
-import type { IImportedFileSummary } from '../../../common/contracts/import'
+import type { IImportedFileResult } from '../../../common/contracts/import'
 import { ImportWorkspace } from '../../import/components/ImportWorkspace'
 import './ImportPage.scss'
 
 interface IImportPageProps {
   hasRecordings: boolean
-  onImportedFiles: (files: IImportedFileSummary[]) => void
+  onImportedFiles: (files: IImportedFileResult[]) => void
 }
 
 const ImportPage = ({ hasRecordings, onImportedFiles }: IImportPageProps) => {
   const navigate = useNavigate()
 
-  const handleImportedFiles = (files: IImportedFileSummary[]) => {
+  const handleImportedFiles = (files: IImportedFileResult[]) => {
     onImportedFiles(files)
     navigate(files.length > 1 ? '/setup' : '/evidence')
   }

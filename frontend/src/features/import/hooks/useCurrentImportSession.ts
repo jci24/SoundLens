@@ -1,13 +1,13 @@
 import { useCallback, useEffect, useState } from 'react'
 import type {
-  IImportedFileSummary,
+  IImportedFileResult,
   IImportSessionFileSummary,
 } from '../../../common/contracts/import'
 import { getCurrentImportSession } from '../services/currentImportSession'
 
 type TImportSessionStatus = 'loading' | 'ready' | 'error'
 
-const toSessionFile = ({ fileName, sizeBytes, contentType }: IImportedFileSummary): IImportSessionFileSummary => ({
+const toSessionFile = ({ fileName, sizeBytes, contentType }: IImportedFileResult): IImportSessionFileSummary => ({
   fileName,
   sizeBytes,
   contentType,
@@ -53,7 +53,7 @@ const useCurrentImportSession = () => {
     }
   }, [])
 
-  const acceptImportedFiles = useCallback((importedFiles: IImportedFileSummary[]) => {
+  const acceptImportedFiles = useCallback((importedFiles: IImportedFileResult[]) => {
     setFiles(importedFiles.map(toSessionFile))
     setError(null)
     setStatus('ready')

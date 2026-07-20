@@ -3,7 +3,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { TimeWaveformWorkspace } from './TimeWaveformWorkspace'
 import type { IMetricSignalItem } from '../../metrics/hooks/useAnalysisWorkspaceMetrics'
 import type { IAnalysisWorkspacePanel } from '../hooks/useAnalysisWorkspacePanels'
-import type { IImportedFileSummary } from '../../../../common/contracts/import'
+import type { IImportedFileResult } from '../../../../common/contracts/import'
 import type {
   IAnalysisRegionOfInterest,
   IFrequencySpectrumSignal,
@@ -121,11 +121,10 @@ vi.mock('./AnalysisWorkspaceChart', () => ({
   ),
 }))
 
-const importedFiles: IImportedFileSummary[] = [
+const importedFiles: IImportedFileResult[] = [
   {
     fileName: 'alpha.wav',
     sizeBytes: 1024,
-    filePath: '/tmp/alpha.wav',
     contentType: 'audio/wav',
   },
 ]

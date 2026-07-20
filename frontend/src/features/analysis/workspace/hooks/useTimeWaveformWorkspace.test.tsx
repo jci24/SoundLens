@@ -71,7 +71,6 @@ const importedFiles = [
   {
     fileName: 'alpha.wav',
     sizeBytes: 1_024,
-    filePath: '/tmp/alpha.wav',
     contentType: 'audio/wav',
   },
 ]

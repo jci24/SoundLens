@@ -23,7 +23,7 @@ vi.mock('./features/import/components/ImportWorkspace', () => ({
       <button
         type="button"
         onClick={() => onImportedFiles([
-          { fileName: 'new.wav', sizeBytes: 42, filePath: '/private/new.wav', contentType: 'audio/wav' },
+          { fileName: 'new.wav', sizeBytes: 42, contentType: 'audio/wav' },
         ])}
       >
         Complete import
@@ -31,8 +31,8 @@ vi.mock('./features/import/components/ImportWorkspace', () => ({
       <button
         type="button"
         onClick={() => onImportedFiles([
-          { fileName: 'baseline.wav', sizeBytes: 42, filePath: '/private/baseline.wav', contentType: 'audio/wav' },
-          { fileName: 'candidate.wav', sizeBytes: 43, filePath: '/private/candidate.wav', contentType: 'audio/wav' },
+          { fileName: 'baseline.wav', sizeBytes: 42, contentType: 'audio/wav' },
+          { fileName: 'candidate.wav', sizeBytes: 43, contentType: 'audio/wav' },
         ])}
       >
         Complete multi-file import

@@ -1,21 +1,5 @@
 import { API_BASE_URL } from '../../../common/api/config'
-import type { IImportFilesByPathRequest, IImportFilesResponse } from '../../../common/contracts/import'
-
-export const importFilesByPath = async (
-  request: IImportFilesByPathRequest
-): Promise<IImportFilesResponse> => {
-  const response = await fetch(`${API_BASE_URL}/api/import`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(request),
-  })
-
-  if (!response.ok) {
-    throw new Error(await readImportError(response))
-  }
-
-  return response.json() as Promise<IImportFilesResponse>
-}
+import type { IImportFilesResponse } from '../../../common/contracts/import'
 
 export const uploadFiles = async (files: File[]): Promise<IImportFilesResponse> => {
   const formData = new FormData()

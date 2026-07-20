@@ -1,4 +1,4 @@
-import type { IImportedFileSummary } from '../../../../common/contracts/import'
+import type { IImportedFileResult } from '../../../../common/contracts/import'
 import type { IAgentQueryResponse } from '../../copilot/types/copilot.types'
 import type { IRecordingComparisonResponse, ITimeWaveformRecording } from '../../types'
 
@@ -25,10 +25,9 @@ const recordings: ITimeWaveformRecording[] = [
   },
 ]
 
-const importedFiles: IImportedFileSummary[] = recordings.map((recording) => ({
+const importedFiles: IImportedFileResult[] = recordings.map((recording) => ({
   fileName: recording.fileName,
   sizeBytes: recording.sizeBytes,
-  filePath: `/tmp/${recording.fileName}`,
   contentType: 'audio/wav',
 }))
 

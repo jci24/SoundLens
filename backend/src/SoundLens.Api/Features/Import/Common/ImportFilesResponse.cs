@@ -1,5 +1,5 @@
 namespace SoundLens.Api.Features.Import.Common;
 
 public sealed record ImportFilesResponse(
-    IReadOnlyList<ImportedFileSummary> SucceededFiles,
+    IReadOnlyList<ImportedFileResult> SucceededFiles,
     IReadOnlyList<string> FailedFiles);

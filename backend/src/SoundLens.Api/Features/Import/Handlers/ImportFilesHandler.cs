@@ -18,14 +18,14 @@ public sealed class ImportFilesHandler(
         {
             if (string.IsNullOrWhiteSpace(filePath))
             {
-                failedFiles.Add(filePath);
+                failedFiles.Add("Unknown file");
                 continue;
             }
 
             if (!File.Exists(filePath))
             {
                 logger.LogWarning("File not found: {FilePath}", filePath);
-                failedFiles.Add(filePath);
+                failedFiles.Add(GetSafeFileName(filePath));
                 continue;
             }
 
@@ -53,7 +53,18 @@ public sealed class ImportFilesHandler(
 
         importedFileStore.Replace(succeededFiles);
 
-        return Task.FromResult(new ImportFilesResponse(succeededFiles, failedFiles));
+        return Task.FromResult(new ImportFilesResponse(
+            succeededFiles.Select(ToPublicResult).ToArray(),
+            failedFiles));
+    }
+
+    private static ImportedFileResult ToPublicResult(ImportedFileSummary file) =>
+        new(file.FileName, file.SizeBytes, file.ContentType);
+
+    private static string GetSafeFileName(string filePath)
+    {
+        var fileName = Path.GetFileName(filePath.Replace('\\', '/'));
+        return string.IsNullOrWhiteSpace(fileName) ? "Unknown file" : fileName;
     }
 
     private static string GetContentType(string filePath)

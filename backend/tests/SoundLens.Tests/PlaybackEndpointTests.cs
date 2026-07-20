@@ -2,6 +2,7 @@ using System.Net;
 using System.Net.Http.Headers;
 using System.Net.Http.Json;
 using Microsoft.AspNetCore.Mvc.Testing;
+using Microsoft.Extensions.DependencyInjection;
 using SoundLens.Api.Features.Import.Common;
 
 namespace SoundLens.Tests;
@@ -76,8 +77,9 @@ public sealed class PlaybackEndpointTests : IClassFixture<WebApplicationFactory<
 
         var response = await client.PostAsJsonAsync("/api/import", new { filePaths = new[] { tempPath } });
         response.EnsureSuccessStatusCode();
-        var imported = await response.Content.ReadFromJsonAsync<ImportFilesResponse>();
-        var file = Assert.Single(imported!.SucceededFiles);
+        var file = Assert.Single(_factory.Services
+            .GetRequiredService<IImportedFileStore>()
+            .CurrentFiles);
 
         return new PlaybackFixture(client, file, ImportedFileIdentity.BuildRecordingId(file));
     }

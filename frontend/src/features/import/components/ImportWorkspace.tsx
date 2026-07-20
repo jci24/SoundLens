@@ -1,11 +1,11 @@
 import { AlertCircle, Loader2 } from 'lucide-react'
 import { useImportFiles } from '../hooks/useImportFiles'
-import type { IImportedFileSummary } from '../../../common/contracts/import'
+import type { IImportedFileResult } from '../../../common/contracts/import'
 import { FilePickerImporter } from './FilePickerImporter/FilePickerImporter'
 import './ImportWorkspace.scss'
 
 interface IImportWorkspaceProps {
-  onImportedFiles: (files: IImportedFileSummary[]) => void
+  onImportedFiles: (files: IImportedFileResult[]) => void
 }
 
 const ImportWorkspace = ({ onImportedFiles }: IImportWorkspaceProps) => {

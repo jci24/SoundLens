@@ -1,11 +1,10 @@
 import { useState } from 'react'
 import { toast } from 'sonner'
-import { importFilesByPath, uploadFiles } from '../services/importFiles'
+import { uploadFiles } from '../services/importFiles'
 import type { IImportFilesResponse } from '../../../common/contracts/import'
 
 export interface IUseImportFiles {
   importError: string | null
-  handleImportPaths: (filePaths: string[]) => Promise<IImportFilesResponse | undefined>
   handleUploadFiles: (files: File[]) => Promise<IImportFilesResponse | undefined>
   isImporting: boolean
 }
@@ -49,12 +48,6 @@ export const useImportFiles = (): IUseImportFiles => {
     }
   }
 
-  const handleImportPaths = async (filePaths: string[]): Promise<IImportFilesResponse | undefined> => {
-    if (filePaths.length === 0) return undefined
-
-    return handleImport(() => importFilesByPath({ filePaths }))
-  }
-
   const handleUploadFiles = async (files: File[]): Promise<IImportFilesResponse | undefined> => {
     if (files.length === 0) return undefined
 
@@ -62,7 +55,6 @@ export const useImportFiles = (): IUseImportFiles => {
   }
 
   return {
-    handleImportPaths,
     handleUploadFiles,
     importError,
     isImporting,

@@ -53,6 +53,8 @@ The current product is strong as an analysis workspace, but it is not yet a full
 - Browser file picking is the primary demo path.
 - The backend persists uploaded files into a temporary local workspace.
 - Imported files are also tracked in an in-memory import session used by analysis and Copilot requests.
+- Browser-visible import results contain only filename, byte size, and content type. Backend filesystem paths remain internal to the imported-file store for DSP, playback, and temporary-file lifecycle management.
+- `POST /api/import/upload` is the supported browser import path. The local path-based `POST /api/import` endpoint is available only in Development and returns `404` in other environments.
 - `GET /api/import/session` returns ordered browser-safe filename, size, and content-type metadata so the frontend can restore the temporary session after a reload without receiving filesystem paths.
 - `GET /api/import/session/recordings` reads supported WAV headers and returns backend-owned recording IDs, duration, sample rate, channel count, and stable signal identities without generating waveform or spectrum evidence.
 - Session bootstrap has explicit loading, failure, retry, empty, and populated states. Direct Evidence navigation waits for bootstrap and redirects to Import only after an empty session is confirmed.

@@ -10,7 +10,6 @@ vi.mock('../hooks/useImportFiles', () => ({
 describe('ImportWorkspace', () => {
   it('keeps an import failure visible in the dedicated workflow', () => {
     vi.mocked(useImportFiles).mockReturnValue({
-      handleImportPaths: vi.fn(),
       handleUploadFiles: vi.fn(),
       importError: 'candidate.wav could not be imported.',
       isImporting: false,

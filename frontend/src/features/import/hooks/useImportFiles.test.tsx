@@ -5,7 +5,6 @@ import { useImportFiles } from './useImportFiles'
 import type { IImportFilesResponse } from '../../../common/contracts/import'
 
 vi.mock('../services/importFiles', () => ({
-  importFilesByPath: vi.fn(),
   uploadFiles: vi.fn(),
 }))
 
@@ -36,7 +35,7 @@ describe('useImportFiles', () => {
   it('exposes partial import failures while retaining successful results', async () => {
     vi.mocked(uploadFiles).mockResolvedValue({
       succeededFiles: [
-        { fileName: 'baseline.wav', sizeBytes: 5, filePath: '/tmp/baseline.wav', contentType: 'audio/wav' },
+        { fileName: 'baseline.wav', sizeBytes: 5, contentType: 'audio/wav' },
       ],
       failedFiles: ['candidate.wav'],
     })

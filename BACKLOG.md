@@ -110,7 +110,7 @@ Ordered slices:
 9. completed: backend-owned selected-comparison evidence sufficiency for digital metrics, selected spectrum findings, physical SPL, and causal requests, with compact Copilot presentation
 10. completed: current-session structured metric and finding observations with deterministic evidence fingerprints and collapsed Copilot inspection
 11. completed: typed, versioned investigation-plan previews with catalog-backed policy, deterministic validation, clarification for ambiguous objectives, and collapsed Copilot inspection
-12. next agent hardening: research source-quality and applicability contract after the source/privacy policy and routing eval gate
+12. completed: conservative external-source quality and applicability metadata with primary-source preference, explicit source roles, and fail-closed citation validation
 
 Boundary:
 - general knowledge is not measured evidence
@@ -219,7 +219,6 @@ Reason for deferral:
 
 High priority before hosted multi-user deployment:
 
-- remove backend filesystem paths from the browser upload response and retire or isolate the local path-import contract; the new session-restoration endpoint is safe, but the legacy import response remains unchanged in this slice
 - measure and harden bounded web-research availability before treating it as release-critical; citation-validation failures already fail closed, but one transient unavailable response appeared before the clean 27-run routing baseline
 
 Normal priority:

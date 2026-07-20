@@ -1,7 +1,6 @@
-export interface IImportedFileSummary {
+export interface IImportedFileResult {
   fileName: string
   sizeBytes: number
-  filePath: string
   contentType: string
 }
 
@@ -37,11 +36,7 @@ export interface IImportedRecordingInventoryResponse {
   failedFiles: string[]
 }
 
-export interface IImportFilesByPathRequest {
-  filePaths: string[]
-}
-
 export interface IImportFilesResponse {
-  succeededFiles: IImportedFileSummary[]
+  succeededFiles: IImportedFileResult[]
   failedFiles: string[]
 }
