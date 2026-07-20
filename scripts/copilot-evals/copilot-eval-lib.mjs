@@ -8,6 +8,7 @@ const SUPPORTED_ANSWER_MODES = new Set(['workspace', 'general', 'web', 'guidance
 const SUPPORTED_CONTEXT_MODES = new Set(['auto', 'workspace', 'general'])
 const SUPPORTED_EXPECTATIONS = new Set(['required', 'forbidden', 'optional'])
 const SUPPORTED_SUFFICIENCY_STATUSES = new Set(['supported', 'partial', 'missing', 'contradicted', 'unavailable'])
+const SUPPORTED_OBSERVATION_STATUSES = new Set(['complete', 'limited', 'mixed'])
 
 export function validateDataset(dataset) {
   const failures = []
@@ -70,6 +71,14 @@ export function validateDataset(dataset) {
     }
     if (evalCase.expectedEvidenceIntent !== undefined && !isNonEmptyString(evalCase.expectedEvidenceIntent)) {
       failures.push(`${prefix}.expectedEvidenceIntent must be a non-empty string`)
+    }
+    if (evalCase.expectedObservationStatus !== undefined &&
+        !SUPPORTED_OBSERVATION_STATUSES.has(evalCase.expectedObservationStatus)) {
+      failures.push(`${prefix}.expectedObservationStatus is not supported`)
+    }
+    if (evalCase.expectedFindingObservationCount !== undefined &&
+        (!Number.isInteger(evalCase.expectedFindingObservationCount) || evalCase.expectedFindingObservationCount < 0)) {
+      failures.push(`${prefix}.expectedFindingObservationCount must be a non-negative integer`)
     }
 
     if (evalCase.requiredAnswerAnyPhraseGroups !== undefined) {
@@ -175,6 +184,30 @@ export function gradeResponse(evalCase, response) {
     failures.push(
       `expected evidence intent ${evalCase.expectedEvidenceIntent}, received ${response?.evidenceSufficiency?.intent ?? 'missing'}`,
     )
+  }
+
+  const structuredObservations = Array.isArray(response?.structuredObservations)
+    ? response.structuredObservations
+    : []
+  if (evalCase.expectedObservationStatus) {
+    const metricObservations = structuredObservations.filter((observation) =>
+      observation?.kind === 'comparison_metric')
+    if (metricObservations.length !== 1) {
+      failures.push(`expected one comparison metric observation, received ${metricObservations.length}`)
+    } else if (metricObservations[0]?.status !== evalCase.expectedObservationStatus) {
+      failures.push(
+        `expected observation status ${evalCase.expectedObservationStatus}, received ${metricObservations[0]?.status ?? 'missing'}`,
+      )
+    }
+  }
+  if (evalCase.expectedFindingObservationCount !== undefined) {
+    const findingCount = structuredObservations.filter((observation) =>
+      observation?.kind === 'signal_finding').length
+    if (findingCount !== evalCase.expectedFindingObservationCount) {
+      failures.push(
+        `expected ${evalCase.expectedFindingObservationCount} finding observations, received ${findingCount}`,
+      )
+    }
   }
 
   if (evidenceExpectation === 'required' && citedEvidence.length === 0) {

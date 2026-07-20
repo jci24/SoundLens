@@ -4,6 +4,7 @@ import type {
   IAgentQueryRequest,
   IAgentQueryResponse,
 } from '../types/copilot.types'
+import { isStructuredObservationCollection } from './structuredObservationValidation'
 
 interface IAgentStreamEnvelope {
   eventType: 'activity' | 'result' | 'error'
@@ -121,7 +122,8 @@ const isAgentQueryResponse = (value: unknown): value is IAgentQueryResponse => {
     Array.isArray(response.limitations) &&
     Array.isArray(response.nextSteps) &&
     Array.isArray(response.toolsUsed) &&
-    isEvidenceSufficiency(response.evidenceSufficiency)
+    isEvidenceSufficiency(response.evidenceSufficiency) &&
+    isStructuredObservationCollection(response.structuredObservations)
 }
 
 const isEvidenceSufficiency = (value: unknown) => {

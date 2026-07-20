@@ -108,8 +108,8 @@ Ordered slices:
 7. completed: bounded industry-practice routing for organization workflows such as evaluating, testing, validating, comparing, and benchmarking product sound, without overriding explicit workspace references
 8. completed: routing evaluation coverage across deterministic facts, selected evidence, theory, guidance, research, clarification, and trust refusals, with strict isolation checks and a threshold proposal derived from observed failures
 9. completed: backend-owned selected-comparison evidence sufficiency for digital metrics, selected spectrum findings, physical SPL, and causal requests, with compact Copilot presentation
-10. next agent hardening: structured observation contract over stable comparison evidence
-11. typed investigation-plan contract after sufficiency and observation contracts exist
+10. completed: current-session structured metric and finding observations with deterministic evidence fingerprints and collapsed Copilot inspection
+11. next agent hardening: typed investigation-plan contract after sufficiency and observation contracts exist
 12. research source-quality and applicability contract after the source/privacy policy and routing eval gate
 
 Boundary:
@@ -150,6 +150,7 @@ Priority:
 **`codex/structured-comparison-observations`**
 
 - User value: comparison claims remain inspectable and reusable without relying on prose.
+- Status: completed for selected-comparison Copilot responses with current-session references; durable provenance remains deferred.
 - Dependency: sufficiency contract and stable current comparison identifiers.
 - Scope: typed measured observations with evidence references, scope, status, and limitations.
 - Out of scope: hypotheses, conclusions, persistence, or external research synthesis.

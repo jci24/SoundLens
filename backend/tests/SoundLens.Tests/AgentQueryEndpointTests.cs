@@ -873,8 +873,7 @@ public sealed class AgentQueryEndpointTests : IClassFixture<WebApplicationFactor
     public async Task ResolvesBoundedComparisonExplanationFromBackendEvidence()
     {
         const string rawMalformedResponse = "{ \"answer\": \"raw model payload\"";
-        var chatClientProvider = new StubChatClientProvider(
-            """
+        const string validSelectedResponse = """
             {
               "answer": "Within the selected ROI, the current crest-factor difference is small and the comparison evidence alone does not establish the cause.",
               "citedEvidence": [
@@ -883,7 +882,10 @@ public sealed class AgentQueryEndpointTests : IClassFixture<WebApplicationFactor
               "limitations": [],
               "nextSteps": []
             }
-            """,
+            """;
+        var chatClientProvider = new StubChatClientProvider(
+            validSelectedResponse,
+            validSelectedResponse,
             rawMalformedResponse,
             """
             {
@@ -944,25 +946,24 @@ public sealed class AgentQueryEndpointTests : IClassFixture<WebApplicationFactor
 
             Assert.Equal(2, signalIds.Length);
 
-            var response = await client.PostAsJsonAsync(
-                "/api/agent/query",
-                new
+            var selectedRequest = new
+            {
+                question = "Explain the selected comparison evidence.",
+                signalIds,
+                startTimeSeconds = 0.0,
+                endTimeSeconds = 0.25,
+                comparisonContext = new
                 {
-                    question = "Explain the selected comparison evidence.",
-                    signalIds,
-                    startTimeSeconds = 0.0,
-                    endTimeSeconds = 0.25,
-                    comparisonContext = new
-                    {
-                        recordingIdA = waveformPayload.Recordings[0].RecordingId,
-                        recordingIdB = waveformPayload.Recordings[1].RecordingId,
-                        metricKey = "crestFactorDelta",
-                        signalIdA = signalIds[0],
-                        signalIdB = signalIds[1],
-                        meanDifference = 999,
-                        unit = "invented-unit"
-                    }
-                });
+                    recordingIdA = waveformPayload.Recordings[0].RecordingId,
+                    recordingIdB = waveformPayload.Recordings[1].RecordingId,
+                    metricKey = "crestFactorDelta",
+                    signalIdA = signalIds[0],
+                    signalIdB = signalIds[1],
+                    meanDifference = 999,
+                    unit = "invented-unit"
+                }
+            };
+            var response = await client.PostAsJsonAsync("/api/agent/query", selectedRequest);
 
             Assert.Equal(HttpStatusCode.OK, response.StatusCode);
 
@@ -978,12 +979,43 @@ public sealed class AgentQueryEndpointTests : IClassFixture<WebApplicationFactor
             Assert.DoesNotContain(payload.Limitations, item => item.Contains("dBFS", StringComparison.OrdinalIgnoreCase));
             Assert.Equal(AgentEvidenceSufficiencyStatuses.Partial, payload.EvidenceSufficiency?.Status);
             Assert.Equal(AgentEvidenceIntents.CrestFactorDifference, payload.EvidenceSufficiency?.Intent);
+            var structuredObservation = payload.StructuredObservations.Single(observation =>
+                observation.Kind == AgentStructuredObservationKinds.ComparisonMetric);
+            Assert.Equal(AgentStructuredObservationKinds.ComparisonMetric, structuredObservation.Kind);
+            Assert.Equal(AgentStructuredObservationStatuses.Limited, structuredObservation.Status);
+            Assert.Equal(AgentObservationScopeKinds.RegionOfInterest, structuredObservation.Scope.Kind);
+            Assert.Equal("crestFactorDelta", structuredObservation.ComparisonMetric?.MetricKey);
+            Assert.Equal("ratio", structuredObservation.ComparisonMetric?.Unit);
+            Assert.Equal(0, structuredObservation.ComparisonMetric?.Aggregate.MeanDifference);
+            Assert.Equal(structuredObservation.ObservationId, Assert.Single(structuredObservation.EvidenceReferences).ReferenceId);
             Assert.NotNull(chatClientProvider.LastUserMessage);
             Assert.Contains("Compared pairs: 1", chatClientProvider.LastUserMessage, StringComparison.Ordinal);
             Assert.Contains("Mean delta A-B: 0 ratio", chatClientProvider.LastUserMessage, StringComparison.Ordinal);
             Assert.DoesNotContain("999", chatClientProvider.LastUserMessage, StringComparison.Ordinal);
             Assert.DoesNotContain("invented-unit", chatClientProvider.LastUserMessage, StringComparison.Ordinal);
             Assert.NotNull(Assert.Single(chatClientProvider.CompletionOptions).ResponseFormat);
+
+            using var streamRequest = new HttpRequestMessage(HttpMethod.Post, "/api/agent/query/stream")
+            {
+                Content = JsonContent.Create(selectedRequest)
+            };
+            using var streamResponse = await client.SendAsync(
+                streamRequest,
+                HttpCompletionOption.ResponseHeadersRead);
+            streamResponse.EnsureSuccessStatusCode();
+            var streamBody = await streamResponse.Content.ReadAsStringAsync();
+            var streamResult = streamBody
+                .Split("\n\n", StringSplitOptions.RemoveEmptyEntries)
+                .Select(block => block.Split('\n').FirstOrDefault(line => line.StartsWith("data:", StringComparison.Ordinal)))
+                .Where(line => line is not null)
+                .Select(line => JsonDocument.Parse(line![5..].Trim()).RootElement.Clone())
+                .Single(envelope => envelope.GetProperty("eventType").GetString() == "result")
+                .GetProperty("response")
+                .Deserialize<AgentQueryResponse>(JsonSerializerOptions.Web);
+            Assert.NotNull(streamResult);
+            Assert.Equal(
+                payload.StructuredObservations.Select(observation => observation.ObservationId),
+                streamResult.StructuredObservations.Select(observation => observation.ObservationId));
 
             var malformedResponse = await client.PostAsJsonAsync(
                 "/api/agent/query",
@@ -1012,6 +1044,10 @@ public sealed class AgentQueryEndpointTests : IClassFixture<WebApplicationFactor
             Assert.Contains(malformedPayload.Limitations, item => item == AgentStructuredResponseParser.InvalidOutputLimitation);
             Assert.Contains(malformedPayload.Limitations, item => item.Contains("selected ROI only", StringComparison.OrdinalIgnoreCase));
             Assert.Equal(AgentEvidenceSufficiencyStatuses.Partial, malformedPayload.EvidenceSufficiency?.Status);
+            Assert.Equal(
+                structuredObservation.ObservationId,
+                malformedPayload.StructuredObservations.Single(observation =>
+                    observation.Kind == AgentStructuredObservationKinds.ComparisonMetric).ObservationId);
 
             var guidanceResponse = await client.PostAsJsonAsync(
                 "/api/agent/query",
@@ -1038,6 +1074,7 @@ public sealed class AgentQueryEndpointTests : IClassFixture<WebApplicationFactor
             Assert.Empty(guidancePayload.CitedEvidence);
             Assert.Empty(guidancePayload.ToolsUsed);
             Assert.Null(guidancePayload.EvidenceSufficiency);
+            Assert.Empty(guidancePayload.StructuredObservations);
             Assert.Contains(Path.GetFileName(quietPath), chatClientProvider.LastUserMessage, StringComparison.Ordinal);
             Assert.Contains(Path.GetFileName(loudPath), chatClientProvider.LastUserMessage, StringComparison.Ordinal);
             Assert.Contains("AVAILABLE SOUNDLENS CAPABILITIES", chatClientProvider.LastUserMessage, StringComparison.Ordinal);
@@ -1184,10 +1221,18 @@ public sealed class AgentQueryEndpointTests : IClassFixture<WebApplicationFactor
             Assert.Empty(fullDurationPayload.ToolsUsed);
             Assert.Equal(AgentEvidenceSufficiencyStatuses.Unavailable, fullDurationPayload.EvidenceSufficiency?.Status);
             Assert.Equal(AgentEvidenceIntents.PhysicalSplConclusion, fullDurationPayload.EvidenceSufficiency?.Intent);
+            var fullDurationObservation = fullDurationPayload.StructuredObservations.Single(observation =>
+                observation.Kind == AgentStructuredObservationKinds.ComparisonMetric);
+            Assert.Equal(AgentStructuredObservationStatuses.Limited, fullDurationObservation.Status);
+            Assert.Equal(AgentObservationScopeKinds.FullDuration, fullDurationObservation.Scope.Kind);
 
             Assert.Contains("selected ROI", roiPayload.Answer, StringComparison.OrdinalIgnoreCase);
             Assert.Contains(roiPayload.Limitations, item => item.Contains("selected ROI only", StringComparison.OrdinalIgnoreCase));
             Assert.Contains(roiPayload.NextSteps, item => item.Contains("calibration reference", StringComparison.OrdinalIgnoreCase));
+            var roiObservation = roiPayload.StructuredObservations.Single(observation =>
+                observation.Kind == AgentStructuredObservationKinds.ComparisonMetric);
+            Assert.Equal(AgentObservationScopeKinds.RegionOfInterest, roiObservation.Scope.Kind);
+            Assert.NotEqual(fullDurationObservation.ObservationId, roiObservation.ObservationId);
 
             Assert.Contains("mean A-B difference of -0.25 FS", causalPayload.Answer, StringComparison.Ordinal);
             Assert.Contains("does not establish a cause", causalPayload.Answer, StringComparison.OrdinalIgnoreCase);
@@ -1198,6 +1243,10 @@ public sealed class AgentQueryEndpointTests : IClassFixture<WebApplicationFactor
             Assert.Empty(causalPayload.ToolsUsed);
             Assert.Equal(AgentEvidenceSufficiencyStatuses.Unavailable, causalPayload.EvidenceSufficiency?.Status);
             Assert.Equal(AgentEvidenceIntents.CausalExplanation, causalPayload.EvidenceSufficiency?.Intent);
+            Assert.Equal(
+                roiObservation.ObservationId,
+                causalPayload.StructuredObservations.Single(observation =>
+                    observation.Kind == AgentStructuredObservationKinds.ComparisonMetric).ObservationId);
         }
         finally
         {

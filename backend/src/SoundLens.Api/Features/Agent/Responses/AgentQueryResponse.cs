@@ -11,6 +11,7 @@ public sealed record AgentQueryResponse(
     public IReadOnlyList<AgentExternalCitation> ExternalCitations { get; init; } = [];
     public IReadOnlyList<AgentActivityEvent> ActivityTrace { get; init; } = [];
     public AgentEvidenceSufficiency? EvidenceSufficiency { get; init; }
+    public IReadOnlyList<AgentStructuredObservation> StructuredObservations { get; init; } = [];
 }
 
 public sealed record AgentEvidenceSufficiency(

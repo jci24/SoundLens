@@ -42,6 +42,7 @@ public sealed record ResolvedComparisonObservation(
 public sealed record ResolvedComparisonFinding(
     string SignalId,
     string Category,
+    string Severity,
     string Label,
     string? Detail);
 
@@ -131,6 +132,7 @@ public sealed class ComparisonExplanationContextResolver(
             .SelectMany(signal => signal.Findings.Select(finding => new ResolvedComparisonFinding(
                 signal.SignalId,
                 finding.Category,
+                finding.Severity,
                 finding.Label,
                 finding.Detail)))
             .ToList();

@@ -122,7 +122,7 @@ public sealed class SelectedComparisonTrustGuardTests
             Delta: -0.25),
         Findings:
         [
-            new ResolvedComparisonFinding("recording-a:ch:0", "TonalPeak", "Tonal peak", "Peak near 1 kHz"),
-            new ResolvedComparisonFinding("recording-a:ch:0", "HarmonicSeries", "Harmonic series", "Fundamental near 100 Hz")
+            new ResolvedComparisonFinding("recording-a:ch:0", "TonalPeak", "Info", "Tonal peak", "Peak near 1 kHz"),
+            new ResolvedComparisonFinding("recording-a:ch:0", "HarmonicSeries", "Info", "Harmonic series", "Fundamental near 100 Hz")
         ]);
 }

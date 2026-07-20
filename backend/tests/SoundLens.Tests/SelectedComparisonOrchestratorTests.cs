@@ -2,6 +2,7 @@ using OpenAI.Chat;
 using SoundLens.Api.Configuration;
 using SoundLens.Api.Features.Agent.Commands;
 using SoundLens.Api.Features.Agent.Common;
+using SoundLens.Api.Features.Agent.Responses;
 using SoundLens.Api.Features.Comparisons.Common;
 
 namespace SoundLens.Tests;
@@ -59,6 +60,10 @@ public sealed class SelectedComparisonOrchestratorTests
         Assert.Contains(expectedAnswer, response.Answer, StringComparison.OrdinalIgnoreCase);
         Assert.Contains(response.Limitations, limitation =>
             limitation.Contains("selected ROI only", StringComparison.OrdinalIgnoreCase));
+        var observation = Assert.Single(response.StructuredObservations);
+        Assert.Equal(AgentStructuredObservationKinds.ComparisonMetric, observation.Kind);
+        Assert.Equal(AgentStructuredObservationStatuses.Limited, observation.Status);
+        Assert.Equal(AgentObservationScopeKinds.RegionOfInterest, observation.Scope.Kind);
         Assert.Equal(1, resolver.CallCount);
         Assert.Equal(0, chatClientProvider.CallCount);
     }

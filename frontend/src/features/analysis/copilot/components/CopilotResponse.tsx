@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { AlertCircle, ChevronDown, ChevronUp, RefreshCw } from 'lucide-react'
 import { CopilotEvidenceBadge } from './CopilotEvidenceBadge'
 import { CopilotCitedAnswer } from './CopilotCitedAnswer'
+import { CopilotMeasuredEvidence } from './CopilotMeasuredEvidence'
 import type { IAgentQueryResponse } from '../types/copilot.types'
 import './CopilotResponse.scss'
 
@@ -39,6 +40,8 @@ const CopilotResponse = ({ response, hasActivityTrace = false, onRegenerate }: I
       {externalCitations.length > 0
         ? <CopilotCitedAnswer answer={response.answer} citations={externalCitations} />
         : <p className="copilot-response__answer">{response.answer}</p>}
+
+      <CopilotMeasuredEvidence observations={response.structuredObservations ?? []} />
 
       {externalCitations.length > 0 && (
         <section className="copilot-response__section" aria-label="Sources">

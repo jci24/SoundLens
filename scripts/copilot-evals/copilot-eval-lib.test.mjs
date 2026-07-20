@@ -98,6 +98,8 @@ test('validates routing modes and evidence expectations', () => {
       externalCitationExpectation: 'forbidden',
       expectedEvidenceSufficiencyStatus: 'supported',
       expectedEvidenceIntent: 'digital_level_difference',
+      expectedObservationStatus: 'complete',
+      expectedFindingObservationCount: 0,
     }],
   })
   assert.deepEqual(valid, [])
@@ -113,6 +115,8 @@ test('validates routing modes and evidence expectations', () => {
       externalCitationExpectation: 'maybe',
       expectedEvidenceSufficiencyStatus: 'certain',
       expectedEvidenceIntent: '',
+      expectedObservationStatus: 'certain',
+      expectedFindingObservationCount: -1,
     }],
   })
   assert.ok(invalid.some((failure) => failure.includes('expectedAnswerMode')))
@@ -121,6 +125,8 @@ test('validates routing modes and evidence expectations', () => {
   assert.ok(invalid.some((failure) => failure.includes('externalCitationExpectation')))
   assert.ok(invalid.some((failure) => failure.includes('expectedEvidenceSufficiencyStatus')))
   assert.ok(invalid.some((failure) => failure.includes('expectedEvidenceIntent')))
+  assert.ok(invalid.some((failure) => failure.includes('expectedObservationStatus')))
+  assert.ok(invalid.some((failure) => failure.includes('expectedFindingObservationCount')))
 })
 
 test('validates the committed trust and routing datasets', async () => {
@@ -247,6 +253,29 @@ test('grades backend-owned evidence sufficiency status and intent', () => {
   assert.equal(result.pass, false)
   assert.ok(result.failures.some((failure) => failure.includes('expected evidence sufficiency contradicted')))
   assert.ok(result.failures.every((failure) => !failure.includes('expected evidence intent')))
+})
+
+test('grades backend-owned structured metric and finding observations', () => {
+  const result = gradeResponse({
+    evidenceExpectation: 'forbidden',
+    expectedObservationStatus: 'mixed',
+    expectedFindingObservationCount: 1,
+  }, {
+    answer: 'Bounded answer.',
+    citedEvidence: [],
+    limitations: [],
+    nextSteps: [],
+    toolsUsed: [],
+    structuredObservations: [
+      { kind: 'comparison_metric', status: 'limited' },
+      { kind: 'signal_finding', status: 'complete' },
+      { kind: 'signal_finding', status: 'complete' },
+    ],
+  })
+
+  assert.equal(result.pass, false)
+  assert.ok(result.failures.includes('expected observation status mixed, received limited'))
+  assert.ok(result.failures.includes('expected 1 finding observations, received 2'))
 })
 
 test('requires every repeated run and every setup to pass', () => {

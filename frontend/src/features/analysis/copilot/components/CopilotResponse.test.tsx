@@ -17,7 +17,107 @@ const response = {
   toolsUsed: ['get_spectrum_summary'],
 }
 
+const structuredObservations = [
+  {
+    observationId: 'obs_v1_1234567890abcdef12345678',
+    kind: 'comparison_metric' as const,
+    status: 'limited' as const,
+    scope: { kind: 'roi' as const, startTimeSeconds: 0.25, endTimeSeconds: 0.75 },
+    limitationCodes: ['LowCoverage'],
+    evidenceReferences: [
+      {
+        referenceId: 'obs_v1_1234567890abcdef12345678',
+        evidenceType: 'comparison_metric' as const,
+        recordingIds: ['recording-a', 'recording-b'],
+        signalIds: ['recording-a:ch:0', 'recording-b:ch:0'],
+        metricKey: 'rmsAmplitudeDelta',
+        scope: { kind: 'roi' as const, startTimeSeconds: 0.25, endTimeSeconds: 0.75 },
+      },
+    ],
+    comparisonMetric: {
+      metricKey: 'rmsAmplitudeDelta' as const,
+      metricLabel: 'RMS amplitude',
+      unit: 'FS' as const,
+      aggregate: {
+        comparedPairCount: 1,
+        missingValueCount: 0,
+        meanDifference: -0.25,
+        medianDifference: -0.25,
+        minimumDifference: -0.25,
+        maximumDifference: -0.25,
+        spread: 0,
+      },
+      selectedPair: {
+        recordingIdA: 'recording-a',
+        recordingFileNameA: 'baseline.wav',
+        signalIdA: 'recording-a:ch:0',
+        signalDisplayNameA: 'Channel 1',
+        valueA: 0.25,
+        recordingIdB: 'recording-b',
+        recordingFileNameB: 'candidate.wav',
+        signalIdB: 'recording-b:ch:0',
+        signalDisplayNameB: 'Channel 1',
+        valueB: 0.5,
+        difference: -0.25,
+      },
+    },
+    signalFinding: null,
+  },
+  {
+    observationId: 'obs_v1_abcdef1234567890abcdef12',
+    kind: 'signal_finding' as const,
+    status: 'complete' as const,
+    scope: { kind: 'roi' as const, startTimeSeconds: 0.25, endTimeSeconds: 0.75 },
+    limitationCodes: [],
+    evidenceReferences: [
+      {
+        referenceId: 'obs_v1_abcdef1234567890abcdef12',
+        evidenceType: 'signal_finding' as const,
+        recordingIds: ['recording-a'],
+        signalIds: ['recording-a:ch:0'],
+        metricKey: null,
+        scope: { kind: 'roi' as const, startTimeSeconds: 0.25, endTimeSeconds: 0.75 },
+      },
+    ],
+    comparisonMetric: null,
+    signalFinding: {
+      side: 'A' as const,
+      recordingId: 'recording-a',
+      recordingFileName: 'baseline.wav',
+      signalId: 'recording-a:ch:0',
+      signalDisplayName: 'Channel 1',
+      category: 'TonalPeak',
+      severity: 'Info',
+      label: 'Dominant tonal component',
+      detail: 'Peak near 1 kHz',
+    },
+  },
+]
+
 describe('CopilotResponse', () => {
+  it('keeps backend-owned measured observations collapsed until requested', () => {
+    render(
+      <CopilotResponse
+        response={{ ...response, structuredObservations }}
+        onRegenerate={() => {}}
+      />
+    )
+
+    const toggle = screen.getByRole('button', { name: /Measured evidence 2 observations/i })
+    expect(toggle).toHaveAttribute('aria-expanded', 'false')
+    expect(screen.queryByText('RMS amplitude')).not.toBeInTheDocument()
+
+    fireEvent.click(toggle)
+
+    expect(toggle).toHaveAttribute('aria-expanded', 'true')
+    expect(screen.getByText('RMS amplitude')).toBeVisible()
+    expect(screen.getByText('0.25–0.75 s')).toBeVisible()
+    expect(screen.getByText('A 0.25 FS · B 0.5 FS · Δ -0.25 FS')).toBeVisible()
+    expect(screen.getByText('Dominant tonal component')).toBeVisible()
+    expect(screen.getByText('Limits: LowCoverage')).toBeVisible()
+    expect(screen.getByTitle('obs_v1_1234567890abcdef12345678')).toHaveTextContent('obs_v1_12345678…')
+  })
+
   it.each([
     ['supported', 'Evidence supported'],
     ['partial', 'Partial evidence'],
