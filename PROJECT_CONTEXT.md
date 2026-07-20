@@ -1,6 +1,6 @@
 # SoundLens Project Context
 
-Last updated: 2026-07-16
+Last updated: 2026-07-20
 
 ## Product Problem
 
@@ -31,6 +31,8 @@ The immediate product direction is a focused A/B comparison workflow:
 5. Review comparison metrics in a stable domain order and choose an evidence focus.
 6. Drill down into waveform and spectrum evidence.
 7. Generate a grounded explanation and report over selected evidence.
+
+The A/B workflow is the smallest trustworthy comparison primitive, not the intended limit of the product. If customer validation demonstrates campaign-scale demand, SoundLens should add metadata-driven reference-to-many, matched-pair, cohort, and condition-matrix workflows above it. Aggregate views must always drill into a bounded A/B or focused evidence view rather than replacing inspectable evidence with an opaque score.
 
 ## North Star
 

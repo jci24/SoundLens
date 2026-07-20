@@ -262,44 +262,63 @@ Explicitly deferred work:
 - representing every customer request as a separate hard-coded analysis
 - claiming support for hundreds of recordings or thousands of signals before Milestone 7 scale gates pass
 
-## Milestone 7 — Lightweight Persistence And Batch Hardening
+## Milestone 7 — Persisted Test Campaigns, Batch Execution, And Scalable Comparison
 
 User outcome:
-- If validation requires it, users can resume work more reliably across sessions and larger batches.
+- If validation requires it, users can organize large test campaigns, run bounded repeatable analyses, triage aggregate results, and drill into trustworthy evidence without manually opening every recording.
+
+Comparison model:
+- retain focused A/B as the atomic evidence, explanation, and report view
+- add reference-to-many first for baseline-versus-candidate screening
+- add metadata-matched A/B batches for repeated operating conditions
+- add cohort distributions and condition matrices only after matching, compatibility, and aggregate semantics are validated
+- never reduce heterogeneous measurements to one cross-unit quality score
 
 Major capabilities:
-- lightweight project metadata
+- persisted project, test-campaign, session, recording, signal, condition, and calibration metadata
+- explicit compatibility and pairing keys such as variant, operating point, speed, load, sensor position, and environment
+- server-owned dataset query, filtering, selection, and pagination
+- versioned deterministic analysis recipes and derived-result provenance
 - content-hash-based reuse
-- bounded job execution
-- progress, cancellation, and per-file failure isolation
+- bounded asynchronous job execution
+- progress, cancellation, retry, and per-file failure isolation
 - server-owned pagination and aggregation for large result sets
 
 Large-session visualization program:
 - recording and signal navigation now virtualizes the visible window; server-owned pagination and aggregate views remain necessary for larger persisted datasets
-- separate dataset navigation, batch execution, aggregate overview, and detailed evidence inspection instead of mounting one chart per signal
+- separate campaign navigation, batch configuration, job monitoring, aggregate overview, and detailed evidence inspection instead of mounting one chart per signal
+- start with searchable exact-value tables, compatibility summaries, unmatched-item lists, and exception queues
 - introduce metric-specific matrix or heatmap overviews only after batch contracts exist; each metric keeps its own unit, scale, coverage, and limitation state
 - add distribution views and bounded small multiples for selected cohorts or exceptions, then drill into the existing waveform and spectrum workspace for a small active selection
 - aggregate or rasterize dense evidence on the backend at display resolution rather than sending every raw sample to the browser
 - preserve stable recording and signal identifiers so filtering, pagination, virtualization, playback, comparison, reporting, and Copilot actions never depend on mounted UI instances
+- keep raw recordings in backend-owned object storage, searchable metadata in a catalog, and versioned derived results in a queryable result store when deployment architecture requires that separation
 
 Proposed thin-slice sequence after large-session navigation:
-1. `codex/batch-comparison-contract`: define backend-owned batch selection, alignment, metric, ROI, progress, and result contracts without adding a broad dashboard.
-2. `codex/batch-comparison-overview`: add a paginated exact-value table and one metric-at-a-time matrix or heatmap with linked drill-down.
-3. `codex/batch-distribution-views`: add within-unit cohort distributions and bounded small multiples for selected or exceptional evidence.
-4. `codex/batch-execution-hardening`: add bounded queues, cancellation, retry, partial-failure isolation, and persisted progress before accepting production-scale batches.
+1. `codex/test-campaign-metadata-contract`: define the persisted hierarchy, metadata schema, stable identity, provenance, and compatibility keys without changing the current A/B workspace.
+2. `codex/dataset-query-and-selection`: add server-owned filtering, pagination, bounded selection, and explicit matched or unmatched states.
+3. `codex/batch-comparison-contract`: define versioned recipes, reference-to-many and matched-pair selections, ROI, progress, per-item results, coverage, and failure contracts.
+4. `codex/batch-comparison-overview`: add a paginated exact-value table, compatibility and exception summaries, and linked drill-down into the existing A/B evidence workspace.
+5. `codex/batch-distribution-views`: add within-unit cohort distributions, one metric-at-a-time matrices, and bounded small multiples only after aggregate semantics are validated.
+6. `codex/batch-execution-hardening`: add bounded queues, cancellation, retry, partial-failure isolation, content-hash reuse, and persisted progress before accepting production-scale batches.
 
 Dependencies:
 - evidence that the comparison workflow is valuable enough to justify persistence work
 
 Validation gate:
 - customer usage demonstrates that session-only workflow is a blocker
-- benchmark fixtures cover at least 100 recordings, large multichannel hierarchies, and 10,000 signal summaries without rendering 10,000 waveform or spectrum charts
+- interviews distinguish physical channels from derived curves, operating points, time regions, repetitions, and campaign-wide result counts, and provide representative typical and worst-case volumes
+- reference-to-many and metadata-matched pairs solve a recurring decision before generalized cohort comparison is built
+- benchmark fixtures first cover at least 100 recordings, large multichannel hierarchies, and 10,000 signal summaries without rendering 10,000 waveform or spectrum charts; later production targets must come from validated customer campaigns rather than arbitrary founder assumptions
 - filters, selection, and drill-down remain responsive while exact values, units, coverage, and backend limitations remain inspectable
+- batch failures, incompatible inputs, unmatched pairs, exclusions, and stale derived results remain visible and recoverable
 
 Explicitly deferred work:
 - microservices
 - distributed workers
-- generalized platform infrastructure
+- generalized platform infrastructure before one bounded deployment requires it
+- cohort quality scores or cross-unit rankings
+- rendering or transmitting every raw waveform, spectrum, or derived curve at once
 
 ## Cross-Cutting Program — Evidence-Grounded Agent Maturity
 

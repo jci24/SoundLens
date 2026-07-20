@@ -1,6 +1,6 @@
 # SoundLens Backlog
 
-Last updated: 2026-07-19
+Last updated: 2026-07-20
 
 This backlog reflects the immediate product direction: focused A/B comparison of repeated recordings with deterministic evidence, drill-down, grounded explanation, and report export. The later agentic Copilot initiative is sequenced in `ROADMAP.md` and is not yet part of the ordered implementation queue.
 
@@ -231,10 +231,10 @@ Normal priority:
 
 The following remain intentionally out of the immediate backlog:
 
-- true multi-recording cohort aggregation across several A-side and B-side recordings
-- persistent projects and datasets
+- campaign-scale reference-to-many, matched-pair, cohort, and condition-matrix comparison until Milestone 7 discovery and metadata gates are met
+- persistent projects, test campaigns, and datasets
 - advanced psychoacoustic metrics beyond the validated wedge
-- generalized batch infrastructure
+- generalized batch infrastructure beyond the staged Milestone 7 contracts
 - enterprise deployment concerns
 - unvalidated analysis catalogues or one-off customer-specific metric implementations
 - agent-operated investigations, recipes, and broader workspace automation until the current comparison wedge and trust gates are validated
