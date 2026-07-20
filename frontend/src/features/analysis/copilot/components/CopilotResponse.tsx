@@ -4,6 +4,7 @@ import { CopilotEvidenceBadge } from './CopilotEvidenceBadge'
 import { CopilotCitedAnswer } from './CopilotCitedAnswer'
 import { CopilotMeasuredEvidence } from './CopilotMeasuredEvidence'
 import { CopilotInvestigationPlan } from './CopilotInvestigationPlan'
+import { CopilotSourceDetails } from './CopilotSourceDetails'
 import type { IAgentQueryResponse } from '../types/copilot.types'
 import './CopilotResponse.scss'
 
@@ -24,6 +25,7 @@ interface ICopilotResponseProps {
 const CopilotResponse = ({ response, hasActivityTrace = false, onRegenerate }: ICopilotResponseProps) => {
   const [isToolsOpen, setIsToolsOpen] = useState(false)
   const externalCitations = response.externalCitations ?? []
+  const externalSources = [...new Map(externalCitations.map((citation) => [citation.url, citation])).values()]
 
   return (
     <div className="copilot-response">
@@ -49,7 +51,7 @@ const CopilotResponse = ({ response, hasActivityTrace = false, onRegenerate }: I
         <section className="copilot-response__section" aria-label="Sources">
           <p className="copilot-response__section-label">Sources</p>
           <ol className="copilot-response__sources">
-            {externalCitations.map((citation, index) => (
+            {externalSources.map((citation, index) => (
               <li key={`${citation.url}-${citation.startIndex}-${citation.endIndex}`}>
                 <a href={citation.url} rel="noreferrer" target="_blank">
                   <span aria-hidden="true">{index + 1}. </span>{citation.title}
@@ -57,6 +59,7 @@ const CopilotResponse = ({ response, hasActivityTrace = false, onRegenerate }: I
               </li>
             ))}
           </ol>
+          <CopilotSourceDetails citations={externalCitations} />
         </section>
       )}
 

@@ -7,13 +7,16 @@ namespace SoundLens.Api.Features.Agent.Common;
 public static class WebResearchResponseParser
 {
     private const int MaxCitations = 8;
+    private static readonly IReadOnlySet<string> TrackingQueryParameters = new HashSet<string>(
+        ["utm_source", "utm_medium", "utm_campaign", "utm_term", "utm_content", "utm_id", "gclid", "fbclid"],
+        StringComparer.OrdinalIgnoreCase);
 
     public static bool TryParse(
         WebResearchResult result,
         out string answer,
         out IReadOnlyList<AgentExternalCitation> citations)
     {
-        var rawAnswer = result.Answer.Trim();
+        var rawAnswer = result.Answer;
         answer = string.Empty;
         citations = [];
         if (string.IsNullOrWhiteSpace(rawAnswer) || result.Citations.Count == 0)
@@ -122,6 +125,20 @@ public static class WebResearchResponseParser
             removed[index] = true;
         }
 
+        var contentStart = 0;
+        while (contentStart < rawAnswer.Length &&
+               (removed[contentStart] || char.IsWhiteSpace(rawAnswer[contentStart])))
+        {
+            removed[contentStart++] = true;
+        }
+
+        var contentEnd = rawAnswer.Length;
+        while (contentEnd > contentStart &&
+               (removed[contentEnd - 1] || char.IsWhiteSpace(rawAnswer[contentEnd - 1])))
+        {
+            removed[--contentEnd] = true;
+        }
+
         var builder = new StringBuilder(rawAnswer.Length);
         var mappedIndexes = new int[rawAnswer.Length + 1];
         for (var index = 0; index < rawAnswer.Length; index++)
@@ -134,7 +151,7 @@ public static class WebResearchResponseParser
         }
         mappedIndexes[rawAnswer.Length] = builder.Length;
 
-        answer = builder.ToString().Trim();
+        answer = builder.ToString();
         indexMap = mappedIndexes;
         return !string.IsNullOrWhiteSpace(answer);
     }
@@ -150,11 +167,36 @@ public static class WebResearchResponseParser
         }
 
         var startIndex = Math.Min(indexMap[citation.StartIndex], endIndex - 1);
+        var canonicalUri = Canonicalize(citation.Uri);
         return new AgentExternalCitation(
             citation.Title.Trim(),
-            citation.Uri.AbsoluteUri,
+            canonicalUri.AbsoluteUri,
             startIndex,
-            endIndex);
+            endIndex,
+            ExternalSourceMetadataFactory.Build(canonicalUri));
+    }
+
+    private static Uri Canonicalize(Uri uri)
+    {
+        var builder = new UriBuilder(uri)
+        {
+            Scheme = uri.Scheme.ToLowerInvariant(),
+            Host = uri.IdnHost.ToLowerInvariant(),
+            Fragment = string.Empty
+        };
+        if (uri.IsDefaultPort)
+        {
+            builder.Port = -1;
+        }
+
+        var retainedQuery = uri.Query
+            .TrimStart('?')
+            .Split('&', StringSplitOptions.RemoveEmptyEntries)
+            .Where(part => !TrackingQueryParameters.Contains(
+                Uri.UnescapeDataString(part.Split('=', 2)[0])))
+            .ToArray();
+        builder.Query = string.Join('&', retainedQuery);
+        return builder.Uri;
     }
 
     private static bool HasCitationCoverage(

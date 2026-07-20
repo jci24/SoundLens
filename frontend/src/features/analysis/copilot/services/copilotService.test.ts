@@ -105,6 +105,42 @@ describe('streamAgentQuery', () => {
     ), vi.fn())).rejects.toThrow('invalid event')
   })
 
+  it('accepts conservative source metadata and rejects malformed source assessments', async () => {
+    const answer = 'A current sourced claim.'
+    const citation = {
+      title: 'Standards body',
+      url: 'https://www.iso.org/standard/123.html',
+      startIndex: 0,
+      endIndex: answer.length,
+      sourceMetadata: {
+        publisherHost: 'www.iso.org',
+        sourceClass: 'standards_body',
+        accessStatus: 'not_verified',
+        applicabilityStatus: 'not_assessed',
+      },
+    }
+    const response = {
+      answer,
+      citedEvidence: [],
+      externalCitations: [citation],
+      limitations: [],
+      nextSteps: [],
+      toolsUsed: ['web_search'],
+    }
+
+    await expect(readAgentStream(encodeChunks(
+      `data: ${JSON.stringify({ eventType: 'result', response })}\n\n`,
+    ), vi.fn())).resolves.toMatchObject({ externalCitations: [{ sourceMetadata: { sourceClass: 'standards_body' } }] })
+
+    const malformed = {
+      ...citation,
+      sourceMetadata: { ...citation.sourceMetadata, sourceClass: 'peer_reviewed' },
+    }
+    await expect(readAgentStream(encodeChunks(
+      `data: ${JSON.stringify({ eventType: 'result', response: { ...response, externalCitations: [malformed] } })}\n\n`,
+    ), vi.fn())).rejects.toThrow('invalid event')
+  })
+
   it('surfaces FastEndpoints general errors before reading the stream', async () => {
     vi.stubGlobal('fetch', vi.fn().mockResolvedValue(new Response(JSON.stringify({
       errors: { generalErrors: ['Import at least one audio file before requesting a comparison contract.'] },

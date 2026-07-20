@@ -171,4 +171,12 @@ export interface IAgentExternalCitation {
   url: string
   startIndex: number
   endIndex: number
+  sourceMetadata: IAgentExternalSourceMetadata
+}
+
+export interface IAgentExternalSourceMetadata {
+  publisherHost: string
+  sourceClass: 'standards_body' | 'public_authority' | 'unclassified'
+  accessStatus: 'not_verified'
+  applicabilityStatus: 'not_assessed'
 }

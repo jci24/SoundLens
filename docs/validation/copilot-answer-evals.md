@@ -126,6 +126,13 @@ Fast pure grader tests run in CI without OpenAI or a backend:
 node --test scripts/copilot-evals/*.test.mjs
 ```
 
+Web-response grading also validates backend-owned source metadata. Each citation
+must use a safe HTTP(S) URL, expose a publisher host matching that URL, use an
+allowlisted conservative source class, and state that access is not verified and
+applicability is not assessed. These checks validate the contract and isolation
+boundary; they do not claim that a source is current, accessible, applicable, or
+scientifically sufficient.
+
 Live model failures are production-behavior evidence, not harness defects. Record them as separate follow-up work rather than changing production prompts inside an eval-only slice.
 
 ## Current Coverage And Limits
@@ -177,7 +184,7 @@ Next evaluation layers, in dependency order:
 
 1. plan validity, capability selection, parameters, dependencies, cost class, and approval requirements
 2. durable evidence provenance across persisted sessions and algorithm versions
-3. source quality, applicability, disagreement, citation integrity, and privacy-safe research queries
+3. substantive source quality, verified access, applicability, disagreement, citation integrity, and privacy-safe research queries
 4. plan revision, partial failure, cancellation, recovery, and report traceability after those product contracts exist
 5. complete long-horizon investigation workflows only after persistence and policy-controlled execution exist
 

@@ -205,6 +205,12 @@ test('grades answer mode, evidence isolation, and valid external citations', () 
       url: 'https://example.com/source',
       startIndex: 0,
       endIndex: answer.length,
+      sourceMetadata: {
+        publisherHost: 'example.com',
+        sourceClass: 'unclassified',
+        accessStatus: 'not_verified',
+        applicabilityStatus: 'not_assessed',
+      },
     }],
     limitations: [],
     nextSteps: [],

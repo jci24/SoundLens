@@ -123,9 +123,42 @@ const isAgentQueryResponse = (value: unknown): value is IAgentQueryResponse => {
     Array.isArray(response.limitations) &&
     Array.isArray(response.nextSteps) &&
     Array.isArray(response.toolsUsed) &&
+    isExternalCitationCollection(response.externalCitations, response.answer) &&
     isEvidenceSufficiency(response.evidenceSufficiency) &&
     isStructuredObservationCollection(response.structuredObservations) &&
     isInvestigationPlan(response.investigationPlan)
+}
+
+const isExternalCitationCollection = (value: unknown, answer: string) => {
+  if (value == null) return true
+  if (!Array.isArray(value)) return false
+
+  return value.every((item) => {
+    if (!item || typeof item !== 'object') return false
+    const citation = item as Record<string, unknown>
+    const metadata = citation.sourceMetadata
+    if (!metadata || typeof metadata !== 'object') return false
+    const sourceMetadata = metadata as Record<string, unknown>
+
+    let url: URL
+    try {
+      url = new URL(String(citation.url))
+    } catch {
+      return false
+    }
+
+    return hasExactKeys(citation, ['title', 'url', 'startIndex', 'endIndex', 'sourceMetadata']) &&
+      hasExactKeys(sourceMetadata, ['publisherHost', 'sourceClass', 'accessStatus', 'applicabilityStatus']) &&
+      typeof citation.title === 'string' && citation.title.trim().length > 0 &&
+      ['http:', 'https:'].includes(url.protocol) &&
+      Number.isInteger(citation.startIndex) && Number(citation.startIndex) >= 0 &&
+      Number.isInteger(citation.endIndex) && Number(citation.endIndex) > Number(citation.startIndex) &&
+      Number(citation.endIndex) <= answer.length &&
+      sourceMetadata.publisherHost === url.hostname.toLowerCase() &&
+      ['standards_body', 'public_authority', 'unclassified'].includes(String(sourceMetadata.sourceClass)) &&
+      sourceMetadata.accessStatus === 'not_verified' &&
+      sourceMetadata.applicabilityStatus === 'not_assessed'
+  })
 }
 
 const isEvidenceSufficiency = (value: unknown) => {
@@ -144,6 +177,11 @@ const isEvidenceSufficiency = (value: unknown) => {
 
 const isStringArray = (value: unknown): value is string[] =>
   Array.isArray(value) && value.every((item) => typeof item === 'string')
+
+const hasExactKeys = (value: Record<string, unknown>, keys: string[]) => {
+  const actualKeys = Object.keys(value)
+  return actualKeys.length === keys.length && keys.every((key) => actualKeys.includes(key))
+}
 
 const readCopilotError = async (response: Response) => {
   const fallback = 'The investigation could not be completed.'

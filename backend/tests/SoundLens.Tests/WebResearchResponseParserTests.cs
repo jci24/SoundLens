@@ -20,6 +20,25 @@ public sealed class WebResearchResponseParserTests
         Assert.Equal("https://example.com/standard", citation.Url);
         Assert.Equal(2, citation.StartIndex);
         Assert.Equal(18, citation.EndIndex);
+        Assert.Equal("example.com", citation.SourceMetadata.PublisherHost);
+        Assert.Equal("unclassified", citation.SourceMetadata.SourceClass);
+        Assert.Equal("not_verified", citation.SourceMetadata.AccessStatus);
+        Assert.Equal("not_assessed", citation.SourceMetadata.ApplicabilityStatus);
+    }
+
+    [Fact]
+    public void SurroundingWhitespace_PreservesOriginalCitationOffsets()
+    {
+        const string answer = " \nA sourced claim.\n";
+        var result = new WebResearchResult(
+            answer,
+            [new WebResearchCitation("Source", new Uri("https://example.com/source"), 2, 18)]);
+
+        Assert.True(WebResearchResponseParser.TryParse(result, out var normalized, out var citations));
+        Assert.Equal("A sourced claim.", normalized);
+        var citation = Assert.Single(citations);
+        Assert.Equal(0, citation.StartIndex);
+        Assert.Equal(normalized.Length, citation.EndIndex);
     }
 
     [Theory]
@@ -125,5 +144,39 @@ public sealed class WebResearchResponseParserTests
             [new WebResearchCitation("Source", new Uri("https://example.com"), 19, 33)]);
 
         Assert.True(WebResearchResponseParser.TryParse(result, out _, out _));
+    }
+
+    [Theory]
+    [InlineData("https://www.iso.org/standard/123.html", "standards_body")]
+    [InlineData("https://www.iec.ch/publication/123", "standards_body")]
+    [InlineData("https://webstore.iec.ch/en/publication/5708", "standards_body")]
+    [InlineData("https://ecma-international.org/publications/standards/Ecma-418/", "standards_body")]
+    [InlineData("https://www.nist.gov/publication/example", "public_authority")]
+    [InlineData("https://iso.org.example.com/standard", "unclassified")]
+    public void SourceClassificationUsesOnlyRecognizedExactHosts(string url, string expectedClass)
+    {
+        const string answer = "A sourced technical claim.";
+        var result = new WebResearchResult(
+            answer,
+            [new WebResearchCitation("Source", new Uri(url), 0, answer.Length)]);
+
+        Assert.True(WebResearchResponseParser.TryParse(result, out _, out var citations));
+        Assert.Equal(expectedClass, Assert.Single(citations).SourceMetadata.SourceClass);
+    }
+
+    [Fact]
+    public void CitationUrlRemovesTrackingAndFragmentWithoutChangingContentParameters()
+    {
+        const string answer = "A sourced claim.";
+        var result = new WebResearchResult(
+            answer,
+            [new WebResearchCitation(
+                "Source",
+                new Uri("https://EXAMPLE.com/article?id=42&utm_source=openai#section"),
+                0,
+                answer.Length)]);
+
+        Assert.True(WebResearchResponseParser.TryParse(result, out _, out var citations));
+        Assert.Equal("https://example.com/article?id=42", Assert.Single(citations).Url);
     }
 }

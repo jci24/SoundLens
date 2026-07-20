@@ -172,11 +172,12 @@ Priority:
 **`codex/research-source-quality-contract`**
 
 - User value: cited technical guidance communicates source type, applicability, access limits, and disagreement instead of treating every URL equally.
+- Status: completed for canonical source references, exact-host publisher classes, duplicate-source presentation, and explicit unverified access/unassessed applicability; applicability evaluation and disagreement synthesis remain deferred.
 - Dependency: routing eval gate, research source/privacy policy, and continued user demand for embedded research.
-- Scope: source-reference metadata, source class, applicability and access limitations, and citation validation.
+- Scope: canonical source-reference metadata, conservative source class, explicit applicability and access status, and citation validation.
 - Out of scope: multi-step literature agents, confidential queries, measured-plus-research conclusions, or standards compliance.
-- Acceptance criteria: unsupported citations fail closed; source type and limitations remain explicit; research claims never become measured evidence.
-- Tests or evals: malformed citation, duplicate source, abstract-only, stale source, disagreement, unsafe URL, and privacy-query cases.
+- Acceptance criteria: unsupported citations fail closed; recognized publisher type and unverified limitations remain explicit; research claims never become measured evidence.
+- Tests or evals: malformed metadata, duplicate source, deceptive publisher host, unsafe URL, and canonicalization cases are covered; abstract-only access, staleness, applicability, disagreement, and privacy-query evaluation remain follow-ups.
 - Validation gate: every displayed research claim resolves to a validated source reference.
 
 ### Product discovery. Validate the automotive NVH workflow hypothesis

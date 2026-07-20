@@ -559,10 +559,15 @@ function isValidExternalCitation(citation, answer) {
     return false
   }
 
+  const metadata = citation.sourceMetadata
   return (url.protocol === 'http:' || url.protocol === 'https:') &&
     Number.isInteger(citation.startIndex) && citation.startIndex >= 0 &&
     Number.isInteger(citation.endIndex) && citation.endIndex > citation.startIndex &&
-    citation.endIndex <= answer.length
+    citation.endIndex <= answer.length &&
+    isObject(metadata) && metadata.publisherHost === url.hostname.toLowerCase() &&
+    ['standards_body', 'public_authority', 'unclassified'].includes(metadata.sourceClass) &&
+    metadata.accessStatus === 'not_verified' &&
+    metadata.applicabilityStatus === 'not_assessed'
 }
 
 function hasInternalToolName(value) {
