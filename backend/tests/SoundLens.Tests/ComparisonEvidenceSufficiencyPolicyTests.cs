@@ -104,15 +104,15 @@ public sealed class ComparisonEvidenceSufficiencyPolicyTests
     {
         var findings = new List<ResolvedComparisonFinding>
         {
-            new("recording-a:ch:0", "LowLevel", "Very low signal level", "Peak: 0.0000 FS")
+            new("recording-a:ch:0", "LowLevel", "Info", "Very low signal level", "Peak: 0.0000 FS")
         };
         if (signalCount >= 1)
         {
-            findings.Add(new("recording-a:ch:0", "TonalPeak", "Tonal peak", "Peak near 1 kHz"));
+            findings.Add(new("recording-a:ch:0", "TonalPeak", "Info", "Tonal peak", "Peak near 1 kHz"));
         }
         if (signalCount >= 2)
         {
-            findings.Add(new("recording-b:ch:0", "HarmonicSeries", "Harmonic series", "Fundamental near 100 Hz"));
+            findings.Add(new("recording-b:ch:0", "HarmonicSeries", "Info", "Harmonic series", "Fundamental near 100 Hz"));
         }
 
         var result = ComparisonEvidenceSufficiencyPolicy.Assess(

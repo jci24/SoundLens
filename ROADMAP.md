@@ -323,7 +323,7 @@ SoundLens is approximately a **Level 2 tool-using Copilot with early Level 3 fou
 | Investigation trace | Partially implemented | Observable per-turn activity is ephemeral and is not a complete persisted audit. |
 | Stable evidence identity and provenance | Partially implemented | Session identifiers and evidence citations exist; algorithm, parameter, content-hash, and persisted lineage do not. |
 | Calibration compatibility | Partially implemented | Uncalibrated limitations and refusals exist; multiple real calibration states do not. |
-| Evidence sufficiency and structured claims | Partially implemented | Selected-comparison Copilot responses carry a deterministic sufficiency status; reusable structured observations, hypotheses, and conclusions remain absent. |
+| Evidence sufficiency and structured claims | Partially implemented | Selected-comparison Copilot responses carry deterministic sufficiency and current-session metric/finding observations; durable provenance, hypotheses, and conclusions remain absent. |
 | Persistent investigations and jobs | Missing | The workspace is temporary and has no resumable execution model. |
 | Policy-controlled workspace actions | Missing | Guidance cannot execute or mutate workspace state. |
 
@@ -418,7 +418,7 @@ The committed product order remains:
 2. conduct direct automotive NVH and adjacent workflow validation
 3. maintain the shipped A/B comparison, evidence drill-down, Copilot trust guards, and reports
 4. maintain the strict routing and trust eval gate without adding autonomy
-5. preserve selected-comparison sufficiency and specify structured-observation contracts over existing comparison evidence
+5. preserve selected-comparison sufficiency and structured observations while specifying the typed investigation-plan contract
 
 No persistent investigation, background research, or workspace-operating agent is committed yet.
 

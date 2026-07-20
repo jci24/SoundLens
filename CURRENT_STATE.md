@@ -122,6 +122,7 @@ These findings are useful first-pass cues, but they should still be treated as b
 - Copilot scope follows explicit signal mentions first, then detailed selected-comparison evidence, then an assigned A/B recording pair for explicit comparison intent, and finally the visible focused-workspace signal. The current ROI is retained in every scope.
 - In compare mode, Copilot now also accepts a bounded selected-comparison context from the selected metric, active aligned pair, visible findings, and ROI scope.
 - Selected-comparison Copilot responses carry a backend-owned evidence-sufficiency result. Digital metric, clipping, crest-factor, selected-spectrum, physical-SPL, and causal intents resolve deterministically to supported, partial, missing, contradicted, or unavailable before any explanation is displayed.
+- Selected-comparison responses also carry backend-owned structured observations for the selected metric and deterministic signal findings. Each observation preserves current-session scope, values or finding metadata, limitation codes, measurement completeness, and a versioned evidence fingerprint; Copilot presents these details through a collapsed `Measured evidence` disclosure.
 - Sufficiency treats a measured zero difference as valid evidence, marks mixed aligned directions as contradicted, and cannot be promoted or replaced by model output. The frontend renders the result as one compact status line and does not recompute it.
 - The frontend sends only comparison selection identifiers. The backend re-runs the deterministic recording comparison, validates the aligned pair, resolves the selected metric, and rebuilds findings and limitations before asking the model to explain anything.
 - That explanation path asks the model to explain only backend-owned selected comparison evidence instead of rediscovering or widening the workspace scope.
@@ -129,7 +130,7 @@ These findings are useful first-pass cues, but they should still be treated as b
 - Selected-comparison questions that ask what caused an observed difference also bypass OpenAI. The deterministic response preserves the measured values, ROI, coverage, findings, and limitations while stating that observational comparison evidence does not establish causation.
 - Selected-comparison resolution, trust-guard dispatch, prompt construction, model invocation, structured parsing, and deterministic fallback coordination now belong to a dedicated backend orchestrator. `AgentQueryHandler` retains generic tool-calling and endpoint validation translation rather than owning both pipelines.
 - The backend exposes compact deterministic tools such as metrics, findings, spectrum summaries, and signal comparison summaries.
-- The response returns structured answer text, cited evidence, limitations, next steps, and tools used.
+- The response returns structured answer text, cited evidence, limitations, next steps, tools used, and selected-comparison observation snapshots where applicable.
 - Copilot model output must pass strict JSON shape and evidence-tool validation before any model-authored answer is shown. Malformed, truncated, fenced-invalid, schema-invalid, or raw structured answer content is replaced with a concise deterministic fallback while backend-known comparison evidence and limitations remain available.
 - If the OpenAI API key is missing, the endpoint returns a mode-appropriate structured unavailable response instead of a bare `503`.
 - `POST /api/agent/query/stream` accepts the same identifier-only request as the standard endpoint and streams backend-authored routing, tool, evidence-check, fallback, completion, and failure activity before one atomic validated result. The completed response carries the same bounded activity snapshot.
@@ -139,7 +140,7 @@ The current Copilot supports bounded workspace evidence, isolated general model 
 
 ### Current maturity assessment
 
-The Copilot is approximately a strong Level 2 tool-using assistant with early Level 3 foundations. Routing, deterministic tools, selected-evidence reconstruction, typed selected-comparison sufficiency, trust refusals, structured response validation, bounded cited web research, and observable activity are implemented. Investigation guidance, source quality, calibration compatibility, evidence identity, and trace completeness are partial. Typed executable plans, structured hypotheses and conclusions, persistent investigations, resumable jobs, approval policy, and workspace-operating autonomy are not implemented.
+The Copilot is approximately a strong Level 2 tool-using assistant with early Level 3 foundations. Routing, deterministic tools, selected-evidence reconstruction, typed selected-comparison sufficiency and observations, trust refusals, structured response validation, bounded cited web research, and observable activity are implemented. Investigation guidance, durable provenance, source quality, calibration compatibility, and trace completeness are partial. Typed executable plans, structured hypotheses and conclusions, persistent investigations, resumable jobs, approval policy, and workspace-operating autonomy are not implemented.
 
 This classification is about product responsibility, not model intelligence. The current model may suggest next steps, but it cannot execute an investigation plan or turn model-authored prose into measured evidence.
 
@@ -180,8 +181,10 @@ Eval harness:
 - strict graders cover ambiguous overall criteria, zero difference, missing aligned evidence, ROI-bounded causal uncertainty, and uncalibrated SPL refusal
 - a separate routing corpus covers deterministic facts, selected evidence, general theory, adaptive guidance, cited web research, criterion clarification, and trust refusals while active workspace identifiers remain available
 - deterministic sufficiency fixtures and graders cover supported zero-difference evidence, partial coverage, missing spectrum findings, conflicting aligned directions, and unavailable SPL or causal evidence
+- routing evals also verify the corresponding metric-observation status and deterministic finding-observation count without accepting observations from the dataset request
 - routing grading verifies answer mode, SoundLens-evidence isolation, external-citation expectations, limitations, tool boundaries, overall accuracy, and per-mode mismatches
 - every live run writes a diagnostic JSON artifact; pure dataset, grading, routing-summary, and committed-dataset tests run in CI without OpenAI
+- the 2026-07-20 structured-observation baseline passed 18 of 18 repeated runs across selected explanation, zero difference, mixed directions, missing spectrum evidence, physical-SPL refusal, and ROI causal refusal
 - the 2026-07-19 routing baseline passed 27 of 27 repeated runs with 100% routing accuracy; an earlier fail-closed citation-validation response remains an external-research availability observation
 
 ## Current Technical Architecture

@@ -67,6 +67,10 @@ public sealed class SelectedComparisonOrchestrator(
         var evidenceSufficiency = ComparisonEvidenceSufficiencyPolicy.Assess(
             command.Question,
             comparisonContext);
+        var structuredObservations = ComparisonStructuredObservationFactory.Build(
+            comparisonContext,
+            command.StartTimeSeconds,
+            command.EndTimeSeconds);
         var trustGuardResponse = SelectedComparisonTrustGuard.TryBuildResponse(
             command.Question,
             comparisonContext,
@@ -74,7 +78,10 @@ public sealed class SelectedComparisonOrchestrator(
             evidenceSufficiency);
         if (trustGuardResponse is not null)
         {
-            return trustGuardResponse;
+            return trustGuardResponse with
+            {
+                StructuredObservations = structuredObservations
+            };
         }
 
         var chatClient = chatClientProvider.GetRequiredClient();
@@ -107,7 +114,8 @@ public sealed class SelectedComparisonOrchestrator(
             BuildNextSteps(comparisonContext),
             [])
         {
-            EvidenceSufficiency = evidenceSufficiency
+            EvidenceSufficiency = evidenceSufficiency,
+            StructuredObservations = structuredObservations
         };
     }
 

@@ -5,6 +5,7 @@ export type TCopilotAnswerMode = 'workspace' | 'general' | 'web' | 'guidance'
 export type TAgentActivityKind = 'plan' | 'routing' | 'tool' | 'evidence_check' | 'fallback' | 'completion' | 'failure'
 export type TAgentActivityStatus = 'running' | 'completed' | 'failed'
 export type TAgentEvidenceSufficiencyStatus = 'supported' | 'partial' | 'missing' | 'contradicted' | 'unavailable'
+export type TAgentStructuredObservationStatus = 'complete' | 'limited' | 'mixed'
 
 export interface IAgentQueryRequest {
   question: string
@@ -35,6 +36,7 @@ export interface IAgentQueryResponse {
   externalCitations?: IAgentExternalCitation[]
   activityTrace?: IAgentActivityEvent[]
   evidenceSufficiency?: IAgentEvidenceSufficiency
+  structuredObservations?: IAgentStructuredObservation[]
 }
 
 export interface IAgentEvidenceSufficiency {
@@ -46,6 +48,81 @@ export interface IAgentEvidenceSufficiency {
   availableEvidence: string[]
   limitationCodes: string[]
 }
+
+export interface IAgentObservationScope {
+  kind: 'full_duration' | 'roi'
+  startTimeSeconds: number | null
+  endTimeSeconds: number | null
+}
+
+export interface IAgentEvidenceReference {
+  referenceId: string
+  evidenceType: 'comparison_metric' | 'signal_finding'
+  recordingIds: string[]
+  signalIds: string[]
+  metricKey: string | null
+  scope: IAgentObservationScope
+}
+
+interface IAgentStructuredObservationBase {
+  observationId: string
+  status: TAgentStructuredObservationStatus
+  scope: IAgentObservationScope
+  limitationCodes: string[]
+  evidenceReferences: IAgentEvidenceReference[]
+}
+
+export interface IAgentComparisonMetricObservation extends IAgentStructuredObservationBase {
+  kind: 'comparison_metric'
+  comparisonMetric: {
+    metricKey: 'peakAmplitudeDelta' | 'rmsAmplitudeDelta' | 'crestFactorDelta' | 'clippingSampleCountDelta'
+    metricLabel: string
+    unit: 'FS' | 'ratio' | 'samples'
+    aggregate: {
+      comparedPairCount: number
+      missingValueCount: number
+      meanDifference: number
+      medianDifference: number
+      minimumDifference: number
+      maximumDifference: number
+      spread: number
+    }
+    selectedPair: {
+      recordingIdA: string
+      recordingFileNameA: string
+      signalIdA: string
+      signalDisplayNameA: string
+      valueA: number
+      recordingIdB: string
+      recordingFileNameB: string
+      signalIdB: string
+      signalDisplayNameB: string
+      valueB: number
+      difference: number
+    }
+  }
+  signalFinding: null
+}
+
+export interface IAgentSignalFindingObservation extends IAgentStructuredObservationBase {
+  kind: 'signal_finding'
+  comparisonMetric: null
+  signalFinding: {
+    side: 'A' | 'B'
+    recordingId: string
+    recordingFileName: string
+    signalId: string
+    signalDisplayName: string
+    category: string
+    severity: string
+    label: string
+    detail: string | null
+  }
+}
+
+export type IAgentStructuredObservation =
+  | IAgentComparisonMetricObservation
+  | IAgentSignalFindingObservation
 
 export interface IAgentActivityEvent {
   sequence: number

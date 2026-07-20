@@ -42,6 +42,8 @@ Supported response assertions are:
 - `externalCitationExpectation`: require, forbid, or ignore external citations
 - `expectedEvidenceSufficiencyStatus`: expected backend status for selected-comparison cases
 - `expectedEvidenceIntent`: expected backend intent identifier
+- `expectedObservationStatus`: expected selected metric-observation status
+- `expectedFindingObservationCount`: expected number of deterministic finding observations
 - `requiredAnswerPhrases`: every phrase must occur
 - `requiredAnswerAnyPhraseGroups`: at least one phrase from every group must occur
 - `forbiddenAnswerPhrases` and `forbiddenAnswerPatterns`
@@ -150,6 +152,13 @@ partial, supported, contradicted, missing, and unavailable states. The missing
 spectrum case also verifies that a low-level finding is not misclassified as
 tonal or harmonic evidence.
 
+The same selected-comparison cases grade current-session structured observations.
+Metric status remains separate from claim sufficiency: complete zero-difference
+evidence, mixed aligned directions, limited coverage, and unavailable SPL or
+causal claims retain their backend-reconstructed observation state. Finding
+counts verify that deterministic findings remain structured rather than being
+accepted from eval input or model prose.
+
 The uncalibrated SPL case exercises a deterministic backend trust guard rather than model compliance. A passing response must refuse the physical conclusion, preserve the backend-resolved digital comparison evidence and calibration limitation, and contain no numeric dB SPL claim. This case should remain stable even when OpenAI is unavailable or returns malformed output because the matching request never reaches the model.
 
 The unsupported-cause case also exercises a deterministic backend trust guard. A passing response may describe the selected difference and associated findings, but it must state that the observational evidence does not establish a cause, retain ROI and coverage limitations, and avoid treating detector findings as causal proof. Repeated runs should be identical because the matching request never reaches the model.
@@ -162,8 +171,8 @@ The current harness supports Level 2 trust validation and a small part of Level 
 
 Next evaluation layers, in dependency order:
 
-1. structured-observation grounding and stable evidence-reference resolution
-2. plan validity, capability selection, parameters, dependencies, cost class, and approval requirements
+1. plan validity, capability selection, parameters, dependencies, cost class, and approval requirements
+2. durable evidence provenance across persisted sessions and algorithm versions
 3. source quality, applicability, disagreement, citation integrity, and privacy-safe research queries
 4. plan revision, partial failure, cancellation, recovery, and report traceability after those product contracts exist
 5. complete long-horizon investigation workflows only after persistence and policy-controlled execution exist

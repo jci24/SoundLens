@@ -1,0 +1,147 @@
+.copilot-measured-evidence {
+  border-top: 1px solid var(--border);
+  border-bottom: 1px solid var(--border);
+
+  &__toggle {
+    display: grid;
+    grid-template-columns: 1fr auto auto;
+    align-items: center;
+    width: 100%;
+    gap: 0.4rem;
+    padding: 0.45rem 0;
+    border: 0;
+    background: transparent;
+    color: var(--foreground);
+    font: inherit;
+    font-size: var(--font-xs);
+    font-weight: 620;
+    text-align: left;
+    cursor: pointer;
+
+    &:focus-visible {
+      outline: 2px solid var(--ring);
+      outline-offset: 2px;
+    }
+  }
+
+  &__count {
+    color: var(--muted-foreground);
+    font-weight: 450;
+  }
+
+  &__content {
+    display: flex;
+    flex-direction: column;
+    padding-bottom: 0.35rem;
+  }
+
+  &__observation {
+    padding: 0.55rem 0;
+    border-top: 1px solid var(--border);
+  }
+
+  &__heading,
+  &__footer {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 0.6rem;
+  }
+
+  &__heading {
+    font-size: var(--font-xs);
+
+    strong {
+      font-weight: 650;
+    }
+
+    span {
+      color: var(--muted-foreground);
+    }
+  }
+
+  &__values {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.4rem 0.8rem;
+    margin: 0.55rem 0 0;
+
+    div {
+      min-width: 0;
+    }
+
+    dt,
+    dd {
+      margin: 0;
+      font-size: var(--font-xs);
+    }
+
+    dt {
+      color: var(--muted-foreground);
+    }
+
+    dd {
+      margin-top: 0.08rem;
+      font-family: var(--font-mono);
+      color: var(--foreground);
+    }
+  }
+
+  &__pair,
+  &__pair-values,
+  &__finding-signal,
+  &__finding-detail,
+  &__finding-meta {
+    margin: 0.45rem 0 0;
+    font-size: var(--font-xs);
+    line-height: 1.45;
+  }
+
+  &__pair,
+  &__finding-signal {
+    color: var(--foreground);
+  }
+
+  &__pair-values {
+    margin-top: 0.1rem;
+    font-family: var(--font-mono);
+    color: var(--muted-foreground);
+  }
+
+  &__finding-detail,
+  &__finding-meta {
+    color: var(--muted-foreground);
+  }
+
+  &__finding-meta {
+    margin-top: 0.12rem;
+    font-family: var(--font-mono);
+  }
+
+  &__footer {
+    margin-top: 0.45rem;
+    color: var(--muted-foreground);
+    font-size: var(--font-xs);
+
+    code {
+      margin-left: auto;
+      font-family: var(--font-mono);
+      font-size: 0.68rem;
+    }
+  }
+
+  @media (max-width: 34rem) {
+    &__values {
+      grid-template-columns: 1fr;
+    }
+
+    &__footer {
+      align-items: flex-start;
+      flex-direction: column;
+
+      code {
+        margin-left: 0;
+      }
+    }
+  }
+}

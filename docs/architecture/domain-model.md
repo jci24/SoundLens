@@ -52,6 +52,13 @@ The current application is still organized around an analysis workspace rather t
 - Digital metric and selected-spectrum sufficiency derive from current aligned observations, aggregate direction, findings, coverage, and limitations. Physical-SPL and causal conclusions remain unavailable without validated calibration or controlled causal evidence.
 - Sufficiency is claim-specific and currently belongs to selected-comparison Copilot responses. It is not the same as the Evidence Inspector's metric-level coverage summary and is not supplied or computed by the frontend or model.
 
+### Structured Comparison Observation
+
+- A backend-owned current-session snapshot of either the selected comparison metric or a deterministic finding attached to one selected signal.
+- Metric observations contain aggregate values, aligned-pair values, units, coverage, missing counts, scope, limitation codes, and a measurement status of `complete`, `limited`, or `mixed`. Finding observations retain category, severity, label, detail, signal identity, and A/B side.
+- Each observation and evidence reference shares a versioned fingerprint derived from backend selectors, ROI, reconstructed values or finding content, and limitations. Changed evidence produces a different reference; references do not promise durability beyond the temporary import session.
+- Observation status describes measurement completeness and direction consistency. It remains separate from claim sufficiency, so an unavailable physical-SPL or causal claim can still cite a valid digital observation.
+
 ### Report Snapshot
 
 - A normalized export snapshot built from current workspace state, selected signals, and optional ROI.
