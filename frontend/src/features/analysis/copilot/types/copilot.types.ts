@@ -6,6 +6,8 @@ export type TAgentActivityKind = 'plan' | 'routing' | 'tool' | 'evidence_check' 
 export type TAgentActivityStatus = 'running' | 'completed' | 'failed'
 export type TAgentEvidenceSufficiencyStatus = 'supported' | 'partial' | 'missing' | 'contradicted' | 'unavailable'
 export type TAgentStructuredObservationStatus = 'complete' | 'limited' | 'mixed'
+export type TAgentInvestigationCapabilityCategory = 'analysis' | 'inspection' | 'audition' | 'artifact'
+export type TAgentInvestigationCostClass = 'interactive' | 'bounded'
 
 export interface IAgentQueryRequest {
   question: string
@@ -37,6 +39,38 @@ export interface IAgentQueryResponse {
   activityTrace?: IAgentActivityEvent[]
   evidenceSufficiency?: IAgentEvidenceSufficiency
   structuredObservations?: IAgentStructuredObservation[]
+  investigationPlan?: IAgentInvestigationPlan | null
+}
+
+export interface IAgentInvestigationPlanScope {
+  kind: 'full_duration' | 'roi'
+  startTimeSeconds: number | null
+  endTimeSeconds: number | null
+}
+
+export interface IAgentInvestigationPlanStep {
+  stepId: string
+  order: number
+  title: string
+  purpose: string
+  capabilityId: string
+  capabilityLabel: string
+  category: TAgentInvestigationCapabilityCategory
+  dependsOnStepIds: string[]
+  parameterKeys: string[]
+  requiredEvidence: string[]
+  completionCriteria: string[]
+  costClass: TAgentInvestigationCostClass
+  requiresApproval: boolean
+}
+
+export interface IAgentInvestigationPlan {
+  planId: string
+  version: '1'
+  status: 'preview'
+  objective: string
+  scope: IAgentInvestigationPlanScope
+  steps: IAgentInvestigationPlanStep[]
 }
 
 export interface IAgentEvidenceSufficiency {

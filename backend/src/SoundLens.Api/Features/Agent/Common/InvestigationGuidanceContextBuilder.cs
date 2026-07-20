@@ -1,4 +1,5 @@
 using SoundLens.Api.Features.Agent.Commands;
+using SoundLens.Api.Features.Agent.Responses;
 using SoundLens.Api.Features.Import.Common;
 
 namespace SoundLens.Api.Features.Agent.Common;
@@ -14,6 +15,7 @@ public sealed record InvestigationGuidanceContext(
     string? CompareAFileName,
     string? CompareBFileName,
     string Scope,
+    AgentInvestigationPlanScope PlanScope,
     string? SelectedMetric,
     IReadOnlyList<InvestigationCapability> AvailableCapabilities);
 
@@ -37,10 +39,15 @@ public sealed class InvestigationGuidanceContextBuilder(
         var files = importedFileStore.CurrentFiles;
         var recordings = files.Take(MaxRecordingDescriptors).Select(BuildRecording).ToArray();
         var pair = ResolvePair(command);
-        var scope = command.StartTimeSeconds is { } start && command.EndTimeSeconds is { } end &&
-            start >= 0 && end > start
-                ? FormattableString.Invariant($"ROI from {start:0.###} s to {end:0.###} s")
-                : "Full duration";
+        var start = command.StartTimeSeconds;
+        var end = command.EndTimeSeconds;
+        var hasValidRoi = start is >= 0 && end > start;
+        var scope = hasValidRoi
+            ? FormattableString.Invariant($"ROI from {start:0.###} s to {end:0.###} s")
+            : "Full duration";
+        var planScope = hasValidRoi
+            ? new AgentInvestigationPlanScope(AgentInvestigationPlanScopeKinds.RegionOfInterest, start, end)
+            : new AgentInvestigationPlanScope(AgentInvestigationPlanScopeKinds.FullDuration, null, null);
         var selectedMetric = command.ComparisonContext is { MetricKey: var metricKey } &&
             MetricLabels.TryGetValue(metricKey, out var metricLabel)
                 ? metricLabel
@@ -55,6 +62,7 @@ public sealed class InvestigationGuidanceContextBuilder(
             pair?.FileNameA,
             pair?.FileNameB,
             scope,
+            planScope,
             selectedMetric,
             availableCapabilities);
     }

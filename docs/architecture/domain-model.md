@@ -59,6 +59,14 @@ The current application is still organized around an analysis workspace rather t
 - Each observation and evidence reference shares a versioned fingerprint derived from backend selectors, ROI, reconstructed values or finding content, and limitations. Changed evidence produces a different reference; references do not promise durability beyond the temporary import session.
 - Observation status describes measurement completeness and direction consistency. It remains separate from claim sufficiency, so an unavailable physical-SPL or causal claim can still cite a valid digital observation.
 
+### Investigation Plan Preview
+
+- A versioned, non-executable current-turn plan attached only to substantial investigation-guidance responses.
+- The backend filters the capability catalog against current workspace prerequisites and owns each capability's category, parameter keys, required evidence, cost class, and approval requirement.
+- Each plan preserves an objective, validated full-duration or ROI scope, one to six ordered steps, dependencies on earlier steps only, and reviewable completion criteria without computed measurements.
+- The plan fingerprint changes when validated scope, prose, capability metadata, dependencies, evidence requirements, cost, or approval policy changes. It is not a persisted investigation identifier.
+- A preview cannot execute analyses, approve actions, mutate workspace state, or become measured evidence. Ambiguous objectives produce a clarification question and no plan.
+
 ### Report Snapshot
 
 - A normalized export snapshot built from current workspace state, selected signals, and optional ROI.

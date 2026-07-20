@@ -1,6 +1,6 @@
 # Roadmap
 
-Last updated: 2026-07-19
+Last updated: 2026-07-20
 
 ## Cross-Cutting Program — Figma Visual-System Migration
 
@@ -319,7 +319,7 @@ SoundLens is approximately a **Level 2 tool-using Copilot with early Level 3 fou
 | General, workspace, and web routing | Implemented | Automatic backend routing isolates measurements from general and web paths. |
 | Routing evaluation gate | Implemented | A diagnostic corpus grades deterministic facts, selected evidence, theory, guidance, cited research, clarification, and trust refusals with per-mode accuracy and boundary-isolation assertions. |
 | Source-backed web answers | Partially implemented | Validated HTTP(S) citations exist; source quality, applicability, and literature disagreement do not. |
-| Investigation guidance | Partially implemented | Produces bounded advice and allowlisted next steps, not a typed executable plan. |
+| Investigation guidance | Partially implemented | Produces bounded advice and optional typed preview plans validated against the available capability catalog; plans are not executable or persisted. |
 | Investigation trace | Partially implemented | Observable per-turn activity is ephemeral and is not a complete persisted audit. |
 | Stable evidence identity and provenance | Partially implemented | Session identifiers and evidence citations exist; algorithm, parameter, content-hash, and persisted lineage do not. |
 | Calibration compatibility | Partially implemented | Uncalibrated limitations and refusals exist; multiple real calibration states do not. |
@@ -418,9 +418,9 @@ The committed product order remains:
 2. conduct direct automotive NVH and adjacent workflow validation
 3. maintain the shipped A/B comparison, evidence drill-down, Copilot trust guards, and reports
 4. maintain the strict routing and trust eval gate without adding autonomy
-5. preserve selected-comparison sufficiency and structured observations while specifying the typed investigation-plan contract
+5. preserve selected-comparison sufficiency and structured observations while validating use of the shipped typed investigation-plan preview
 
-No persistent investigation, background research, or workspace-operating agent is committed yet.
+No persistent investigation, plan execution, background research, or workspace-operating agent is committed yet.
 
 ### 6. Conditional later milestones
 

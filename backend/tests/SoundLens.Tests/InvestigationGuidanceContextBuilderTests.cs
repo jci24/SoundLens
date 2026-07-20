@@ -1,5 +1,6 @@
 using SoundLens.Api.Features.Agent.Commands;
 using SoundLens.Api.Features.Agent.Common;
+using SoundLens.Api.Features.Agent.Responses;
 using SoundLens.Api.Features.Import.Common;
 
 namespace SoundLens.Tests;
@@ -37,6 +38,9 @@ public sealed class InvestigationGuidanceContextBuilderTests
         Assert.Equal("baseline.wav", context.CompareAFileName);
         Assert.Equal("candidate.wav", context.CompareBFileName);
         Assert.Equal("ROI from 0.25 s to 0.75 s", context.Scope);
+        Assert.Equal(AgentInvestigationPlanScopeKinds.RegionOfInterest, context.PlanScope.Kind);
+        Assert.Equal(0.25, context.PlanScope.StartTimeSeconds);
+        Assert.Equal(0.75, context.PlanScope.EndTimeSeconds);
         Assert.Equal("RMS amplitude", context.SelectedMetric);
         Assert.DoesNotContain(context.AvailableCapabilities, capability =>
             capability.Description.Contains("spectrogram", StringComparison.OrdinalIgnoreCase));
@@ -66,6 +70,7 @@ public sealed class InvestigationGuidanceContextBuilderTests
         Assert.Null(context.CompareBFileName);
         Assert.Null(context.SelectedMetric);
         Assert.Equal("Full duration", context.Scope);
+        Assert.Equal(AgentInvestigationPlanScopeKinds.FullDuration, context.PlanScope.Kind);
         Assert.DoesNotContain(context.AvailableCapabilities, capability =>
             capability.Id is "evidence_inspector" or "report_export");
     }

@@ -64,6 +64,47 @@ describe('streamAgentQuery', () => {
     await expect(readAgentStream(malformedStream, vi.fn())).rejects.toThrow('invalid event')
   })
 
+  it('accepts a valid preview plan and rejects executable or forward-dependent plans', async () => {
+    const plan = {
+      planId: 'plan_v1_1234567890abcdef12345678',
+      version: '1',
+      status: 'preview',
+      objective: 'Inspect complementary evidence.',
+      scope: { kind: 'full_duration', startTimeSeconds: null, endTimeSeconds: null },
+      steps: [{
+        stepId: 'step-1',
+        order: 1,
+        title: 'Inspect waveform evidence',
+        purpose: 'Review event shape and timing.',
+        capabilityId: 'waveform',
+        capabilityLabel: 'Waveform inspection',
+        category: 'analysis',
+        dependsOnStepIds: [],
+        parameterKeys: ['scope', 'signals'],
+        requiredEvidence: ['imported_recordings'],
+        completionCriteria: ['Waveform evidence is available for review.'],
+        costClass: 'interactive',
+        requiresApproval: false,
+      }],
+    }
+    const response = {
+      answer: 'Plan ready.',
+      citedEvidence: [],
+      limitations: [],
+      nextSteps: [],
+      toolsUsed: [],
+      investigationPlan: plan,
+    }
+    await expect(readAgentStream(encodeChunks(
+      `data: ${JSON.stringify({ eventType: 'result', response })}\n\n`,
+    ), vi.fn())).resolves.toMatchObject({ investigationPlan: { status: 'preview' } })
+
+    const invalid = { ...plan, status: 'executable' }
+    await expect(readAgentStream(encodeChunks(
+      `data: ${JSON.stringify({ eventType: 'result', response: { ...response, investigationPlan: invalid } })}\n\n`,
+    ), vi.fn())).rejects.toThrow('invalid event')
+  })
+
   it('surfaces FastEndpoints general errors before reading the stream', async () => {
     vi.stubGlobal('fetch', vi.fn().mockResolvedValue(new Response(JSON.stringify({
       errors: { generalErrors: ['Import at least one audio file before requesting a comparison contract.'] },

@@ -44,6 +44,8 @@ Supported response assertions are:
 - `expectedEvidenceIntent`: expected backend intent identifier
 - `expectedObservationStatus`: expected selected metric-observation status
 - `expectedFindingObservationCount`: expected number of deterministic finding observations
+- `investigationPlanExpectation`: require, forbid, or ignore an investigation-plan preview
+- `expectedPlanCapabilityIds`: capability IDs that must occur in the validated preview
 - `requiredAnswerPhrases`: every phrase must occur
 - `requiredAnswerAnyPhraseGroups`: at least one phrase from every group must occur
 - `forbiddenAnswerPhrases` and `forbiddenAnswerPatterns`
@@ -52,7 +54,7 @@ Supported response assertions are:
 - `expectedComparison.limitationCodes`
 - deterministic `meanDifference` with an explicit tolerance
 
-Datasets are validated before fixture access or network calls. Duplicate IDs, unsupported metrics, incomplete selectors, invalid ROIs, malformed assertions, and non-positive run counts are fatal configuration errors.
+Datasets are validated before fixture access or network calls. Duplicate IDs, unsupported metrics or plan capabilities, incomplete selectors, invalid ROIs, malformed assertions, and non-positive run counts are fatal configuration errors. Plan grading also checks preview identity/version, scope, bounded ordered steps, earlier-step dependencies, allowlisted capability/category/cost metadata, approval flags, and absence of numerical result claims.
 
 ## Running Evals
 
@@ -139,6 +141,8 @@ does not authorize measured evidence. The live harness verifies response mode,
 displayed citations, limitations, and tool use. Downstream request privacy remains
 covered by backend integration tests because the public agent response cannot
 reveal the payload sent to the model or hosted web-search tool.
+
+Guidance coverage now distinguishes a clear decision-led request, which must return a valid catalog-backed preview plan, from an ambiguous investigation request, which must ask one clarification question and return no plan. Pure graders reject unsupported capabilities, executable status, invalid dependencies, malformed scope, and result-bearing plan text without requiring OpenAI.
 
 The routing corpus also grades all five selected-comparison sufficiency statuses.
 Synthetic stereo fixtures provide complete zero-difference evidence, mixed

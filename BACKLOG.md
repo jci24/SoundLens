@@ -109,8 +109,8 @@ Ordered slices:
 8. completed: routing evaluation coverage across deterministic facts, selected evidence, theory, guidance, research, clarification, and trust refusals, with strict isolation checks and a threshold proposal derived from observed failures
 9. completed: backend-owned selected-comparison evidence sufficiency for digital metrics, selected spectrum findings, physical SPL, and causal requests, with compact Copilot presentation
 10. completed: current-session structured metric and finding observations with deterministic evidence fingerprints and collapsed Copilot inspection
-11. next agent hardening: typed investigation-plan contract after sufficiency and observation contracts exist
-12. research source-quality and applicability contract after the source/privacy policy and routing eval gate
+11. completed: typed, versioned investigation-plan previews with catalog-backed policy, deterministic validation, clarification for ambiguous objectives, and collapsed Copilot inspection
+12. next agent hardening: research source-quality and applicability contract after the source/privacy policy and routing eval gate
 
 Boundary:
 - general knowledge is not measured evidence
@@ -161,6 +161,7 @@ Priority:
 **`codex/investigation-plan-contract`**
 
 - User value: substantial Copilot work can be previewed as an explicit bounded plan before execution is considered.
+- Status: completed for non-executable current-session preview plans; execution, persistence, revision, and enforced approvals remain deferred.
 - Dependency: capability catalog, routing eval gate, sufficiency, and structured observations.
 - Scope: versioned plan and step contracts, dependencies, required evidence, completion criteria, approval flags, and validation rules.
 - Out of scope: execution, persistence, automatic plan revision, or workspace mutation.

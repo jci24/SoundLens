@@ -197,7 +197,7 @@ public sealed class AgentQueryEndpointTests : IClassFixture<WebApplicationFactor
             {
               "answer": "What engineering decision should this investigation support?",
               "limitations": ["No recordings are currently available in the workspace."],
-              "recommendedCapabilityIds": []
+              "plan": null
             }
             """);
         var guidanceFactory = _factory.WithWebHostBuilder(builder =>
@@ -891,7 +891,38 @@ public sealed class AgentQueryEndpointTests : IClassFixture<WebApplicationFactor
             {
               "answer": "Start by confirming comparable recording conditions, then inspect level and dynamics, waveform events, spectral content, and focused regions before drawing conclusions.",
               "limitations": ["This is an analysis workflow, not a new measurement."],
-              "recommendedCapabilityIds": ["level_dynamics", "waveform", "spectrum"]
+              "plan": {
+                "objective": "Compare the recordings using deterministic level and waveform evidence.",
+                "scope": { "kind": "full_duration", "startTimeSeconds": null, "endTimeSeconds": null },
+                "steps": [
+                  {
+                    "stepId": "step-1",
+                    "order": 1,
+                    "title": "Review level and dynamics",
+                    "purpose": "Establish comparable digital level and dynamic evidence.",
+                    "capabilityId": "level_dynamics",
+                    "dependsOnStepIds": [],
+                    "parameterKeys": ["scope", "signals"],
+                    "requiredEvidence": ["imported_recordings"],
+                    "completionCriteria": ["Level and dynamics evidence is available for review."],
+                    "costClass": "interactive",
+                    "requiresApproval": false
+                  },
+                  {
+                    "stepId": "step-2",
+                    "order": 2,
+                    "title": "Inspect waveform evidence",
+                    "purpose": "Review event shape and timing after level inspection.",
+                    "capabilityId": "waveform",
+                    "dependsOnStepIds": ["step-1"],
+                    "parameterKeys": ["scope", "signals"],
+                    "requiredEvidence": ["imported_recordings"],
+                    "completionCriteria": ["Waveform evidence is available for review."],
+                    "costClass": "interactive",
+                    "requiresApproval": false
+                  }
+                ]
+              }
             }
             """);
         var explanationFactory = _factory.WithWebHostBuilder(builder =>
@@ -1075,12 +1106,48 @@ public sealed class AgentQueryEndpointTests : IClassFixture<WebApplicationFactor
             Assert.Empty(guidancePayload.ToolsUsed);
             Assert.Null(guidancePayload.EvidenceSufficiency);
             Assert.Empty(guidancePayload.StructuredObservations);
+            Assert.Equal(AgentInvestigationPlanStatuses.Preview, guidancePayload.InvestigationPlan?.Status);
+            Assert.Equal(2, guidancePayload.InvestigationPlan?.Steps.Count);
             Assert.Contains(Path.GetFileName(quietPath), chatClientProvider.LastUserMessage, StringComparison.Ordinal);
             Assert.Contains(Path.GetFileName(loudPath), chatClientProvider.LastUserMessage, StringComparison.Ordinal);
             Assert.Contains("AVAILABLE SOUNDLENS CAPABILITIES", chatClientProvider.LastUserMessage, StringComparison.Ordinal);
             Assert.DoesNotContain(waveformPayload.Recordings[0].RecordingId, chatClientProvider.LastUserMessage, StringComparison.Ordinal);
             Assert.DoesNotContain(signalIds[0], chatClientProvider.LastUserMessage, StringComparison.Ordinal);
             Assert.DoesNotContain("Mean delta", chatClientProvider.LastUserMessage, StringComparison.OrdinalIgnoreCase);
+
+            using var guidanceStreamRequest = new HttpRequestMessage(HttpMethod.Post, "/api/agent/query/stream")
+            {
+                Content = JsonContent.Create(new
+                {
+                    question = "What guidelines would you give me to analyse these files?",
+                    signalIds,
+                    comparisonContext = new
+                    {
+                        recordingIdA = waveformPayload.Recordings[0].RecordingId,
+                        recordingIdB = waveformPayload.Recordings[1].RecordingId,
+                        metricKey = "crestFactorDelta",
+                        signalIdA = signalIds[0],
+                        signalIdB = signalIds[1]
+                    }
+                })
+            };
+            using var guidanceStreamResponse = await client.SendAsync(
+                guidanceStreamRequest,
+                HttpCompletionOption.ResponseHeadersRead);
+            guidanceStreamResponse.EnsureSuccessStatusCode();
+            var guidanceStreamBody = await guidanceStreamResponse.Content.ReadAsStringAsync();
+            var guidanceStreamResult = guidanceStreamBody
+                .Split("\n\n", StringSplitOptions.RemoveEmptyEntries)
+                .Select(block => block.Split('\n').FirstOrDefault(line => line.StartsWith("data:", StringComparison.Ordinal)))
+                .Where(line => line is not null)
+                .Select(line => JsonDocument.Parse(line![5..].Trim()).RootElement.Clone())
+                .Single(envelope => envelope.GetProperty("eventType").GetString() == "result")
+                .GetProperty("response")
+                .Deserialize<AgentQueryResponse>(JsonSerializerOptions.Web);
+            Assert.NotNull(guidanceStreamResult);
+            Assert.Equal(
+                guidancePayload.InvestigationPlan?.PlanId,
+                guidanceStreamResult.InvestigationPlan?.PlanId);
 
             var invalidPairResponse = await client.PostAsJsonAsync(
                 "/api/agent/query",
