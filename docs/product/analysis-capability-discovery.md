@@ -97,6 +97,9 @@ For every requested analysis or workflow, capture:
 | Deterministic outputs | Measurements, units, uncertainty, coverage, limitations |
 | Presentation | Table, trend, distribution, matrix, waveform, spectrum, report |
 | Scale | Typical and maximum recordings, signals, duration, and run frequency |
+| Scale meaning | Whether volume means physical channels, derived curves, operating points, time regions, repetitions, or campaign-wide totals |
+| Comparison shape | Focused A/B, reference-to-many, matched pairs, cohort-to-cohort, condition matrix, trend, or exception triage |
+| Matching metadata | Product variant, operating point, speed, load, sensor position, environment, calibration, or another validated pairing key |
 | Existing alternative | Tool, script, spreadsheet, manual process, or service |
 | Validation reference | Standard, paper, known fixture, internal method, or expert review |
 | Failure consequence | Cost or risk of an incorrect or missing result |
@@ -145,6 +148,8 @@ Before proposing implementation, define:
 - compatibility and failure rules
 - synthetic fixtures and independent validation method
 - expected batch size, latency, and resource envelope
+- expected campaign hierarchy, metadata dimensions, pairing rules, and unmatched-item behavior
+- overview-to-detail path from aggregate result to a bounded focused or A/B evidence view
 - exact visualization and report needs
 - Copilot exposure, if any, only after the deterministic contract is trusted
 - explicit non-goals and deferred variants

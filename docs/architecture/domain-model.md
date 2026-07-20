@@ -1,6 +1,6 @@
 # Domain Model
 
-Last updated: 2026-07-14
+Last updated: 2026-07-20
 
 ## Current Model
 
@@ -161,3 +161,23 @@ The following concepts are plausible later but should remain deferred for now:
 - long-lived report library
 
 The current priority is to prove the comparison workflow before building a larger persisted domain.
+
+## Validated Scale Direction
+
+If customer discovery validates campaign-scale work, A/B remains the atomic evidence and reporting primitive while a persisted hierarchy is added above it:
+
+- `Project` or `TestCampaign` groups a repeatable engineering objective and its metadata schema.
+- `TestRun` or `Session` records configuration, operating condition, environment, equipment, calibration state, and provenance.
+- `Recording` contains one or more physical signals or channels; derived curves and operating-point results remain distinct result types rather than being presented as recorded channels.
+- `AnalysisRecipe` versions deterministic methods, parameters, compatibility rules, and expected outputs.
+- `BatchJob` applies a recipe to a backend-owned selection with bounded execution, progress, cancellation, retry, and per-item status.
+- `ResultSet` stores versioned summaries, coverage, exclusions, failures, and evidence references suitable for server-side query and aggregation.
+
+Scale-level comparison modes should be introduced in increasing semantic complexity:
+
+1. reference recording versus many candidates
+2. metadata-matched A/B pairs across repeated conditions
+3. cohort-to-cohort within-metric aggregates and distributions
+4. multi-factor condition matrices and exception triage
+
+No mode may silently infer pairing, combine incompatible units, hide unmatched items, or prevent drill-down to bounded focused or A/B evidence.
