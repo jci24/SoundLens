@@ -7,13 +7,13 @@
 
 SoundLens helps acoustic and product-sound engineers compare repeated recordings, inspect the evidence behind a difference, and turn the result into a traceable explanation or report. It is an active validation-stage prototype currently testing automotive NVH as its leading customer hypothesis, with machinery and broader product-sound teams as adjacent discovery segments.
 
-![SoundLens comparison workspace showing an active A/B pair, ROI-scoped metrics, playback, waveform, and spectrum evidence](docs/assets/soundlens-workspace.webp)
+![SoundLens comparison workspace showing an active A/B pair, ROI-scoped metrics, playback, waveform, and spectrum evidence](docs/assets/soundlens-evidence-workspace.webp)
 
 ## Workflow
 
 Move through a functional investigation flow: restore or import a temporary workspace, configure the active A/B pair, select deterministic analyses, inspect backend-computed evidence, audition recordings or isolated channels, ask Copilot follow-up questions, and preview a grounded report.
 
-![SoundLens workflow from audio import through A/B comparison, ROI selection, playback, evidence inspection, a grounded Copilot response, and report preview](docs/assets/soundlens-copilot-demo.gif)
+![SoundLens workflow from audio import through A/B comparison, ROI selection, playback, evidence inspection, a grounded Copilot response, and report preview](docs/assets/soundlens-workflow-demo.gif)
 
 ## Why SoundLens
 
