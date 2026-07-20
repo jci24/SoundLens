@@ -17,11 +17,11 @@ public static class InvestigationCapabilityCatalog
     public static readonly IReadOnlyList<InvestigationCapability> All =
     [
         new(
-            "waveform", "Waveform inspection", "Inspect backend-computed waveform evidence.",
+            "waveform", "Waveform inspection", "Inspect backend-computed time-domain evidence for timing, envelopes, and transients; do not use it as tonal or frequency evidence.",
             AgentInvestigationCapabilityCategories.Analysis, ["scope", "signals"], ["imported_recordings"],
             AgentInvestigationCostClasses.Interactive, false),
         new(
-            "spectrum", "Spectrum inspection", "Inspect backend-computed frequency spectrum evidence.",
+            "spectrum", "Spectrum inspection", "Inspect backend-computed frequency evidence for tonal components, harmonics, and broadband balance.",
             AgentInvestigationCapabilityCategories.Analysis, ["scope", "signals"], ["imported_recordings"],
             AgentInvestigationCostClasses.Interactive, false),
         new(

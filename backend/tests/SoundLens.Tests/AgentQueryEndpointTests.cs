@@ -223,6 +223,10 @@ public sealed class AgentQueryEndpointTests : IClassFixture<WebApplicationFactor
         Assert.Contains("Imported recordings: 0", chatClientProvider.LastUserMessage, StringComparison.Ordinal);
         Assert.Contains(chatClientProvider.SystemMessages, message =>
             message.Contains("ask exactly one concise clarification question", StringComparison.OrdinalIgnoreCase));
+        Assert.Contains(chatClientProvider.SystemMessages, message =>
+            message.Contains("tonal and frequency claims require spectrum evidence", StringComparison.Ordinal));
+        Assert.Contains(chatClientProvider.SystemMessages, message =>
+            message.Contains("not permission to narrow a broader objective", StringComparison.Ordinal));
     }
 
     [Fact]
