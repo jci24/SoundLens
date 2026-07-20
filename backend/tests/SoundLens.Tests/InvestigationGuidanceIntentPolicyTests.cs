@@ -24,6 +24,24 @@ public sealed class InvestigationGuidanceIntentPolicyTests
         Assert.False(InvestigationGuidanceIntentPolicy.IsGuidanceRequest(question));
     }
 
+    [Theory]
+    [InlineData("Create a repeatable investigation plan to compare these recordings for level, dynamics, and tonal differences.")]
+    [InlineData("Draft a workflow for assessing these product-sound files.")]
+    [InlineData("Give me a plan for comparing these recordings.")]
+    public void RequiresAPlanForExplicitPlanRequests(string question)
+    {
+        Assert.True(InvestigationGuidanceIntentPolicy.RequiresPlan(question));
+    }
+
+    [Theory]
+    [InlineData("How should I investigate these recordings?")]
+    [InlineData("What guidelines would you give me to analyse these files?")]
+    [InlineData("What does crest factor mean?")]
+    public void AllowsClarificationWhenNoPlanWasExplicitlyRequested(string question)
+    {
+        Assert.False(InvestigationGuidanceIntentPolicy.RequiresPlan(question));
+    }
+
     [Fact]
     public void HighConfidenceRoutingUsesGuidanceWithoutOverridingWebResearch()
     {

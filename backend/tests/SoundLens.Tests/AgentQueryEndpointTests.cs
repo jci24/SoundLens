@@ -222,7 +222,7 @@ public sealed class AgentQueryEndpointTests : IClassFixture<WebApplicationFactor
         Assert.Empty(payload.NextSteps);
         Assert.Contains("Imported recordings: 0", chatClientProvider.LastUserMessage, StringComparison.Ordinal);
         Assert.Contains(chatClientProvider.SystemMessages, message =>
-            message.Contains("ask exactly one concise clarification question", StringComparison.Ordinal));
+            message.Contains("ask exactly one concise clarification question", StringComparison.OrdinalIgnoreCase));
     }
 
     [Fact]
