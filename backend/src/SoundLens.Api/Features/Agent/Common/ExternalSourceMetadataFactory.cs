@@ -11,6 +11,7 @@ public static class ExternalSourceMetadataFactory
             ["www.iso.org"] = AgentExternalSourceClasses.StandardsBody,
             ["iec.ch"] = AgentExternalSourceClasses.StandardsBody,
             ["www.iec.ch"] = AgentExternalSourceClasses.StandardsBody,
+            ["webstore.iec.ch"] = AgentExternalSourceClasses.StandardsBody,
             ["ecma-international.org"] = AgentExternalSourceClasses.StandardsBody,
             ["www.ecma-international.org"] = AgentExternalSourceClasses.StandardsBody,
             ["nist.gov"] = AgentExternalSourceClasses.PublicAuthority,

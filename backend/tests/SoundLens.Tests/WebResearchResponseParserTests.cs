@@ -26,6 +26,21 @@ public sealed class WebResearchResponseParserTests
         Assert.Equal("not_assessed", citation.SourceMetadata.ApplicabilityStatus);
     }
 
+    [Fact]
+    public void SurroundingWhitespace_PreservesOriginalCitationOffsets()
+    {
+        const string answer = " \nA sourced claim.\n";
+        var result = new WebResearchResult(
+            answer,
+            [new WebResearchCitation("Source", new Uri("https://example.com/source"), 2, 18)]);
+
+        Assert.True(WebResearchResponseParser.TryParse(result, out var normalized, out var citations));
+        Assert.Equal("A sourced claim.", normalized);
+        var citation = Assert.Single(citations);
+        Assert.Equal(0, citation.StartIndex);
+        Assert.Equal(normalized.Length, citation.EndIndex);
+    }
+
     [Theory]
     [InlineData("file:///tmp/private.wav")]
     [InlineData("javascript:alert(1)")]
@@ -134,6 +149,7 @@ public sealed class WebResearchResponseParserTests
     [Theory]
     [InlineData("https://www.iso.org/standard/123.html", "standards_body")]
     [InlineData("https://www.iec.ch/publication/123", "standards_body")]
+    [InlineData("https://webstore.iec.ch/en/publication/5708", "standards_body")]
     [InlineData("https://ecma-international.org/publications/standards/Ecma-418/", "standards_body")]
     [InlineData("https://www.nist.gov/publication/example", "public_authority")]
     [InlineData("https://iso.org.example.com/standard", "unclassified")]

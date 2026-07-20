@@ -16,7 +16,7 @@ public static class WebResearchResponseParser
         out string answer,
         out IReadOnlyList<AgentExternalCitation> citations)
     {
-        var rawAnswer = result.Answer.Trim();
+        var rawAnswer = result.Answer;
         answer = string.Empty;
         citations = [];
         if (string.IsNullOrWhiteSpace(rawAnswer) || result.Citations.Count == 0)
@@ -125,6 +125,20 @@ public static class WebResearchResponseParser
             removed[index] = true;
         }
 
+        var contentStart = 0;
+        while (contentStart < rawAnswer.Length &&
+               (removed[contentStart] || char.IsWhiteSpace(rawAnswer[contentStart])))
+        {
+            removed[contentStart++] = true;
+        }
+
+        var contentEnd = rawAnswer.Length;
+        while (contentEnd > contentStart &&
+               (removed[contentEnd - 1] || char.IsWhiteSpace(rawAnswer[contentEnd - 1])))
+        {
+            removed[--contentEnd] = true;
+        }
+
         var builder = new StringBuilder(rawAnswer.Length);
         var mappedIndexes = new int[rawAnswer.Length + 1];
         for (var index = 0; index < rawAnswer.Length; index++)
@@ -137,7 +151,7 @@ public static class WebResearchResponseParser
         }
         mappedIndexes[rawAnswer.Length] = builder.Length;
 
-        answer = builder.ToString().Trim();
+        answer = builder.ToString();
         indexMap = mappedIndexes;
         return !string.IsNullOrWhiteSpace(answer);
     }

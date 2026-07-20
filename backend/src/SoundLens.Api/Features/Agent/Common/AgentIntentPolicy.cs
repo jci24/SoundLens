@@ -81,6 +81,10 @@ public static class AgentIntentPolicy
         @"\b(?:compan(?:y|ies)|engineers?|industry|labs?|laborator(?:y|ies)|manufacturers?|oems?|organizations?|professionals?|teams?)\b",
         RegexOptions.IgnoreCase | RegexOptions.CultureInvariant);
 
+    private static readonly Regex SourceRequestPattern = new(
+        @"\b(?:cite|provide|include)\s+(?:(?:primary|official|current|reliable|authoritative)\s+)?(?:sources?|citations?|references?)\b",
+        RegexOptions.IgnoreCase | RegexOptions.CultureInvariant);
+
     private static readonly Regex IndustryPracticeActionPattern = new(
         @"\b(?:assess(?:es|ed|ing)?|benchmark(?:s|ed|ing)?|compar(?:e|es|ed|ing)|decid(?:e|es|ed|ing)|determin(?:e|es|ed|ing)|evaluat(?:e|es|ed|ing)|judg(?:e|es|ed|ing)|measur(?:e|es|ed|ing)|test(?:s|ed|ing)?|validat(?:e|es|ed|ing))\b",
         RegexOptions.IgnoreCase | RegexOptions.CultureInvariant);
@@ -198,7 +202,8 @@ public static class AgentIntentPolicy
     public static bool IsClearlyWebQuestion(string question)
     {
         var normalized = $" {question.Trim().ToLowerInvariant()} ";
-        if (WebTerms.Any(term => normalized.Contains(term, StringComparison.Ordinal)))
+        if (WebTerms.Any(term => normalized.Contains(term, StringComparison.Ordinal)) ||
+            SourceRequestPattern.IsMatch(question))
         {
             return true;
         }

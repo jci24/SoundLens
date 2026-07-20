@@ -82,6 +82,8 @@ public sealed class AgentIntentPolicyTests
     [InlineData("What is the latest version of this library?")]
     [InlineData("Research the current market for acoustic cameras.")]
     [InlineData("Answer with sources about recent NVH practices.")]
+    [InlineData("What ISO or IEC standards apply? Cite primary sources.")]
+    [InlineData("Explain this standard and provide official references.")]
     [InlineData("How do companies usually compare product sound recordings?")]
     [InlineData("How do companies evaluate hearing aid sound quality?")]
     [InlineData("What tests do manufacturers use for product sound?")]
