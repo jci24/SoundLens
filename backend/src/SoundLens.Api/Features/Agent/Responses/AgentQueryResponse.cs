@@ -78,7 +78,31 @@ public sealed record AgentExternalCitation(
     string Title,
     string Url,
     int StartIndex,
-    int EndIndex);
+    int EndIndex,
+    AgentExternalSourceMetadata SourceMetadata);
+
+public sealed record AgentExternalSourceMetadata(
+    string PublisherHost,
+    string SourceClass,
+    string AccessStatus,
+    string ApplicabilityStatus);
+
+public static class AgentExternalSourceClasses
+{
+    public const string StandardsBody = "standards_body";
+    public const string PublicAuthority = "public_authority";
+    public const string Unclassified = "unclassified";
+}
+
+public static class AgentExternalSourceAccessStatuses
+{
+    public const string NotVerified = "not_verified";
+}
+
+public static class AgentExternalSourceApplicabilityStatuses
+{
+    public const string NotAssessed = "not_assessed";
+}
 
 public static class AgentAnswerModes
 {

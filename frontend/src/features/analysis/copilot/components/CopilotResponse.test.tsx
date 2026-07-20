@@ -265,6 +265,24 @@ describe('CopilotResponse', () => {
               url: 'https://example.com/standard',
               startIndex: 4,
               endIndex: 27,
+              sourceMetadata: {
+                publisherHost: 'example.com',
+                sourceClass: 'unclassified',
+                accessStatus: 'not_verified',
+                applicabilityStatus: 'not_assessed',
+              },
+            },
+            {
+              title: 'Standards body',
+              url: 'https://example.com/standard',
+              startIndex: 28,
+              endIndex: 41,
+              sourceMetadata: {
+                publisherHost: 'example.com',
+                sourceClass: 'unclassified',
+                accessStatus: 'not_verified',
+                applicabilityStatus: 'not_assessed',
+              },
             },
           ],
           limitations: [],
@@ -277,13 +295,22 @@ describe('CopilotResponse', () => {
 
     expect(screen.queryByText('Web research')).not.toBeInTheDocument()
     expect(screen.queryByText('Evidence used')).not.toBeInTheDocument()
-    expect(screen.getByRole('link', { name: 'Source: Standards body' })).toHaveAttribute(
-      'href',
-      'https://example.com/standard',
-    )
+    screen.getAllByRole('link', { name: 'Source: Standards body' }).forEach((link) => {
+      expect(link).toHaveAttribute('href', 'https://example.com/standard')
+    })
     screen.getAllByRole('link', { name: /Standards body/ }).forEach((link) => {
       expect(link).toHaveAttribute('target', '_blank')
     })
+    const sourceDetails = screen.getByRole('button', { name: /Source details 1 source/i })
+    expect(screen.getByRole('region', { name: 'Sources' }).querySelectorAll('ol li')).toHaveLength(1)
+    expect(sourceDetails).toHaveAttribute('aria-expanded', 'false')
+    expect(screen.queryByText('Unclassified source · example.com')).not.toBeInTheDocument()
+
+    fireEvent.click(sourceDetails)
+
+    expect(sourceDetails).toHaveAttribute('aria-expanded', 'true')
+    expect(screen.getByText('Unclassified source · example.com')).toBeVisible()
+    expect(screen.getByText('Access not verified · Applicability not assessed')).toBeVisible()
   })
 
   it('renders adaptive investigation guidance without exposing the internal answer mode', () => {

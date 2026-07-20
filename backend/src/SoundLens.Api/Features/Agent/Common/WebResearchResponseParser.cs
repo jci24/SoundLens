@@ -7,6 +7,9 @@ namespace SoundLens.Api.Features.Agent.Common;
 public static class WebResearchResponseParser
 {
     private const int MaxCitations = 8;
+    private static readonly IReadOnlySet<string> TrackingQueryParameters = new HashSet<string>(
+        ["utm_source", "utm_medium", "utm_campaign", "utm_term", "utm_content", "utm_id", "gclid", "fbclid"],
+        StringComparer.OrdinalIgnoreCase);
 
     public static bool TryParse(
         WebResearchResult result,
@@ -150,11 +153,36 @@ public static class WebResearchResponseParser
         }
 
         var startIndex = Math.Min(indexMap[citation.StartIndex], endIndex - 1);
+        var canonicalUri = Canonicalize(citation.Uri);
         return new AgentExternalCitation(
             citation.Title.Trim(),
-            citation.Uri.AbsoluteUri,
+            canonicalUri.AbsoluteUri,
             startIndex,
-            endIndex);
+            endIndex,
+            ExternalSourceMetadataFactory.Build(canonicalUri));
+    }
+
+    private static Uri Canonicalize(Uri uri)
+    {
+        var builder = new UriBuilder(uri)
+        {
+            Scheme = uri.Scheme.ToLowerInvariant(),
+            Host = uri.IdnHost.ToLowerInvariant(),
+            Fragment = string.Empty
+        };
+        if (uri.IsDefaultPort)
+        {
+            builder.Port = -1;
+        }
+
+        var retainedQuery = uri.Query
+            .TrimStart('?')
+            .Split('&', StringSplitOptions.RemoveEmptyEntries)
+            .Where(part => !TrackingQueryParameters.Contains(
+                Uri.UnescapeDataString(part.Split('=', 2)[0])))
+            .ToArray();
+        builder.Query = string.Join('&', retainedQuery);
+        return builder.Uri;
     }
 
     private static bool HasCitationCoverage(
