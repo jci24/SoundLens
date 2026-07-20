@@ -19,6 +19,16 @@
     gap: 0.45rem;
   }
 
+  &__conversation-actions {
+    position: sticky;
+    top: 0;
+    z-index: 1;
+    display: flex;
+    justify-content: flex-end;
+    padding: 0.1rem 0 0.35rem;
+    background: var(--surface-primary);
+  }
+
   &__empty-state {
     flex: 1;
     display: flex;

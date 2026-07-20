@@ -1,6 +1,12 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { streamAgentQuery } from '../services/copilotService'
-import type { IAgentActivityEvent, IAgentQueryRequest, IAgentQueryResponse } from '../types/copilot.types'
+import type {
+  IAgentActivityEvent,
+  IAgentConversationRequestSnapshot,
+  IAgentConversationTurn,
+  IAgentQueryRequest,
+  IAgentQueryResponse,
+} from '../types/copilot.types'
 
 interface ICopilotConversationTurn {
   id: string
@@ -21,6 +27,41 @@ interface IUseCopilotQueryResult {
   submit: (request: IAgentQueryRequest) => Promise<void>
   retry: (turnId: string) => Promise<void>
   reset: () => void
+}
+
+const MAX_HISTORY_TURNS = 6
+const MAX_HISTORY_CHARACTERS = 16_000
+const MAX_HISTORY_ANSWER_CHARACTERS = 4_000
+
+const buildRequestSnapshot = (request: IAgentQueryRequest): IAgentConversationRequestSnapshot => ({
+  signalIds: request.signalIds,
+  startTimeSeconds: request.startTimeSeconds,
+  endTimeSeconds: request.endTimeSeconds,
+  comparisonContext: request.comparisonContext,
+  comparisonPair: request.comparisonPair,
+  contextMode: request.contextMode,
+})
+
+const buildConversationHistory = (turns: ICopilotConversationTurnState[]): IAgentConversationTurn[] => {
+  const candidates = turns
+    .filter((turn) => !turn.isLoading && !turn.error && turn.response)
+    .map((turn) => ({
+      question: turn.question,
+      answer: turn.response!.answer.slice(0, MAX_HISTORY_ANSWER_CHARACTERS),
+      answerMode: turn.response!.answerMode ?? 'workspace',
+      requestSnapshot: buildRequestSnapshot(turn.request),
+    }))
+    .slice(-MAX_HISTORY_TURNS)
+
+  const bounded: IAgentConversationTurn[] = []
+  let characters = 0
+  for (const turn of candidates.toReversed()) {
+    const turnCharacters = turn.question.length + turn.answer.length
+    if (characters + turnCharacters > MAX_HISTORY_CHARACTERS) continue
+    bounded.unshift(turn)
+    characters += turnCharacters
+  }
+  return bounded
 }
 
 const useCopilotQuery = (): IUseCopilotQueryResult => {
@@ -118,9 +159,12 @@ const useCopilotQuery = (): IUseCopilotQueryResult => {
 
   const submit = useCallback(
     async (request: IAgentQueryRequest) => {
-      await executeRequest(request)
+      const conversationHistory = buildConversationHistory(turns)
+      await executeRequest(conversationHistory.length > 0
+        ? { ...request, conversationHistory }
+        : request)
     },
-    [executeRequest]
+    [executeRequest, turns]
   )
 
   const retry = useCallback(
@@ -130,6 +174,10 @@ const useCopilotQuery = (): IUseCopilotQueryResult => {
         return
       }
 
+      setTurns((currentTurns) => {
+        const turnIndex = currentTurns.findIndex((item) => item.id === turnId)
+        return turnIndex < 0 ? currentTurns : currentTurns.slice(0, turnIndex + 1)
+      })
       await executeRequest(turn.request, turnId)
     },
     [executeRequest, turns]
@@ -159,4 +207,4 @@ const useCopilotQuery = (): IUseCopilotQueryResult => {
 }
 
 export { useCopilotQuery }
-export type { ICopilotConversationTurn }
+export type { ICopilotConversationTurn, IUseCopilotQueryResult }

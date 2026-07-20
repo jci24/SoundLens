@@ -139,6 +139,8 @@ SoundLens must keep three authority categories explicit:
 
 The categories may be connected in an investigation but never silently merged. External literature cannot override measured evidence, and model prose cannot become a measurement. See [Research Source And Privacy Policy](research-source-policy.md) for source and query boundaries and [ROADMAP.md](../../ROADMAP.md) for maturity gates.
 
+Conversation continuity follows the same boundary. Completed user and assistant prose may help resolve a short follow-up into a standalone question, but it is not evidence. The resolver may choose only the current workspace selectors or one identifier-only snapshot supplied with a prior turn. Measurements, findings, limitations, and citations must be reconstructed or revalidated through the current backend path; missing historical evidence stops explicitly rather than switching context silently.
+
 ## Capability Families
 
 Capabilities should be grouped into a small number of bounded families. The model should receive only the subset relevant to the current step.

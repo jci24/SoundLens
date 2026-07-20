@@ -12,7 +12,8 @@ public sealed record AgentQueryCommand(
     double? EndTimeSeconds,
     AgentComparisonSelection? ComparisonContext = null,
     AgentComparisonPair? ComparisonPair = null,
-    string? ContextMode = null) : ICommand<AgentQueryResponse>
+    string? ContextMode = null,
+    IReadOnlyList<AgentConversationTurn>? ConversationHistory = null) : ICommand<AgentQueryResponse>
 {
     [JsonIgnore]
     internal IAgentActivitySink ActivitySink { get; init; } = NullAgentActivitySink.Instance;
@@ -41,3 +42,17 @@ public sealed record AgentComparisonSelection(
     string MetricKey,
     string SignalIdA,
     string SignalIdB);
+
+public sealed record AgentConversationTurn(
+    string Question,
+    string Answer,
+    string AnswerMode,
+    AgentConversationRequestSnapshot RequestSnapshot);
+
+public sealed record AgentConversationRequestSnapshot(
+    IReadOnlyList<string>? SignalIds,
+    double? StartTimeSeconds,
+    double? EndTimeSeconds,
+    AgentComparisonSelection? ComparisonContext = null,
+    AgentComparisonPair? ComparisonPair = null,
+    string? ContextMode = null);

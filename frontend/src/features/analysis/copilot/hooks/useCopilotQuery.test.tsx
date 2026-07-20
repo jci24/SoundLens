@@ -47,6 +47,17 @@ describe('useCopilotQuery', () => {
       expect(result.current.turns[1]?.question).toBe('Second question')
       expect(result.current.turns[1]?.response?.answer).toBe('Second answer')
     })
+    expect(mockStreamAgentQuery.mock.calls[1]?.[0]).toMatchObject({
+      question: 'Second question',
+      conversationHistory: [
+        expect.objectContaining({
+          question: 'First question',
+          answer: 'First answer',
+          answerMode: 'workspace',
+          requestSnapshot: expect.objectContaining({}),
+        }),
+      ],
+    })
   })
 
   it('re-runs an existing turn in place instead of clearing the conversation', async () => {
@@ -126,11 +137,77 @@ describe('useCopilotQuery', () => {
     })
 
     const { result, unmount } = renderHook(() => useCopilotQuery())
-    void act(() => result.current.submit({ question: 'Research this.' }))
+    act(() => {
+      void result.current.submit({ question: 'Research this.' })
+    })
 
     await waitFor(() => expect(capturedSignal).toBeDefined())
     expect(capturedSignal?.aborted).toBe(false)
     unmount()
     expect(capturedSignal?.aborted).toBe(true)
+  })
+
+  it('excludes failed turns from history and allows the next submission to recover', async () => {
+    mockStreamAgentQuery
+      .mockRejectedValueOnce(new Error('Failed'))
+      .mockResolvedValueOnce({
+        answer: 'Recovered', citedEvidence: [], limitations: [], nextSteps: [], toolsUsed: [], answerMode: 'general',
+      })
+
+    const { result } = renderHook(() => useCopilotQuery())
+    await act(async () => result.current.submit({ question: 'Failed question' }))
+    await act(async () => result.current.submit({ question: 'Recovery question' }))
+
+    expect(mockStreamAgentQuery.mock.calls[1]?.[0]).toEqual({ question: 'Recovery question' })
+    expect(result.current.turns).toHaveLength(2)
+    expect(result.current.turns[1]?.response?.answer).toBe('Recovered')
+  })
+
+  it('re-running an earlier turn truncates every later dependent turn', async () => {
+    mockStreamAgentQuery
+      .mockResolvedValueOnce({ answer: 'First', citedEvidence: [], limitations: [], nextSteps: [], toolsUsed: [] })
+      .mockResolvedValueOnce({ answer: 'Second', citedEvidence: [], limitations: [], nextSteps: [], toolsUsed: [] })
+      .mockResolvedValueOnce({ answer: 'First revised', citedEvidence: [], limitations: [], nextSteps: [], toolsUsed: [] })
+
+    const { result } = renderHook(() => useCopilotQuery())
+    await act(async () => result.current.submit({ question: 'First question', signalIds: ['signal-a'] }))
+    await act(async () => result.current.submit({ question: 'Second question', signalIds: ['signal-b'] }))
+    const firstTurnId = result.current.turns[0]!.id
+
+    await act(async () => result.current.retry(firstTurnId))
+
+    expect(result.current.turns).toHaveLength(1)
+    expect(result.current.turns[0]?.response?.answer).toBe('First revised')
+    expect(mockStreamAgentQuery.mock.calls[2]?.[0]).toEqual({
+      question: 'First question',
+      signalIds: ['signal-a'],
+    })
+  })
+
+  it('sends only the six most recent successful completed turns', async () => {
+    mockStreamAgentQuery.mockImplementation(async (request: { question: string }) => ({
+      answer: `Answer to ${request.question}`,
+      answerMode: 'general',
+      citedEvidence: [],
+      limitations: [],
+      nextSteps: [],
+      toolsUsed: [],
+    }))
+    const { result } = renderHook(() => useCopilotQuery())
+
+    for (let index = 0; index < 8; index += 1) {
+      await act(async () => result.current.submit({ question: `Question ${index}` }))
+    }
+
+    const finalHistory = mockStreamAgentQuery.mock.calls[7]?.[0].conversationHistory
+    expect(finalHistory).toHaveLength(6)
+    expect(finalHistory.map((turn: { question: string }) => turn.question)).toEqual([
+      'Question 1',
+      'Question 2',
+      'Question 3',
+      'Question 4',
+      'Question 5',
+      'Question 6',
+    ])
   })
 })
