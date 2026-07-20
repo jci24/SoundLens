@@ -9,6 +9,20 @@ const SUPPORTED_CONTEXT_MODES = new Set(['auto', 'workspace', 'general'])
 const SUPPORTED_EXPECTATIONS = new Set(['required', 'forbidden', 'optional'])
 const SUPPORTED_SUFFICIENCY_STATUSES = new Set(['supported', 'partial', 'missing', 'contradicted', 'unavailable'])
 const SUPPORTED_OBSERVATION_STATUSES = new Set(['complete', 'limited', 'mixed'])
+const SUPPORTED_PLAN_EXPECTATIONS = new Set(['required', 'forbidden', 'optional'])
+const SUPPORTED_PLAN_CATEGORIES = new Set(['analysis', 'inspection', 'audition', 'artifact'])
+const SUPPORTED_PLAN_COST_CLASSES = new Set(['interactive', 'bounded'])
+const SUPPORTED_PLAN_CAPABILITIES = new Set([
+  'waveform',
+  'spectrum',
+  'level_dynamics',
+  'roi',
+  'playback',
+  'evidence_inspector',
+  'report_export',
+])
+const PLAN_ID_PATTERN = /^plan_v1_[0-9a-f]{24}$/
+const MEASURED_RESULT_PATTERN = /[-+]?\d+(?:\.\d+)?\s*(?:dB(?:FS|\s*SPL)?|FS|Hz|kHz|samples?|ratio|%)\b/i
 
 export function validateDataset(dataset) {
   const failures = []
@@ -65,6 +79,16 @@ export function validateDataset(dataset) {
     }
     validateExpectation(evalCase, 'evidenceExpectation', prefix, failures)
     validateExpectation(evalCase, 'externalCitationExpectation', prefix, failures)
+    if (evalCase.investigationPlanExpectation !== undefined &&
+        !SUPPORTED_PLAN_EXPECTATIONS.has(evalCase.investigationPlanExpectation)) {
+      failures.push(`${prefix}.investigationPlanExpectation must be required, forbidden, or optional`)
+    }
+    validateStringArray(evalCase, 'expectedPlanCapabilityIds', prefix, failures)
+    for (const capabilityId of evalCase.expectedPlanCapabilityIds ?? []) {
+      if (!SUPPORTED_PLAN_CAPABILITIES.has(capabilityId)) {
+        failures.push(`${prefix}.expectedPlanCapabilityIds contains unsupported capability "${capabilityId}"`)
+      }
+    }
     if (evalCase.expectedEvidenceSufficiencyStatus !== undefined &&
         !SUPPORTED_SUFFICIENCY_STATUSES.has(evalCase.expectedEvidenceSufficiencyStatus)) {
       failures.push(`${prefix}.expectedEvidenceSufficiencyStatus is not supported`)
@@ -168,6 +192,7 @@ export function gradeResponse(evalCase, response) {
   const externalCitations = Array.isArray(response?.externalCitations) ? response.externalCitations : []
   const evidenceExpectation = evalCase.evidenceExpectation ?? 'required'
   const externalCitationExpectation = evalCase.externalCitationExpectation ?? 'optional'
+  const planExpectation = evalCase.investigationPlanExpectation ?? 'optional'
 
   if (evalCase.expectedAnswerMode && response?.answerMode !== evalCase.expectedAnswerMode) {
     failures.push(`expected answer mode ${evalCase.expectedAnswerMode}, received ${response?.answerMode ?? 'missing'}`)
@@ -207,6 +232,26 @@ export function gradeResponse(evalCase, response) {
       failures.push(
         `expected ${evalCase.expectedFindingObservationCount} finding observations, received ${findingCount}`,
       )
+    }
+  }
+
+  const planFailures = gradeInvestigationPlan(response?.investigationPlan)
+  if (planExpectation === 'required' && !response?.investigationPlan) {
+    failures.push('missing investigation plan')
+  } else if (planExpectation === 'forbidden' && response?.investigationPlan) {
+    failures.push('unexpected investigation plan')
+  }
+  if (response?.investigationPlan) {
+    failures.push(...planFailures)
+    const capabilityIds = new Set(
+      Array.isArray(response.investigationPlan.steps)
+        ? response.investigationPlan.steps.map((step) => step?.capabilityId).filter(Boolean)
+        : [],
+    )
+    for (const capabilityId of evalCase.expectedPlanCapabilityIds ?? []) {
+      if (!capabilityIds.has(capabilityId)) {
+        failures.push(`missing investigation-plan capability ${capabilityId}`)
+      }
     }
   }
 
@@ -295,6 +340,76 @@ export function gradeResponse(evalCase, response) {
   }
 
   return { pass: failures.length === 0, failures }
+}
+
+export function gradeInvestigationPlan(plan) {
+  if (plan === undefined || plan === null) {
+    return []
+  }
+  const failures = []
+  if (!isObject(plan)) {
+    return ['investigation plan must be an object']
+  }
+  if (!PLAN_ID_PATTERN.test(plan.planId ?? '') || plan.version !== '1' || plan.status !== 'preview') {
+    failures.push('investigation plan has an invalid identity, version, or status')
+  }
+  if (!isNonEmptyString(plan.objective) || MEASURED_RESULT_PATTERN.test(plan.objective)) {
+    failures.push('investigation plan objective is missing or contains a measured result')
+  }
+  if (!isValidPlanScope(plan.scope)) {
+    failures.push('investigation plan scope is invalid')
+  }
+  if (!Array.isArray(plan.steps) || plan.steps.length < 1 || plan.steps.length > 6) {
+    failures.push('investigation plan must contain between 1 and 6 steps')
+    return failures
+  }
+
+  const seenStepIds = new Set()
+  for (const [index, step] of plan.steps.entries()) {
+    const expectedStepId = `step-${index + 1}`
+    if (!isObject(step) || step.stepId !== expectedStepId || step.order !== index + 1 || seenStepIds.has(step.stepId)) {
+      failures.push(`investigation plan step ${index + 1} has an invalid order or identifier`)
+      continue
+    }
+    if (!SUPPORTED_PLAN_CAPABILITIES.has(step.capabilityId) ||
+        !SUPPORTED_PLAN_CATEGORIES.has(step.category) ||
+        !SUPPORTED_PLAN_COST_CLASSES.has(step.costClass) ||
+        !isNonEmptyString(step.capabilityLabel) || typeof step.requiresApproval !== 'boolean') {
+      failures.push(`investigation plan step ${index + 1} has invalid capability policy metadata`)
+    }
+    if (!isNonEmptyString(step.title) || !isNonEmptyString(step.purpose) ||
+        MEASURED_RESULT_PATTERN.test(step.title ?? '') || MEASURED_RESULT_PATTERN.test(step.purpose ?? '')) {
+      failures.push(`investigation plan step ${index + 1} has invalid or result-bearing text`)
+    }
+    for (const property of ['dependsOnStepIds', 'parameterKeys', 'requiredEvidence', 'completionCriteria']) {
+      if (!Array.isArray(step[property]) || step[property].some((item) => !isNonEmptyString(item))) {
+        failures.push(`investigation plan step ${index + 1} has invalid ${property}`)
+      }
+    }
+    if (Array.isArray(step.dependsOnStepIds) &&
+        (new Set(step.dependsOnStepIds).size !== step.dependsOnStepIds.length ||
+         step.dependsOnStepIds.some((dependency) => !seenStepIds.has(dependency)))) {
+      failures.push(`investigation plan step ${index + 1} has an invalid dependency`)
+    }
+    if (!Array.isArray(step.completionCriteria) || step.completionCriteria.length === 0 ||
+        step.completionCriteria?.some((criterion) => MEASURED_RESULT_PATTERN.test(criterion))) {
+      failures.push(`investigation plan step ${index + 1} has invalid completion criteria`)
+    }
+    seenStepIds.add(step.stepId)
+  }
+  return failures
+}
+
+function isValidPlanScope(scope) {
+  if (!isObject(scope)) {
+    return false
+  }
+  if (scope.kind === 'full_duration') {
+    return scope.startTimeSeconds === null && scope.endTimeSeconds === null
+  }
+  return scope.kind === 'roi' && Number.isFinite(scope.startTimeSeconds) &&
+    Number.isFinite(scope.endTimeSeconds) && scope.startTimeSeconds >= 0 &&
+    scope.endTimeSeconds > scope.startTimeSeconds
 }
 
 export function summarize(results) {

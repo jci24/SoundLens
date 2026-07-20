@@ -4,6 +4,7 @@ import test from 'node:test'
 
 import {
   gradeComparisonSetup,
+  gradeInvestigationPlan,
   gradeResponse,
   summarize,
   summarizeRouting,
@@ -276,6 +277,98 @@ test('grades backend-owned structured metric and finding observations', () => {
   assert.equal(result.pass, false)
   assert.ok(result.failures.includes('expected observation status mixed, received limited'))
   assert.ok(result.failures.includes('expected 1 finding observations, received 2'))
+})
+
+test('grades preview investigation plans and rejects executable or stale structures', () => {
+  const plan = {
+    planId: 'plan_v1_0123456789abcdef01234567',
+    version: '1',
+    status: 'preview',
+    objective: 'Compare the recordings using complementary evidence.',
+    scope: { kind: 'full_duration', startTimeSeconds: null, endTimeSeconds: null },
+    steps: [
+      {
+        stepId: 'step-1',
+        order: 1,
+        title: 'Inspect level and dynamics',
+        purpose: 'Review deterministic level evidence.',
+        capabilityId: 'level_dynamics',
+        capabilityLabel: 'Level and dynamics',
+        category: 'analysis',
+        dependsOnStepIds: [],
+        parameterKeys: ['scope', 'signals'],
+        requiredEvidence: ['imported_recordings'],
+        completionCriteria: ['Level evidence is available for review.'],
+        costClass: 'interactive',
+        requiresApproval: false,
+      },
+      {
+        stepId: 'step-2',
+        order: 2,
+        title: 'Inspect frequency evidence',
+        purpose: 'Review spectral evidence after level inspection.',
+        capabilityId: 'spectrum',
+        capabilityLabel: 'Spectrum inspection',
+        category: 'analysis',
+        dependsOnStepIds: ['step-1'],
+        parameterKeys: ['scope', 'signals'],
+        requiredEvidence: ['imported_recordings'],
+        completionCriteria: ['Spectrum evidence is available for review.'],
+        costClass: 'interactive',
+        requiresApproval: false,
+      },
+    ],
+  }
+
+  assert.deepEqual(gradeInvestigationPlan(plan), [])
+  assert.deepEqual(gradeResponse({
+    evidenceExpectation: 'forbidden',
+    investigationPlanExpectation: 'required',
+    expectedPlanCapabilityIds: ['level_dynamics', 'spectrum'],
+  }, {
+    answer: 'Review the preview before running any analysis.',
+    citedEvidence: [],
+    limitations: [],
+    investigationPlan: plan,
+  }), { pass: true, failures: [] })
+
+  const invalid = structuredClone(plan)
+  invalid.status = 'executable'
+  invalid.steps[1].dependsOnStepIds = ['step-2']
+  invalid.steps[1].completionCriteria = ['Peak is 92 dBFS.']
+  const failures = gradeInvestigationPlan(invalid)
+  assert.ok(failures.some((failure) => failure.includes('identity, version, or status')))
+  assert.ok(failures.some((failure) => failure.includes('invalid dependency')))
+  assert.ok(failures.some((failure) => failure.includes('completion criteria')))
+
+  const malformed = gradeResponse({
+    evidenceExpectation: 'forbidden',
+    investigationPlanExpectation: 'required',
+    expectedPlanCapabilityIds: ['spectrum'],
+  }, {
+    answer: 'Malformed plan.',
+    citedEvidence: [],
+    limitations: [],
+    investigationPlan: { planId: 'broken' },
+  })
+  assert.equal(malformed.pass, false)
+  assert.ok(malformed.failures.some((failure) => failure.includes('identity, version, or status')))
+  assert.ok(malformed.failures.some((failure) => failure.includes('missing investigation-plan capability')))
+})
+
+test('validates investigation-plan dataset expectations and capability identifiers', () => {
+  const failures = validateDataset({
+    filePaths: ['./a.wav'],
+    cases: [{
+      id: 'invalid-plan-expectation',
+      question: 'Plan this.',
+      investigationPlanExpectation: 'always',
+      expectedPlanCapabilityIds: ['invented_analysis'],
+    }],
+  })
+
+  assert.ok(failures.some((failure) => failure.includes('investigationPlanExpectation')))
+  assert.ok(failures.some((failure) => failure.includes('unsupported capability')))
 })
 
 test('requires every repeated run and every setup to pass', () => {

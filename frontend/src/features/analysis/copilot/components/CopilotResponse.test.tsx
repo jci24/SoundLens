@@ -94,7 +94,71 @@ const structuredObservations = [
   },
 ]
 
+const investigationPlan = {
+  planId: 'plan_v1_1234567890abcdef12345678',
+  version: '1' as const,
+  status: 'preview' as const,
+  objective: 'Compare the recordings using complementary evidence.',
+  scope: { kind: 'full_duration' as const, startTimeSeconds: null, endTimeSeconds: null },
+  steps: [
+    {
+      stepId: 'step-1',
+      order: 1,
+      title: 'Inspect waveform evidence',
+      purpose: 'Review event shape and timing.',
+      capabilityId: 'waveform',
+      capabilityLabel: 'Waveform inspection',
+      category: 'analysis' as const,
+      dependsOnStepIds: [],
+      parameterKeys: ['scope', 'signals'],
+      requiredEvidence: ['imported_recordings'],
+      completionCriteria: ['Waveform evidence is available for review.'],
+      costClass: 'interactive' as const,
+      requiresApproval: false,
+    },
+    {
+      stepId: 'step-2',
+      order: 2,
+      title: 'Select a focused region',
+      purpose: 'Narrow the review to the event relevant to the decision.',
+      capabilityId: 'roi',
+      capabilityLabel: 'Region selection',
+      category: 'inspection' as const,
+      dependsOnStepIds: ['step-1'],
+      parameterKeys: ['scope'],
+      requiredEvidence: ['imported_recordings'],
+      completionCriteria: ['A review scope is available.'],
+      costClass: 'interactive' as const,
+      requiresApproval: true,
+    },
+  ],
+}
+
 describe('CopilotResponse', () => {
+  it('keeps a validated investigation preview collapsed without execution controls', () => {
+    render(
+      <CopilotResponse
+        response={{ ...response, investigationPlan }}
+        onRegenerate={() => {}}
+      />
+    )
+
+    const toggle = screen.getByRole('button', { name: /Investigation plan 2 steps · Preview/i })
+    expect(toggle).toHaveAttribute('aria-expanded', 'false')
+    expect(screen.queryByText('Inspect waveform evidence')).not.toBeInTheDocument()
+
+    fireEvent.click(toggle)
+
+    expect(toggle).toHaveAttribute('aria-expanded', 'true')
+    expect(screen.getByText(investigationPlan.objective)).toBeVisible()
+    expect(screen.getByText(/Preview only; steps are not run automatically/i)).toBeVisible()
+    expect(screen.getByText('Waveform inspection')).toBeVisible()
+    expect(screen.getByText('Required before execution')).toBeVisible()
+    expect(screen.getByText('step-1')).toBeVisible()
+    expect(screen.getByTitle(investigationPlan.planId)).toHaveTextContent('plan_v1_12345678…')
+    expect(screen.queryByRole('button', { name: /run plan|approve plan|execute plan/i })).not.toBeInTheDocument()
+  })
+
   it('keeps backend-owned measured observations collapsed until requested', () => {
     render(
       <CopilotResponse

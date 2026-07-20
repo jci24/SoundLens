@@ -1,6 +1,6 @@
 # Agentic Copilot Strategy
 
-Last updated: 2026-07-18
+Last updated: 2026-07-20
 
 ## Strategic Thesis
 
@@ -113,6 +113,8 @@ Implication for SoundLens:
 ## Product Model
 
 The central product object should become an **investigation**, not a chat transcript.
+
+The current product now has the first non-executable planning contract: substantial guidance can return a versioned preview built only from capabilities available in the current workspace. The backend validates scope, ordered dependencies, parameter and evidence policy, cost class, approval metadata, and numerical emptiness before the frontend may display it. This is a Level 3 foundation, not plan execution, persistence, revision, or autonomy.
 
 An investigation contains:
 

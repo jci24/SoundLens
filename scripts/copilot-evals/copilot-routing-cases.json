@@ -54,12 +54,26 @@
       "question": "What guidelines would you give me to analyze these files for a repeatable A/B decision?",
       "signals": [],
       "expectedAnswerMode": "guidance",
+      "investigationPlanExpectation": "required",
+      "expectedPlanCapabilityIds": ["level_dynamics", "spectrum"],
       "evidenceExpectation": "forbidden",
       "externalCitationExpectation": "forbidden",
       "forbiddenTools": ["get_signal_metrics", "compare_signals", "web_search"],
       "requiredAnswerAnyPhraseGroups": [
         ["objective", "decision", "criterion"]
       ],
+      "forbiddenLimitationPhrases": ["dBFS", "selected ROI"]
+    },
+    {
+      "id": "routing-investigation-clarification",
+      "question": "Help me investigate.",
+      "signals": [],
+      "expectedAnswerMode": "guidance",
+      "investigationPlanExpectation": "forbidden",
+      "evidenceExpectation": "forbidden",
+      "externalCitationExpectation": "forbidden",
+      "forbiddenTools": ["get_signal_metrics", "compare_signals", "web_search"],
+      "requiredAnswerPhrases": ["?"],
       "forbiddenLimitationPhrases": ["dBFS", "selected ROI"]
     },
     {
