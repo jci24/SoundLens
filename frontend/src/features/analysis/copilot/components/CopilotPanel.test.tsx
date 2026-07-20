@@ -5,6 +5,15 @@ import type { ITimeWaveformRecording } from '../../types'
 import { CopilotPanel } from './CopilotPanel'
 
 const submitSpy = vi.fn()
+const resetSpy = vi.fn()
+let conversationTurns: Array<{
+  id: string
+  question: string
+  response: null
+  error: null
+  isLoading: boolean
+  activity: []
+}> = []
 let submittedQuestion = 'Explain this difference'
 const recordings: ITimeWaveformRecording[] = [
   {
@@ -29,12 +38,13 @@ const recordings: ITimeWaveformRecording[] = [
   },
 ]
 
-vi.mock('../hooks/useCopilotQuery', () => ({
-  useCopilotQuery: () => ({
-    turns: [],
+vi.mock('../context/useCopilotConversation', () => ({
+  useCopilotConversation: () => ({
+    turns: conversationTurns,
     isLoading: false,
     submit: submitSpy,
     retry: vi.fn(),
+    reset: resetSpy,
   }),
 }))
 
@@ -49,6 +59,8 @@ vi.mock('./CopilotInput', () => ({
 describe('CopilotPanel', () => {
   beforeEach(() => {
     submitSpy.mockReset()
+    resetSpy.mockReset()
+    conversationTurns = []
     submittedQuestion = 'Explain this difference'
     useAnalysisWorkspaceStore.setState({
       recordingGroupAssignments: {},
@@ -189,6 +201,22 @@ describe('CopilotPanel', () => {
       comparisonContext: undefined,
       comparisonPair: undefined,
     })
+  })
+
+  it('offers an explicit conversation reset only after a turn exists', () => {
+    conversationTurns = [{
+      id: 'turn-1',
+      question: 'Question',
+      response: null,
+      error: null,
+      isLoading: false,
+      activity: [],
+    }]
+
+    render(<CopilotPanel recordings={[]} regionOfInterest={null} selectedSignalIds={[]} />)
+    fireEvent.click(screen.getByRole('button', { name: 'Start a new conversation' }))
+
+    expect(resetSpy).toHaveBeenCalledOnce()
   })
 
 })

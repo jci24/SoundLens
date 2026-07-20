@@ -1,6 +1,7 @@
 import { lazy, Suspense, useState } from 'react'
 import { useAnalysisWorkspaceStore } from '../../analysis/stores/useAnalysisWorkspaceStore'
 import { CopilotSidebar } from '../../analysis/copilot/components/CopilotSidebar'
+import { CopilotConversationProvider } from '../../analysis/copilot/context/CopilotConversationContext'
 import { RouteState } from './RouteState'
 import './EvidencePage.scss'
 
@@ -20,24 +21,26 @@ const EvidencePage = ({ importedRecordingCount }: IEvidencePageProps) => {
   const recordings = useAnalysisWorkspaceStore((state) => state.recordings)
 
   return (
-    <div className="evidence-page">
-      <div className="evidence-page__workspace">
-        <Suspense fallback={<RouteState title="Loading evidence workspace" />}>
-          <TimeWaveformWorkspace
-            importedRecordingCount={importedRecordingCount}
-            isCopilotOpen={isCopilotOpen}
-            onCopilotToggle={() => setIsCopilotOpen((current) => !current)}
-          />
-        </Suspense>
+    <CopilotConversationProvider>
+      <div className="evidence-page">
+        <div className="evidence-page__workspace">
+          <Suspense fallback={<RouteState title="Loading evidence workspace" />}>
+            <TimeWaveformWorkspace
+              importedRecordingCount={importedRecordingCount}
+              isCopilotOpen={isCopilotOpen}
+              onCopilotToggle={() => setIsCopilotOpen((current) => !current)}
+            />
+          </Suspense>
+        </div>
+        <CopilotSidebar
+          isOpen={isCopilotOpen}
+          onClose={() => setIsCopilotOpen(false)}
+          recordings={recordings}
+          regionOfInterest={regionOfInterest}
+          selectedSignalIds={selectedSignalIds}
+        />
       </div>
-      <CopilotSidebar
-        isOpen={isCopilotOpen}
-        onClose={() => setIsCopilotOpen(false)}
-        recordings={recordings}
-        regionOfInterest={regionOfInterest}
-        selectedSignalIds={selectedSignalIds}
-      />
-    </div>
+    </CopilotConversationProvider>
   )
 }
 

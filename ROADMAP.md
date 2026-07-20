@@ -331,6 +331,7 @@ SoundLens is approximately a **Level 2 tool-using Copilot with early Level 3 fou
 | Capability | Status | Repository evidence and boundary |
 | --- | --- | --- |
 | Context-aware conversational UI | Implemented | Receives selected recording, signal, pair, metric, and ROI identifiers. |
+| Bounded conversation continuity | Implemented | Up to six completed turns provide untrusted language context within Evidence; backend contextualization selects current or one historical identifier snapshot, recomputes evidence, and rejects stale selectors. |
 | Deterministic factual routing | Implemented | RMS, peak, and clipping questions bypass model calculation. |
 | Bounded deterministic tools | Implemented | Metrics, findings, spectrum summaries, and signal comparison are backend-owned. |
 | Selected-comparison explanation | Implemented | Backend reconstructs evidence and validates model output. |

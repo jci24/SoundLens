@@ -26,6 +26,7 @@ public static class DependencyInjection
         services.AddSingleton<RecordingComparisonAggregationService>();
         services.AddSingleton<IComparisonExplanationContextResolver, ComparisonExplanationContextResolver>();
         services.AddSingleton<DeterministicSignalQueryResponder>();
+        services.AddSingleton<AgentConversationContextResolver>();
         services.AddSingleton<AgentContextRouter>();
         services.AddSingleton<GeneralKnowledgeResponder>();
         services.AddSingleton<WebResearchResponder>();

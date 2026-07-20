@@ -1,9 +1,10 @@
 import { useEffect, useRef } from 'react'
-import { Loader2 } from 'lucide-react'
+import { Loader2, Plus } from 'lucide-react'
+import { Button } from '@/components/ui/button'
 import { CopilotInput } from './CopilotInput'
 import { CopilotResponse } from './CopilotResponse'
 import { CopilotActivityTrace } from './CopilotActivityTrace'
-import { useCopilotQuery } from '../hooks/useCopilotQuery'
+import { useCopilotConversation } from '../context/useCopilotConversation'
 import { useAnalysisWorkspaceStore } from '../../stores/useAnalysisWorkspaceStore'
 import type { IAnalysisRegionOfInterest, ITimeWaveformRecording } from '../../types'
 import './CopilotPanel.scss'
@@ -15,7 +16,7 @@ interface ICopilotPanelProps {
 }
 
 const CopilotPanel = ({ selectedSignalIds, regionOfInterest, recordings }: ICopilotPanelProps) => {
-  const { turns, isLoading, submit, retry } = useCopilotQuery()
+  const { turns, isLoading, submit, retry, reset } = useCopilotConversation()
   const threadRef = useRef<HTMLDivElement | null>(null)
   const hasConversation = turns.length > 0
   const comparisonContext = useAnalysisWorkspaceStore((state) => state.comparisonCopilotContext)
@@ -60,6 +61,21 @@ const CopilotPanel = ({ selectedSignalIds, regionOfInterest, recordings }: ICopi
   return (
     <section className="copilot-panel" aria-label="AI copilot">
       <div className="copilot-panel__thread" ref={threadRef}>
+        {hasConversation && (
+          <div className="copilot-panel__conversation-actions">
+            <Button
+              aria-label="Start a new conversation"
+              disabled={isLoading}
+              size="sm"
+              type="button"
+              variant="ghost"
+              onClick={reset}
+            >
+              <Plus aria-hidden="true" />
+              New conversation
+            </Button>
+          </div>
+        )}
         {!hasConversation && (
           <div className="copilot-panel__empty-state">
             <p className="copilot-panel__empty-label">Copilot</p>

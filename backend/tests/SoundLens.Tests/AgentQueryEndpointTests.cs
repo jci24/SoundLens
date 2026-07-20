@@ -100,7 +100,9 @@ public sealed class AgentQueryEndpointTests : IClassFixture<WebApplicationFactor
                 "/api/agent/query",
                 new { question = "Which is the best file in here?" });
 
-            response.EnsureSuccessStatusCode();
+            Assert.True(
+                response.IsSuccessStatusCode,
+                await response.Content.ReadAsStringAsync());
             var payload = await response.Content.ReadFromJsonAsync<AgentQueryResponse>();
 
             Assert.Equal(AgentAnswerModes.Workspace, payload!.AnswerMode);
@@ -1318,6 +1320,78 @@ public sealed class AgentQueryEndpointTests : IClassFixture<WebApplicationFactor
                 roiObservation.ObservationId,
                 causalPayload.StructuredObservations.Single(observation =>
                     observation.Kind == AgentStructuredObservationKinds.ComparisonMetric).ObservationId);
+        }
+        finally
+        {
+            File.Delete(quietPath);
+            File.Delete(loudPath);
+        }
+    }
+
+    [Fact]
+    public async Task FollowUpUsesHistoricalIdentifiersButRecomputesDeterministicEvidence()
+    {
+        var chatClientProvider = new StubChatClientProvider(
+            """{"standaloneQuestion":"Which signal is loudest by RMS?","contextSource":"history","turnIndex":0}""");
+        var conversationFactory = _factory.WithWebHostBuilder(builder =>
+        {
+            builder.ConfigureServices(services =>
+            {
+                services.RemoveAll<IChatClientProvider>();
+                services.AddSingleton<IChatClientProvider>(chatClientProvider);
+            });
+        });
+        var quietPath = Path.Combine(Path.GetTempPath(), $"soundlens_conversation_quiet_{Guid.NewGuid():N}.wav");
+        var loudPath = Path.Combine(Path.GetTempPath(), $"soundlens_conversation_loud_{Guid.NewGuid():N}.wav");
+        await File.WriteAllBytesAsync(quietPath, CreateMono16BitWav(8, [4096, 4096, 4096, 4096]));
+        await File.WriteAllBytesAsync(loudPath, CreateMono16BitWav(8, [16384, 16384, 16384, 16384]));
+
+        using var client = conversationFactory.CreateClient();
+        try
+        {
+            (await client.PostAsJsonAsync("/api/import", new { filePaths = new[] { quietPath, loudPath } }))
+                .EnsureSuccessStatusCode();
+            var waveformResponse = await client.PostAsJsonAsync("/api/waveforms/time", new
+            {
+                binCount = 64,
+                signalIds = Array.Empty<string>(),
+                startTimeSeconds = (double?)null,
+                endTimeSeconds = (double?)null
+            });
+            waveformResponse.EnsureSuccessStatusCode();
+            var waveforms = (await waveformResponse.Content.ReadFromJsonAsync<TimeWaveformResponse>())!;
+            var signalIds = waveforms.Recordings.SelectMany(recording => recording.Signals)
+                .Select(signal => signal.SignalId)
+                .ToArray();
+
+            var response = await client.PostAsJsonAsync("/api/agent/query", new
+            {
+                question = "What about the loudest?",
+                signalIds = Array.Empty<string>(),
+                conversationHistory = new[]
+                {
+                    new
+                    {
+                        question = "Compare these signals by RMS.",
+                        answer = "The first signal is -99 dBFS.",
+                        answerMode = "workspace",
+                        requestSnapshot = new
+                        {
+                            signalIds,
+                            contextMode = "auto"
+                        }
+                    }
+                }
+            });
+
+            Assert.True(
+                response.IsSuccessStatusCode,
+                await response.Content.ReadAsStringAsync());
+            var payload = (await response.Content.ReadFromJsonAsync<AgentQueryResponse>())!;
+            Assert.Contains("loudest", payload.Answer, StringComparison.OrdinalIgnoreCase);
+            Assert.DoesNotContain("-99", payload.Answer, StringComparison.Ordinal);
+            Assert.NotEmpty(payload.CitedEvidence);
+            Assert.Equal(1, chatClientProvider.GetRequiredClientCallCount);
         }
         finally
         {

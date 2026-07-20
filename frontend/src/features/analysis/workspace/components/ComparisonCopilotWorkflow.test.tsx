@@ -1,6 +1,7 @@
 import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { CopilotPanel } from '../../copilot/components/CopilotPanel'
+import { CopilotConversationProvider } from '../../copilot/context/CopilotConversationContext'
 import { useAnalysisWorkspaceStore } from '../../stores/useAnalysisWorkspaceStore'
 import { TimeWaveformWorkspace } from './TimeWaveformWorkspace'
 import { comparisonResponse, groundedResponse, importedFiles, recordings } from './ComparisonCopilotWorkflow.fixtures'
@@ -127,14 +128,14 @@ const CopilotHarness = () => {
   const workspaceRecordings = useAnalysisWorkspaceStore((state) => state.recordings)
 
   return (
-    <>
+    <CopilotConversationProvider>
       <TimeWaveformWorkspace importedRecordingCount={importedFiles.length} isCopilotOpen onCopilotToggle={vi.fn()} />
       <CopilotPanel
         recordings={workspaceRecordings}
         regionOfInterest={regionOfInterest}
         selectedSignalIds={selectedSignalIds}
       />
-    </>
+    </CopilotConversationProvider>
   )
 }
 

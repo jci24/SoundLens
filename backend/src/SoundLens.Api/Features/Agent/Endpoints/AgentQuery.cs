@@ -36,6 +36,11 @@ public sealed class AgentQuery : Endpoint<AgentQueryCommand, AgentQueryResponse>
                     AgentContextModes.General)
                 .WithMessage("ContextMode must be auto, workspace, or general.");
 
+            RuleFor(q => q.ConversationHistory)
+                .Must(IsValidConversationHistory)
+                .WithMessage(
+                    "ConversationHistory must contain at most six valid completed turns and no more than 16,000 characters.");
+
             RuleFor(q => q)
                 .Must(q => AgentContextModes.Normalize(q.ContextMode) == AgentContextModes.General ||
                     (q.StartTimeSeconds is null) == (q.EndTimeSeconds is null))
@@ -102,6 +107,73 @@ public sealed class AgentQuery : Endpoint<AgentQueryCommand, AgentQueryResponse>
                     .Must(pair => !string.Equals(pair.RecordingIdA, pair.RecordingIdB, StringComparison.Ordinal))
                     .WithMessage("ComparisonPair recording IDs must refer to different recordings.");
             });
+        }
+
+        private static bool IsValidConversationHistory(IReadOnlyList<AgentConversationTurn>? history)
+        {
+            if (history is null)
+            {
+                return true;
+            }
+
+            if (history.Count > 6 ||
+                history.Sum(turn => (turn?.Question?.Length ?? 0) + (turn?.Answer?.Length ?? 0)) > 16_000)
+            {
+                return false;
+            }
+
+            return history.All(turn => turn is not null &&
+                !string.IsNullOrWhiteSpace(turn.Question) &&
+                turn.Question.Length <= 500 &&
+                !string.IsNullOrWhiteSpace(turn.Answer) &&
+                turn.Answer.Length <= 4_000 &&
+                turn.AnswerMode is AgentAnswerModes.Workspace or
+                    AgentAnswerModes.General or
+                    AgentAnswerModes.Web or
+                    AgentAnswerModes.Guidance &&
+                turn.RequestSnapshot is not null &&
+                IsValidSnapshot(turn.RequestSnapshot));
+        }
+
+        private static bool IsValidSnapshot(AgentConversationRequestSnapshot snapshot)
+        {
+            if (AgentContextModes.Normalize(snapshot.ContextMode) is not (
+                AgentContextModes.Auto or AgentContextModes.Workspace or AgentContextModes.General))
+            {
+                return false;
+            }
+
+            if ((snapshot.StartTimeSeconds is null) != (snapshot.EndTimeSeconds is null) ||
+                snapshot.StartTimeSeconds is < 0 ||
+                snapshot.StartTimeSeconds is not null && snapshot.EndTimeSeconds <= snapshot.StartTimeSeconds)
+            {
+                return false;
+            }
+
+            if (snapshot.SignalIds?.Any(string.IsNullOrWhiteSpace) == true)
+            {
+                return false;
+            }
+
+            if (snapshot.ComparisonContext is { } comparison &&
+                (string.IsNullOrWhiteSpace(comparison.RecordingIdA) ||
+                 string.IsNullOrWhiteSpace(comparison.RecordingIdB) ||
+                 string.Equals(comparison.RecordingIdA, comparison.RecordingIdB, StringComparison.Ordinal) ||
+                 comparison.MetricKey is not (
+                     "peakAmplitudeDelta" or
+                     "rmsAmplitudeDelta" or
+                     "crestFactorDelta" or
+                     "clippingSampleCountDelta") ||
+                 string.IsNullOrWhiteSpace(comparison.SignalIdA) ||
+                 string.IsNullOrWhiteSpace(comparison.SignalIdB)))
+            {
+                return false;
+            }
+
+            return snapshot.ComparisonPair is not { } pair ||
+                !string.IsNullOrWhiteSpace(pair.RecordingIdA) &&
+                !string.IsNullOrWhiteSpace(pair.RecordingIdB) &&
+                !string.Equals(pair.RecordingIdA, pair.RecordingIdB, StringComparison.Ordinal);
         }
     }
 

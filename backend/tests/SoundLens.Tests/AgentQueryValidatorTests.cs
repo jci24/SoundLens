@@ -1,6 +1,7 @@
 using FluentValidation;
 using SoundLens.Api.Features.Agent.Commands;
 using SoundLens.Api.Features.Agent.Endpoints;
+using SoundLens.Api.Features.Agent.Responses;
 
 namespace SoundLens.Tests;
 
@@ -212,5 +213,63 @@ public sealed class AgentQueryValidatorTests
 
         Assert.False(result.IsValid);
         Assert.Contains(result.Errors, error => error.ErrorMessage.Contains("different recordings", StringComparison.Ordinal));
+    }
+
+    [Fact]
+    public async Task ConversationHistoryWithSixCompletedTurns_PassesValidation()
+    {
+        var validator = CreateValidator();
+        var history = Enumerable.Range(0, 6)
+            .Select(index => new AgentConversationTurn(
+                $"Question {index}",
+                $"Answer {index}",
+                AgentAnswerModes.General,
+                new AgentConversationRequestSnapshot(null, null, null, ContextMode: AgentContextModes.Auto)))
+            .ToArray();
+        var command = new AgentQueryCommand("Follow up", null, null, null, ConversationHistory: history);
+
+        var result = await validator.ValidateAsync(command);
+
+        Assert.True(result.IsValid);
+    }
+
+    [Fact]
+    public async Task ConversationHistoryWithTooManyTurns_FailsValidation()
+    {
+        var validator = CreateValidator();
+        var history = Enumerable.Range(0, 7)
+            .Select(index => new AgentConversationTurn(
+                $"Question {index}",
+                $"Answer {index}",
+                AgentAnswerModes.General,
+                new AgentConversationRequestSnapshot(null, null, null)))
+            .ToArray();
+
+        var result = await validator.ValidateAsync(new AgentQueryCommand(
+            "Follow up", null, null, null, ConversationHistory: history));
+
+        Assert.Contains(result.Errors, error => error.ErrorMessage.Contains("at most six", StringComparison.Ordinal));
+    }
+
+    [Fact]
+    public async Task ConversationHistoryWithMalformedSnapshot_FailsValidation()
+    {
+        var validator = CreateValidator();
+        var history = new[]
+        {
+            new AgentConversationTurn(
+                "Compare these.",
+                "The first is louder.",
+                AgentAnswerModes.Workspace,
+                new AgentConversationRequestSnapshot(
+                    ["signal-a"],
+                    StartTimeSeconds: 1,
+                    EndTimeSeconds: null))
+        };
+
+        var result = await validator.ValidateAsync(new AgentQueryCommand(
+            "What about its peak?", null, null, null, ConversationHistory: history));
+
+        Assert.Contains(result.Errors, error => error.ErrorMessage.Contains("ConversationHistory", StringComparison.Ordinal));
     }
 }

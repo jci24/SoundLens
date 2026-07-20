@@ -23,6 +23,7 @@ public sealed class AgentQueryHandler(
     IImportedFileStore importedFileStore,
     IWaveformService waveformService,
     DeterministicSignalQueryResponder deterministicSignalQueryResponder,
+    AgentConversationContextResolver conversationContextResolver,
     AgentContextRouter contextRouter,
     GeneralKnowledgeResponder generalKnowledgeResponder,
     WebResearchResponder webResearchResponder,
@@ -97,6 +98,13 @@ public sealed class AgentQueryHandler(
 
     private async Task<AgentQueryResponse> ExecuteCoreAsync(AgentQueryCommand command, CancellationToken ct)
     {
+        var conversationResolution = await conversationContextResolver.ResolveAsync(command, ct);
+        if (conversationResolution.StaleContextResponse is not null)
+        {
+            return conversationResolution.StaleContextResponse;
+        }
+
+        command = conversationResolution.Command;
         var routingStep = command.ActivitySink.Start(
             AgentActivityKinds.Routing,
             "Understanding your question",

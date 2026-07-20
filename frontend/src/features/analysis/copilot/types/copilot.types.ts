@@ -20,6 +20,26 @@ export interface IAgentQueryRequest {
     recordingIdA: string
     recordingIdB: string
   }
+  conversationHistory?: IAgentConversationTurn[]
+}
+
+export interface IAgentConversationRequestSnapshot {
+  signalIds?: string[]
+  startTimeSeconds?: number
+  endTimeSeconds?: number
+  comparisonContext?: IComparisonCopilotSelection
+  comparisonPair?: {
+    recordingIdA: string
+    recordingIdB: string
+  }
+  contextMode?: TCopilotContextMode
+}
+
+export interface IAgentConversationTurn {
+  question: string
+  answer: string
+  answerMode: TCopilotAnswerMode
+  requestSnapshot: IAgentConversationRequestSnapshot
 }
 
 export interface IAgentEvidenceItem {
