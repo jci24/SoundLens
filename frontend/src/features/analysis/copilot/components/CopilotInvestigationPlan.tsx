@@ -35,7 +35,7 @@ const CopilotInvestigationPlan = ({ plan }: ICopilotInvestigationPlanProps) => {
         <div className="copilot-investigation-plan__content" id={contentId}>
           <div className="copilot-investigation-plan__overview">
             <p>{plan.objective}</p>
-            <span>{formatScope(plan.scope)}</span>
+            <span>{formatScope(plan.scope)} · Preview only; steps are not run automatically.</span>
           </div>
           <ol className="copilot-investigation-plan__steps">
             {plan.steps.map((step) => (

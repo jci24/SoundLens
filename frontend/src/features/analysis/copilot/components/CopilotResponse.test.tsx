@@ -151,6 +151,7 @@ describe('CopilotResponse', () => {
 
     expect(toggle).toHaveAttribute('aria-expanded', 'true')
     expect(screen.getByText(investigationPlan.objective)).toBeVisible()
+    expect(screen.getByText(/Preview only; steps are not run automatically/i)).toBeVisible()
     expect(screen.getByText('Waveform inspection')).toBeVisible()
     expect(screen.getByText('Required before execution')).toBeVisible()
     expect(screen.getByText('step-1')).toBeVisible()
