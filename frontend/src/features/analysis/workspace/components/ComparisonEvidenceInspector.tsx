@@ -9,6 +9,7 @@ import {
   getObservationValue,
 } from '../../utils/comparisonEvidence'
 import type {
+  IRecordingComparisonAnalysisSpecification,
   IRecordingComparisonLimitation,
   IRecordingComparisonMetricAggregate,
   IRecordingComparisonSignalObservation,
@@ -50,6 +51,7 @@ const formatIntegrityHeading = (assessment: IRecordingComparisonIntegrityAssessm
 interface IComparisonEvidenceInspectorProps {
   activeMetric: IRecordingComparisonMetricAggregate
   activeObservation: IRecordingComparisonSignalObservation | null
+  analysisSpecification: IRecordingComparisonAnalysisSpecification
   coverageSummary: IComparisonCoverageSummary
   fileNameA: string
   fileNameB: string
@@ -65,6 +67,7 @@ interface IComparisonEvidenceInspectorProps {
 const ComparisonEvidenceInspector = ({
   activeMetric,
   activeObservation,
+  analysisSpecification,
   coverageSummary,
   fileNameA,
   fileNameB,
@@ -202,6 +205,41 @@ const ComparisonEvidenceInspector = ({
               ))}
             </ul>
           </section>
+
+          <details className="comparison-evidence-inspector__methods">
+            <summary>
+              <span>Analysis methods</span>
+              <small>{analysisSpecification.contractVersion}</small>
+            </summary>
+            <div className="comparison-evidence-inspector__methods-content">
+              <dl>
+                <div>
+                  <dt>Scope</dt>
+                  <dd>{analysisSpecification.scope === 'roi' ? 'Selected ROI' : 'Full duration'}</dd>
+                </div>
+                <div>
+                  <dt>Difference</dt>
+                  <dd>Compare A minus Compare B</dd>
+                </div>
+                <div>
+                  <dt>Aggregates</dt>
+                  <dd>Mean, median, minimum, maximum, and spread</dd>
+                </div>
+              </dl>
+              <ul>
+                {analysisSpecification.metricMethods.map((method) => (
+                  <li key={method.metricKey}>
+                    <div>
+                      <strong>{method.label}</strong>
+                      <span>{method.unit}</span>
+                    </div>
+                    <p>{method.definition}</p>
+                    <code>{method.methodId}@{method.methodVersion}</code>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          </details>
 
           <section aria-labelledby="comparison-evidence-limitations-title" className="comparison-evidence-inspector__section">
             <div className="comparison-evidence-inspector__section-heading">

@@ -178,6 +178,7 @@ Current status:
 - fixed-order comparison metrics, coverage cues, and selected-result drill-down are in `main`
 - the selected metric, aligned pair, and ROI remain visible while inspecting waveform and spectrum evidence
 - selected metric details and limitations open in a non-modal side inspector without pushing waveform or spectrum evidence down the workspace
+- the inspector discloses the backend-owned v1 metric definitions, units, A-minus-B convention, aggregate statistics, and full-duration or ROI scope without changing the calculations
 - the same inspector now discloses backend-owned comparison context for sample rate, matched duration or ROI, signal alignment, and calibration availability; unknown calibration is not presented as failed digital evidence
 - focused and compare workspaces provide explicit original-recording playback through one browser-native media element and a range-enabled current-session stream
 - ROI play-once, explicit looping, scope reset, guarded keyboard control, and waveform playhead synchronization are implemented without changing deterministic evidence
@@ -239,6 +240,7 @@ Current status:
 - Markdown and PDF share one backend preparation path, and both remain complete when AI is unavailable or malformed
 - PDF provides an A4 monochrome textual and tabular report with selectable text, bundled fonts, page metadata, and traceability
 - Markdown and PDF expose sample-rate, time-scope, signal-alignment, and calibration context in the same backend order; structural context limitations add a deterministic caution without replacing metric limitations
+- Markdown and PDF expose the same versioned comparison-method specification as the Evidence Inspector; durable input hashes, implementation versions, and persisted lineage remain future reproducibility work
 
 Dependencies:
 - Milestone 4

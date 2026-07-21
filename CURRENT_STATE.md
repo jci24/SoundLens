@@ -64,10 +64,10 @@ The current product is strong as an analysis workspace, but it is not yet a full
 - Multi-file imports suggest the optional Configure route; users can still bypass A/B setup for focused evidence, while single-file imports continue directly to Evidence.
 - Configure sends a valid comparison into the optional Analysis review route. Waveform and spectrum are selected by default, at least one remains enabled, and disabled analyses are not requested or rendered in Evidence.
 - The backend now includes a deterministic pairwise signal-alignment contract that classifies matches as name-based, index-based, ambiguous, or missing.
-- The backend now exposes a pairwise recording-comparison contract with optional ROI, aligned-signal pairs, per-pair metric observations, aggregate delta summaries, explicit limitation reporting, and a typed integrity assessment.
+- The backend now exposes a pairwise recording-comparison contract with optional ROI, aligned-signal pairs, per-pair metric observations, aggregate delta summaries, explicit limitation reporting, a typed integrity assessment, and a versioned analysis-method specification.
 - Comparison integrity checks sample-rate consistency, matched full-duration or ROI scope, signal alignment, and calibration availability from decoded backend evidence. Structural limitations remain distinct from explicitly unknown calibration.
 - Inconsistent or legacy multi-assignment state blocks comparison and asks the user to resolve the pair instead of silently selecting the first recording.
-- Selecting a comparison metric opens a non-modal evidence inspector with the active pair, ROI scope, aggregate values, aligned-pair values, coverage, compatibility context, and backend-provided limitations without moving the chart canvas.
+- Selecting a comparison metric opens a non-modal evidence inspector with the active pair, ROI scope, aggregate values, aligned-pair values, coverage, compatibility context, backend-provided limitations, and collapsed backend-owned method disclosure without moving the chart canvas.
 - The evidence inspector and Copilot are mutually exclusive so two right-side analysis surfaces cannot crowd the workspace at the same time.
 - When Copilot is already open, selecting another comparison metric keeps Copilot visible and updates its backend-resolved selected-metric context; the explicit `Evidence & limitations` action switches to the inspector.
 
@@ -161,7 +161,7 @@ This classification is about product responsibility, not model intelligence. The
 - Compare-mode export opens a preview for the active A/B pair, ROI or full-duration scope, compact backend-owned comparison-context summary, editable title, and explicitly excluded recordings.
 - `POST /api/report/export/comparison/markdown` accepts identifiers and UI-owned assignment labels only. The backend re-runs the deterministic comparison and validates the selected metric and aligned pair before writing evidence.
 - `POST /api/report/export/comparison/pdf` accepts the same identifier-only request and renders the same prepared evidence as a selectable-text A4 PDF.
-- The comparison report includes a separate sample-rate, time-scope, signal-alignment, and calibration context section before comparison metrics, followed by selected evidence, AI interpretation, exclusions, metric limitations, and traceability.
+- The comparison report includes separate comparison-context and versioned analysis-method sections before comparison metrics, followed by selected evidence, AI interpretation, exclusions, metric limitations, and traceability.
 - Comparison export still succeeds without a usable AI response by including deterministic evidence plus a clear fallback notice; malformed model output is not exposed.
 - Comparison-report AI may validate only the backend-generated fact for the user-selected metric. All narrative prose is rendered from deterministic backend templates, so selected aggregate evidence, aligned-pair direction, limitations, and fallback wording remain backend-owned and cannot be invented by the model.
 - Markdown and PDF share one backend preparation path, including comparison reconstruction and one automatic narrative-or-fallback decision per export. PDF uses bundled Noto Sans fonts rather than host font discovery.

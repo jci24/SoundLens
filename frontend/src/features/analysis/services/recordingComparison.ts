@@ -1,8 +1,10 @@
 import { API_BASE_URL } from '../../../common/api/config'
 import type { IRequestedRegionOfInterest } from '../utils/analysisWorkspaceState'
 import type {
+  IRecordingComparisonAnalysisSpecification,
   IRecordingComparisonIntegrityAssessment,
   IRecordingComparisonIntegrityCheck,
+  IRecordingComparisonMetricMethod,
   IRecordingComparisonResponse,
 } from '../types'
 
@@ -17,6 +19,12 @@ const integrityCheckStatuses = new Set<IRecordingComparisonIntegrityCheck['statu
   'limited',
   'unknown',
 ])
+const expectedMetricMethods: ReadonlyArray<Pick<IRecordingComparisonMetricMethod, 'metricKey' | 'unit' | 'methodId'>> = [
+  { metricKey: 'peakAmplitudeDelta', unit: 'FS', methodId: 'normalized_peak_amplitude' },
+  { metricKey: 'rmsAmplitudeDelta', unit: 'FS', methodId: 'normalized_rms_amplitude' },
+  { metricKey: 'crestFactorDelta', unit: 'ratio', methodId: 'peak_to_rms_ratio' },
+  { metricKey: 'clippingSampleCountDelta', unit: 'samples', methodId: 'decoded_full_scale_sample_count' },
+]
 
 export const getRecordingComparison = async (
   recordingIdA: string,
@@ -46,6 +54,12 @@ export const getRecordingComparison = async (
 const parseRecordingComparisonResponse = (value: unknown): IRecordingComparisonResponse => {
   if (!isRecord(value) || !isIntegrityAssessment(value.integrityAssessment)) {
     throw new Error('Comparison results returned an invalid integrity assessment.')
+  }
+
+  if (!isAnalysisSpecification(value.analysisSpecification) ||
+      !hasMatchingAnalysisScope(value.analysisSpecification, value.regionOfInterest) ||
+      !hasMatchingAggregateMetrics(value.analysisSpecification, value.aggregateMetrics)) {
+    throw new Error('Comparison results returned an invalid analysis specification.')
   }
 
   return value as unknown as IRecordingComparisonResponse
@@ -85,6 +99,62 @@ const isIntegrityCheck = (value: unknown): value is IRecordingComparisonIntegrit
   value.label.trim().length > 0 &&
   typeof value.detail === 'string' &&
   value.detail.trim().length > 0
+
+const isAnalysisSpecification = (value: unknown): value is IRecordingComparisonAnalysisSpecification => {
+  if (
+    !isRecord(value) ||
+    value.contractVersion !== 'comparison-analysis-v1' ||
+    (value.scope !== 'full_duration' && value.scope !== 'roi') ||
+    value.differenceConvention !== 'compare_a_minus_compare_b' ||
+    value.aggregateStatistics !== 'mean_median_minimum_maximum_spread' ||
+    !Array.isArray(value.metricMethods) ||
+    value.metricMethods.length !== expectedMetricMethods.length
+  ) {
+    return false
+  }
+
+  return value.metricMethods.every((method, index) => isMetricMethod(method, expectedMetricMethods[index]))
+}
+
+const isMetricMethod = (
+  value: unknown,
+  expected: Pick<IRecordingComparisonMetricMethod, 'metricKey' | 'unit' | 'methodId'>
+): value is IRecordingComparisonMetricMethod =>
+  isRecord(value) &&
+  value.metricKey === expected.metricKey &&
+  value.unit === expected.unit &&
+  value.methodId === expected.methodId &&
+  value.methodVersion === '1' &&
+  typeof value.label === 'string' &&
+  value.label.trim().length > 0 &&
+  typeof value.definition === 'string' &&
+  value.definition.trim().length > 0
+
+const hasMatchingAnalysisScope = (
+  specification: IRecordingComparisonAnalysisSpecification,
+  regionOfInterest: unknown
+) => regionOfInterest === null
+  ? specification.scope === 'full_duration'
+  : specification.scope === 'roi' && isRegionOfInterest(regionOfInterest)
+
+const isRegionOfInterest = (value: unknown) =>
+  isRecord(value) &&
+  typeof value.startTimeSeconds === 'number' &&
+  Number.isFinite(value.startTimeSeconds) &&
+  typeof value.endTimeSeconds === 'number' &&
+  Number.isFinite(value.endTimeSeconds) &&
+  value.startTimeSeconds >= 0 &&
+  value.endTimeSeconds > value.startTimeSeconds
+
+const hasMatchingAggregateMetrics = (
+  specification: IRecordingComparisonAnalysisSpecification,
+  aggregateMetrics: unknown
+) => Array.isArray(aggregateMetrics) &&
+  aggregateMetrics.length === specification.metricMethods.length &&
+  aggregateMetrics.every((metric, index) =>
+    isRecord(metric) &&
+    metric.metricKey === specification.metricMethods[index].metricKey &&
+    metric.unit === specification.metricMethods[index].unit)
 
 const isRecord = (value: unknown): value is Record<string, unknown> =>
   typeof value === 'object' && value !== null

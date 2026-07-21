@@ -32,6 +32,13 @@ public static class ComparisonReportFormatting
     public static string FormatSeconds(double value) =>
         $"{value.ToString("0.###", CultureInfo.InvariantCulture)} s";
 
+    public static string FormatAnalysisScope(string scope) => scope switch
+    {
+        "full_duration" => "Full duration",
+        "roi" => "Selected ROI",
+        _ => throw new ArgumentOutOfRangeException(nameof(scope), scope, "Unsupported comparison analysis scope.")
+    };
+
     public static string FormatIntegrityStatus(string status) => status switch
     {
         "matched" => "Matched",

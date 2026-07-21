@@ -144,6 +144,23 @@ export interface IRecordingComparisonIntegrityAssessment {
   checks: IRecordingComparisonIntegrityCheck[]
 }
 
+export interface IRecordingComparisonMetricMethod {
+  metricKey: IRecordingComparisonMetricAggregate['metricKey']
+  label: string
+  unit: string
+  methodId: 'normalized_peak_amplitude' | 'normalized_rms_amplitude' | 'peak_to_rms_ratio' | 'decoded_full_scale_sample_count'
+  methodVersion: '1'
+  definition: string
+}
+
+export interface IRecordingComparisonAnalysisSpecification {
+  contractVersion: 'comparison-analysis-v1'
+  scope: 'full_duration' | 'roi'
+  differenceConvention: 'compare_a_minus_compare_b'
+  aggregateStatistics: 'mean_median_minimum_maximum_spread'
+  metricMethods: IRecordingComparisonMetricMethod[]
+}
+
 export interface IRecordingComparisonRecord {
   recordingId: string
   fileName: string
@@ -159,6 +176,7 @@ export interface IRecordingComparisonResponse {
   aggregateMetrics: IRecordingComparisonMetricAggregate[]
   limitations: IRecordingComparisonLimitation[]
   integrityAssessment: IRecordingComparisonIntegrityAssessment
+  analysisSpecification: IRecordingComparisonAnalysisSpecification
   regionOfInterest: IAnalysisRegionOfInterest | null
 }
 

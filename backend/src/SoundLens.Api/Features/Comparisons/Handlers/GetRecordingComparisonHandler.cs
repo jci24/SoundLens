@@ -180,6 +180,7 @@ public sealed class GetRecordingComparisonHandler(
             aggregateMetrics,
             limitations,
             integrityAssessment,
+            RecordingComparisonAnalysisSpecificationFactory.Create(metricsResponse.RegionOfInterest),
             metricsResponse.RegionOfInterest));
     }
 }

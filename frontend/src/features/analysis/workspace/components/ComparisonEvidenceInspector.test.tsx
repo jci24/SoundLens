@@ -4,6 +4,7 @@ import { useState } from 'react'
 import { ComparisonEvidenceInspector } from './ComparisonEvidenceInspector'
 import type { IComparisonCoverageSummary } from '../../utils/comparisonEvidence'
 import type {
+  IRecordingComparisonAnalysisSpecification,
   IRecordingComparisonIntegrityAssessment,
   IRecordingComparisonMetricAggregate,
   IRecordingComparisonSignalObservation,
@@ -67,12 +68,26 @@ const integrityAssessment: IRecordingComparisonIntegrityAssessment = {
   ],
 }
 
+const analysisSpecification: IRecordingComparisonAnalysisSpecification = {
+  contractVersion: 'comparison-analysis-v1',
+  scope: 'full_duration',
+  differenceConvention: 'compare_a_minus_compare_b',
+  aggregateStatistics: 'mean_median_minimum_maximum_spread',
+  metricMethods: [
+    { metricKey: 'peakAmplitudeDelta', label: 'Peak amplitude', unit: 'FS', methodId: 'normalized_peak_amplitude', methodVersion: '1', definition: 'Maximum absolute normalized sample amplitude.' },
+    { metricKey: 'rmsAmplitudeDelta', label: 'RMS amplitude', unit: 'FS', methodId: 'normalized_rms_amplitude', methodVersion: '1', definition: 'Root mean square normalized sample amplitude.' },
+    { metricKey: 'crestFactorDelta', label: 'Crest factor', unit: 'ratio', methodId: 'peak_to_rms_ratio', methodVersion: '1', definition: 'Peak amplitude divided by RMS amplitude.' },
+    { metricKey: 'clippingSampleCountDelta', label: 'Clipping samples', unit: 'samples', methodId: 'decoded_full_scale_sample_count', methodVersion: '1', definition: 'Decoded samples at full scale.' },
+  ],
+}
+
 describe('ComparisonEvidenceInspector', () => {
   it('renders zero-valued backend evidence, scope, and an empty limitation state', () => {
     render(
       <ComparisonEvidenceInspector
         activeMetric={metric}
         activeObservation={observation}
+        analysisSpecification={analysisSpecification}
         coverageSummary={coverageSummary}
         fileNameA="a-very-long-recording-name-for-product-a.wav"
         fileNameB="product-b.wav"
@@ -96,6 +111,12 @@ describe('ComparisonEvidenceInspector', () => {
     expect(inspector).toHaveTextContent('CalibrationUnknownNo validated calibration is available.')
     expect(inspector).toHaveTextContent('Metric evidence limitations0')
     expect(inspector).toHaveTextContent('No metric-specific limitations were reported.')
+    const methods = screen.getByText('Analysis methods').closest('details')
+    expect(methods).not.toHaveAttribute('open')
+    fireEvent.click(screen.getByText('Analysis methods'))
+    expect(methods).toHaveAttribute('open')
+    expect(methods).toHaveTextContent('Compare A minus Compare B')
+    expect(methods).toHaveTextContent('normalized_peak_amplitude@1')
   })
 
   it('closes on Escape and returns focus to the invoking control', async () => {
@@ -112,6 +133,7 @@ describe('ComparisonEvidenceInspector', () => {
         <ComparisonEvidenceInspector
           activeMetric={metric}
           activeObservation={observation}
+          analysisSpecification={analysisSpecification}
           coverageSummary={coverageSummary}
           fileNameA="product-a.wav"
           fileNameB="product-b.wav"
@@ -148,6 +170,7 @@ describe('ComparisonEvidenceInspector', () => {
       <ComparisonEvidenceInspector
         activeMetric={metric}
         activeObservation={observation}
+        analysisSpecification={analysisSpecification}
         coverageSummary={coverageSummary}
         fileNameA="product-a.wav"
         fileNameB="product-b.wav"
@@ -178,6 +201,7 @@ describe('ComparisonEvidenceInspector', () => {
       <ComparisonEvidenceInspector
         activeMetric={metric}
         activeObservation={observation}
+        analysisSpecification={analysisSpecification}
         coverageSummary={coverageSummary}
         fileNameA="product-a.wav"
         fileNameB="product-b.wav"
@@ -208,6 +232,7 @@ describe('ComparisonEvidenceInspector', () => {
       <ComparisonEvidenceInspector
         activeMetric={metric}
         activeObservation={observation}
+        analysisSpecification={analysisSpecification}
         coverageSummary={coverageSummary}
         fileNameA="product-a.wav"
         fileNameB="product-b.wav"

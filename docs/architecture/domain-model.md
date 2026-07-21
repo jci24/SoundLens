@@ -108,8 +108,10 @@ The current product includes the minimum session-scoped model needed for focused
 
 ### AnalysisSpecification
 
-- The deterministic analysis scope for a comparison.
-- Expected to include surface or metric selection, ROI scope, FFT parameters where relevant, and algorithm settings needed for reproducibility.
+- The deterministic method contract for a comparison.
+- The current `comparison-analysis-v1` specification declares full-duration or ROI scope, Compare A minus Compare B, mean/median/minimum/maximum/spread aggregation, and fixed method identifiers, versions, units, and definitions for Peak, RMS, crest factor, and clipping samples.
+- It is reconstructed by the backend and cannot be supplied by the frontend or model.
+- It provides method transparency but not complete reproducibility; durable input hashes, decoder and build versions, persisted parameters, and lineage remain future work.
 
 ### Observation
 
@@ -121,6 +123,7 @@ The current product includes the minimum session-scoped model needed for focused
 - The deterministic output for one active Compare A recording versus one active Compare B recording.
 - Includes aligned observations, aggregate values in the fixed Peak, RMS, crest-factor, and clipping order, coverage inputs, missing values, and limitations.
 - Includes a separate integrity assessment over decoded sample rates, matched full-duration or ROI scope, alignment completeness, and calibration availability.
+- Includes the backend-owned analysis specification used to compute and aggregate its metric observations.
 - Integrity-check status describes comparison context only. It is not metric importance, perceptual quality, confidence, standards compliance, or the claim-specific Copilot sufficiency status.
 
 ### Comparison Explanation Selection
