@@ -11,9 +11,10 @@ public sealed class GetRecordingComparisonHandler(
     IWaveformService waveformService,
     SignalAlignmentService signalAlignmentService,
     RecordingComparisonAggregationService aggregationService,
-    RecordingComparisonIntegrityService integrityService) : CommandHandler<GetRecordingComparisonCommand, RecordingComparisonResponse>
+    RecordingComparisonIntegrityService integrityService,
+    RecordingComparisonProvenanceService provenanceService) : CommandHandler<GetRecordingComparisonCommand, RecordingComparisonResponse>
 {
-    public override Task<RecordingComparisonResponse> ExecuteAsync(GetRecordingComparisonCommand command, CancellationToken ct = default)
+    public override async Task<RecordingComparisonResponse> ExecuteAsync(GetRecordingComparisonCommand command, CancellationToken ct = default)
     {
         var currentFiles = importedFileStore.CurrentFiles;
         if (currentFiles.Count == 0)
@@ -32,6 +33,20 @@ public sealed class GetRecordingComparisonHandler(
         {
             ThrowError($"RecordingIdB '{command.RecordingIdB}' was not found in the current import session.");
         }
+
+        VerifiedComparisonInputs verifiedInputs;
+        try
+        {
+            verifiedInputs = await provenanceService.VerifyInputsAsync(fileA!, fileB!, ct);
+        }
+        catch (Exception exception) when (exception is IOException or UnauthorizedAccessException)
+        {
+            ThrowError("The active comparison files could not be read for provenance verification.");
+            throw;
+        }
+
+        fileA = verifiedInputs.FileA;
+        fileB = verifiedInputs.FileB;
 
         TimeWaveformResponse waveformResponse;
         try
@@ -163,8 +178,14 @@ public sealed class GetRecordingComparisonHandler(
             alignment,
             metricsResponse.SelectedSignals,
             metricsResponse.RegionOfInterest);
+        var analysisSpecification = RecordingComparisonAnalysisSpecificationFactory.Create(metricsResponse.RegionOfInterest);
+        var analysisProvenance = provenanceService.Create(
+            verifiedInputs,
+            analysisSpecification,
+            alignedSignals,
+            metricsResponse.RegionOfInterest);
 
-        return Task.FromResult(new RecordingComparisonResponse(
+        return new RecordingComparisonResponse(
             new RecordingComparisonRecording(
                 recordingA!.RecordingId,
                 recordingA.FileName,
@@ -180,7 +201,8 @@ public sealed class GetRecordingComparisonHandler(
             aggregateMetrics,
             limitations,
             integrityAssessment,
-            RecordingComparisonAnalysisSpecificationFactory.Create(metricsResponse.RegionOfInterest),
-            metricsResponse.RegionOfInterest));
+            analysisSpecification,
+            analysisProvenance,
+            metricsResponse.RegionOfInterest);
     }
 }

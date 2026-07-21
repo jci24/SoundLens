@@ -1,5 +1,5 @@
 import * as Dialog from '@radix-ui/react-dialog'
-import { X } from 'lucide-react'
+import { Copy, X } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import {
   formatAggregateValue,
@@ -9,6 +9,7 @@ import {
   getObservationValue,
 } from '../../utils/comparisonEvidence'
 import type {
+  IRecordingComparisonAnalysisProvenance,
   IRecordingComparisonAnalysisSpecification,
   IRecordingComparisonLimitation,
   IRecordingComparisonMetricAggregate,
@@ -16,7 +17,7 @@ import type {
   IRecordingComparisonIntegrityAssessment,
 } from '../../types'
 import type { IComparisonCoverageSummary } from '../../utils/comparisonEvidence'
-import type { RefObject } from 'react'
+import { useState, type RefObject } from 'react'
 import './ComparisonEvidenceInspector.scss'
 
 const formatIntegrityStatus = (status: IRecordingComparisonIntegrityAssessment['checks'][number]['status']) => {
@@ -48,9 +49,40 @@ const formatIntegrityHeading = (assessment: IRecordingComparisonIntegrityAssessm
   return parts.length > 0 ? parts.join(' · ') : 'All checks matched'
 }
 
+const shortenFingerprint = (value: string) => `${value.slice(0, 19)}…${value.slice(-8)}`
+
+const FingerprintValue = ({ label, value }: { label: string; value: string }) => {
+  const [copyStatus, setCopyStatus] = useState<'idle' | 'copied' | 'failed'>('idle')
+
+  const copyValue = async () => {
+    try {
+      if (!navigator.clipboard?.writeText) {
+        throw new Error('Clipboard API unavailable.')
+      }
+
+      await navigator.clipboard.writeText(value)
+      setCopyStatus('copied')
+    } catch {
+      setCopyStatus('failed')
+    }
+  }
+
+  return (
+    <span className="comparison-evidence-inspector__fingerprint">
+      <code title={value}>{shortenFingerprint(value)}</code>
+      <Button aria-label={`Copy full ${label}`} onClick={copyValue} size="icon-sm" type="button" variant="ghost">
+        <Copy aria-hidden="true" />
+      </Button>
+      {copyStatus === 'copied' && <small role="status">Copied</small>}
+      {copyStatus === 'failed' && <small role="alert">Copy unavailable</small>}
+    </span>
+  )
+}
+
 interface IComparisonEvidenceInspectorProps {
   activeMetric: IRecordingComparisonMetricAggregate
   activeObservation: IRecordingComparisonSignalObservation | null
+  analysisProvenance: IRecordingComparisonAnalysisProvenance
   analysisSpecification: IRecordingComparisonAnalysisSpecification
   coverageSummary: IComparisonCoverageSummary
   fileNameA: string
@@ -67,6 +99,7 @@ interface IComparisonEvidenceInspectorProps {
 const ComparisonEvidenceInspector = ({
   activeMetric,
   activeObservation,
+  analysisProvenance,
   analysisSpecification,
   coverageSummary,
   fileNameA,
@@ -236,6 +269,63 @@ const ComparisonEvidenceInspector = ({
                     <p>{method.definition}</p>
                     <code>{method.methodId}@{method.methodVersion}</code>
                   </li>
+                ))}
+              </ul>
+            </div>
+          </details>
+
+          <details className="comparison-evidence-inspector__provenance">
+            <summary>
+              <span>Provenance</span>
+              <small>{analysisProvenance.contractVersion}</small>
+            </summary>
+            <div className="comparison-evidence-inspector__provenance-content">
+              <dl>
+                <div>
+                  <dt>Compare A</dt>
+                  <dd><FingerprintValue key={analysisProvenance.recordingA.value} label="Compare A content fingerprint" value={analysisProvenance.recordingA.value} /></dd>
+                </div>
+                <div>
+                  <dt>Compare B</dt>
+                  <dd><FingerprintValue key={analysisProvenance.recordingB.value} label="Compare B content fingerprint" value={analysisProvenance.recordingB.value} /></dd>
+                </div>
+                <div>
+                  <dt>Implementation</dt>
+                  <dd><code>{analysisProvenance.implementationId}@{analysisProvenance.implementationVersion}</code></dd>
+                </div>
+                <div>
+                  <dt>Build</dt>
+                  <dd><code>{analysisProvenance.applicationBuildVersion}</code></dd>
+                </div>
+                <div>
+                  <dt>Decoder</dt>
+                  <dd><code>{analysisProvenance.decoderId}@{analysisProvenance.decoderVersion}</code></dd>
+                </div>
+                <div>
+                  <dt>Scope</dt>
+                  <dd>{analysisProvenance.scope === 'roi' && analysisProvenance.regionOfInterest
+                    ? `${analysisProvenance.regionOfInterest.startTimeSeconds} s to ${analysisProvenance.regionOfInterest.endTimeSeconds} s`
+                    : 'Full duration'}</dd>
+                </div>
+                <div>
+                  <dt>Methods</dt>
+                  <dd>{analysisProvenance.methods.map((method) => (
+                    <code key={method.methodId}>{method.methodId}@{method.methodVersion}</code>
+                  ))}</dd>
+                </div>
+                <div>
+                  <dt>Parameters</dt>
+                  <dd><FingerprintValue key={analysisProvenance.parameterFingerprint} label="parameter fingerprint" value={analysisProvenance.parameterFingerprint} /></dd>
+                </div>
+                <div>
+                  <dt>Evidence</dt>
+                  <dd><FingerprintValue key={analysisProvenance.evidenceFingerprint} label="evidence fingerprint" value={analysisProvenance.evidenceFingerprint} /></dd>
+                </div>
+              </dl>
+              <p>Provenance limitations</p>
+              <ul>
+                {analysisProvenance.limitations.map((limitation) => (
+                  <li key={limitation.code}>{limitation.detail}</li>
                 ))}
               </ul>
             </div>

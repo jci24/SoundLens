@@ -473,6 +473,7 @@ const TimeWaveformWorkspace = ({ importedRecordingCount, isCopilotOpen, onCopilo
         <ComparisonEvidenceInspector
           activeMetric={activeMetric}
           activeObservation={activeObservation}
+          analysisProvenance={comparisonResults.analysisProvenance}
           analysisSpecification={comparisonResults.analysisSpecification}
           coverageSummary={coverageSummary}
           fileNameA={activePairRecordingA.fileName}

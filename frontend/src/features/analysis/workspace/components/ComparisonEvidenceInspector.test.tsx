@@ -4,6 +4,7 @@ import { useState } from 'react'
 import { ComparisonEvidenceInspector } from './ComparisonEvidenceInspector'
 import type { IComparisonCoverageSummary } from '../../utils/comparisonEvidence'
 import type {
+  IRecordingComparisonAnalysisProvenance,
   IRecordingComparisonAnalysisSpecification,
   IRecordingComparisonIntegrityAssessment,
   IRecordingComparisonMetricAggregate,
@@ -81,12 +82,39 @@ const analysisSpecification: IRecordingComparisonAnalysisSpecification = {
   ],
 }
 
+const analysisProvenance: IRecordingComparisonAnalysisProvenance = {
+  contractVersion: 'comparison-provenance-v1',
+  recordingA: { algorithm: 'sha256', value: `sha256:${'a'.repeat(64)}` },
+  recordingB: { algorithm: 'sha256', value: `sha256:${'b'.repeat(64)}` },
+  implementationId: 'soundlens_recording_comparison',
+  implementationVersion: '1',
+  applicationBuildVersion: '1.0.0-test',
+  decoderId: 'soundlens_wav_pcm_ieee_float',
+  decoderVersion: '1',
+  scope: 'full_duration',
+  regionOfInterest: null,
+  methods: analysisSpecification.metricMethods.map(({ methodId, methodVersion }) => ({ methodId, methodVersion })),
+  parameterFingerprint: `sha256:${'c'.repeat(64)}`,
+  evidenceFingerprint: `sha256:${'d'.repeat(64)}`,
+  limitations: [
+    { code: 'temporary_session', detail: 'Temporary session only.' },
+    { code: 'incomplete_capture', detail: 'Capture metadata is incomplete.' },
+    { code: 'unsigned_manifest', detail: 'Manifest is unsigned.' },
+  ],
+}
+
 describe('ComparisonEvidenceInspector', () => {
   it('renders zero-valued backend evidence, scope, and an empty limitation state', () => {
+    const writeText = vi.fn().mockResolvedValue(undefined)
+    Object.defineProperty(navigator, 'clipboard', {
+      configurable: true,
+      value: { writeText },
+    })
     render(
       <ComparisonEvidenceInspector
         activeMetric={metric}
         activeObservation={observation}
+        analysisProvenance={analysisProvenance}
         analysisSpecification={analysisSpecification}
         coverageSummary={coverageSummary}
         fileNameA="a-very-long-recording-name-for-product-a.wav"
@@ -117,6 +145,45 @@ describe('ComparisonEvidenceInspector', () => {
     expect(methods).toHaveAttribute('open')
     expect(methods).toHaveTextContent('Compare A minus Compare B')
     expect(methods).toHaveTextContent('normalized_peak_amplitude@1')
+    const provenance = screen.getByText('Provenance').closest('details')
+    expect(provenance).not.toHaveAttribute('open')
+    fireEvent.click(screen.getByText('Provenance'))
+    expect(provenance).toHaveAttribute('open')
+    expect(provenance).toHaveTextContent('soundlens_recording_comparison@1')
+    expect(provenance).toHaveTextContent('sha256:aaaaaaaaaaaa…aaaaaaaa')
+    fireEvent.click(screen.getByRole('button', { name: 'Copy full Compare A content fingerprint' }))
+    expect(writeText).toHaveBeenCalledWith(analysisProvenance.recordingA.value)
+  })
+
+  it('reports clipboard failure without closing the inspector', async () => {
+    Object.defineProperty(navigator, 'clipboard', {
+      configurable: true,
+      value: { writeText: vi.fn().mockRejectedValue(new Error('Denied')) },
+    })
+    render(
+      <ComparisonEvidenceInspector
+        activeMetric={metric}
+        activeObservation={observation}
+        analysisProvenance={analysisProvenance}
+        analysisSpecification={analysisSpecification}
+        coverageSummary={coverageSummary}
+        fileNameA="product-a.wav"
+        fileNameB="product-b.wav"
+        isOpen
+        integrityAssessment={integrityAssessment}
+        limitations={[]}
+        onOpenChange={vi.fn()}
+        preventOutsideDismiss={false}
+        returnFocusRef={{ current: null }}
+        roiScopeLabel={null}
+      />
+    )
+
+    fireEvent.click(screen.getByText('Provenance'))
+    fireEvent.click(screen.getByRole('button', { name: 'Copy full evidence fingerprint' }))
+
+    expect(await screen.findByRole('alert')).toHaveTextContent('Copy unavailable')
+    expect(screen.getByRole('dialog', { name: 'Clipping samples' })).toBeInTheDocument()
   })
 
   it('closes on Escape and returns focus to the invoking control', async () => {
@@ -133,6 +200,7 @@ describe('ComparisonEvidenceInspector', () => {
         <ComparisonEvidenceInspector
           activeMetric={metric}
           activeObservation={observation}
+          analysisProvenance={analysisProvenance}
           analysisSpecification={analysisSpecification}
           coverageSummary={coverageSummary}
           fileNameA="product-a.wav"
@@ -170,6 +238,7 @@ describe('ComparisonEvidenceInspector', () => {
       <ComparisonEvidenceInspector
         activeMetric={metric}
         activeObservation={observation}
+        analysisProvenance={analysisProvenance}
         analysisSpecification={analysisSpecification}
         coverageSummary={coverageSummary}
         fileNameA="product-a.wav"
@@ -201,6 +270,7 @@ describe('ComparisonEvidenceInspector', () => {
       <ComparisonEvidenceInspector
         activeMetric={metric}
         activeObservation={observation}
+        analysisProvenance={analysisProvenance}
         analysisSpecification={analysisSpecification}
         coverageSummary={coverageSummary}
         fileNameA="product-a.wav"
@@ -232,6 +302,7 @@ describe('ComparisonEvidenceInspector', () => {
       <ComparisonEvidenceInspector
         activeMetric={metric}
         activeObservation={observation}
+        analysisProvenance={analysisProvenance}
         analysisSpecification={analysisSpecification}
         coverageSummary={coverageSummary}
         fileNameA="product-a.wav"

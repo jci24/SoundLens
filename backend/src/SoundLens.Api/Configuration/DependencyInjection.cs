@@ -25,6 +25,7 @@ public static class DependencyInjection
         services.AddSingleton<SignalAlignmentService>();
         services.AddSingleton<RecordingComparisonAggregationService>();
         services.AddSingleton<RecordingComparisonIntegrityService>();
+        services.AddSingleton<RecordingComparisonProvenanceService>();
         services.AddSingleton<IComparisonExplanationContextResolver, ComparisonExplanationContextResolver>();
         services.AddSingleton<DeterministicSignalQueryResponder>();
         services.AddSingleton<AgentConversationContextResolver>();

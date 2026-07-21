@@ -45,6 +45,7 @@ public static class ComparisonReportPdfWriter
         AddScope(section, context, narrative);
         AddIntegrityContext(section, context);
         AddAnalysisMethods(section, context);
+        AddAnalysisProvenance(section, context);
         AddMetrics(section, context);
         AddSelectedEvidence(section, context);
         AddNarrative(section, narrative);
@@ -121,6 +122,42 @@ public static class ComparisonReportPdfWriter
                 method.Unit,
                 $"{method.MethodId}@{method.MethodVersion}",
                 method.Definition);
+        }
+    }
+
+    private static void AddAnalysisProvenance(Section section, ComparisonReportContext context)
+    {
+        var provenance = context.Comparison.AnalysisProvenance;
+        section.AddParagraph("Analysis Provenance", StyleNames.Heading2);
+        var table = CreateKeyValueTable(section);
+        AddKeyValueRow(table, "Manifest", provenance.ContractVersion);
+        AddKeyValueRow(table, "Compare A content", provenance.RecordingA.Value);
+        AddKeyValueRow(table, "Compare B content", provenance.RecordingB.Value);
+        AddKeyValueRow(table, "Implementation", $"{provenance.ImplementationId}@{provenance.ImplementationVersion}");
+        AddKeyValueRow(table, "Application build", provenance.ApplicationBuildVersion);
+        AddKeyValueRow(table, "Decoder", $"{provenance.DecoderId}@{provenance.DecoderVersion}");
+        AddKeyValueRow(table, "Scope", ComparisonReportFormatting.FormatAnalysisScope(provenance.Scope));
+        if (provenance.RegionOfInterest is not null)
+        {
+            AddKeyValueRow(
+                table,
+                "ROI",
+                $"{ComparisonReportFormatting.FormatSeconds(provenance.RegionOfInterest.StartTimeSeconds)} to {ComparisonReportFormatting.FormatSeconds(provenance.RegionOfInterest.EndTimeSeconds)}");
+        }
+        AddKeyValueRow(
+            table,
+            "Methods",
+            string.Join(", ", provenance.Methods.Select(method => $"{method.MethodId}@{method.MethodVersion}")));
+        AddKeyValueRow(table, "Parameter fingerprint", provenance.ParameterFingerprint);
+        AddKeyValueRow(table, "Evidence fingerprint", provenance.EvidenceFingerprint);
+
+        var limitationsHeading = section.AddParagraph("Provenance limitations");
+        limitationsHeading.Format.Font.Bold = true;
+        limitationsHeading.Format.KeepWithNext = true;
+        for (var index = 0; index < provenance.Limitations.Count; index++)
+        {
+            var paragraph = AddBullet(section, provenance.Limitations[index].Detail);
+            paragraph.Format.KeepWithNext = index < provenance.Limitations.Count - 1;
         }
     }
 

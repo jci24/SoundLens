@@ -161,6 +161,38 @@ export interface IRecordingComparisonAnalysisSpecification {
   metricMethods: IRecordingComparisonMetricMethod[]
 }
 
+export interface IRecordingComparisonInputFingerprint {
+  algorithm: 'sha256'
+  value: string
+}
+
+export interface IRecordingComparisonProvenanceMethod {
+  methodId: IRecordingComparisonMetricMethod['methodId']
+  methodVersion: '1'
+}
+
+export interface IRecordingComparisonProvenanceLimitation {
+  code: 'temporary_session' | 'incomplete_capture' | 'unsigned_manifest'
+  detail: string
+}
+
+export interface IRecordingComparisonAnalysisProvenance {
+  contractVersion: 'comparison-provenance-v1'
+  recordingA: IRecordingComparisonInputFingerprint
+  recordingB: IRecordingComparisonInputFingerprint
+  implementationId: 'soundlens_recording_comparison'
+  implementationVersion: '1'
+  applicationBuildVersion: string
+  decoderId: 'soundlens_wav_pcm_ieee_float'
+  decoderVersion: '1'
+  scope: 'full_duration' | 'roi'
+  regionOfInterest: IAnalysisRegionOfInterest | null
+  methods: IRecordingComparisonProvenanceMethod[]
+  parameterFingerprint: string
+  evidenceFingerprint: string
+  limitations: IRecordingComparisonProvenanceLimitation[]
+}
+
 export interface IRecordingComparisonRecord {
   recordingId: string
   fileName: string
@@ -177,6 +209,7 @@ export interface IRecordingComparisonResponse {
   limitations: IRecordingComparisonLimitation[]
   integrityAssessment: IRecordingComparisonIntegrityAssessment
   analysisSpecification: IRecordingComparisonAnalysisSpecification
+  analysisProvenance: IRecordingComparisonAnalysisProvenance
   regionOfInterest: IAnalysisRegionOfInterest | null
 }
 

@@ -82,6 +82,20 @@ public sealed class RecordingComparisonTests : IClassFixture<WebApplicationFacto
             Assert.Equal(
                 result.AggregateMetrics.Select(metric => metric.MetricKey),
                 result.AnalysisSpecification.MetricMethods.Select(method => method.MetricKey));
+            Assert.Equal("comparison-provenance-v1", result.AnalysisProvenance.ContractVersion);
+            Assert.Equal("sha256", result.AnalysisProvenance.RecordingA.Algorithm);
+            Assert.Matches("^sha256:[0-9a-f]{64}$", result.AnalysisProvenance.RecordingA.Value);
+            Assert.Matches("^sha256:[0-9a-f]{64}$", result.AnalysisProvenance.RecordingB.Value);
+            Assert.Equal(result.AnalysisProvenance.RecordingA.Value, result.AnalysisProvenance.RecordingB.Value);
+            Assert.Equal("soundlens_recording_comparison", result.AnalysisProvenance.ImplementationId);
+            Assert.Equal("soundlens_wav_pcm_ieee_float", result.AnalysisProvenance.DecoderId);
+            Assert.Equal("roi", result.AnalysisProvenance.Scope);
+            Assert.Equal(
+                result.AnalysisSpecification.MetricMethods.Select(method => (method.MethodId, method.MethodVersion)),
+                result.AnalysisProvenance.Methods.Select(method => (method.MethodId, method.MethodVersion)));
+            Assert.Matches("^sha256:[0-9a-f]{64}$", result.AnalysisProvenance.ParameterFingerprint);
+            Assert.Matches("^sha256:[0-9a-f]{64}$", result.AnalysisProvenance.EvidenceFingerprint);
+            Assert.Equal(3, result.AnalysisProvenance.Limitations.Count);
             Assert.NotNull(result.RegionOfInterest);
             Assert.Equal(0.0, result.RegionOfInterest!.StartTimeSeconds, precision: 4);
             Assert.Equal(0.25, result.RegionOfInterest.EndTimeSeconds, precision: 4);
@@ -179,6 +193,42 @@ public sealed class RecordingComparisonTests : IClassFixture<WebApplicationFacto
         {
             File.Delete(shortPath);
             File.Delete(longPath);
+        }
+    }
+
+    [Fact]
+    public async Task POST_RecordingComparison_RejectsMissingActiveFileWithoutDisclosingItsPath()
+    {
+        var firstPath = Path.Combine(Path.GetTempPath(), $"soundlens_compare_missing_a_{Guid.NewGuid():N}.wav");
+        var secondPath = Path.Combine(Path.GetTempPath(), $"soundlens_compare_missing_b_{Guid.NewGuid():N}.wav");
+        await File.WriteAllBytesAsync(firstPath, CreateMono16BitWav(8, [-32768, 0, 16384, 32767]));
+        await File.WriteAllBytesAsync(secondPath, CreateMono16BitWav(8, [-32768, 0, 16384, 32767]));
+
+        try
+        {
+            var client = _factory.CreateClient();
+            var importResponse = await client.PostAsJsonAsync("/api/import", new { filePaths = new[] { firstPath, secondPath } });
+            importResponse.EnsureSuccessStatusCode();
+            var waveformResponse = await client.PostAsJsonAsync("/api/waveforms/time", new { binCount = 64 });
+            waveformResponse.EnsureSuccessStatusCode();
+            var imported = await waveformResponse.Content.ReadFromJsonAsync<ImportProbeResponse>();
+            File.Delete(firstPath);
+
+            var response = await client.PostAsJsonAsync("/api/comparisons/recordings", new
+            {
+                recordingIdA = imported!.Recordings[0].RecordingId,
+                recordingIdB = imported.Recordings[1].RecordingId
+            });
+            var body = await response.Content.ReadAsStringAsync();
+
+            Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+            Assert.Contains("could not be read for provenance verification", body, StringComparison.OrdinalIgnoreCase);
+            Assert.DoesNotContain(firstPath, body, StringComparison.Ordinal);
+        }
+        finally
+        {
+            File.Delete(firstPath);
+            File.Delete(secondPath);
         }
     }
 

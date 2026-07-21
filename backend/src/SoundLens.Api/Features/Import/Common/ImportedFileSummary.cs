@@ -4,4 +4,7 @@ public sealed record ImportedFileSummary(
     string FileName,
     long SizeBytes,
     string FilePath,
-    string ContentType);
+    string ContentType)
+{
+    public string? ContentFingerprint { get; init; }
+}

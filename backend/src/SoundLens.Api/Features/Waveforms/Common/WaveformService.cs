@@ -600,7 +600,7 @@ public sealed class WaveformService : IWaveformService
     private static string BuildRecordingId(ImportedFileSummary file) => ImportedFileIdentity.BuildRecordingId(file);
 
     private static string BuildWaveformCacheKey(ImportedFileSummary file) =>
-        $"{BuildRecordingId(file)}|waveform";
+        $"{BuildRecordingId(file)}|waveform|{file.ContentFingerprint ?? "unverified"}";
 
     private static string BuildSignalId(string recordingId, int channelIndex) => $"{recordingId}:ch:{channelIndex}";
 }
