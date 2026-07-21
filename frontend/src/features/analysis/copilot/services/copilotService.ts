@@ -1,8 +1,11 @@
 import { API_BASE_URL } from '../../../../common/api/config'
 import type {
   IAgentActivityEvent,
+  IAgentNavigationActionResponse,
   IAgentQueryRequest,
   IAgentQueryResponse,
+  IAgentSuggestedAction,
+  TCopilotRouteName,
 } from '../types/copilot.types'
 import { isStructuredObservationCollection } from './structuredObservationValidation'
 import { isInvestigationPlan } from './investigationPlanValidation'
@@ -38,6 +41,32 @@ export const streamAgentQuery = async (
   }
 
   return readAgentStream(response.body, onActivity)
+}
+
+export const approveNavigationAction = async (
+  action: IAgentSuggestedAction,
+  currentRoute: TCopilotRouteName,
+  previousActivitySequence: number
+): Promise<IAgentNavigationActionResponse> => {
+  const response = await fetch(`${API_BASE_URL}/api/agent/actions/navigation`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      actionId: action.actionId,
+      currentRoute,
+      previousActivitySequence,
+    }),
+  })
+
+  if (!response.ok) {
+    throw new Error(await readCopilotError(response))
+  }
+
+  const result = await response.json() as Partial<IAgentNavigationActionResponse>
+  if (!isSupportedNavigationRoute(result.targetRoute) || !isAgentActivityEvent(result.activity)) {
+    throw new Error('Sona returned an invalid navigation approval.')
+  }
+  return result as IAgentNavigationActionResponse
 }
 
 export const readAgentStream = async (
@@ -109,7 +138,7 @@ const isAgentActivityEvent = (value: unknown): value is IAgentActivityEvent => {
   if (!value || typeof value !== 'object') return false
   const activity = value as Partial<IAgentActivityEvent>
   return Number.isInteger(activity.sequence) && Number(activity.sequence) > 0 &&
-    ['plan', 'routing', 'tool', 'evidence_check', 'fallback', 'completion', 'failure'].includes(activity.kind ?? '') &&
+    ['plan', 'routing', 'tool', 'evidence_check', 'fallback', 'completion', 'failure', 'action'].includes(activity.kind ?? '') &&
     ['running', 'completed', 'failed'].includes(activity.status ?? '') &&
     typeof activity.title === 'string' && activity.title.trim().length > 0 &&
     typeof activity.summary === 'string' && activity.summary.trim().length > 0
@@ -126,8 +155,34 @@ const isAgentQueryResponse = (value: unknown): value is IAgentQueryResponse => {
     isExternalCitationCollection(response.externalCitations, response.answer) &&
     isEvidenceSufficiency(response.evidenceSufficiency) &&
     isStructuredObservationCollection(response.structuredObservations) &&
-    isInvestigationPlan(response.investigationPlan)
+    isInvestigationPlan(response.investigationPlan) &&
+    isSuggestedActionCollection(response.suggestedActions)
 }
+
+const isSuggestedActionCollection = (value: unknown) => {
+  if (value == null) return true
+  if (!Array.isArray(value) || value.length > 1) return false
+
+  return value.every((item) => {
+    if (!item || typeof item !== 'object') return false
+    const action = item as Record<string, unknown>
+    const targetByActionId: Record<string, string> = {
+      navigate_import: 'import',
+      navigate_configure: 'configure',
+      navigate_analysis: 'analysis',
+      navigate_evidence: 'evidence',
+    }
+    return hasExactKeys(action, ['actionId', 'kind', 'label', 'targetRoute']) &&
+      ['navigate_import', 'navigate_configure', 'navigate_analysis', 'navigate_evidence'].includes(String(action.actionId)) &&
+      targetByActionId[String(action.actionId)] === action.targetRoute &&
+      action.kind === 'navigate' &&
+      typeof action.label === 'string' && action.label.trim().length > 0 && action.label.length <= 80 &&
+      isSupportedNavigationRoute(action.targetRoute)
+  })
+}
+
+const isSupportedNavigationRoute = (value: unknown): value is IAgentNavigationActionResponse['targetRoute'] =>
+  ['import', 'configure', 'analysis', 'evidence'].includes(String(value))
 
 const isExternalCitationCollection = (value: unknown, answer: string) => {
   if (value == null) return true

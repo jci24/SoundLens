@@ -27,6 +27,7 @@ interface IUseCopilotQueryResult {
   submit: (request: IAgentQueryRequest) => Promise<void>
   retry: (turnId: string) => Promise<void>
   reset: () => void
+  recordActivity: (turnId: string, activity: IAgentActivityEvent) => void
 }
 
 const MAX_HISTORY_TURNS = 6
@@ -190,6 +191,17 @@ const useCopilotQuery = (): IUseCopilotQueryResult => {
     setTurns([])
   }, [])
 
+  const recordActivity = useCallback((turnId: string, activity: IAgentActivityEvent) => {
+    setTurns((currentTurns) => currentTurns.map((turn) => {
+      if (turn.id !== turnId) return turn
+      const withoutSequence = turn.activity.filter((step) => step.sequence !== activity.sequence)
+      return {
+        ...turn,
+        activity: [...withoutSequence, activity].sort((left, right) => left.sequence - right.sequence),
+      }
+    }))
+  }, [])
+
   const publicTurns = useMemo<ICopilotConversationTurn[]>(
     () =>
       turns.map((turn) => ({
@@ -204,7 +216,7 @@ const useCopilotQuery = (): IUseCopilotQueryResult => {
   )
   const isLoading = turns.some((turn) => turn.isLoading)
 
-  return { turns: publicTurns, isLoading, submit, retry, reset }
+  return { turns: publicTurns, isLoading, submit, retry, reset, recordActivity }
 }
 
 export { useCopilotQuery }

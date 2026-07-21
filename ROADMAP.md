@@ -1,6 +1,6 @@
 # Roadmap
 
-Last updated: 2026-07-20
+Last updated: 2026-07-21
 
 ## Cross-Cutting Program — Figma Visual-System Migration
 
@@ -439,12 +439,13 @@ The committed product order remains:
 3. maintain the shipped A/B comparison, evidence drill-down, Copilot trust guards, and reports
 4. maintain the strict routing and trust eval gate without adding autonomy
 5. preserve selected-comparison sufficiency and structured observations while validating use of the shipped typed investigation-plan preview
+6. validate whether users benefit from Sona's shipped approval-gated navigation before adding any state-changing action
 
 No persistent investigation, plan execution, background research, or workspace-operating agent is committed yet.
 
 ### 6. Conditional later milestones
 
-**Stage B — Level 3 structured investigation** starts only when the comparison workflow and evidence contracts are stable enough to support a typed plan. It adds sufficiency, structured claims, plan validation, revision, and a complete auditable trace.
+**Stage B — Level 3 structured investigation** starts only when the comparison workflow and evidence contracts are stable enough to support a typed plan. It adds sufficiency, structured claims, plan validation, revision, and a complete auditable trace. The current closed-route navigation action is a bounded shell convenience, not plan execution.
 
 **Stage C — External scientific research** advances from bounded cited answers to measured-plus-research synthesis only after source policy, stable evidence references, structured observations, privacy controls, and research evals exist.
 

@@ -1,4 +1,4 @@
-import { fireEvent, render, screen } from '@testing-library/react'
+import { fireEvent, render, screen, waitFor } from '@testing-library/react'
 import { describe, expect, it } from 'vitest'
 import { CopilotResponse } from './CopilotResponse'
 
@@ -330,5 +330,56 @@ describe('CopilotResponse', () => {
 
     expect(screen.queryByText('Investigation guidance')).not.toBeInTheDocument()
     expect(screen.queryByText('Evidence used')).not.toBeInTheDocument()
+  })
+
+  it('renders a backend-owned navigation suggestion and requires explicit approval', async () => {
+    const onApproveAction = vi.fn().mockResolvedValue(undefined)
+    render(
+      <CopilotResponse
+        canOpenWorkspace
+        response={{
+          ...response,
+          suggestedActions: [{
+            actionId: 'navigate_evidence',
+            kind: 'navigate',
+            label: 'Open Evidence',
+            targetRoute: 'evidence',
+          }],
+        }}
+        onApproveAction={onApproveAction}
+        onRegenerate={() => {}}
+      />
+    )
+
+    expect(onApproveAction).not.toHaveBeenCalled()
+    fireEvent.click(screen.getByRole('button', { name: 'Open Evidence' }))
+
+    await waitFor(() => expect(onApproveAction).toHaveBeenCalledWith(
+      expect.objectContaining({ actionId: 'navigate_evidence' })
+    ))
+  })
+
+  it('fails a stale workspace action locally without executing it', () => {
+    const onApproveAction = vi.fn()
+    render(
+      <CopilotResponse
+        response={{
+          ...response,
+          suggestedActions: [{
+            actionId: 'navigate_analysis',
+            kind: 'navigate',
+            label: 'Review analyses',
+            targetRoute: 'analysis',
+          }],
+        }}
+        onApproveAction={onApproveAction}
+        onRegenerate={() => {}}
+      />
+    )
+
+    fireEvent.click(screen.getByRole('button', { name: 'Review analyses' }))
+
+    expect(onApproveAction).not.toHaveBeenCalled()
+    expect(screen.getByRole('alert')).toHaveTextContent('Import recordings before opening this workspace.')
   })
 })

@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it, vi } from 'vitest'
-import { readAgentStream, streamAgentQuery } from './copilotService'
+import { approveNavigationAction, readAgentStream, streamAgentQuery } from './copilotService'
 
 const encodeChunks = (...chunks: string[]) => new ReadableStream<Uint8Array>({
   start(controller) {
@@ -105,6 +105,35 @@ describe('streamAgentQuery', () => {
     ), vi.fn())).rejects.toThrow('invalid event')
   })
 
+  it('accepts only allowlisted action ID and route pairs', async () => {
+    const response = {
+      answer: 'Open the evidence workspace.',
+      citedEvidence: [],
+      limitations: [],
+      nextSteps: [],
+      toolsUsed: [],
+      suggestedActions: [{
+        actionId: 'navigate_evidence',
+        kind: 'navigate',
+        label: 'Open Evidence',
+        targetRoute: 'evidence',
+      }],
+    }
+    await expect(readAgentStream(encodeChunks(
+      `data: ${JSON.stringify({ eventType: 'result', response })}\n\n`,
+    ), vi.fn())).resolves.toMatchObject({ suggestedActions: [{ targetRoute: 'evidence' }] })
+
+    await expect(readAgentStream(encodeChunks(
+      `data: ${JSON.stringify({
+        eventType: 'result',
+        response: {
+          ...response,
+          suggestedActions: [{ ...response.suggestedActions[0], targetRoute: 'import' }],
+        },
+      })}\n\n`,
+    ), vi.fn())).rejects.toThrow('invalid event')
+  })
+
   it('accepts conservative source metadata and rejects malformed source assessments', async () => {
     const answer = 'A current sourced claim.'
     const citation = {
@@ -149,5 +178,48 @@ describe('streamAgentQuery', () => {
     await expect(streamAgentQuery({ question: 'Compare these signals.' }, vi.fn())).rejects.toThrow(
       'Import at least one audio file before requesting a comparison contract.'
     )
+  })
+
+  it('approves only a validated navigation receipt', async () => {
+    const fetchMock = vi.fn().mockResolvedValue(new Response(JSON.stringify({
+      targetRoute: 'evidence',
+      activity: {
+        sequence: 3,
+        kind: 'action',
+        status: 'completed',
+        title: 'Navigation approved',
+        summary: 'Opening Evidence.',
+      },
+    }), { status: 200, headers: { 'Content-Type': 'application/json' } }))
+    vi.stubGlobal('fetch', fetchMock)
+
+    await expect(approveNavigationAction({
+      actionId: 'navigate_evidence',
+      kind: 'navigate',
+      label: 'Open Evidence',
+      targetRoute: 'evidence',
+    }, 'home', 2)).resolves.toMatchObject({ targetRoute: 'evidence' })
+    expect(JSON.parse(fetchMock.mock.calls[0][1].body)).toEqual({
+      actionId: 'navigate_evidence',
+      currentRoute: 'home',
+      previousActivitySequence: 2,
+    })
+
+    vi.stubGlobal('fetch', vi.fn().mockResolvedValue(new Response(JSON.stringify({
+      targetRoute: 'https://example.com',
+      activity: {
+        sequence: 3,
+        kind: 'action',
+        status: 'completed',
+        title: 'Navigation approved',
+        summary: 'Opening.',
+      },
+    }), { status: 200 })))
+    await expect(approveNavigationAction({
+      actionId: 'navigate_evidence',
+      kind: 'navigate',
+      label: 'Open Evidence',
+      targetRoute: 'evidence',
+    }, 'home', 2)).rejects.toThrow('invalid navigation approval')
   })
 })

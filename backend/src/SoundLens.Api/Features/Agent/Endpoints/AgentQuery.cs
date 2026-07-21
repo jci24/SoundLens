@@ -194,12 +194,18 @@ public sealed class AgentQuery : Endpoint<AgentQueryCommand, AgentQueryResponse>
         try
         {
             var result = await command.ExecuteAsync(ct);
-            await Send.OkAsync(result with { ActivityTrace = recorder.Snapshot() }, ct);
+            var response = AgentResponseActionDecorator.AddSuggestedActions(result, command) with
+            {
+                ActivityTrace = recorder.Snapshot()
+            };
+            await Send.OkAsync(response, ct);
         }
         catch (InvalidOperationException ex) when (ex.Message.Contains("API key"))
         {
             AddUnavailableTrace(recorder);
-            var response = AgentUnavailableResponseFactory.ForMissingApiKey(command) with
+            var response = AgentResponseActionDecorator.AddSuggestedActions(
+                AgentUnavailableResponseFactory.ForMissingApiKey(command),
+                command) with
             {
                 ActivityTrace = recorder.Snapshot()
             };

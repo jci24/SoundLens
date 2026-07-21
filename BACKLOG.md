@@ -1,6 +1,6 @@
 # SoundLens Backlog
 
-Last updated: 2026-07-20
+Last updated: 2026-07-21
 
 This backlog reflects the immediate product direction: focused A/B comparison of repeated recordings with deterministic evidence, drill-down, grounded explanation, and report export. The later agentic Copilot initiative is sequenced in `ROADMAP.md` and is not yet part of the ordered implementation queue.
 
@@ -65,6 +65,7 @@ Turn the current analysis workspace into a focused comparison workflow for repea
 - selected-comparison orchestration extracted from `AgentQueryHandler` behind a feature-owned resolver, trust-guard, prompt, model, parser, and fallback boundary
 - comparison-to-Copilot workflow regression covering metric and ROI freshness, identifier-only requests, grounded responses, refusal presentation, failure recovery, Re-run context, and store cleanup
 - workspace-aware Copilot routing with explicit-mention precedence, detailed selected-evidence scope, focused-mode assigned A/B comparison scope, visible focused-signal inspection, and deterministic single-signal metrics
+- shell-wide Sona availability plus user-approved allowlisted navigation to Import, Configure, Analysis, and Evidence with stale-session checks and no evidence mutation
 - invisible backend-owned Copilot context routing with isolated general responses and explicit signal-mention precedence
 - functional Home, Import, and guarded Evidence routes with temporary-session restoration, persistent navigation, breadcrumbs, and explicit bootstrap recovery
 
@@ -121,7 +122,7 @@ Boundary:
 - workspace measurements remain backend-owned
 - investigation guidance may be model-generated, but measurements, capability availability, and workspace facts remain backend-owned
 - activity traces show observable system actions and concise summaries, never hidden reasoning, raw prompts, or unvalidated model claims
-- action autonomy does not expand before review, stale-state, trace, and undo contracts exist
+- action autonomy does not expand beyond shipped allowlisted navigation before review, stale-state, trace, and undo contracts exist
 
 Priority:
 - high trust and product-platform work after the current Evidence composition slice

@@ -1,4 +1,4 @@
-import { Outlet, useLocation } from 'react-router'
+import { Outlet, useLocation, useNavigate } from 'react-router'
 import { Sidebar } from './Sidebar'
 import { MainContent } from './MainContent'
 import { BreadcrumbBar } from './BreadcrumbBar'
@@ -25,6 +25,7 @@ const routeNames: Record<string, TCopilotRouteName> = {
 
 const AppShell = ({ hasRecordings, isSidebarCollapsed, onToggleSidebar, isCopilotOpen, onCopilotToggle }: IAppShellProps) => {
   const { pathname } = useLocation()
+  const navigate = useNavigate()
   const selectedSignalIds = useAnalysisWorkspaceStore((state) => state.selectedSignalIds)
   const regionOfInterest = useAnalysisWorkspaceStore((state) => state.regionOfInterest)
   const recordings = useAnalysisWorkspaceStore((state) => state.recordings)
@@ -42,8 +43,10 @@ const AppShell = ({ hasRecordings, isSidebarCollapsed, onToggleSidebar, isCopilo
       </div>
     </MainContent>
     <CopilotSidebar
+      hasRecordings={hasRecordings}
       isOpen={isCopilotOpen}
       onClose={onCopilotToggle}
+      onNavigate={navigate}
       recordings={recordings}
       regionOfInterest={regionOfInterest}
       routeName={routeNames[pathname] ?? 'home'}

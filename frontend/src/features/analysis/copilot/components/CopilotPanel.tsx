@@ -6,8 +6,9 @@ import { CopilotResponse } from './CopilotResponse'
 import { CopilotActivityTrace } from './CopilotActivityTrace'
 import { useCopilotConversation } from '../context/useCopilotConversation'
 import { useAnalysisWorkspaceStore } from '../../stores/useAnalysisWorkspaceStore'
+import { approveNavigationAction } from '../services/copilotService'
 import type { IAnalysisRegionOfInterest, ITimeWaveformRecording } from '../../types'
-import type { TCopilotRouteName } from '../types/copilot.types'
+import type { IAgentSuggestedAction, TCopilotRouteName } from '../types/copilot.types'
 import './CopilotPanel.scss'
 
 interface ICopilotPanelProps {
@@ -15,10 +16,26 @@ interface ICopilotPanelProps {
   regionOfInterest: IAnalysisRegionOfInterest | null
   recordings: ITimeWaveformRecording[]
   routeName?: TCopilotRouteName
+  hasRecordings?: boolean
+  onNavigate?: (path: string) => void
 }
 
-const CopilotPanel = ({ selectedSignalIds, regionOfInterest, recordings, routeName = 'evidence' }: ICopilotPanelProps) => {
-  const { turns, isLoading, submit, retry, reset } = useCopilotConversation()
+const routePaths: Record<IAgentSuggestedAction['targetRoute'], string> = {
+  import: '/import',
+  configure: '/setup',
+  analysis: '/analysis',
+  evidence: '/evidence',
+}
+
+const CopilotPanel = ({
+  selectedSignalIds,
+  regionOfInterest,
+  recordings,
+  routeName = 'evidence',
+  hasRecordings = false,
+  onNavigate = () => {},
+}: ICopilotPanelProps) => {
+  const { turns, isLoading, submit, retry, reset, recordActivity } = useCopilotConversation()
   const threadRef = useRef<HTMLDivElement | null>(null)
   const hasConversation = turns.length > 0
   const comparisonContext = useAnalysisWorkspaceStore((state) => state.comparisonCopilotContext)
@@ -63,6 +80,16 @@ const CopilotPanel = ({ selectedSignalIds, regionOfInterest, recordings, routeNa
       comparisonPair,
       routeContext: { route: routeName },
     })
+  }
+
+  const handleApproveAction = async (
+    turnId: string,
+    action: IAgentSuggestedAction,
+    previousActivitySequence: number
+  ) => {
+    const result = await approveNavigationAction(action, routeName, previousActivitySequence)
+    recordActivity(turnId, result.activity)
+    onNavigate(routePaths[result.targetRoute])
   }
 
   return (
@@ -122,6 +149,12 @@ const CopilotPanel = ({ selectedSignalIds, regionOfInterest, recordings, routeNa
                     <CopilotResponse
                       response={turn.response}
                       hasActivityTrace={turn.activity.length > 0}
+                      canOpenWorkspace={hasRecordings}
+                      onApproveAction={(action) => handleApproveAction(
+                        turn.id,
+                        action,
+                        Math.max(0, ...turn.activity.map((step) => step.sequence))
+                      )}
                       onRegenerate={() => retry(turn.id)}
                     />
                   </div>
