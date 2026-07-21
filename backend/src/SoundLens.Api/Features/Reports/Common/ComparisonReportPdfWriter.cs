@@ -44,6 +44,7 @@ public static class ComparisonReportPdfWriter
         AddTitle(section, context);
         AddScope(section, context, narrative);
         AddIntegrityContext(section, context);
+        AddAnalysisMethods(section, context);
         AddMetrics(section, context);
         AddSelectedEvidence(section, context);
         AddNarrative(section, narrative);
@@ -81,6 +82,45 @@ public static class ComparisonReportPdfWriter
                 check.Label,
                 ComparisonReportFormatting.FormatIntegrityStatus(check.Status),
                 check.Detail);
+        }
+    }
+
+    private static void AddAnalysisMethods(Section section, ComparisonReportContext context)
+    {
+        var specification = context.Comparison.AnalysisSpecification;
+        section.AddParagraph("Analysis Methods", StyleNames.Heading2);
+        var summary = CreateKeyValueTable(section);
+        AddKeyValueRow(summary, "Specification", specification.ContractVersion);
+        AddKeyValueRow(summary, "Scope", ComparisonReportFormatting.FormatAnalysisScope(specification.Scope));
+        AddKeyValueRow(summary, "Difference", "Compare A minus Compare B");
+        AddKeyValueRow(summary, "Aggregates", "Mean, median, minimum, maximum, and spread");
+
+        var table = section.AddTable();
+        table.Format.Font.Name = FontFamily;
+        table.Format.Font.Size = Unit.FromPoint(7.5);
+        table.Borders.Color = Color.FromRgb(205, 205, 205);
+        table.Borders.Width = Unit.FromPoint(0.4);
+        table.Rows.LeftIndent = Unit.Zero;
+        table.AddColumn(Unit.FromCentimeter(3.1));
+        table.AddColumn(Unit.FromCentimeter(1.4));
+        table.AddColumn(Unit.FromCentimeter(4.1));
+        table.AddColumn(Unit.FromCentimeter(7.2));
+
+        var header = table.AddRow();
+        header.HeadingFormat = true;
+        header.Format.Font.Bold = true;
+        header.Shading.Color = Color.FromRgb(239, 239, 239);
+        AddCells(header, "Metric", "Unit", "Method", "Definition");
+
+        foreach (var method in specification.MetricMethods)
+        {
+            var row = table.AddRow();
+            AddCells(
+                row,
+                method.Label,
+                method.Unit,
+                $"{method.MethodId}@{method.MethodVersion}",
+                method.Definition);
         }
     }
 

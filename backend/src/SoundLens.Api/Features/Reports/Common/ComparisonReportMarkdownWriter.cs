@@ -33,6 +33,22 @@ public static class ComparisonReportMarkdownWriter
         }
         builder.AppendLine();
 
+        builder.AppendLine("## Analysis Methods");
+        builder.AppendLine();
+        builder.AppendLine($"- Specification: `{Escape(comparison.AnalysisSpecification.ContractVersion)}`");
+        builder.AppendLine($"- Scope: {ComparisonReportFormatting.FormatAnalysisScope(comparison.AnalysisSpecification.Scope)}");
+        builder.AppendLine("- Difference convention: Compare A minus Compare B");
+        builder.AppendLine("- Aggregate statistics: mean, median, minimum, maximum, and spread");
+        builder.AppendLine();
+        builder.AppendLine("| Metric | Unit | Method | Definition |");
+        builder.AppendLine("| --- | --- | --- | --- |");
+        foreach (var method in comparison.AnalysisSpecification.MetricMethods)
+        {
+            builder.AppendLine(
+                $"| {Escape(method.Label)} | {Escape(method.Unit)} | `{Escape(method.MethodId)}@{Escape(method.MethodVersion)}` | {Escape(method.Definition)} |");
+        }
+        builder.AppendLine();
+
         builder.AppendLine("## Comparison Metrics");
         builder.AppendLine();
         builder.AppendLine("| Metric | Mean A-B | Median | Spread | Pairs | Missing |");

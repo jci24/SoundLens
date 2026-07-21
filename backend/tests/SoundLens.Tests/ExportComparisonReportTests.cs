@@ -57,6 +57,11 @@ public sealed class ExportComparisonReportTests : IClassFixture<WebApplicationFa
         Assert.Contains("| Check | Status | Detail |", payload.Markdown);
         AssertIntegrityOrder(payload.Markdown);
         Assert.Contains("| Calibration | Unknown |", payload.Markdown);
+        Assert.Contains("## Analysis Methods", payload.Markdown);
+        Assert.Contains($"- Scope: {(useRoi ? "Selected ROI" : "Full duration")}", payload.Markdown);
+        Assert.Contains("- Difference convention: Compare A minus Compare B", payload.Markdown);
+        Assert.Contains("`normalized_peak_amplitude@1`", payload.Markdown);
+        AssertAnalysisMethodOrder(payload.Markdown);
         Assert.Contains("## Comparison Metrics", payload.Markdown);
         Assert.DoesNotContain("| Rank |", payload.Markdown);
         var peakIndex = payload.Markdown.IndexOf("| Peak amplitude |", StringComparison.Ordinal);
@@ -102,6 +107,11 @@ public sealed class ExportComparisonReportTests : IClassFixture<WebApplicationFa
         Assert.Contains("Comparison Context", text);
         AssertIntegrityOrder(text);
         Assert.Contains("Calibration Unknown", text);
+        Assert.Contains("Analysis Methods", text);
+        Assert.Contains(useRoi ? "Selected ROI" : "Full duration", text);
+        Assert.Contains("Compare A minus Compare B", text);
+        Assert.Contains("normalized_peak_amplitude@1", text);
+        AssertAnalysisMethodOrder(text);
         Assert.Contains("Comparison Metrics", text);
         AssertMetricOrder(text);
         Assert.Contains("RMS amplitude", text);
@@ -486,6 +496,7 @@ public sealed class ExportComparisonReportTests : IClassFixture<WebApplicationFa
                     new RecordingComparisonIntegrityCheck("SignalAlignment", "matched", "Signal alignment", "All signal pairs aligned."),
                     new RecordingComparisonIntegrityCheck("Calibration", "unknown", "Calibration", "No validated acoustic calibration is available.")
                 ]),
+            RecordingComparisonAnalysisSpecificationFactory.Create(null),
             null);
 
         var selectedMetric = aggregates.Single(metric => metric.MetricKey == selectedMetricKey);
@@ -528,6 +539,19 @@ public sealed class ExportComparisonReportTests : IClassFixture<WebApplicationFa
             sampleRateIndex < timeScopeIndex &&
             timeScopeIndex < signalAlignmentIndex &&
             signalAlignmentIndex < calibrationIndex);
+    }
+
+    private static void AssertAnalysisMethodOrder(string text)
+    {
+        var peakIndex = text.IndexOf("normalized_peak_amplitude", StringComparison.Ordinal);
+        var rmsIndex = text.IndexOf("normalized_rms_amplitude", StringComparison.Ordinal);
+        var crestIndex = text.IndexOf("peak_to_rms_ratio", StringComparison.Ordinal);
+        var clippingIndex = text.IndexOf("decoded_full_scale_sample_count", StringComparison.Ordinal);
+        Assert.True(
+            peakIndex >= 0 &&
+            peakIndex < rmsIndex &&
+            rmsIndex < crestIndex &&
+            crestIndex < clippingIndex);
     }
 
     private sealed class StubComparisonNarrativeService : IComparisonReportNarrativeService

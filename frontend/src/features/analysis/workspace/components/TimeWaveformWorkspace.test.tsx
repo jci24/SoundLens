@@ -243,6 +243,18 @@ const comparisonResponse: IRecordingComparisonResponse = {
       { code: 'Calibration', status: 'unknown', label: 'Calibration', detail: 'No validated calibration is available.' },
     ],
   },
+  analysisSpecification: {
+    contractVersion: 'comparison-analysis-v1',
+    scope: 'full_duration',
+    differenceConvention: 'compare_a_minus_compare_b',
+    aggregateStatistics: 'mean_median_minimum_maximum_spread',
+    metricMethods: [
+      { metricKey: 'peakAmplitudeDelta', label: 'Peak amplitude', unit: 'FS', methodId: 'normalized_peak_amplitude', methodVersion: '1', definition: 'Peak definition.' },
+      { metricKey: 'rmsAmplitudeDelta', label: 'RMS amplitude', unit: 'FS', methodId: 'normalized_rms_amplitude', methodVersion: '1', definition: 'RMS definition.' },
+      { metricKey: 'crestFactorDelta', label: 'Crest factor', unit: 'ratio', methodId: 'peak_to_rms_ratio', methodVersion: '1', definition: 'Crest definition.' },
+      { metricKey: 'clippingSampleCountDelta', label: 'Clipping samples', unit: 'samples', methodId: 'decoded_full_scale_sample_count', methodVersion: '1', definition: 'Clipping definition.' },
+    ],
+  },
   regionOfInterest: null,
 }
 

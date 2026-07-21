@@ -10,4 +10,5 @@ public sealed record RecordingComparisonResponse(
     IReadOnlyList<RecordingComparisonMetricAggregate> AggregateMetrics,
     IReadOnlyList<RecordingComparisonLimitation> Limitations,
     RecordingComparisonIntegrityAssessment IntegrityAssessment,
+    RecordingComparisonAnalysisSpecification AnalysisSpecification,
     AnalysisRegionOfInterest? RegionOfInterest);

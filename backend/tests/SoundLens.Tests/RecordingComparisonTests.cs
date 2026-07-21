@@ -72,6 +72,16 @@ public sealed class RecordingComparisonTests : IClassFixture<WebApplicationFacto
             Assert.Equal(0, result.IntegrityAssessment.LimitedCheckCount);
             Assert.Equal(1, result.IntegrityAssessment.UnknownCheckCount);
             Assert.Equal("unknown", result.IntegrityAssessment.Checks.Single(check => check.Code == "Calibration").Status);
+            Assert.Equal("comparison-analysis-v1", result.AnalysisSpecification.ContractVersion);
+            Assert.Equal("roi", result.AnalysisSpecification.Scope);
+            Assert.Equal("compare_a_minus_compare_b", result.AnalysisSpecification.DifferenceConvention);
+            Assert.Equal("mean_median_minimum_maximum_spread", result.AnalysisSpecification.AggregateStatistics);
+            Assert.Equal(
+                ["peakAmplitudeDelta", "rmsAmplitudeDelta", "crestFactorDelta", "clippingSampleCountDelta"],
+                result.AnalysisSpecification.MetricMethods.Select(method => method.MetricKey));
+            Assert.Equal(
+                result.AggregateMetrics.Select(metric => metric.MetricKey),
+                result.AnalysisSpecification.MetricMethods.Select(method => method.MetricKey));
             Assert.NotNull(result.RegionOfInterest);
             Assert.Equal(0.0, result.RegionOfInterest!.StartTimeSeconds, precision: 4);
             Assert.Equal(0.25, result.RegionOfInterest.EndTimeSeconds, precision: 4);
@@ -125,6 +135,7 @@ public sealed class RecordingComparisonTests : IClassFixture<WebApplicationFacto
             Assert.Equal(1, result.AggregateMetrics[0].MissingValueCount);
             Assert.Equal("limited", result.IntegrityAssessment.Status);
             Assert.Equal("limited", result.IntegrityAssessment.Checks.Single(check => check.Code == "SignalAlignment").Status);
+            Assert.Equal("full_duration", result.AnalysisSpecification.Scope);
         }
         finally
         {
