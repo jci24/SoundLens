@@ -496,7 +496,10 @@ public sealed class FrequencySpectrumTests : IClassFixture<WebApplicationFactory
         var tempPath = Path.Combine(Path.GetTempPath(), $"soundlens_spectrum_cache_{Guid.NewGuid():N}.wav");
         await File.WriteAllBytesAsync(tempPath, CreateMono16BitWav(sampleRate, samples));
 
-        var importedFile = new ImportedFileSummary("cached-spectrum.wav", new FileInfo(tempPath).Length, tempPath, "audio/wav");
+        var importedFile = new ImportedFileSummary("cached-spectrum.wav", new FileInfo(tempPath).Length, tempPath, "audio/wav")
+        {
+            ContentFingerprint = "sha256:unchanged-spectrum"
+        };
         var spectrumService = new SpectrumService();
 
         try
@@ -505,6 +508,7 @@ public sealed class FrequencySpectrumTests : IClassFixture<WebApplicationFactory
             File.Delete(tempPath);
 
             var secondResult = spectrumService.BuildFrequencySpectra([importedFile], requestedBinCount: 513, explicitFftSize: null, selectedSignalIds: null, startTimeSeconds: null, endTimeSeconds: null, cancellationToken: CancellationToken.None);
+            var alternateFftResult = spectrumService.BuildFrequencySpectra([importedFile], requestedBinCount: 513, explicitFftSize: 512, selectedSignalIds: null, startTimeSeconds: null, endTimeSeconds: null, cancellationToken: CancellationToken.None);
             Assert.Equal(firstResult.Analysis, secondResult.Analysis);
             Assert.Equal(firstResult.Recordings.Count, secondResult.Recordings.Count);
             Assert.Equal(firstResult.SelectedSignals.Count, secondResult.SelectedSignals.Count);
@@ -531,6 +535,45 @@ public sealed class FrequencySpectrumTests : IClassFixture<WebApplicationFactory
             Assert.Equal(firstSignal.Points.Count, secondSignal.Points.Count);
             Assert.Equal(firstSignal.Points[0], secondSignal.Points[0]);
             Assert.Equal(firstSignal.Points[^1], secondSignal.Points[^1]);
+
+            var alternateFftSignal = Assert.Single(alternateFftResult.SelectedSignals);
+            Assert.Equal(512, alternateFftResult.Analysis.FftLength);
+            Assert.Equal(257, alternateFftSignal.Points.Count);
+        }
+        finally
+        {
+            File.Delete(tempPath);
+        }
+    }
+
+    [Fact]
+    public async Task SpectrumService_RebuildsCachedEvidenceWhenContentFingerprintChanges()
+    {
+        const int sampleRate = 1024;
+        var firstSamples = CreateSineSamples(sampleRate, frequencyHz: 128, durationSeconds: 2.0);
+        var secondSamples = CreateSineSamples(sampleRate, frequencyHz: 256, durationSeconds: 2.0);
+        var tempPath = Path.Combine(Path.GetTempPath(), $"soundlens_spectrum_revision_{Guid.NewGuid():N}.wav");
+        await File.WriteAllBytesAsync(tempPath, CreateMono16BitWav(sampleRate, firstSamples));
+
+        var firstFile = new ImportedFileSummary("revised-spectrum.wav", new FileInfo(tempPath).Length, tempPath, "audio/wav")
+        {
+            ContentFingerprint = "sha256:first-spectrum"
+        };
+        var secondFile = firstFile with { ContentFingerprint = "sha256:second-spectrum" };
+        var spectrumService = new SpectrumService();
+
+        try
+        {
+            var firstResult = spectrumService.BuildFrequencySpectra([firstFile], requestedBinCount: 513, explicitFftSize: null, selectedSignalIds: null, startTimeSeconds: null, endTimeSeconds: null, cancellationToken: CancellationToken.None);
+            await File.WriteAllBytesAsync(tempPath, CreateMono16BitWav(sampleRate, secondSamples));
+
+            var secondResult = spectrumService.BuildFrequencySpectra([secondFile], requestedBinCount: 513, explicitFftSize: null, selectedSignalIds: null, startTimeSeconds: null, endTimeSeconds: null, cancellationToken: CancellationToken.None);
+
+            var firstSignal = Assert.Single(firstResult.SelectedSignals);
+            var secondSignal = Assert.Single(secondResult.SelectedSignals);
+            Assert.Equal(firstSignal.SignalId, secondSignal.SignalId);
+            Assert.Equal(128, firstSignal.Points.MaxBy(point => point.Value)!.FrequencyHz, precision: 6);
+            Assert.Equal(256, secondSignal.Points.MaxBy(point => point.Value)!.FrequencyHz, precision: 6);
         }
         finally
         {

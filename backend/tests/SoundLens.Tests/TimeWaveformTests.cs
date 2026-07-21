@@ -319,7 +319,10 @@ public sealed class TimeWaveformTests : IClassFixture<WebApplicationFactory<Prog
         var tempPath = Path.Combine(Path.GetTempPath(), $"soundlens_waveform_cache_{Guid.NewGuid():N}.wav");
         await File.WriteAllBytesAsync(tempPath, CreateMono16BitWav(sampleRate, samples));
 
-        var importedFile = new ImportedFileSummary("cached-waveform.wav", new FileInfo(tempPath).Length, tempPath, "audio/wav");
+        var importedFile = new ImportedFileSummary("cached-waveform.wav", new FileInfo(tempPath).Length, tempPath, "audio/wav")
+        {
+            ContentFingerprint = "sha256:unchanged-waveform"
+        };
         var waveformService = new WaveformService();
 
         try
@@ -349,6 +352,39 @@ public sealed class TimeWaveformTests : IClassFixture<WebApplicationFactory<Prog
             Assert.Equal(firstSignal.Bins[0], secondSignal.Bins[0]);
             Assert.Equal(firstSignal.Bins[^1], secondSignal.Bins[^1]);
             Assert.Equal(firstSignal.Metrics, secondSignal.Metrics);
+        }
+        finally
+        {
+            File.Delete(tempPath);
+        }
+    }
+
+    [Fact]
+    public async Task WaveformService_RebuildsCachedEvidenceWhenContentFingerprintChanges()
+    {
+        const int sampleRate = 4;
+        var tempPath = Path.Combine(Path.GetTempPath(), $"soundlens_waveform_revision_{Guid.NewGuid():N}.wav");
+        await File.WriteAllBytesAsync(tempPath, CreateMono16BitWav(sampleRate, [1000, -1000, 1000, -1000]));
+
+        var firstFile = new ImportedFileSummary("revised-waveform.wav", new FileInfo(tempPath).Length, tempPath, "audio/wav")
+        {
+            ContentFingerprint = "sha256:first-waveform"
+        };
+        var secondFile = firstFile with { ContentFingerprint = "sha256:second-waveform" };
+        var waveformService = new WaveformService();
+
+        try
+        {
+            var firstResult = waveformService.BuildTimeWaveforms([firstFile], requestedBinCount: 256, selectedSignalIds: null, startTimeSeconds: null, endTimeSeconds: null, CancellationToken.None);
+            await File.WriteAllBytesAsync(tempPath, CreateMono16BitWav(sampleRate, [2000, -2000, 2000, -2000]));
+
+            var secondResult = waveformService.BuildTimeWaveforms([secondFile], requestedBinCount: 256, selectedSignalIds: null, startTimeSeconds: null, endTimeSeconds: null, CancellationToken.None);
+
+            var firstSignal = Assert.Single(firstResult.SelectedSignals);
+            var secondSignal = Assert.Single(secondResult.SelectedSignals);
+            Assert.Equal(firstSignal.SignalId, secondSignal.SignalId);
+            Assert.Equal(1000 / 32768.0, firstSignal.Metrics.PeakAmplitude, precision: 6);
+            Assert.Equal(2000 / 32768.0, secondSignal.Metrics.PeakAmplitude, precision: 6);
         }
         finally
         {

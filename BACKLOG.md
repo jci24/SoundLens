@@ -230,6 +230,7 @@ Reason for deferral:
 
 Recently completed:
 
+- waveform and spectrum caches now use one backend-owned recording-plus-content evidence identity; changed verified content invalidates decoded and FFT evidence while unchanged content and independent FFT configurations retain bounded cache reuse
 - import inventory, waveform, and spectrum now use one shared WAV PCM/IEEE-float decoder boundary, with normalization, interleaving, metadata-only reads, limits, malformed input, and cancellation covered directly without changing DSP contracts
 - bounded web-research resilience now classifies failures without message inspection, retries one transient transport, timeout, throttling, or provider failure, preserves cancellation, and never retries invalid or unsafe citation output
 - standards research now rejects bundled or unmatched ISO/IEC references, requires an authority-matched standards-body citation when primary or official sources are explicitly requested, and permits one bounded correction attempt for alignment-only failures
