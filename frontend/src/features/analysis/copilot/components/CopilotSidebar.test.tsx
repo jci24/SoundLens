@@ -30,10 +30,10 @@ describe('CopilotSidebar', () => {
       />
     )
 
-    expect(screen.getByRole('dialog', { name: 'Copilot' })).toBeInTheDocument()
+    expect(screen.getByRole('dialog', { name: 'Sona' })).toBeInTheDocument()
     expect(screen.getByText('Copilot conversation')).toBeInTheDocument()
 
-    fireEvent.click(screen.getByRole('button', { name: 'Close Copilot' }))
+    fireEvent.click(screen.getByRole('button', { name: 'Close Sona' }))
     expect(onClose).toHaveBeenCalledOnce()
   })
 })

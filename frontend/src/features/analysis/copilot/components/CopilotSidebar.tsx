@@ -37,13 +37,13 @@ const CopilotSidebar = ({ isOpen, onClose, selectedSignalIds, regionOfInterest, 
           <Dialog.Content className="copilot-sidebar__sheet">
             <header className="copilot-sidebar__sheet-header">
               <div>
-                <Dialog.Title className="copilot-sidebar__sheet-title">Copilot</Dialog.Title>
+                <Dialog.Title className="copilot-sidebar__sheet-title">Sona</Dialog.Title>
                 <Dialog.Description className="copilot-sidebar__sheet-description">
-                  Ask about the investigation or general technical topics.
+                  Ask Sona about the investigation or general technical topics.
                 </Dialog.Description>
               </div>
               <Dialog.Close asChild>
-                <Button aria-label="Close Copilot" size="icon-sm" type="button" variant="ghost">
+                <Button aria-label="Close Sona" size="icon-sm" type="button" variant="ghost">
                   <X aria-hidden="true" />
                 </Button>
               </Dialog.Close>
@@ -59,13 +59,13 @@ const CopilotSidebar = ({ isOpen, onClose, selectedSignalIds, regionOfInterest, 
     <aside
       className={`copilot-sidebar${isOpen ? '' : ' copilot-sidebar--closed'}`}
       style={isOpen ? { width } : undefined}
-      aria-label="Copilot panel"
+      aria-label="Sona panel"
     >
       <div
         className="copilot-sidebar__resize-handle"
         role="separator"
         aria-orientation="vertical"
-        aria-label="Resize copilot panel"
+        aria-label="Resize Sona panel"
         onMouseDown={onMouseDown}
       />
       {panel}

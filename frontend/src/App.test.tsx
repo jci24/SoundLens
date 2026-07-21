@@ -90,7 +90,7 @@ describe('App workflow routes', () => {
 
     renderApp()
     await screen.findByRole('heading', { name: 'Current investigation' })
-    fireEvent.click(screen.getByRole('button', { name: 'Open Copilot' }))
+    fireEvent.click(screen.getByRole('button', { name: 'Open Sona' }))
     expect(screen.getByText('Shell Copilot open on home')).toBeInTheDocument()
 
     fireEvent.click(screen.getByRole('link', { name: 'Import recordings' }))

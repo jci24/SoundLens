@@ -66,7 +66,7 @@ const CopilotPanel = ({ selectedSignalIds, regionOfInterest, recordings, routeNa
   }
 
   return (
-    <section className="copilot-panel" aria-label="AI copilot">
+    <section className="copilot-panel" aria-label="Sona assistant">
       <div className="copilot-panel__thread" ref={threadRef}>
         {hasConversation && (
           <div className="copilot-panel__conversation-actions">
@@ -85,7 +85,7 @@ const CopilotPanel = ({ selectedSignalIds, regionOfInterest, recordings, routeNa
         )}
         {!hasConversation && (
           <div className="copilot-panel__empty-state">
-            <p className="copilot-panel__empty-label">Copilot</p>
+            <p className="copilot-panel__empty-label">Sona</p>
             <p className="copilot-panel__empty-hint">Ask about your evidence or a general technical question.</p>
           </div>
         )}

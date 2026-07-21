@@ -1,6 +1,6 @@
-import { Bot, ChevronRight } from 'lucide-react'
+import { ChevronRight } from 'lucide-react'
 import { Link, useLocation } from 'react-router'
-import { Button } from '@/components/ui/button'
+import { SonaTrigger } from '../../analysis/copilot/components/SonaTrigger'
 import './BreadcrumbBar.scss'
 
 const routeLabels: Record<string, string> = {
@@ -34,17 +34,10 @@ const BreadcrumbBar = ({ isCopilotOpen, onCopilotToggle }: IBreadcrumbBarProps) 
         )}
       </nav>
       {pathname !== '/evidence' && (
-        <Button
-          aria-expanded={isCopilotOpen}
-          aria-label={isCopilotOpen ? 'Close Copilot' : 'Open Copilot'}
-          size="sm"
-          type="button"
-          variant="ghost"
+        <SonaTrigger
+          isOpen={isCopilotOpen}
           onClick={onCopilotToggle}
-        >
-          <Bot aria-hidden="true" />
-          Copilot
-        </Button>
+        />
       )}
     </div>
   )

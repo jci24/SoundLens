@@ -53,11 +53,16 @@
   }
 
   &__export-button,
-  &__copilot-toggle,
   &__recordings-toggle {
     height: var(--sl-control-height-sm);
     padding-inline: 0.55rem;
     font-size: var(--font-xs);
+  }
+
+  &__copilot-toggle {
+    width: var(--sl-control-height-sm);
+    height: var(--sl-control-height-sm);
+    padding: 0;
   }
 
   &__recordings-toggle {

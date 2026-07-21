@@ -1,6 +1,7 @@
-import { Bot, FileAudio, FileText, PanelRightClose } from 'lucide-react'
+import { FileAudio, FileText } from 'lucide-react'
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Button } from '@/components/ui/button'
+import { SonaTrigger } from '../../copilot/components/SonaTrigger'
 import { SpectrumControlsPopover } from '../../spectrum/components/SpectrumControlsPopover'
 import { useAnalysisWorkspaceHeader } from '../hooks/useAnalysisWorkspaceHeader'
 import { useSpectrumControlsPopover } from '../../spectrum/hooks/useSpectrumControlsPopover'
@@ -181,17 +182,12 @@ const AnalysisWorkspaceHeader = ({
           <FileText aria-hidden="true" size={14} />
           {isExporting ? 'Preparing...' : 'Report'}
         </Button>
-        <Button
-          aria-label={isCopilotOpen ? 'Close Copilot' : 'Open Copilot'}
+        <SonaTrigger
           className={`time-waveform-workspace__copilot-toggle${isCopilotOpen ? ' time-waveform-workspace__copilot-toggle--active' : ''}`}
-          title={isCopilotOpen ? 'Close Copilot' : 'Open Copilot'}
-          type="button"
+          isOpen={isCopilotOpen}
           variant={isCopilotOpen ? 'secondary' : 'ghost'}
           onClick={onCopilotToggle}
-        >
-          {isCopilotOpen ? <PanelRightClose aria-hidden="true" size={14} /> : <Bot aria-hidden="true" size={14} />}
-          Copilot
-        </Button>
+        />
       </div>
     </header>
   )
