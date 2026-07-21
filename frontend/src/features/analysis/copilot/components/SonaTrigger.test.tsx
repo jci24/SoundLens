@@ -12,6 +12,7 @@ describe('SonaTrigger', () => {
 
     expect(trigger).toHaveAttribute('aria-expanded', 'false')
     expect(trigger).toHaveAttribute('aria-describedby', tooltip.id)
+    expect(trigger).toHaveClass('sona-trigger__button')
     expect(container.querySelector('svg[viewBox="0 0 44 24"]')).toBeInTheDocument()
     expect(screen.queryByText('Copilot')).not.toBeInTheDocument()
 

@@ -30,7 +30,7 @@
   }
 
   &:hover &__tooltip,
-  &:focus-within &__tooltip {
+  &__button:focus-visible + &__tooltip {
     opacity: 1;
     transform: translateY(0);
   }

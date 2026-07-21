@@ -1,5 +1,6 @@
 import { useId, type ComponentProps } from 'react'
 import { Button } from '@/components/ui/button'
+import { cn } from '@/lib/utils'
 import { SonaIcon } from './SonaIcon'
 import './SonaTrigger.scss'
 
@@ -12,6 +13,7 @@ interface ISonaTriggerProps extends Omit<
 
 const SonaTrigger = ({
   isOpen,
+  className,
   size = 'icon-sm',
   type = 'button',
   variant = 'ghost',
@@ -26,6 +28,7 @@ const SonaTrigger = ({
         aria-describedby={tooltipId}
         aria-expanded={isOpen}
         aria-label={isOpen ? 'Close Sona' : 'Open Sona'}
+        className={cn('sona-trigger__button', className)}
         size={size}
         type={type}
         variant={variant}
