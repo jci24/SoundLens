@@ -117,6 +117,7 @@ The current product includes the minimum session-scoped model needed for focused
 
 - A backend-owned `comparison-provenance-v1` manifest created for every successful pairwise comparison.
 - Identifies the exact active A/B bytes through SHA-256 content fingerprints and records the comparison implementation, application build, WAV decoder, full-duration or ROI scope, ordered metric methods, aligned channel bases, parameter fingerprint, and evidence fingerprint.
+- The declared WAV decoder identity maps to the shared backend `WavAudioDecoder` used by import metadata, waveform, and spectrum rather than separate feature-local binary parsers.
 - Canonical fingerprint material excludes filenames, filesystem paths, recording identifiers, timestamps, machine identifiers, report titles, and secrets.
 - Is disclosed by the Evidence Inspector and comparison reports but cannot be supplied or modified by the frontend or model.
 - Is current-session traceability only. It does not retain source artifacts, capture calibration/equipment/environment/operating-condition lineage, sign the manifest, run reproduction jobs, define equivalence tolerances, or establish audit certification.

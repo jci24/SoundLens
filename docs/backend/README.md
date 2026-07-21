@@ -67,6 +67,7 @@ Current import guidance:
 Current waveform guidance:
 
 - The first time-domain evidence endpoint accepts a requested bin count and an optional selected `signalId`, then returns a recording/channel catalog plus backend-computed min/max amplitude points for the selected signal.
+- `Features/AudioDecoding/Common/WavAudioDecoder` is the single backend binary-interpretation boundary used by import inventory, waveform, and spectrum. Its metadata-only path reads headers without loading sample payloads; its full path owns RIFF traversal, PCM 8/16/24/32-bit and IEEE-float validation, channel deinterleaving, sample normalization, positive full-scale thresholds, cancellation, and optional consumer limits. Waveform retains raw decoded float samples for metrics, while spectrum requests its pre-existing full-scale clamp during decoding. Consumer caches and all downstream DSP remain feature-owned.
 - The initial decoder supports WAV PCM and 32-bit float WAV files only; MP3, FLAC, OGG, and AIFF need a later decoder slice.
 - Amplitudes are normalized digital sample values and are not calibrated SPL.
 
