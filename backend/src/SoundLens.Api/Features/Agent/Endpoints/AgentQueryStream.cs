@@ -64,7 +64,10 @@ public sealed class AgentQueryStream : Endpoint<AgentQueryCommand>
                 response = AgentUnavailableResponseFactory.ForMissingApiKey(command);
             }
 
-            response = response with { ActivityTrace = recorder.Snapshot() };
+            response = AgentResponseActionDecorator.AddSuggestedActions(response, command) with
+            {
+                ActivityTrace = recorder.Snapshot()
+            };
             await writer.WriteAsync(new AgentStreamEnvelope("result", Response: response), ct);
         }
         catch (OperationCanceledException) when (ct.IsCancellationRequested)

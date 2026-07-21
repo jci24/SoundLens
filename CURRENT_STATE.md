@@ -1,6 +1,6 @@
 # Current State
 
-Last updated: 2026-07-19
+Last updated: 2026-07-21
 
 ## What Users Can Currently Do
 
@@ -115,6 +115,7 @@ These findings are useful first-pass cues, but they should still be treated as b
 - General answers are isolated from imported recordings, signals, comparison identifiers, and ROI. They cannot cite SoundLens evidence or inherit workspace-specific dBFS, calibration, or ROI limitations. The internal answer mode remains available for trust enforcement but is not displayed as a user-facing badge.
 - Copilot is available from Home, Import, Configure, Analysis, and Evidence through one shell-owned conversation. Route changes preserve completed turns, while browser reload, `New conversation`, or a successful replacement import resets the temporary conversation.
 - The assistant is presented to users as **Sona**, with a dedicated monochrome waveform SVG mark and compact icon-only triggers. Internal Copilot naming remains an engineering convention rather than user-facing product copy.
+- Explicit workflow-help questions may include one backend-owned navigation suggestion for Import, Configure, Analysis, or Evidence. The user must approve the action, the backend resolves the closed action ID and current-session prerequisites again, and only then may the shell navigate. Sona cannot emit arbitrary URLs, navigate automatically, or modify evidence state.
 - Every request carries one validated closed route name. Route context can support questions such as “What can I do here?” but contains no measurements and cannot activate or replace workspace evidence. Evidence questions still depend on backend-resolved recording, signal, comparison, and ROI identifiers.
 - Clear theory, definition, and analysis-method questions bypass deterministic measurement responders and route to General knowledge even when workspace identifiers are available. Questions that explicitly reference a selected signal, recording, comparison, metric, ROI, or measurement remain workspace-grounded; attached identifiers alone never establish intent.
 - Web-research answers receive only the question, are labelled separately from general knowledge and workspace evidence, and cannot cite or receive SoundLens measurements or identifiers. Citation URLs are canonicalized before display, repeated source URLs appear once in the source inventory, and the backend attaches publisher-host metadata. Exact recognized standards-body and public-authority hosts receive a conservative source class; every other host remains unclassified. Access is explicitly not verified and applicability is not assessed. Missing or unsafe citations and search failures produce an explicit unavailable response rather than an unsourced answer.
@@ -143,7 +144,7 @@ These findings are useful first-pass cues, but they should still be treated as b
 - Both Copilot endpoints accept up to six completed conversational turns as untrusted language context. A backend resolver converts a follow-up into a standalone question and may select only the current identifier snapshot or one supplied historical snapshot; every measurement is still recomputed, stale historical evidence fails explicitly, and history never enters DSP tools or web search.
 - Model-backed general answers, guidance, research, and workspace investigations show closed-template observable preparation activity. Repeated calls to the same evidence tool are summarized in one accumulated activity row. Direct deterministic RMS, peak, or clipping answers and criterion clarification remain trace-free; prompts, tool arguments and results, internal identifiers, measurements, raw model output, internal routing terminology, and private chain-of-thought are never exposed.
 
-The current Copilot supports bounded workspace evidence, isolated general model knowledge, bounded cited web research, adaptive investigation guidance with optional preview plans, ephemeral per-turn activity traces, shell-wide availability, route-aware product guidance, and temporary conversation continuity across routes. It has no persisted or named conversations, workspace-plus-web synthesis, deep-research jobs, persisted trace, plan execution, or workspace actions. It still operates over a temporary workspace rather than a first-class persisted comparison object.
+The current Copilot supports bounded workspace evidence, isolated general model knowledge, bounded cited web research, adaptive investigation guidance with optional preview plans, ephemeral per-turn activity traces, shell-wide availability, route-aware product guidance, user-approved allowlisted navigation, and temporary conversation continuity across routes. It has no persisted or named conversations, workspace-plus-web synthesis, deep-research jobs, persisted trace, plan execution, or evidence-mutating workspace actions. It still operates over a temporary workspace rather than a first-class persisted comparison object.
 
 ### Current maturity assessment
 

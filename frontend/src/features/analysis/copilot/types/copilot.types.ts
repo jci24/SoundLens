@@ -3,7 +3,7 @@ import type { IComparisonCopilotSelection } from '../../types'
 export type TCopilotContextMode = 'auto' | 'workspace' | 'general'
 export type TCopilotRouteName = 'home' | 'import' | 'configure' | 'analysis' | 'evidence'
 export type TCopilotAnswerMode = 'workspace' | 'general' | 'web' | 'guidance'
-export type TAgentActivityKind = 'plan' | 'routing' | 'tool' | 'evidence_check' | 'fallback' | 'completion' | 'failure'
+export type TAgentActivityKind = 'plan' | 'routing' | 'tool' | 'evidence_check' | 'fallback' | 'completion' | 'failure' | 'action'
 export type TAgentActivityStatus = 'running' | 'completed' | 'failed'
 export type TAgentEvidenceSufficiencyStatus = 'supported' | 'partial' | 'missing' | 'contradicted' | 'unavailable'
 export type TAgentStructuredObservationStatus = 'complete' | 'limited' | 'mixed'
@@ -67,6 +67,19 @@ export interface IAgentQueryResponse {
   evidenceSufficiency?: IAgentEvidenceSufficiency
   structuredObservations?: IAgentStructuredObservation[]
   investigationPlan?: IAgentInvestigationPlan | null
+  suggestedActions?: IAgentSuggestedAction[]
+}
+
+export interface IAgentSuggestedAction {
+  actionId: 'navigate_import' | 'navigate_configure' | 'navigate_analysis' | 'navigate_evidence'
+  kind: 'navigate'
+  label: string
+  targetRoute: Exclude<TCopilotRouteName, 'home'>
+}
+
+export interface IAgentNavigationActionResponse {
+  targetRoute: Exclude<TCopilotRouteName, 'home'>
+  activity: IAgentActivityEvent
 }
 
 export interface IAgentInvestigationPlanScope {

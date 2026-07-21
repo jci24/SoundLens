@@ -13,6 +13,22 @@ public sealed record AgentQueryResponse(
     public AgentEvidenceSufficiency? EvidenceSufficiency { get; init; }
     public IReadOnlyList<AgentStructuredObservation> StructuredObservations { get; init; } = [];
     public AgentInvestigationPlan? InvestigationPlan { get; init; }
+    public IReadOnlyList<AgentSuggestedAction> SuggestedActions { get; init; } = [];
+}
+
+public sealed record AgentSuggestedAction(
+    string ActionId,
+    string Kind,
+    string Label,
+    string TargetRoute);
+
+public sealed record AgentNavigationActionResponse(
+    string TargetRoute,
+    AgentActivityEvent Activity);
+
+public static class AgentActionKinds
+{
+    public const string Navigate = "navigate";
 }
 
 public sealed record AgentEvidenceSufficiency(
@@ -65,6 +81,7 @@ public static class AgentActivityKinds
     public const string Fallback = "fallback";
     public const string Completion = "completion";
     public const string Failure = "failure";
+    public const string Action = "action";
 }
 
 public static class AgentActivityStatuses

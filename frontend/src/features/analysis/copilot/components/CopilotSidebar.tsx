@@ -15,15 +15,28 @@ interface ICopilotSidebarProps {
   regionOfInterest: IAnalysisRegionOfInterest | null
   recordings: ITimeWaveformRecording[]
   routeName?: TCopilotRouteName
+  hasRecordings?: boolean
+  onNavigate?: (path: string) => void
 }
 
-const CopilotSidebar = ({ isOpen, onClose, selectedSignalIds, regionOfInterest, recordings, routeName = 'evidence' }: ICopilotSidebarProps) => {
+const CopilotSidebar = ({
+  isOpen,
+  onClose,
+  selectedSignalIds,
+  regionOfInterest,
+  recordings,
+  routeName = 'evidence',
+  hasRecordings = false,
+  onNavigate,
+}: ICopilotSidebarProps) => {
   const isNarrowWorkspace = useMediaQuery('(max-width: 900px)')
   const { width, onMouseDown } = useCopilotSidebarResize()
   const panel = (
     <CopilotPanel
       recordings={recordings}
       routeName={routeName}
+      hasRecordings={hasRecordings}
+      onNavigate={onNavigate}
       regionOfInterest={regionOfInterest}
       selectedSignalIds={selectedSignalIds}
     />

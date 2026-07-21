@@ -1,0 +1,22 @@
+.copilot-suggested-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.45rem;
+
+  &__spinner {
+    animation: copilot-suggested-actions-spin 0.8s linear infinite;
+  }
+
+  &__error {
+    flex-basis: 100%;
+    margin: 0;
+    color: var(--destructive);
+    font-size: var(--font-xs);
+    line-height: 1.4;
+  }
+}
+
+@keyframes copilot-suggested-actions-spin {
+  to { transform: rotate(360deg); }
+}

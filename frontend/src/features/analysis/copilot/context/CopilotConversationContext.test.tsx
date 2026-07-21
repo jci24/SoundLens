@@ -11,11 +11,24 @@ vi.mock('../services/copilotService', () => ({
 }))
 
 const ConversationConsumer = () => {
-  const { turns, submit } = useCopilotConversation()
+  const { turns, submit, recordActivity } = useCopilotConversation()
   return (
     <div>
       <span>Turns: {turns.length}</span>
+      <span>Activity: {turns[0]?.activity.length ?? 0}</span>
       <button type="button" onClick={() => submit({ question: 'Explain RMS.' })}>Ask</button>
+      <button
+        type="button"
+        onClick={() => turns[0] && recordActivity(turns[0].id, {
+          sequence: 1,
+          kind: 'action',
+          status: 'completed',
+          title: 'Navigation approved',
+          summary: 'Opening Evidence.',
+        })}
+      >
+        Record action
+      </button>
     </div>
   )
 }
@@ -65,5 +78,19 @@ describe('CopilotConversationProvider', () => {
       </CopilotConversationProvider>
     )
     expect(screen.getByText('Turns: 0')).toBeInTheDocument()
+  })
+
+  it('records a backend navigation approval against the originating turn', async () => {
+    render(
+      <CopilotConversationProvider>
+        <ConversationConsumer />
+      </CopilotConversationProvider>
+    )
+
+    fireEvent.click(screen.getByRole('button', { name: 'Ask' }))
+    await waitFor(() => expect(screen.getByText('Turns: 1')).toBeInTheDocument())
+    fireEvent.click(screen.getByRole('button', { name: 'Record action' }))
+
+    expect(screen.getByText('Activity: 1')).toBeInTheDocument()
   })
 })

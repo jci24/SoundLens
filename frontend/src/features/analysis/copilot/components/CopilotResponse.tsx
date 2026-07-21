@@ -5,7 +5,8 @@ import { CopilotCitedAnswer } from './CopilotCitedAnswer'
 import { CopilotMeasuredEvidence } from './CopilotMeasuredEvidence'
 import { CopilotInvestigationPlan } from './CopilotInvestigationPlan'
 import { CopilotSourceDetails } from './CopilotSourceDetails'
-import type { IAgentQueryResponse } from '../types/copilot.types'
+import { CopilotSuggestedActions } from './CopilotSuggestedActions'
+import type { IAgentQueryResponse, IAgentSuggestedAction } from '../types/copilot.types'
 import './CopilotResponse.scss'
 
 const TOOL_DISPLAY_NAMES: Record<string, string> = {
@@ -20,9 +21,17 @@ interface ICopilotResponseProps {
   response: IAgentQueryResponse
   hasActivityTrace?: boolean
   onRegenerate: () => void
+  canOpenWorkspace?: boolean
+  onApproveAction?: (action: IAgentSuggestedAction) => Promise<void>
 }
 
-const CopilotResponse = ({ response, hasActivityTrace = false, onRegenerate }: ICopilotResponseProps) => {
+const CopilotResponse = ({
+  response,
+  hasActivityTrace = false,
+  onRegenerate,
+  canOpenWorkspace = false,
+  onApproveAction,
+}: ICopilotResponseProps) => {
   const [isToolsOpen, setIsToolsOpen] = useState(false)
   const externalCitations = response.externalCitations ?? []
   const externalSources = [...new Map(externalCitations.map((citation) => [citation.url, citation])).values()]
@@ -95,6 +104,14 @@ const CopilotResponse = ({ response, hasActivityTrace = false, onRegenerate }: I
             ))}
           </ul>
         </section>
+      )}
+
+      {onApproveAction && (
+        <CopilotSuggestedActions
+          actions={response.suggestedActions ?? []}
+          canOpenWorkspace={canOpenWorkspace}
+          onApprove={onApproveAction}
+        />
       )}
 
       <div className="copilot-response__footer">
