@@ -18,6 +18,35 @@ import type { IComparisonCoverageSummary } from '../../utils/comparisonEvidence'
 import type { RefObject } from 'react'
 import './ComparisonEvidenceInspector.scss'
 
+const formatIntegrityStatus = (status: IRecordingComparisonIntegrityAssessment['checks'][number]['status']) => {
+  switch (status) {
+    case 'matched':
+      return 'Matched'
+    case 'limited':
+      return 'Review'
+    case 'unknown':
+      return 'Unknown'
+  }
+}
+
+const formatIntegrityHeading = (assessment: IRecordingComparisonIntegrityAssessment) => {
+  const isCalibrationUnknown = assessment.checks.some(
+    (check) => check.code === 'Calibration' && check.status === 'unknown'
+  )
+  const parts = [
+    assessment.limitedCheckCount > 0
+      ? `${assessment.limitedCheckCount} limitation${assessment.limitedCheckCount === 1 ? '' : 's'}`
+      : null,
+    isCalibrationUnknown
+      ? 'Calibration unknown'
+      : assessment.unknownCheckCount > 0
+        ? `${assessment.unknownCheckCount} unknown`
+      : null,
+  ].filter(Boolean)
+
+  return parts.length > 0 ? parts.join(' · ') : 'All checks matched'
+}
+
 interface IComparisonEvidenceInspectorProps {
   activeMetric: IRecordingComparisonMetricAggregate
   activeObservation: IRecordingComparisonSignalObservation | null
@@ -159,14 +188,14 @@ const ComparisonEvidenceInspector = ({
           <section aria-labelledby="comparison-evidence-integrity-title" className="comparison-evidence-inspector__section">
             <div className="comparison-evidence-inspector__section-heading">
               <h3 id="comparison-evidence-integrity-title">Comparison context</h3>
-              <span>{integrityAssessment.status === 'limited' ? 'Limited' : 'Structurally matched'}</span>
+              <span>{formatIntegrityHeading(integrityAssessment)}</span>
             </div>
             <ul className="comparison-evidence-inspector__integrity">
               {integrityAssessment.checks.map((check) => (
                 <li key={check.code}>
                   <div>
                     <strong>{check.label}</strong>
-                    <span>{check.status}</span>
+                    <span>{formatIntegrityStatus(check.status)}</span>
                   </div>
                   <p>{check.detail}</p>
                 </li>
@@ -176,7 +205,7 @@ const ComparisonEvidenceInspector = ({
 
           <section aria-labelledby="comparison-evidence-limitations-title" className="comparison-evidence-inspector__section">
             <div className="comparison-evidence-inspector__section-heading">
-              <h3 id="comparison-evidence-limitations-title">Limitations</h3>
+              <h3 id="comparison-evidence-limitations-title">Metric evidence limitations</h3>
               <span>{limitations.length}</span>
             </div>
             <p className="comparison-evidence-inspector__coverage-copy">{coverageSummary.copy}</p>
@@ -190,7 +219,7 @@ const ComparisonEvidenceInspector = ({
                 ))}
               </ul>
             ) : (
-              <p className="comparison-evidence-inspector__empty">No additional comparison limitations were reported.</p>
+              <p className="comparison-evidence-inspector__empty">No metric-specific limitations were reported.</p>
             )}
           </section>
         </div>

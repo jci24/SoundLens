@@ -91,10 +91,11 @@ describe('ComparisonEvidenceInspector', () => {
     expect(inspector).toHaveTextContent('Full duration')
     expect(inspector).toHaveTextContent('Mean delta A-B0 samples')
     expect(inspector).toHaveTextContent('Compare A0 samples')
-    expect(inspector).toHaveTextContent('Comparison contextLimited')
-    expect(inspector).toHaveTextContent('Sample ratematchedBoth recordings use 44,100 Hz.')
-    expect(inspector).toHaveTextContent('CalibrationunknownNo validated calibration is available.')
-    expect(inspector).toHaveTextContent('No additional comparison limitations were reported.')
+    expect(inspector).toHaveTextContent('Comparison context1 limitation · Calibration unknown')
+    expect(inspector).toHaveTextContent('Sample rateMatchedBoth recordings use 44,100 Hz.')
+    expect(inspector).toHaveTextContent('CalibrationUnknownNo validated calibration is available.')
+    expect(inspector).toHaveTextContent('Metric evidence limitations0')
+    expect(inspector).toHaveTextContent('No metric-specific limitations were reported.')
   })
 
   it('closes on Escape and returns focus to the invoking control', async () => {
