@@ -227,9 +227,12 @@ Reason for deferral:
 
 ## Engineering Follow-Ups
 
+Recently completed:
+
+- bounded web-research resilience now classifies failures without message inspection, retries one transient transport, timeout, throttling, or provider failure, preserves cancellation, and never retries invalid or unsafe citation output
+
 High priority before hosted multi-user deployment:
 
-- measure and harden bounded web-research availability before treating it as release-critical; citation-validation failures already fail closed, but one transient unavailable response appeared before the clean 27-run routing baseline
 - complete the hosted-pilot gate covering identity, tenant isolation, durable storage, upload security, bounded execution, observability, privacy, recovery, and deployment validation
 
 Normal priority:

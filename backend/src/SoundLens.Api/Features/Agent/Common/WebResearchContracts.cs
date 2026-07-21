@@ -14,3 +14,6 @@ public sealed record WebResearchCitation(
     Uri Uri,
     int StartIndex,
     int EndIndex);
+
+public sealed class IncompleteWebResearchResponseException(Exception innerException)
+    : Exception("The web research response was incomplete.", innerException);

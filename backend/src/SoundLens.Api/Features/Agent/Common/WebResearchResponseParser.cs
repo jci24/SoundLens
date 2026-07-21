@@ -6,6 +6,11 @@ namespace SoundLens.Api.Features.Agent.Common;
 
 public static class WebResearchResponseParser
 {
+    public const string IncompleteCoverage = "incomplete_coverage";
+    public const string InvalidCitation = "invalid_citation";
+    public const string MissingContent = "missing_content";
+    public const string NormalizationFailed = "normalization_failed";
+
     private const int MaxCitations = 8;
     private static readonly IReadOnlySet<string> TrackingQueryParameters = new HashSet<string>(
         ["utm_source", "utm_medium", "utm_campaign", "utm_term", "utm_content", "utm_id", "gclid", "fbclid"],
@@ -14,13 +19,22 @@ public static class WebResearchResponseParser
     public static bool TryParse(
         WebResearchResult result,
         out string answer,
-        out IReadOnlyList<AgentExternalCitation> citations)
+        out IReadOnlyList<AgentExternalCitation> citations) =>
+        TryParse(result, out answer, out citations, out _);
+
+    public static bool TryParse(
+        WebResearchResult result,
+        out string answer,
+        out IReadOnlyList<AgentExternalCitation> citations,
+        out string failureCategory)
     {
         var rawAnswer = result.Answer;
         answer = string.Empty;
         citations = [];
+        failureCategory = string.Empty;
         if (string.IsNullOrWhiteSpace(rawAnswer) || result.Citations.Count == 0)
         {
+            failureCategory = MissingContent;
             return false;
         }
 
@@ -34,6 +48,7 @@ public static class WebResearchResponseParser
                 citation.EndIndex <= citation.StartIndex ||
                 citation.EndIndex > rawAnswer.Length)
             {
+                failureCategory = InvalidCitation;
                 return false;
             }
 
@@ -45,6 +60,7 @@ public static class WebResearchResponseParser
 
         if (!TryNormalizeAnswer(rawAnswer, validated, out answer, out var indexMap))
         {
+            failureCategory = NormalizationFailed;
             return false;
         }
 
@@ -59,6 +75,7 @@ public static class WebResearchResponseParser
             .ToList();
         if (boundedCitations.Count == 0 || !HasCitationCoverage(answer, boundedCitations))
         {
+            failureCategory = IncompleteCoverage;
             return false;
         }
 
