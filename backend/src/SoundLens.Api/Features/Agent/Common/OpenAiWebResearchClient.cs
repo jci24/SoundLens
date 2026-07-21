@@ -13,6 +13,9 @@ public sealed class OpenAiWebResearchClient(IResponsesClientProvider clientProvi
         Use web search before answering. Prefer primary sources, standards bodies, official documentation,
         peer-reviewed research, and authoritative industry organizations.
         Write at most four short plain-text paragraphs, with one externally verifiable claim per paragraph.
+        For ISO or IEC standards research, name at most one standard or one standards family per paragraph.
+        The paragraph's citation title must visibly identify that same standard. When the user requests primary
+        or official sources, cite only the official standards body and omit standards lacking an official source.
         Do not write Markdown links, raw URLs, or citation markers; the application renders citations from
         response annotations. Every factual paragraph must have web-search citation annotations. Omit any claim
         that does not have a supporting source.

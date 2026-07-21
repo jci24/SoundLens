@@ -111,7 +111,7 @@ Ordered slices:
 9. completed: backend-owned selected-comparison evidence sufficiency for digital metrics, selected spectrum findings, physical SPL, and causal requests, with compact Copilot presentation
 10. completed: current-session structured metric and finding observations with deterministic evidence fingerprints and collapsed Copilot inspection
 11. completed: typed, versioned investigation-plan previews with catalog-backed policy, deterministic validation, clarification for ambiguous objectives, and collapsed Copilot inspection
-12. completed: conservative external-source quality and applicability metadata with primary-source preference, explicit source roles, and fail-closed citation validation
+12. completed: conservative external-source metadata, primary-source preference, fail-closed citation validation, and ISO/IEC identifier-to-official-source alignment; substantive applicability and disagreement remain deferred
 13. completed: bounded Evidence-route conversation context with backend standalone-question resolution, historical identifier snapshots, stale-context refusal, and coherent Re-run truncation
 14. completed: shell-wide availability with validated route context, cross-route conversation continuity, Evidence utility-surface compatibility, and replacement-import reset boundaries
 15. completed: approval-gated allowlisted navigation to Import, Configure, Analysis, or Evidence with backend prerequisite validation and no evidence mutation
@@ -230,6 +230,7 @@ Reason for deferral:
 Recently completed:
 
 - bounded web-research resilience now classifies failures without message inspection, retries one transient transport, timeout, throttling, or provider failure, preserves cancellation, and never retries invalid or unsafe citation output
+- standards research now rejects bundled or unmatched ISO/IEC references and requires a recognized standards-body citation when primary or official sources are explicitly requested
 
 High priority before hosted multi-user deployment:
 

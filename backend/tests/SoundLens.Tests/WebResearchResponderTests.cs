@@ -81,6 +81,28 @@ public sealed class WebResearchResponderTests
     }
 
     [Fact]
+    public async Task BundledStandardsClaimsFailClosedWithoutRetry()
+    {
+        const string answer = "ISO 11689:1996 and ISO 12001:1996 define machinery noise procedures.";
+        var client = new SequenceWebResearchClient(new WebResearchResult(
+            answer,
+            [new WebResearchCitation(
+                "ISO 11689:1996",
+                new Uri("https://www.iso.org/standard/19516.html"),
+                0,
+                answer.Length)]));
+        var responder = CreateResponder(client);
+
+        var response = await responder.BuildAsync(
+            "Which ISO standards apply? Cite primary sources.",
+            CancellationToken.None);
+
+        Assert.Equal(1, client.CallCount);
+        Assert.Empty(response.ExternalCitations);
+        Assert.Contains("temporarily unavailable", response.Answer, StringComparison.OrdinalIgnoreCase);
+    }
+
+    [Fact]
     public async Task InvalidRequestDoesNotRetry()
     {
         var client = new SequenceWebResearchClient(new HttpRequestException(

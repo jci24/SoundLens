@@ -423,7 +423,7 @@ SoundLens is approximately a **Level 2 tool-using Copilot with early Level 3 fou
 | Trust refusals | Implemented | Unsupported SPL and causal conclusions are rejected deterministically. |
 | General, workspace, and web routing | Implemented | Automatic backend routing isolates measurements from general and web paths. |
 | Routing evaluation gate | Implemented | A diagnostic corpus grades deterministic facts, selected evidence, theory, guidance, cited research, clarification, and trust refusals with per-mode accuracy and boundary-isolation assertions. |
-| Source-backed web answers | Partially implemented | Validated canonical HTTP(S) citations, conservative publisher classes, and explicit unverified access/unassessed applicability exist; substantive applicability, access verification, source quality, staleness, and literature disagreement do not. |
+| Source-backed web answers | Partially implemented | Validated canonical HTTP(S) citations, conservative publisher classes, explicit unverified access/unassessed applicability, and ISO/IEC identifier-to-official-source alignment exist; substantive applicability, access verification, broader source quality, staleness, and literature disagreement do not. |
 | Investigation guidance | Partially implemented | Produces bounded advice and optional typed preview plans validated against the available capability catalog; plans are not executable or persisted. |
 | Investigation trace | Partially implemented | Observable per-turn activity is ephemeral and is not a complete persisted audit. |
 | Stable evidence identity and provenance | Partially implemented | Session identifiers and evidence citations exist; algorithm, parameter, content-hash, and persisted lineage do not. |
