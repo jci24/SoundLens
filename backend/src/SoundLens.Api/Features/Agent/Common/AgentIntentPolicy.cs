@@ -110,6 +110,10 @@ public static class AgentIntentPolicy
         @"\b(?:channel\s+\d+|signal\s+\d+|recording\s+[ab]|my\s+(?:signal|recording|audio)|(?:of|for|in)\s+(?:the\s+)?(?:signal|recording|channel)|the\s+(?:waveform|spectrum))\b",
         RegexOptions.IgnoreCase | RegexOptions.CultureInvariant);
 
+    private static readonly Regex ApplicationRouteQuestionPattern = new(
+        @"\b(?:what\s+(?:can|should)\s+i\s+do\s+(?:here|on\s+this\s+page)|what\s+is\s+this\s+page\s+for|how\s+do\s+i\s+use\s+this\s+page|help\s+me\s+(?:with|use)\s+this\s+page|where\s+should\s+i\s+start\s+here)\b",
+        RegexOptions.IgnoreCase | RegexOptions.CultureInvariant);
+
     public static bool TryResolveHighConfidence(
         string question,
         bool hasWorkspaceContext,
@@ -198,6 +202,9 @@ public static class AgentIntentPolicy
         return hasStrongContextualPronoun ||
             hasMetricFollowUp && !IsClearlyGeneralKnowledgeQuestion(question);
     }
+
+    public static bool IsApplicationRouteQuestion(string question) =>
+        ApplicationRouteQuestionPattern.IsMatch(question);
 
     public static bool IsClearlyWebQuestion(string question)
     {

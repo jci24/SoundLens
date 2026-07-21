@@ -112,7 +112,8 @@ Ordered slices:
 11. completed: typed, versioned investigation-plan previews with catalog-backed policy, deterministic validation, clarification for ambiguous objectives, and collapsed Copilot inspection
 12. completed: conservative external-source quality and applicability metadata with primary-source preference, explicit source roles, and fail-closed citation validation
 13. completed: bounded Evidence-route conversation context with backend standalone-question resolution, historical identifier snapshots, stale-context refusal, and coherent Re-run truncation
-14. next Copilot product slice: shell-wide availability with explicit route context and lifecycle boundaries
+14. completed: shell-wide availability with validated route context, cross-route conversation continuity, Evidence utility-surface compatibility, and replacement-import reset boundaries
+15. next decision gate: choose between the first reviewable reversible workspace action and persisted investigation/session foundations after shell usage is manually validated
 
 Boundary:
 - general knowledge is not measured evidence

@@ -103,6 +103,7 @@ describe('CopilotPanel', () => {
         signalIdB: 'signal-b',
       },
       comparisonPair: undefined,
+      routeContext: { route: 'evidence' },
     })
   })
 
@@ -147,6 +148,7 @@ describe('CopilotPanel', () => {
       endTimeSeconds: undefined,
       comparisonContext: undefined,
       comparisonPair: undefined,
+      routeContext: { route: 'evidence' },
     })
   })
 
@@ -177,6 +179,7 @@ describe('CopilotPanel', () => {
         recordingIdA: 'recording-a',
         recordingIdB: 'recording-b',
       },
+      routeContext: { route: 'evidence' },
     })
   })
 
@@ -200,6 +203,7 @@ describe('CopilotPanel', () => {
       endTimeSeconds: undefined,
       comparisonContext: undefined,
       comparisonPair: undefined,
+      routeContext: { route: 'evidence' },
     })
   })
 
@@ -217,6 +221,26 @@ describe('CopilotPanel', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Start a new conversation' }))
 
     expect(resetSpy).toHaveBeenCalledOnce()
+  })
+
+  it('tags a shell question with the active application route', () => {
+    useAnalysisWorkspaceStore.setState({ comparisonCopilotContext: null })
+    submittedQuestion = 'What can I do here?'
+    render(
+      <CopilotPanel
+        recordings={[]}
+        regionOfInterest={null}
+        routeName="configure"
+        selectedSignalIds={[]}
+      />
+    )
+
+    fireEvent.click(screen.getByRole('button', { name: 'Ask' }))
+
+    expect(submitSpy).toHaveBeenCalledWith(expect.objectContaining({
+      question: 'What can I do here?',
+      routeContext: { route: 'configure' },
+    }))
   })
 
 })

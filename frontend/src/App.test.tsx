@@ -17,6 +17,12 @@ vi.mock('./features/workflow/components/AnalysisReviewPage', () => ({
   AnalysisReviewPage: () => <div>Analysis review workspace</div>,
 }))
 
+vi.mock('./features/analysis/copilot/components/CopilotSidebar', () => ({
+  CopilotSidebar: ({ isOpen, routeName }: { isOpen: boolean; routeName: string }) => (
+    <div>{`Shell Copilot ${isOpen ? 'open' : 'closed'} on ${routeName}`}</div>
+  ),
+}))
+
 vi.mock('./features/import/components/ImportWorkspace', () => ({
   ImportWorkspace: ({ onImportedFiles }: { onImportedFiles: (files: unknown[]) => void }) => (
     <>
@@ -77,6 +83,21 @@ describe('App workflow routes', () => {
       expect.arrayContaining([expect.objectContaining({ pathname: '/setup' })])
     )
     expect(screen.getByText(/not yet a saved project/i)).toBeInTheDocument()
+  })
+
+  it('keeps Copilot open across routes and closes it when recordings are replaced', async () => {
+    vi.stubGlobal('fetch', vi.fn().mockResolvedValue({ ok: true, json: async () => populatedSession }))
+
+    renderApp()
+    await screen.findByRole('heading', { name: 'Current investigation' })
+    fireEvent.click(screen.getByRole('button', { name: 'Open Copilot' }))
+    expect(screen.getByText('Shell Copilot open on home')).toBeInTheDocument()
+
+    fireEvent.click(screen.getByRole('link', { name: 'Import recordings' }))
+    expect(await screen.findByText('Shell Copilot open on import')).toBeInTheDocument()
+    fireEvent.click(screen.getByRole('button', { name: 'Complete import' }))
+
+    expect(await screen.findByText('Shell Copilot closed on evidence')).toBeInTheDocument()
   })
 
   it('waits for session bootstrap before allowing direct Evidence navigation', async () => {

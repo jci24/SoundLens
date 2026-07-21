@@ -203,6 +203,7 @@ describe('comparison-to-Copilot workflow', () => {
         signalIdB: 'signal-b',
       },
       comparisonPair: undefined,
+      routeContext: { route: 'evidence' },
     })
     expect(Object.keys(mockPostAgentQuery.mock.calls[0]?.[0]?.comparisonContext).sort()).toEqual([
       'metricKey', 'recordingIdA', 'recordingIdB', 'signalIdA', 'signalIdB',

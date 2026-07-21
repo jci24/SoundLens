@@ -33,11 +33,17 @@ describe('useCopilotQuery', () => {
     const { result } = renderHook(() => useCopilotQuery())
 
     await act(async () => {
-      await result.current.submit({ question: 'First question' })
+      await result.current.submit({
+        question: 'First question',
+        routeContext: { route: 'configure' },
+      })
     })
 
     await act(async () => {
-      await result.current.submit({ question: 'Second question' })
+      await result.current.submit({
+        question: 'Second question',
+        routeContext: { route: 'evidence' },
+      })
     })
 
     await waitFor(() => {
@@ -54,7 +60,9 @@ describe('useCopilotQuery', () => {
           question: 'First question',
           answer: 'First answer',
           answerMode: 'workspace',
-          requestSnapshot: expect.objectContaining({}),
+          requestSnapshot: expect.objectContaining({
+            routeContext: { route: 'configure' },
+          }),
         }),
       ],
     })

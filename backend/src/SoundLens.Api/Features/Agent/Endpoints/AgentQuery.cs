@@ -41,6 +41,10 @@ public sealed class AgentQuery : Endpoint<AgentQueryCommand, AgentQueryResponse>
                 .WithMessage(
                     "ConversationHistory must contain at most six valid completed turns and no more than 16,000 characters.");
 
+            RuleFor(q => q.RouteContext)
+                .Must(context => context is null || AgentRouteNames.IsSupported(context.Route))
+                .WithMessage("RouteContext.Route is not supported.");
+
             RuleFor(q => q)
                 .Must(q => AgentContextModes.Normalize(q.ContextMode) == AgentContextModes.General ||
                     (q.StartTimeSeconds is null) == (q.EndTimeSeconds is null))
@@ -139,6 +143,12 @@ public sealed class AgentQuery : Endpoint<AgentQueryCommand, AgentQueryResponse>
         {
             if (AgentContextModes.Normalize(snapshot.ContextMode) is not (
                 AgentContextModes.Auto or AgentContextModes.Workspace or AgentContextModes.General))
+            {
+                return false;
+            }
+
+            if (snapshot.RouteContext is not null &&
+                !AgentRouteNames.IsSupported(snapshot.RouteContext.Route))
             {
                 return false;
             }

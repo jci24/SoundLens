@@ -1,6 +1,7 @@
 using OpenAI.Chat;
 using SoundLens.Api.Configuration;
 using SoundLens.Api.Features.Agent.Responses;
+using SoundLens.Api.Features.Agent.Commands;
 
 namespace SoundLens.Api.Features.Agent.Common;
 
@@ -17,6 +18,7 @@ public sealed class GeneralKnowledgeResponder(IChatClientProvider chatClientProv
         - If the question requires current information, say that live web search is not available in this mode yet.
         - Do not add dBFS, calibration, or acoustic-evidence limitations unless they are genuinely relevant to the general explanation.
         - Keep the answer useful and professional.
+        - When application route context is supplied, use it only for questions about the current SoundLens page or workflow. Do not imply that route context contains measured evidence.
 
         Return only a JSON object with this exact shape:
         {
@@ -26,7 +28,10 @@ public sealed class GeneralKnowledgeResponder(IChatClientProvider chatClientProv
         }
         """;
 
-    public async Task<AgentQueryResponse> BuildAsync(string question, CancellationToken ct)
+    public async Task<AgentQueryResponse> BuildAsync(
+        string question,
+        AgentRouteContext? routeContext,
+        CancellationToken ct)
     {
         var client = chatClientProvider.GetRequiredClient();
         var options = new ChatCompletionOptions
@@ -34,12 +39,28 @@ public sealed class GeneralKnowledgeResponder(IChatClientProvider chatClientProv
             ResponseFormat = ChatResponseFormat.CreateJsonObjectFormat(),
             MaxOutputTokenCount = 1000
         };
+        var userMessage = routeContext is null
+            ? question
+            : $"Current SoundLens page: {routeContext.Route}. {DescribeRoute(routeContext.Route)}\n\nUser question: {question}";
         var completion = await client.CompleteChatAsync(
-            [new SystemChatMessage(SystemPrompt), new UserChatMessage(question)],
+            [
+                new SystemChatMessage(SystemPrompt),
+                new UserChatMessage(userMessage)
+            ],
             options,
             ct);
 
         return GeneralKnowledgeResponseParser.Parse(
             completion.Value.Content.FirstOrDefault()?.Text ?? string.Empty);
     }
+
+    private static string DescribeRoute(string route) => route switch
+    {
+        AgentRouteNames.Home => "The user can review the temporary workspace or begin an import.",
+        AgentRouteNames.Import => "The user can import recordings; a successful import replaces the temporary session atomically.",
+        AgentRouteNames.Configure => "The user can assign one recording to Compare A and one to Compare B, or continue to focused evidence.",
+        AgentRouteNames.Analysis => "The user can choose the shipped waveform and spectrum analyses before opening Evidence.",
+        AgentRouteNames.Evidence => "The user can inspect deterministic evidence, audition recordings, ask grounded questions, and export a report.",
+        _ => "No validated page capabilities are available."
+    };
 }

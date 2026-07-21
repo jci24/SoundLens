@@ -87,6 +87,37 @@ public sealed class AgentQueryValidatorTests
         Assert.Contains(result.Errors, error => error.ErrorMessage.Contains("auto, workspace, or general"));
     }
 
+    [Theory]
+    [InlineData("home")]
+    [InlineData("import")]
+    [InlineData("configure")]
+    [InlineData("analysis")]
+    [InlineData("evidence")]
+    public async Task SupportedRouteContext_PassesValidation(string route)
+    {
+        var result = await CreateValidator().ValidateAsync(new AgentQueryCommand(
+            "What can I do here?",
+            null,
+            null,
+            null,
+            RouteContext: new AgentRouteContext(route)));
+
+        Assert.True(result.IsValid);
+    }
+
+    [Fact]
+    public async Task UnsupportedRouteContext_FailsValidation()
+    {
+        var result = await CreateValidator().ValidateAsync(new AgentQueryCommand(
+            "What can I do here?",
+            null,
+            null,
+            null,
+            RouteContext: new AgentRouteContext("reports")));
+
+        Assert.Contains(result.Errors, error => error.PropertyName == nameof(AgentQueryCommand.RouteContext));
+    }
+
     [Fact]
     public async Task StartTimeWithoutEndTime_FailsValidation()
     {
@@ -269,6 +300,28 @@ public sealed class AgentQueryValidatorTests
 
         var result = await validator.ValidateAsync(new AgentQueryCommand(
             "What about its peak?", null, null, null, ConversationHistory: history));
+
+        Assert.Contains(result.Errors, error => error.ErrorMessage.Contains("ConversationHistory", StringComparison.Ordinal));
+    }
+
+    [Fact]
+    public async Task ConversationHistoryWithUnsupportedRouteSnapshot_FailsValidation()
+    {
+        var history = new[]
+        {
+            new AgentConversationTurn(
+                "What can I do here?",
+                "You can configure the comparison.",
+                AgentAnswerModes.General,
+                new AgentConversationRequestSnapshot(
+                    null,
+                    null,
+                    null,
+                    RouteContext: new AgentRouteContext("reports")))
+        };
+
+        var result = await CreateValidator().ValidateAsync(new AgentQueryCommand(
+            "What next?", null, null, null, ConversationHistory: history));
 
         Assert.Contains(result.Errors, error => error.ErrorMessage.Contains("ConversationHistory", StringComparison.Ordinal));
     }

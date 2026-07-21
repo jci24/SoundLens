@@ -5,6 +5,7 @@ import { useMediaQuery } from '@/common/hooks/useMediaQuery'
 import { CopilotPanel } from './CopilotPanel'
 import { useCopilotSidebarResize } from '../hooks/useCopilotSidebarResize'
 import type { IAnalysisRegionOfInterest, ITimeWaveformRecording } from '../../types'
+import type { TCopilotRouteName } from '../types/copilot.types'
 import './CopilotSidebar.scss'
 
 interface ICopilotSidebarProps {
@@ -13,14 +14,16 @@ interface ICopilotSidebarProps {
   selectedSignalIds: string[]
   regionOfInterest: IAnalysisRegionOfInterest | null
   recordings: ITimeWaveformRecording[]
+  routeName?: TCopilotRouteName
 }
 
-const CopilotSidebar = ({ isOpen, onClose, selectedSignalIds, regionOfInterest, recordings }: ICopilotSidebarProps) => {
+const CopilotSidebar = ({ isOpen, onClose, selectedSignalIds, regionOfInterest, recordings, routeName = 'evidence' }: ICopilotSidebarProps) => {
   const isNarrowWorkspace = useMediaQuery('(max-width: 900px)')
   const { width, onMouseDown } = useCopilotSidebarResize()
   const panel = (
     <CopilotPanel
       recordings={recordings}
+      routeName={routeName}
       regionOfInterest={regionOfInterest}
       selectedSignalIds={selectedSignalIds}
     />

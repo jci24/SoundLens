@@ -111,7 +111,8 @@ public sealed partial class AgentConversationContextResolver(
                 SignalIds: null,
                 StartTimeSeconds: null,
                 EndTimeSeconds: null,
-                ContextMode: AgentContextModes.Auto)
+                ContextMode: AgentContextModes.Auto,
+                RouteContext: command.RouteContext)
             {
                 ActivitySink = command.ActivitySink
             });
@@ -135,7 +136,8 @@ public sealed partial class AgentConversationContextResolver(
         selectedSignals = command.SignalIds?.Count > 0,
         comparison = command.ComparisonContext is not null,
         assignedPair = command.ComparisonPair is not null,
-        roi = command.StartTimeSeconds.HasValue && command.EndTimeSeconds.HasValue
+        roi = command.StartTimeSeconds.HasValue && command.EndTimeSeconds.HasValue,
+        route = command.RouteContext?.Route
     };
 
     private static object BuildDescriptor(AgentConversationRequestSnapshot snapshot) => new
@@ -143,7 +145,8 @@ public sealed partial class AgentConversationContextResolver(
         selectedSignals = snapshot.SignalIds?.Count > 0,
         comparison = snapshot.ComparisonContext is not null,
         assignedPair = snapshot.ComparisonPair is not null,
-        roi = snapshot.StartTimeSeconds.HasValue && snapshot.EndTimeSeconds.HasValue
+        roi = snapshot.StartTimeSeconds.HasValue && snapshot.EndTimeSeconds.HasValue,
+        route = snapshot.RouteContext?.Route
     };
 
     private bool HistoricalSnapshotExists(
@@ -204,7 +207,9 @@ public sealed partial class AgentConversationContextResolver(
             snapshot.EndTimeSeconds,
             snapshot.ComparisonContext,
             snapshot.ComparisonPair,
-            snapshot.ContextMode)
+            snapshot.ContextMode,
+            ConversationHistory: null,
+            snapshot.RouteContext)
         {
             ActivitySink = activitySink
         };

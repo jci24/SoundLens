@@ -86,6 +86,7 @@ Implication for SoundLens:
 - label answer provenance so model knowledge is never mistaken for measured evidence
 - keep live web retrieval bounded behind a separate source contract with first-class citations; do not mix external claims with SoundLens measurements
 - add bounded conversation history before treating the Copilot as a persistent assistant
+- keep one temporary shell-owned conversation available across shipped routes; attach a validated route descriptor for product guidance without treating page context as measured evidence
 - make application actions reviewable, traceable, stale-state-safe, and reversible before expanding autonomy
 
 ### Declarative visualization

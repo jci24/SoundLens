@@ -18,20 +18,18 @@ vi.mock('../../analysis/workspace/components/TimeWaveformWorkspace', () => ({
   ),
 }))
 
-vi.mock('../../analysis/copilot/components/CopilotSidebar', () => ({
-  CopilotSidebar: ({ isOpen }: { isOpen: boolean }) => <div>Copilot is {isOpen ? 'open' : 'closed'}</div>,
-}))
-
 describe('EvidencePage', () => {
-  it('keeps Copilot state local so route unmount closes the utility surface', async () => {
-    const firstRender = render(<EvidencePage importedRecordingCount={2} />)
+  it('uses shell-owned Copilot state and forwards the workspace toggle', async () => {
+    const onCopilotToggle = vi.fn()
+    render(
+      <EvidencePage
+        importedRecordingCount={2}
+        isCopilotOpen={false}
+        onCopilotToggle={onCopilotToggle}
+      />
+    )
 
     fireEvent.click(await screen.findByRole('button', { name: 'Open test Copilot for 2' }))
-    expect(screen.getByText('Copilot is open')).toBeInTheDocument()
-
-    firstRender.unmount()
-    render(<EvidencePage importedRecordingCount={2} />)
-
-    expect(await screen.findByText('Copilot is closed')).toBeInTheDocument()
+    expect(onCopilotToggle).toHaveBeenCalledOnce()
   })
 })

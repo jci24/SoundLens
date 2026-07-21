@@ -162,7 +162,7 @@ public sealed class AgentQueryHandler(
                 AgentActivityKinds.Plan,
                 "Preparing a technical explanation",
                 "Building a concise response to the question.");
-            var response = await generalKnowledgeResponder.BuildAsync(command.Question, ct);
+            var response = await generalKnowledgeResponder.BuildAsync(command.Question, command.RouteContext, ct);
             command.ActivitySink.Complete(explanationStep, "Technical explanation prepared.");
             var usedFallback = response.Limitations.Contains(GeneralKnowledgeResponseParser.InvalidOutputLimitation);
             command.ActivitySink.AddCompleted(

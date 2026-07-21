@@ -1,6 +1,7 @@
 import type { IComparisonCopilotSelection } from '../../types'
 
 export type TCopilotContextMode = 'auto' | 'workspace' | 'general'
+export type TCopilotRouteName = 'home' | 'import' | 'configure' | 'analysis' | 'evidence'
 export type TCopilotAnswerMode = 'workspace' | 'general' | 'web' | 'guidance'
 export type TAgentActivityKind = 'plan' | 'routing' | 'tool' | 'evidence_check' | 'fallback' | 'completion' | 'failure'
 export type TAgentActivityStatus = 'running' | 'completed' | 'failed'
@@ -21,6 +22,11 @@ export interface IAgentQueryRequest {
     recordingIdB: string
   }
   conversationHistory?: IAgentConversationTurn[]
+  routeContext?: IAgentRouteContext
+}
+
+export interface IAgentRouteContext {
+  route: TCopilotRouteName
 }
 
 export interface IAgentConversationRequestSnapshot {
@@ -33,6 +39,7 @@ export interface IAgentConversationRequestSnapshot {
     recordingIdB: string
   }
   contextMode?: TCopilotContextMode
+  routeContext?: IAgentRouteContext
 }
 
 export interface IAgentConversationTurn {

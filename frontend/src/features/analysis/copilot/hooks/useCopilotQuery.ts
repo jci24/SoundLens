@@ -40,6 +40,7 @@ const buildRequestSnapshot = (request: IAgentQueryRequest): IAgentConversationRe
   comparisonContext: request.comparisonContext,
   comparisonPair: request.comparisonPair,
   contextMode: request.contextMode,
+  routeContext: request.routeContext,
 })
 
 const buildConversationHistory = (turns: ICopilotConversationTurnState[]): IAgentConversationTurn[] => {

@@ -1,7 +1,4 @@
-import { lazy, Suspense, useState } from 'react'
-import { useAnalysisWorkspaceStore } from '../../analysis/stores/useAnalysisWorkspaceStore'
-import { CopilotSidebar } from '../../analysis/copilot/components/CopilotSidebar'
-import { CopilotConversationProvider } from '../../analysis/copilot/context/CopilotConversationContext'
+import { lazy, Suspense } from 'react'
 import { RouteState } from './RouteState'
 import './EvidencePage.scss'
 
@@ -12,35 +9,23 @@ const TimeWaveformWorkspace = lazy(async () => {
 
 interface IEvidencePageProps {
   importedRecordingCount: number
+  isCopilotOpen: boolean
+  onCopilotToggle: () => void
 }
 
-const EvidencePage = ({ importedRecordingCount }: IEvidencePageProps) => {
-  const [isCopilotOpen, setIsCopilotOpen] = useState(false)
-  const selectedSignalIds = useAnalysisWorkspaceStore((state) => state.selectedSignalIds)
-  const regionOfInterest = useAnalysisWorkspaceStore((state) => state.regionOfInterest)
-  const recordings = useAnalysisWorkspaceStore((state) => state.recordings)
-
+const EvidencePage = ({ importedRecordingCount, isCopilotOpen, onCopilotToggle }: IEvidencePageProps) => {
   return (
-    <CopilotConversationProvider>
-      <div className="evidence-page">
-        <div className="evidence-page__workspace">
-          <Suspense fallback={<RouteState title="Loading evidence workspace" />}>
-            <TimeWaveformWorkspace
-              importedRecordingCount={importedRecordingCount}
-              isCopilotOpen={isCopilotOpen}
-              onCopilotToggle={() => setIsCopilotOpen((current) => !current)}
-            />
-          </Suspense>
-        </div>
-        <CopilotSidebar
-          isOpen={isCopilotOpen}
-          onClose={() => setIsCopilotOpen(false)}
-          recordings={recordings}
-          regionOfInterest={regionOfInterest}
-          selectedSignalIds={selectedSignalIds}
-        />
+    <div className="evidence-page">
+      <div className="evidence-page__workspace">
+        <Suspense fallback={<RouteState title="Loading evidence workspace" />}>
+          <TimeWaveformWorkspace
+            importedRecordingCount={importedRecordingCount}
+            isCopilotOpen={isCopilotOpen}
+            onCopilotToggle={onCopilotToggle}
+          />
+        </Suspense>
       </div>
-    </CopilotConversationProvider>
+    </div>
   )
 }
 

@@ -7,15 +7,17 @@ import { CopilotActivityTrace } from './CopilotActivityTrace'
 import { useCopilotConversation } from '../context/useCopilotConversation'
 import { useAnalysisWorkspaceStore } from '../../stores/useAnalysisWorkspaceStore'
 import type { IAnalysisRegionOfInterest, ITimeWaveformRecording } from '../../types'
+import type { TCopilotRouteName } from '../types/copilot.types'
 import './CopilotPanel.scss'
 
 interface ICopilotPanelProps {
   selectedSignalIds: string[]
   regionOfInterest: IAnalysisRegionOfInterest | null
   recordings: ITimeWaveformRecording[]
+  routeName?: TCopilotRouteName
 }
 
-const CopilotPanel = ({ selectedSignalIds, regionOfInterest, recordings }: ICopilotPanelProps) => {
+const CopilotPanel = ({ selectedSignalIds, regionOfInterest, recordings, routeName = 'evidence' }: ICopilotPanelProps) => {
   const { turns, isLoading, submit, retry, reset } = useCopilotConversation()
   const threadRef = useRef<HTMLDivElement | null>(null)
   const hasConversation = turns.length > 0
@@ -35,11 +37,15 @@ const CopilotPanel = ({ selectedSignalIds, regionOfInterest, recordings }: ICopi
     const activeComparisonContext = mentionedIds.length === 0
       ? comparisonContext ?? undefined
       : undefined
-    const recordingA = recordings.filter((recording) => recordingGroupAssignments[recording.recordingId] === 'A')
-    const recordingB = recordings.filter((recording) => recordingGroupAssignments[recording.recordingId] === 'B')
+    const recordingAIds = Object.entries(recordingGroupAssignments)
+      .filter(([, assignment]) => assignment === 'A')
+      .map(([recordingId]) => recordingId)
+    const recordingBIds = Object.entries(recordingGroupAssignments)
+      .filter(([, assignment]) => assignment === 'B')
+      .map(([recordingId]) => recordingId)
     const comparisonPair = mentionedIds.length === 0 && !activeComparisonContext &&
-      recordingA.length === 1 && recordingB.length === 1
-      ? { recordingIdA: recordingA[0].recordingId, recordingIdB: recordingB[0].recordingId }
+      recordingAIds.length === 1 && recordingBIds.length === 1
+      ? { recordingIdA: recordingAIds[0], recordingIdB: recordingBIds[0] }
       : undefined
     const resolvedIds = mentionedIds.length > 0
       ? mentionedIds
@@ -55,6 +61,7 @@ const CopilotPanel = ({ selectedSignalIds, regionOfInterest, recordings }: ICopi
       endTimeSeconds: regionOfInterest?.endTimeSeconds,
       comparisonContext: activeComparisonContext,
       comparisonPair,
+      routeContext: { route: routeName },
     })
   }
 

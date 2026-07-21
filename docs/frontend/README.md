@@ -99,7 +99,7 @@ Foundation rules:
 
 - `BrowserRouter` owns real URLs for `/`, `/import`, `/setup`, `/analysis`, and `/evidence`; unknown routes return to Home.
 - Production hosting must rewrite application routes to `index.html` so direct URLs and browser refreshes reach React Router.
-- The persistent shell owns primary navigation, collapse state, and breadcrumbs. It exposes only destinations with implemented behavior.
+- The persistent shell owns primary navigation, collapse state, breadcrumbs, Copilot-open state, and the temporary conversation provider. It exposes only destinations with implemented behavior.
 - Home describes the product and summarizes the current temporary backend session. It must not imply saved projects, sessions, reports, or history.
 - Import owns browser file selection and replacement. A completed single-file import navigates to focused Evidence; a multi-file import recommends the optional Configure route.
 - Multipart upload and `GET /api/import/session` are the browser import boundaries. The frontend receives ordered filename, byte-size, and content-type metadata, never backend filesystem paths.
@@ -107,7 +107,8 @@ Foundation rules:
 - Configure obtains recording IDs, duration, sample rate, channels, and signal display names from `GET /api/import/session/recordings`. It does not derive metadata or request chart bins merely to populate setup.
 - Analysis reuses that inventory and the Zustand workspace configuration to review mode, A/B pair, scope, and enabled methods. `Run selected analyses` navigates to Evidence, where the existing hooks perform the real requests and expose their actual loading and error states.
 - Session bootstrap must distinguish loading, retryable failure, confirmed empty, and populated states. Evidence redirects to Import only after an empty session is confirmed.
-- Evidence owns the analysis workspace, local Copilot-open state, and temporary conversation provider. Closing and reopening Copilot preserves completed turns; route unmount or `New conversation` clears them. Route unmount also closes playback, dialogs, and utility surfaces, while valid Zustand-owned signal, A/B, metric, and ROI selection can survive route navigation.
+- Copilot is available on Home, Import, Configure, Analysis, and Evidence. Closing, reopening, or navigating between routes preserves completed turns; browser reload, `New conversation`, or successful replacement import clears them. Each request carries the current closed route name, while only Evidence can attach selected signal, comparison, metric, and ROI identifiers.
+- Evidence owns the analysis workspace and its evidence-inspector handoff. Route unmount closes playback, dialogs, and Evidence-only utility surfaces, while valid Zustand-owned signal, A/B, metric, and ROI selection can survive route navigation.
 - Configure owns recording-level A/B assignment only. Channel selection and temporal ROI remain Evidence interactions rather than disconnected setup fields.
 - Analysis selection is UI-owned workflow state, not acoustic evidence. It may control which existing endpoint is requested, but it must not generate measurements, imply unsupported methods, or fabricate execution progress.
 - Returning to Evidence refetches backend evidence. The session summary is a route guard, not a numerical source of truth.

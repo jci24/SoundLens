@@ -42,6 +42,7 @@ interface IAnalysisWorkspaceStore {
   setRecordings: (recordings: ITimeWaveformRecording[]) => void
   setComparisonCopilotContext: (comparisonCopilotContext: IComparisonCopilotSelection | null) => void
   syncSignalIds: (responseSignalIds: string[]) => void
+  resetImportedSessionState: () => void
 }
 
 const useAnalysisWorkspaceStore = create<IAnalysisWorkspaceStore>((set) => ({
@@ -128,6 +129,17 @@ const useAnalysisWorkspaceStore = create<IAnalysisWorkspaceStore>((set) => ({
         ? {}
         : { selectedSignalIds: nextSignalIds }
     }),
+
+  resetImportedSessionState: () => set({
+    selectedSignalIds: [],
+    expandedRecordings: [],
+    recordingGroupAssignments: {},
+    layoutMode: 'focused',
+    signalChartMode: 'overlay',
+    regionOfInterest: null,
+    recordings: [],
+    comparisonCopilotContext: null,
+  }),
 }))
 
 export { useAnalysisWorkspaceStore }

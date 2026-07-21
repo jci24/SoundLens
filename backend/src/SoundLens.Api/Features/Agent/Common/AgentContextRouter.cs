@@ -18,7 +18,8 @@ public sealed class AgentContextRouter(
         selected signals, selected metrics, an ROI, visible findings, or "this" currently selected evidence.
         Choose general for timeless theory, definitions, general technical support, or unrelated knowledge that
         does not need current external sources. A metric name alone does not require workspace evidence when the
-        user is asking for its general definition. Choose web for current information, explicit research or source
+        user is asking for its general definition. Questions about what the user can do on the current application
+        page are general product guidance, not measured workspace evidence. Choose web for current information, explicit research or source
         requests, standards, regulations, products, software versions, or questions about current industry practice.
         """;
 
@@ -37,6 +38,12 @@ public sealed class AgentContextRouter(
             command.SignalIds is { Count: > 0 } ||
             command.ComparisonContext is not null ||
             command.ComparisonPair is not null;
+        if (command.RouteContext is not null &&
+            AgentIntentPolicy.IsApplicationRouteQuestion(command.Question))
+        {
+            return AgentContextModes.General;
+        }
+
         if (AgentIntentPolicy.TryResolveHighConfidence(
                 command.Question,
                 hasWorkspaceContext,
@@ -58,6 +65,7 @@ public sealed class AgentContextRouter(
             - selected comparison evidence available: {command.ComparisonContext is not null}
             - assigned A/B pair available: {command.ComparisonPair is not null}
             - ROI available: {command.StartTimeSeconds.HasValue && command.EndTimeSeconds.HasValue}
+            - current application route: {command.RouteContext?.Route ?? "not supplied"}
 
             Availability does not mean the question is about the workspace. Use only the wording of the question
             to decide whether the user is asking about that available evidence.

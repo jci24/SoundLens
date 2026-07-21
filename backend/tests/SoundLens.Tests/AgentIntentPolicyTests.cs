@@ -30,6 +30,18 @@ public sealed class AgentIntentPolicyTests
     }
 
     [Theory]
+    [InlineData("What can I do here?")]
+    [InlineData("What should I do on this page?")]
+    [InlineData("What is this page for?")]
+    [InlineData("How do I use this page?")]
+    [InlineData("Help me with this page.")]
+    [InlineData("Where should I start here?")]
+    public void ApplicationRouteQuestions_AreRecognizedWithoutTreatingPageAsEvidence(string question)
+    {
+        Assert.True(AgentIntentPolicy.IsApplicationRouteQuestion(question));
+    }
+
+    [Theory]
     [InlineData("What is the RMS level of this signal?")]
     [InlineData("Explain the selected RMS difference.")]
     [InlineData("What is the peak amplitude of Channel 1?")]
