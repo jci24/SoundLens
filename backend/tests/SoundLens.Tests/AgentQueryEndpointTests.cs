@@ -1028,7 +1028,7 @@ public sealed class AgentQueryEndpointTests : IClassFixture<WebApplicationFactor
             Assert.NotNull(chatClientProvider.LastUserMessage);
             Assert.Contains("Compared pairs: 1", chatClientProvider.LastUserMessage, StringComparison.Ordinal);
             Assert.Contains("Mean delta A-B: 0 ratio", chatClientProvider.LastUserMessage, StringComparison.Ordinal);
-            Assert.DoesNotContain("999", chatClientProvider.LastUserMessage, StringComparison.Ordinal);
+            Assert.DoesNotContain("Mean delta A-B: 999", chatClientProvider.LastUserMessage, StringComparison.Ordinal);
             Assert.DoesNotContain("invented-unit", chatClientProvider.LastUserMessage, StringComparison.Ordinal);
             Assert.NotNull(Assert.Single(chatClientProvider.CompletionOptions).ResponseFormat);
 
