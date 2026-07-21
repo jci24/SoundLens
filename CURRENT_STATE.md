@@ -240,6 +240,14 @@ The repo is still intentionally simple: no extra backend projects, no persistenc
 
 ## Immediate Next Product Slice
 
-The next product action is direct automotive NVH workflow validation using recent-work walkthroughs, prototype feedback, and buyer discovery. Specialized analysis implementation and public repositioning remain gated on that evidence.
+The next product action is direct automotive NVH and adjacent-workflow validation using recent-work walkthroughs, prototype feedback, scale discovery, and buyer discovery. This is a decision gate rather than an automatic implementation branch.
+
+The next engineering wedge will be selected from observed evidence:
+
+- investigation integrity when calibration, compatibility, provenance, or reproducibility blocks trust
+- one validated analysis primitive or recipe when a recurring decision is unsupported
+- persisted projects, sessions, and investigations when temporary-session loss blocks real work
+
+Campaign-scale workflows, hosted multi-user deployment, and further Sona autonomy remain conditional programs with separate scale, production-readiness, and reversible-action gates. Specialized analysis implementation and public repositioning remain gated on direct evidence.
 
 A real calibration-state model and calibrated-versus-uncalibrated eval remain later trust work because the current import contract cannot represent a genuine calibrated comparison safely.

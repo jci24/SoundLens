@@ -2,6 +2,49 @@
 
 Last updated: 2026-07-21
 
+## Delivery Horizon
+
+The detailed milestones below describe shipped foundations and possible expansion paths. They do not make every listed capability an active commitment.
+
+### Now — committed validation work
+
+- validate the current reference-versus-candidate workflow with at least three relevant automotive NVH or adjacent engineering users
+- observe at least one recent real comparison and reporting workflow, including typical and worst-case recording, channel, operating-condition, and result volumes
+- test whether the current Evidence workflow, reports, and approval-gated Sona navigation reduce effort or improve decision confidence
+- maintain the shipped comparison, evidence, playback, reporting, and Copilot trust boundaries while discovery runs
+
+Exit decision:
+- choose one next product wedge, continue discovery, or reject/reframe the current segment hypothesis using recorded supporting and disconfirming evidence
+
+### Next — decision-gated product work
+
+Only one of these becomes the next implementation program after the Now gate:
+
+- **investigation integrity:** real calibration state, compatibility, provenance, and reproducibility when trustworthy physical or repeatable evidence is the dominant blocker
+- **analysis expansion:** one validated analysis primitive or recipe when interviews identify a recurring decision not served by current waveform, spectrum, level, and dynamics evidence
+- **persistent investigations:** projects, sessions, and resumable investigation state when temporary-session loss blocks real use
+
+### Later — conditional scale and platform work
+
+- campaign metadata, reference-to-many comparison, matched batches, cohort views, and bounded execution after representative customer scale is known
+- report libraries, history, collaboration, and lifecycle controls after persistence has demonstrated value
+- hosted multi-user operation only after the production-readiness gate below is satisfied
+
+### Conditional — increased Sona autonomy
+
+- validate whether approval-gated navigation is useful before adding state-changing actions
+- require persisted state, stale-state protection, audit traces, approval policy, and a tested undo path before Sona can change investigation configuration
+- keep plan execution, background research, and broader autonomy uncommitted until customer value and safety gates pass
+
+## Program Decision Gates
+
+1. **Customer and problem evidence:** repeated direct evidence identifies the user, decision, frequency, cost, alternatives, buyer, and adoption blockers.
+2. **Scientific integrity:** inputs, units, calibration, compatibility, method version, limitations, and failure behavior are explicit and independently testable.
+3. **Workflow value:** target users complete a real task faster or with greater confidence without losing inspectability.
+4. **Scale evidence:** representative volumes define latency, memory, storage, visualization, cancellation, and recovery targets before batch architecture is selected.
+5. **Production readiness:** identity, tenant isolation, storage lifecycle, upload security, privacy, observability, AI budgets, deployment, accessibility, and recovery are validated before a hosted pilot.
+6. **Commercial readiness:** a credible champion, buyer, deployment path, and pilot success measure exist before positioning SoundLens as a deployable product.
+
 ## Cross-Cutting Program — Figma Visual-System Migration
 
 User outcome:
@@ -52,21 +95,21 @@ Validation gate:
 Explicitly deferred work:
 - backend or frontend production changes
 
-## Milestone 1 — Group A/B Assignment
+## Milestone 1 — Explicit A/B Pair Setup
 
 User outcome:
-- A user can import repeated recordings and explicitly assign them to Product or Condition A and B.
+- A user can import repeated recordings and explicitly choose one recording as Compare A and one as Compare B.
 
 Major capabilities:
-- group assignment UI
-- group validation and empty states
+- explicit pair-builder UI
+- pair validation and empty states
 - visible comparison scope
 
 Dependencies:
 - current import workspace
 
 Validation gate:
-- users understand which recordings belong to each condition without manual note-taking outside the app
+- users understand which two recordings form the active comparison without manual note-taking outside the app
 
 Current status:
 - explicit Compare A and Compare B slots are in `main`, with accessible anchored pickers, replace and clear actions, duplicate prevention, and atomic swap
@@ -74,12 +117,12 @@ Current status:
 
 Explicitly deferred work:
 - aggregate comparison metrics
-- report generation from groups
+- report generation from the active pair
 
 ## Milestone 2 — Deterministic Aggregate Comparison
 
 User outcome:
-- A user can run a deterministic comparison between aligned signals from Group A and Group B.
+- A user can run a deterministic comparison between aligned signals from the active Compare A and Compare B recordings.
 
 Major capabilities:
 - strict signal alignment
@@ -262,6 +305,32 @@ Explicitly deferred work:
 - representing every customer request as a separate hard-coded analysis
 - claiming support for hundreds of recordings or thousands of signals before Milestone 7 scale gates pass
 
+## Cross-Cutting Gate — Hosted Pilot And Production Readiness
+
+User outcome:
+- A pilot customer can use SoundLens without exposing another user's data, losing evidence silently, or depending on unbounded operational behavior.
+
+This is a release gate, not the immediate feature queue. Its implementation sequence depends on the selected deployment model and validated pilot requirements.
+
+Required capabilities before a hosted multi-user pilot:
+- authenticated identity, authorization, tenant isolation, and removal of the singleton import-session boundary
+- durable object storage and metadata persistence with retention, deletion, backup, and recovery rules
+- upload validation, file-size and quota limits, content handling, secret management, and privacy-safe telemetry
+- bounded DSP and AI execution with timeouts, cancellation, retry policy, rate and cost limits, and partial-failure visibility
+- health checks, structured observability, operational alerts, deployment configuration, and incident recovery procedures
+- production route fallback, supported-browser validation, accessibility review, and representative performance tests
+- an explicit data-processing and external-research policy appropriate to the selected customer and deployment model
+
+Validation gate:
+- a threat and privacy review has no unresolved critical issue
+- tenant and storage isolation tests pass
+- representative workloads meet explicit reliability and resource budgets
+- backup and recovery are exercised rather than documented only
+- the pilot owner, support path, success measures, and rollback criteria are defined
+
+Explicitly deferred work:
+- selecting cloud infrastructure, authentication vendors, tenancy architecture, or compliance scope before pilot and deployment requirements are known
+
 ## Milestone 7 — Persisted Test Campaigns, Batch Execution, And Scalable Comparison
 
 User outcome:
@@ -345,7 +414,7 @@ SoundLens is approximately a **Level 2 tool-using Copilot with early Level 3 fou
 | Calibration compatibility | Partially implemented | Uncalibrated limitations and refusals exist; multiple real calibration states do not. |
 | Evidence sufficiency and structured claims | Partially implemented | Selected-comparison Copilot responses carry deterministic sufficiency and current-session metric/finding observations; durable provenance, hypotheses, and conclusions remain absent. |
 | Persistent investigations and jobs | Missing | The workspace is temporary and has no resumable execution model. |
-| Policy-controlled workspace actions | Missing | Guidance cannot execute or mutate workspace state. |
+| Policy-controlled workspace actions | Partially implemented | Sona may suggest one allowlisted route and navigate only after explicit approval plus backend prerequisite validation. Evidence, analysis configuration, playback, reports, and persisted state cannot be changed. |
 
 Cross-unit metric ranking by raw magnitude is **no longer appropriate**. Comparison metrics retain a fixed domain presentation order. Future prioritization must use comparable within-metric evidence, a validated domain rule, or an explicit user criterion, target, or reference.
 

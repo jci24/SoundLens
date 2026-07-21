@@ -114,7 +114,8 @@ Ordered slices:
 12. completed: conservative external-source quality and applicability metadata with primary-source preference, explicit source roles, and fail-closed citation validation
 13. completed: bounded Evidence-route conversation context with backend standalone-question resolution, historical identifier snapshots, stale-context refusal, and coherent Re-run truncation
 14. completed: shell-wide availability with validated route context, cross-route conversation continuity, Evidence utility-surface compatibility, and replacement-import reset boundaries
-15. next decision gate: choose between the first reviewable reversible workspace action and persisted investigation/session foundations after shell usage is manually validated
+15. completed: approval-gated allowlisted navigation to Import, Configure, Analysis, or Evidence with backend prerequisite validation and no evidence mutation
+16. next decision gate: validate Sona navigation during customer workflow walkthroughs; do not add state-changing actions until persistence, stale-state protection, audit, approval, and undo contracts exist
 
 Boundary:
 - general knowledge is not measured evidence
@@ -211,6 +212,10 @@ Proposed artifact:
 Priority:
 - high, parallel product work; complete before changing public positioning or expanding the deterministic analysis catalogue
 
+Next implementation decision:
+- choose one bounded slice only after discovery indicates whether the dominant blocker is investigation integrity, a missing analysis capability, or temporary-session persistence
+- keep campaign scale, hosted deployment, and additional Sona autonomy conditional on their separate roadmap gates
+
 ### Trust follow-up. Real calibration-state mismatch
 
 Priority: normal.
@@ -224,6 +229,7 @@ Reason for deferral:
 High priority before hosted multi-user deployment:
 
 - measure and harden bounded web-research availability before treating it as release-critical; citation-validation failures already fail closed, but one transient unavailable response appeared before the clean 27-run routing baseline
+- complete the hosted-pilot gate covering identity, tenant isolation, durable storage, upload security, bounded execution, observability, privacy, recovery, and deployment validation
 
 Normal priority:
 
