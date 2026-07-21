@@ -231,6 +231,7 @@ Recently completed:
 
 - bounded web-research resilience now classifies failures without message inspection, retries one transient transport, timeout, throttling, or provider failure, preserves cancellation, and never retries invalid or unsafe citation output
 - standards research now rejects bundled or unmatched ISO/IEC references, requires an authority-matched standards-body citation when primary or official sources are explicitly requested, and permits one bounded correction attempt for alignment-only failures
+- pairwise comparison now exposes backend-owned sample-rate, time-scope, signal-alignment, and calibration context through one compact summary and the existing Evidence Inspector without changing DSP or report behavior
 
 High priority before hosted multi-user deployment:
 

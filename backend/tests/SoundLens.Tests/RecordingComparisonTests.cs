@@ -68,6 +68,10 @@ public sealed class RecordingComparisonTests : IClassFixture<WebApplicationFacto
             Assert.Equal(4, result.AggregateMetrics.Count);
             Assert.All(result.AlignedSignals, pair => Assert.Equal("DisplayName", pair.Basis.ToString()));
             Assert.Empty(result.Limitations);
+            Assert.Equal("complete", result.IntegrityAssessment.Status);
+            Assert.Equal(0, result.IntegrityAssessment.LimitedCheckCount);
+            Assert.Equal(1, result.IntegrityAssessment.UnknownCheckCount);
+            Assert.Equal("unknown", result.IntegrityAssessment.Checks.Single(check => check.Code == "Calibration").Status);
             Assert.NotNull(result.RegionOfInterest);
             Assert.Equal(0.0, result.RegionOfInterest!.StartTimeSeconds, precision: 4);
             Assert.Equal(0.25, result.RegionOfInterest.EndTimeSeconds, precision: 4);
@@ -119,6 +123,8 @@ public sealed class RecordingComparisonTests : IClassFixture<WebApplicationFacto
             Assert.Equal("Missing", result.Limitations[0].Code);
             Assert.Equal("LowCoverage", result.Limitations[1].Code);
             Assert.Equal(1, result.AggregateMetrics[0].MissingValueCount);
+            Assert.Equal("limited", result.IntegrityAssessment.Status);
+            Assert.Equal("limited", result.IntegrityAssessment.Checks.Single(check => check.Code == "SignalAlignment").Status);
         }
         finally
         {

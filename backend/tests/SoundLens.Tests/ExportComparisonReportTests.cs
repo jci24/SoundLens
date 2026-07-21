@@ -436,6 +436,11 @@ public sealed class ExportComparisonReportTests : IClassFixture<WebApplicationFa
             [observation],
             aggregates,
             limitations,
+            new RecordingComparisonIntegrityAssessment(
+                "complete",
+                0,
+                1,
+                [new RecordingComparisonIntegrityCheck("Calibration", "unknown", "Calibration", "No validated acoustic calibration is available.")]),
             null);
 
         var selectedMetric = aggregates.Single(metric => metric.MetricKey == selectedMetricKey);

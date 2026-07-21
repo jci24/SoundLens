@@ -127,6 +127,23 @@ export interface IRecordingComparisonLimitation {
   detail: string
 }
 
+export type TRecordingComparisonIntegrityStatus = 'complete' | 'limited'
+export type TRecordingComparisonIntegrityCheckStatus = 'matched' | 'limited' | 'unknown'
+
+export interface IRecordingComparisonIntegrityCheck {
+  code: 'SampleRate' | 'DurationScope' | 'SignalAlignment' | 'Calibration'
+  status: TRecordingComparisonIntegrityCheckStatus
+  label: string
+  detail: string
+}
+
+export interface IRecordingComparisonIntegrityAssessment {
+  status: TRecordingComparisonIntegrityStatus
+  limitedCheckCount: number
+  unknownCheckCount: number
+  checks: IRecordingComparisonIntegrityCheck[]
+}
+
 export interface IRecordingComparisonRecord {
   recordingId: string
   fileName: string
@@ -141,6 +158,7 @@ export interface IRecordingComparisonResponse {
   signalObservations: IRecordingComparisonSignalObservation[]
   aggregateMetrics: IRecordingComparisonMetricAggregate[]
   limitations: IRecordingComparisonLimitation[]
+  integrityAssessment: IRecordingComparisonIntegrityAssessment
   regionOfInterest: IAnalysisRegionOfInterest | null
 }
 

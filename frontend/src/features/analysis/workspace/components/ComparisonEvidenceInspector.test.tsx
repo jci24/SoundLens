@@ -3,7 +3,11 @@ import { describe, expect, it, vi } from 'vitest'
 import { useState } from 'react'
 import { ComparisonEvidenceInspector } from './ComparisonEvidenceInspector'
 import type { IComparisonCoverageSummary } from '../../utils/comparisonEvidence'
-import type { IRecordingComparisonMetricAggregate, IRecordingComparisonSignalObservation } from '../../types'
+import type {
+  IRecordingComparisonIntegrityAssessment,
+  IRecordingComparisonMetricAggregate,
+  IRecordingComparisonSignalObservation,
+} from '../../types'
 
 const metric: IRecordingComparisonMetricAggregate = {
   metricKey: 'clippingSampleCountDelta',
@@ -51,6 +55,18 @@ const coverageSummary: IComparisonCoverageSummary = {
   tone: 'strong',
 }
 
+const integrityAssessment: IRecordingComparisonIntegrityAssessment = {
+  status: 'limited',
+  limitedCheckCount: 1,
+  unknownCheckCount: 1,
+  checks: [
+    { code: 'SampleRate', status: 'matched', label: 'Sample rate', detail: 'Both recordings use 44,100 Hz.' },
+    { code: 'DurationScope', status: 'matched', label: 'Time scope', detail: 'Both recordings use the same ROI.' },
+    { code: 'SignalAlignment', status: 'limited', label: 'Signal alignment', detail: 'One signal remained missing.' },
+    { code: 'Calibration', status: 'unknown', label: 'Calibration', detail: 'No validated calibration is available.' },
+  ],
+}
+
 describe('ComparisonEvidenceInspector', () => {
   it('renders zero-valued backend evidence, scope, and an empty limitation state', () => {
     render(
@@ -61,6 +77,7 @@ describe('ComparisonEvidenceInspector', () => {
         fileNameA="a-very-long-recording-name-for-product-a.wav"
         fileNameB="product-b.wav"
         isOpen
+        integrityAssessment={integrityAssessment}
         limitations={[]}
         onOpenChange={vi.fn()}
         preventOutsideDismiss={false}
@@ -74,7 +91,11 @@ describe('ComparisonEvidenceInspector', () => {
     expect(inspector).toHaveTextContent('Full duration')
     expect(inspector).toHaveTextContent('Mean delta A-B0 samples')
     expect(inspector).toHaveTextContent('Compare A0 samples')
-    expect(inspector).toHaveTextContent('No additional comparison limitations were reported.')
+    expect(inspector).toHaveTextContent('Comparison context1 limitation · Calibration unknown')
+    expect(inspector).toHaveTextContent('Sample rateMatchedBoth recordings use 44,100 Hz.')
+    expect(inspector).toHaveTextContent('CalibrationUnknownNo validated calibration is available.')
+    expect(inspector).toHaveTextContent('Metric evidence limitations0')
+    expect(inspector).toHaveTextContent('No metric-specific limitations were reported.')
   })
 
   it('closes on Escape and returns focus to the invoking control', async () => {
@@ -95,6 +116,7 @@ describe('ComparisonEvidenceInspector', () => {
           fileNameA="product-a.wav"
           fileNameB="product-b.wav"
           isOpen={isOpen}
+          integrityAssessment={integrityAssessment}
           limitations={[]}
           onOpenChange={(nextIsOpen) => {
             onOpenChange(nextIsOpen)
@@ -130,6 +152,7 @@ describe('ComparisonEvidenceInspector', () => {
         fileNameA="product-a.wav"
         fileNameB="product-b.wav"
         isOpen
+        integrityAssessment={integrityAssessment}
         limitations={[]}
         onOpenChange={onOpenChange}
         preventOutsideDismiss={false}
@@ -159,6 +182,7 @@ describe('ComparisonEvidenceInspector', () => {
         fileNameA="product-a.wav"
         fileNameB="product-b.wav"
         isOpen
+        integrityAssessment={integrityAssessment}
         limitations={[]}
         onOpenChange={onOpenChange}
         preventOutsideDismiss
@@ -188,6 +212,7 @@ describe('ComparisonEvidenceInspector', () => {
         fileNameA="product-a.wav"
         fileNameB="product-b.wav"
         isOpen
+        integrityAssessment={integrityAssessment}
         limitations={[]}
         onOpenChange={onOpenChange}
         preventOutsideDismiss={false}
