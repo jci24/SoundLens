@@ -18,6 +18,7 @@ import {
 } from '../../utils/analysisWorkspaceState'
 import {
   formatAggregateValue,
+  formatComparisonIntegritySummary,
   formatComparisonMetricLabel,
   getComparisonCoverageSummary,
   getObservationDelta,
@@ -475,6 +476,7 @@ const TimeWaveformWorkspace = ({ importedRecordingCount, isCopilotOpen, onCopilo
           fileNameA={activePairRecordingA.fileName}
           fileNameB={activePairRecordingB.fileName}
           isOpen={isEvidenceInspectorOpen}
+          integrityAssessment={comparisonResults.integrityAssessment}
           limitations={comparisonResults.limitations}
           onOpenChange={handleEvidenceInspectorOpenChange}
           preventOutsideDismiss={isCopilotHandoffActive}
@@ -544,7 +546,7 @@ const TimeWaveformWorkspace = ({ importedRecordingCount, isCopilotOpen, onCopilo
                     {(activeMetric || coverageSummary.limitationCount > 0) && (
                       <>
                         <span className="time-waveform-workspace__comparison-results-summary">
-                          {coverageSummary.limitationCount} limitation{coverageSummary.limitationCount === 1 ? '' : 's'}
+                          {formatComparisonIntegritySummary(comparisonResults.integrityAssessment)}
                         </span>
                         <button
                           aria-haspopup="dialog"

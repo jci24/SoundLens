@@ -232,6 +232,17 @@ const comparisonResponse: IRecordingComparisonResponse = {
       detail: 'Only 1 aligned signal pair is available for aggregate comparison.',
     },
   ],
+  integrityAssessment: {
+    status: 'limited',
+    limitedCheckCount: 1,
+    unknownCheckCount: 1,
+    checks: [
+      { code: 'SampleRate', status: 'matched', label: 'Sample rate', detail: 'Both recordings use 44,100 Hz.' },
+      { code: 'DurationScope', status: 'matched', label: 'Time scope', detail: 'Both recordings use 1 s.' },
+      { code: 'SignalAlignment', status: 'limited', label: 'Signal alignment', detail: 'One signal remained missing.' },
+      { code: 'Calibration', status: 'unknown', label: 'Calibration', detail: 'No validated calibration is available.' },
+    ],
+  },
   regionOfInterest: null,
 }
 
@@ -669,7 +680,7 @@ describe('TimeWaveformWorkspace', () => {
     expect(screen.getByLabelText('Comparison metrics')).toBeInTheDocument()
     expect(screen.getByText('Comparison metrics', { selector: 'h3' })).toBeInTheDocument()
     expect(await screen.findByText('Weak evidence')).toBeInTheDocument()
-    expect(screen.getByText('1 limitation')).toBeInTheDocument()
+    expect(screen.getByText('Comparison context · 1 limited · Calibration unknown')).toBeInTheDocument()
     expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
     expect(screen.getByRole('button', { name: 'Evidence & limitations' })).toHaveAttribute('aria-haspopup', 'dialog')
     const peakButton = screen.getByRole('button', { name: /Peak amplitude/i })

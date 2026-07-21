@@ -166,6 +166,47 @@
     list-style: none;
   }
 
+  &__integrity {
+    display: grid;
+    gap: 0;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  &__integrity li {
+    padding: 0.65rem 0;
+    border-bottom: 1px solid color-mix(in srgb, var(--border) 72%, transparent);
+  }
+
+  &__integrity li:last-child {
+    border-bottom: 0;
+  }
+
+  &__integrity div {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 0.75rem;
+  }
+
+  &__integrity strong,
+  &__integrity span,
+  &__integrity p {
+    font-size: var(--font-xs);
+  }
+
+  &__integrity span {
+    color: var(--muted-foreground);
+    text-transform: capitalize;
+  }
+
+  &__integrity p {
+    margin: 0.2rem 0 0;
+    color: var(--muted-foreground);
+    line-height: 1.45;
+  }
+
   &__limitations li {
     display: grid;
     gap: 0.2rem;

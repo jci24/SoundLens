@@ -73,6 +73,17 @@ const comparisonResponse: IRecordingComparisonResponse = {
     createAggregate('clippingSampleCountDelta', 'samples', -4),
   ],
   limitations: [],
+  integrityAssessment: {
+    status: 'complete',
+    limitedCheckCount: 0,
+    unknownCheckCount: 1,
+    checks: [
+      { code: 'SampleRate', status: 'matched', label: 'Sample rate', detail: 'Both recordings use 44,100 Hz.' },
+      { code: 'DurationScope', status: 'matched', label: 'Time scope', detail: 'Both recordings use 2.5 s.' },
+      { code: 'SignalAlignment', status: 'matched', label: 'Signal alignment', detail: 'All 1 signal pair aligned.' },
+      { code: 'Calibration', status: 'unknown', label: 'Calibration', detail: 'No validated calibration is available.' },
+    ],
+  },
   regionOfInterest: null,
 }
 

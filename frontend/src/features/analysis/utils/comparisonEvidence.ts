@@ -2,6 +2,7 @@ import type {
   IRecordingComparisonMetricAggregate,
   IRecordingComparisonResponse,
   IRecordingComparisonSignalObservation,
+  IRecordingComparisonIntegrityAssessment,
 } from '../types'
 
 type TComparisonCoverageTone = 'strong' | 'partial' | 'weak'
@@ -83,6 +84,24 @@ const formatLimitationLabel = (code: string) => {
   }
 }
 
+const formatComparisonIntegritySummary = (assessment: IRecordingComparisonIntegrityAssessment) => {
+  const isCalibrationUnknown = assessment.checks.some(
+    (check) => check.code === 'Calibration' && check.status === 'unknown'
+  )
+  const notes = [
+    assessment.limitedCheckCount > 0
+      ? `${assessment.limitedCheckCount} limited`
+      : null,
+    isCalibrationUnknown
+      ? 'Calibration unknown'
+      : assessment.unknownCheckCount > 0
+        ? `${assessment.unknownCheckCount} unknown`
+      : null,
+  ].filter(Boolean)
+
+  return notes.length > 0 ? `Comparison context · ${notes.join(' · ')}` : 'Comparison context · Matched'
+}
+
 const getComparisonCoverageSummary = (
   comparisonResults: IRecordingComparisonResponse | null,
   activeMetric: IRecordingComparisonMetricAggregate | null
@@ -146,6 +165,7 @@ const getComparisonCoverageSummary = (
 export {
   formatAggregateValue,
   formatComparisonMetricLabel,
+  formatComparisonIntegritySummary,
   formatLimitationLabel,
   getComparisonCoverageSummary,
   getObservationDelta,

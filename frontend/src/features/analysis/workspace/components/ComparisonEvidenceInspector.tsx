@@ -12,6 +12,7 @@ import type {
   IRecordingComparisonLimitation,
   IRecordingComparisonMetricAggregate,
   IRecordingComparisonSignalObservation,
+  IRecordingComparisonIntegrityAssessment,
 } from '../../types'
 import type { IComparisonCoverageSummary } from '../../utils/comparisonEvidence'
 import type { RefObject } from 'react'
@@ -24,6 +25,7 @@ interface IComparisonEvidenceInspectorProps {
   fileNameA: string
   fileNameB: string
   isOpen: boolean
+  integrityAssessment: IRecordingComparisonIntegrityAssessment
   limitations: IRecordingComparisonLimitation[]
   onOpenChange: (isOpen: boolean) => void
   preventOutsideDismiss: boolean
@@ -38,6 +40,7 @@ const ComparisonEvidenceInspector = ({
   fileNameA,
   fileNameB,
   isOpen,
+  integrityAssessment,
   limitations,
   onOpenChange,
   preventOutsideDismiss,
@@ -152,6 +155,24 @@ const ComparisonEvidenceInspector = ({
               </dl>
             </section>
           )}
+
+          <section aria-labelledby="comparison-evidence-integrity-title" className="comparison-evidence-inspector__section">
+            <div className="comparison-evidence-inspector__section-heading">
+              <h3 id="comparison-evidence-integrity-title">Comparison context</h3>
+              <span>{integrityAssessment.status === 'limited' ? 'Limited' : 'Structurally matched'}</span>
+            </div>
+            <ul className="comparison-evidence-inspector__integrity">
+              {integrityAssessment.checks.map((check) => (
+                <li key={check.code}>
+                  <div>
+                    <strong>{check.label}</strong>
+                    <span>{check.status}</span>
+                  </div>
+                  <p>{check.detail}</p>
+                </li>
+              ))}
+            </ul>
+          </section>
 
           <section aria-labelledby="comparison-evidence-limitations-title" className="comparison-evidence-inspector__section">
             <div className="comparison-evidence-inspector__section-heading">

@@ -10,7 +10,8 @@ public sealed class GetRecordingComparisonHandler(
     IImportedFileStore importedFileStore,
     IWaveformService waveformService,
     SignalAlignmentService signalAlignmentService,
-    RecordingComparisonAggregationService aggregationService) : CommandHandler<GetRecordingComparisonCommand, RecordingComparisonResponse>
+    RecordingComparisonAggregationService aggregationService,
+    RecordingComparisonIntegrityService integrityService) : CommandHandler<GetRecordingComparisonCommand, RecordingComparisonResponse>
 {
     public override Task<RecordingComparisonResponse> ExecuteAsync(GetRecordingComparisonCommand command, CancellationToken ct = default)
     {
@@ -156,6 +157,12 @@ public sealed class GetRecordingComparisonHandler(
                 "LowCoverage",
                 $"Only {observations.Count} aligned signal pair is available for aggregate comparison. Treat the summary as low coverage."));
         }
+        var integrityAssessment = integrityService.Assess(
+            recordingA!,
+            recordingB!,
+            alignment,
+            metricsResponse.SelectedSignals,
+            metricsResponse.RegionOfInterest);
 
         return Task.FromResult(new RecordingComparisonResponse(
             new RecordingComparisonRecording(
@@ -172,6 +179,7 @@ public sealed class GetRecordingComparisonHandler(
             observations,
             aggregateMetrics,
             limitations,
+            integrityAssessment,
             metricsResponse.RegionOfInterest));
     }
 }

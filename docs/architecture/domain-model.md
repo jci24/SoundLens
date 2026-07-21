@@ -120,6 +120,8 @@ The current product includes the minimum session-scoped model needed for focused
 
 - The deterministic output for one active Compare A recording versus one active Compare B recording.
 - Includes aligned observations, aggregate values in the fixed Peak, RMS, crest-factor, and clipping order, coverage inputs, missing values, and limitations.
+- Includes a separate integrity assessment over decoded sample rates, matched full-duration or ROI scope, alignment completeness, and calibration availability.
+- Integrity-check status describes comparison context only. It is not metric importance, perceptual quality, confidence, standards compliance, or the claim-specific Copilot sufficiency status.
 
 ### Comparison Explanation Selection
 

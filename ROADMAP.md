@@ -178,6 +178,7 @@ Current status:
 - fixed-order comparison metrics, coverage cues, and selected-result drill-down are in `main`
 - the selected metric, aligned pair, and ROI remain visible while inspecting waveform and spectrum evidence
 - selected metric details and limitations open in a non-modal side inspector without pushing waveform or spectrum evidence down the workspace
+- the same inspector now discloses backend-owned comparison context for sample rate, matched duration or ROI, signal alignment, and calibration availability; unknown calibration is not presented as failed digital evidence
 - focused and compare workspaces provide explicit original-recording playback through one browser-native media element and a range-enabled current-session stream
 - ROI play-once, explicit looping, scope reset, guarded keyboard control, and waveform playhead synchronization are implemented without changing deterministic evidence
 - recording and expanded-signal rows are virtualized with stable identifier keys, bounded overscan, and filtering validated against a 100-recording fixture
