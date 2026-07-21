@@ -22,6 +22,10 @@ internal sealed record ComparisonReportNarrativeCatalog(
         {
             cautions.Add("The deterministic comparison reports limitations; review the Limitations section before interpreting the selected metric.");
         }
+        if (context.Comparison.IntegrityAssessment.LimitedCheckCount > 0)
+        {
+            cautions.Add("The comparison context contains structural limitations; review the Comparison Context section before interpreting the selected metric.");
+        }
         if (facts.Any(fact => fact.MetricKey == "crestFactorDelta") ||
             context.SelectedMetric.MetricKey == "crestFactorDelta")
         {

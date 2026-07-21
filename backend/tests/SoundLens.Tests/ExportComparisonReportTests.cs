@@ -53,6 +53,10 @@ public sealed class ExportComparisonReportTests : IClassFixture<WebApplicationFa
         Assert.Contains("- Compare A: alpha.wav", payload.Markdown);
         Assert.Contains("- Compare B: beta.wav", payload.Markdown);
         Assert.Contains(useRoi ? "- Region: 0 s to 0.5 s (0.5 s)" : "- Region: full duration", payload.Markdown);
+        Assert.Contains("## Comparison Context", payload.Markdown);
+        Assert.Contains("| Check | Status | Detail |", payload.Markdown);
+        AssertIntegrityOrder(payload.Markdown);
+        Assert.Contains("| Calibration | Unknown |", payload.Markdown);
         Assert.Contains("## Comparison Metrics", payload.Markdown);
         Assert.DoesNotContain("| Rank |", payload.Markdown);
         var peakIndex = payload.Markdown.IndexOf("| Peak amplitude |", StringComparison.Ordinal);
@@ -95,6 +99,9 @@ public sealed class ExportComparisonReportTests : IClassFixture<WebApplicationFa
         Assert.Contains("Compare A alpha.wav", text);
         Assert.Contains("Compare B beta.wav", text);
         Assert.Contains(useRoi ? "0 s to 0.5 s (0.5 s)" : "Full duration", text);
+        Assert.Contains("Comparison Context", text);
+        AssertIntegrityOrder(text);
+        Assert.Contains("Calibration Unknown", text);
         Assert.Contains("Comparison Metrics", text);
         AssertMetricOrder(text);
         Assert.Contains("RMS amplitude", text);
@@ -361,6 +368,39 @@ public sealed class ExportComparisonReportTests : IClassFixture<WebApplicationFa
     }
 
     [Fact]
+    public void StructuredNarrative_AddsCautionForLimitedComparisonContext()
+    {
+        var context = CreateNarrativeContext();
+        var limitedAssessment = context.Comparison.IntegrityAssessment with
+        {
+            Status = "limited",
+            LimitedCheckCount = 1,
+            Checks = context.Comparison.IntegrityAssessment.Checks
+                .Select(check => check.Code == "DurationScope"
+                    ? check with
+                    {
+                        Status = "limited",
+                        Detail = "Full-duration evidence covers unequal durations."
+                    }
+                    : check)
+                .ToArray()
+        };
+        var limitedContext = context with
+        {
+            Comparison = context.Comparison with { IntegrityAssessment = limitedAssessment }
+        };
+
+        var result = OpenAiComparisonReportNarrativeService.BuildInvalidResponseFallback(limitedContext);
+        var markdown = ComparisonReportMarkdownWriter.Write(limitedContext, result);
+        var pdfText = ExtractPdfText(ComparisonReportPdfWriter.Write(limitedContext, result));
+
+        Assert.Contains(result.Cautions, caution =>
+            caution.Contains("structural limitations", StringComparison.Ordinal));
+        Assert.Contains("| Time scope | Review | Full-duration evidence covers unequal durations. |", markdown);
+        Assert.Contains("Time scope Review Full-duration evidence covers unequal durations.", pdfText);
+    }
+
+    [Fact]
     public void StructuredNarrative_DoesNotOverstateAnOpposingSelectedPair()
     {
         var context = CreateNarrativeContext(selectedCrestFactorDelta: 0.25);
@@ -440,7 +480,12 @@ public sealed class ExportComparisonReportTests : IClassFixture<WebApplicationFa
                 "complete",
                 0,
                 1,
-                [new RecordingComparisonIntegrityCheck("Calibration", "unknown", "Calibration", "No validated acoustic calibration is available.")]),
+                [
+                    new RecordingComparisonIntegrityCheck("SampleRate", "matched", "Sample rate", "Both recordings use 44,100 Hz."),
+                    new RecordingComparisonIntegrityCheck("DurationScope", "matched", "Time scope", "Both recordings cover the same full duration."),
+                    new RecordingComparisonIntegrityCheck("SignalAlignment", "matched", "Signal alignment", "All signal pairs aligned."),
+                    new RecordingComparisonIntegrityCheck("Calibration", "unknown", "Calibration", "No validated acoustic calibration is available.")
+                ]),
             null);
 
         var selectedMetric = aggregates.Single(metric => metric.MetricKey == selectedMetricKey);
@@ -470,6 +515,19 @@ public sealed class ExportComparisonReportTests : IClassFixture<WebApplicationFa
         var crestIndex = text.IndexOf("Crest factor", StringComparison.Ordinal);
         var clippingIndex = text.IndexOf("Clipping samples", StringComparison.Ordinal);
         Assert.True(peakIndex >= 0 && peakIndex < rmsIndex && rmsIndex < crestIndex && crestIndex < clippingIndex);
+    }
+
+    private static void AssertIntegrityOrder(string text)
+    {
+        var sampleRateIndex = text.IndexOf("Sample rate", StringComparison.Ordinal);
+        var timeScopeIndex = text.IndexOf("Time scope", StringComparison.Ordinal);
+        var signalAlignmentIndex = text.IndexOf("Signal alignment", StringComparison.Ordinal);
+        var calibrationIndex = text.IndexOf("Calibration", StringComparison.Ordinal);
+        Assert.True(
+            sampleRateIndex >= 0 &&
+            sampleRateIndex < timeScopeIndex &&
+            timeScopeIndex < signalAlignmentIndex &&
+            signalAlignmentIndex < calibrationIndex);
     }
 
     private sealed class StubComparisonNarrativeService : IComparisonReportNarrativeService

@@ -22,6 +22,17 @@ public static class ComparisonReportMarkdownWriter
             : $"- Region: {ComparisonReportFormatting.FormatSeconds(comparison.RegionOfInterest.StartTimeSeconds)} to {ComparisonReportFormatting.FormatSeconds(comparison.RegionOfInterest.EndTimeSeconds)} ({ComparisonReportFormatting.FormatSeconds(comparison.RegionOfInterest.DurationSeconds)})");
         builder.AppendLine();
 
+        builder.AppendLine("## Comparison Context");
+        builder.AppendLine();
+        builder.AppendLine("| Check | Status | Detail |");
+        builder.AppendLine("| --- | --- | --- |");
+        foreach (var check in comparison.IntegrityAssessment.Checks)
+        {
+            builder.AppendLine(
+                $"| {Escape(check.Label)} | {ComparisonReportFormatting.FormatIntegrityStatus(check.Status)} | {Escape(check.Detail)} |");
+        }
+        builder.AppendLine();
+
         builder.AppendLine("## Comparison Metrics");
         builder.AppendLine();
         builder.AppendLine("| Metric | Mean A-B | Median | Spread | Pairs | Missing |");

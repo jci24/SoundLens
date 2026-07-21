@@ -459,6 +459,7 @@ const TimeWaveformWorkspace = ({ importedRecordingCount, isCopilotOpen, onCopilo
           format={comparisonReportFormat}
           isExporting={isExporting}
           isOpen={isComparisonReportOpen}
+          integrityAssessment={comparisonResults?.integrityAssessment ?? null}
           onExport={handleComparisonReportExport}
           onFormatChange={setComparisonReportFormat}
           onOpenChange={setIsComparisonReportOpen}

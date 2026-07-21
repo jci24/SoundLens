@@ -84,7 +84,7 @@ const formatLimitationLabel = (code: string) => {
   }
 }
 
-const formatComparisonIntegritySummary = (assessment: IRecordingComparisonIntegrityAssessment) => {
+const formatComparisonIntegrityDetails = (assessment: IRecordingComparisonIntegrityAssessment) => {
   const isCalibrationUnknown = assessment.checks.some(
     (check) => check.code === 'Calibration' && check.status === 'unknown'
   )
@@ -99,8 +99,11 @@ const formatComparisonIntegritySummary = (assessment: IRecordingComparisonIntegr
       : null,
   ].filter(Boolean)
 
-  return notes.length > 0 ? `Comparison context · ${notes.join(' · ')}` : 'Comparison context · Matched'
+  return notes.length > 0 ? notes.join(' · ') : 'All checks matched'
 }
+
+const formatComparisonIntegritySummary = (assessment: IRecordingComparisonIntegrityAssessment) =>
+  `Comparison context · ${formatComparisonIntegrityDetails(assessment)}`
 
 const getComparisonCoverageSummary = (
   comparisonResults: IRecordingComparisonResponse | null,
@@ -166,6 +169,7 @@ export {
   formatAggregateValue,
   formatComparisonMetricLabel,
   formatComparisonIntegritySummary,
+  formatComparisonIntegrityDetails,
   formatLimitationLabel,
   getComparisonCoverageSummary,
   getObservationDelta,

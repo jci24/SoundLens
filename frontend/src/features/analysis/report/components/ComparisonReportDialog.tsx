@@ -2,7 +2,8 @@ import * as Dialog from '@radix-ui/react-dialog'
 import { X } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { formatCompactDuration } from '../../utils/analysisWorkspaceFormatting'
-import type { IAnalysisRegionOfInterest } from '../../types'
+import { formatComparisonIntegrityDetails } from '../../utils/comparisonEvidence'
+import type { IAnalysisRegionOfInterest, IRecordingComparisonIntegrityAssessment } from '../../types'
 import type { IComparisonReportExcludedRecording, TComparisonReportFormat } from '../types/reportExport'
 import './ComparisonReportDialog.scss'
 
@@ -13,6 +14,7 @@ interface IComparisonReportDialogProps {
   format: TComparisonReportFormat
   isExporting: boolean
   isOpen: boolean
+  integrityAssessment: IRecordingComparisonIntegrityAssessment | null
   onExport: () => void
   onFormatChange: (format: TComparisonReportFormat) => void
   onOpenChange: (isOpen: boolean) => void
@@ -34,6 +36,7 @@ const ComparisonReportDialog = ({
   format,
   isExporting,
   isOpen,
+  integrityAssessment,
   onExport,
   onFormatChange,
   onOpenChange,
@@ -84,6 +87,14 @@ const ComparisonReportDialog = ({
             <div>
               <dt>AI interpretation</dt>
               <dd>Automatic when available, with deterministic fallback</dd>
+            </div>
+            <div>
+              <dt>Comparison context</dt>
+              <dd>
+                {integrityAssessment
+                  ? formatComparisonIntegrityDetails(integrityAssessment)
+                  : 'Available after comparison completes'}
+              </dd>
             </div>
           </dl>
 

@@ -11,6 +11,25 @@ const createProps = () => ({
   format: 'markdown' as const,
   isExporting: false,
   isOpen: true,
+  integrityAssessment: {
+    status: 'limited' as const,
+    limitedCheckCount: 1,
+    unknownCheckCount: 1,
+    checks: [
+      {
+        code: 'DurationScope' as const,
+        status: 'limited' as const,
+        label: 'Time scope',
+        detail: 'The full-duration evidence covers different durations.',
+      },
+      {
+        code: 'Calibration' as const,
+        status: 'unknown' as const,
+        label: 'Calibration',
+        detail: 'Validated acoustic calibration is unavailable.',
+      },
+    ],
+  },
   onExport: vi.fn(),
   onFormatChange: vi.fn(),
   onOpenChange: vi.fn(),
@@ -34,6 +53,7 @@ describe('ComparisonReportDialog', () => {
     expect(screen.getByText('gamma.wav')).toBeInTheDocument()
     expect(screen.getByText('Unassigned')).toBeInTheDocument()
     expect(screen.getByText('Automatic when available, with deterministic fallback')).toBeInTheDocument()
+    expect(screen.getByText('1 limited · Calibration unknown')).toBeInTheDocument()
     expect(screen.getByRole('radio', { name: /Markdown/ })).toBeChecked()
 
     fireEvent.change(screen.getByRole('textbox', { name: 'Report title' }), {
