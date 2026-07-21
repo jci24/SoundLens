@@ -57,6 +57,7 @@ The current product is strong as an analysis workspace, but it is not yet a full
 - `POST /api/import/upload` is the supported browser import path. The local path-based `POST /api/import` endpoint is available only in Development and returns `404` in other environments.
 - `GET /api/import/session` returns ordered browser-safe filename, size, and content-type metadata so the frontend can restore the temporary session after a reload without receiving filesystem paths.
 - `GET /api/import/session/recordings` reads supported WAV headers and returns backend-owned recording IDs, duration, sample rate, channel count, and stable signal identities without generating waveform or spectrum evidence.
+- Import inventory, waveform, and spectrum now share one backend WAV reader for RIFF traversal, PCM/IEEE-float validation, sample normalization, channel interleaving, and full-scale thresholds. Metadata restoration remains header-only, while waveform and spectrum retain their existing caches and downstream calculations.
 - Session bootstrap has explicit loading, failure, retry, empty, and populated states. Direct Evidence navigation waits for bootstrap and redirects to Import only after an empty session is confirmed.
 - The current model is session-oriented rather than project-oriented or persistent.
 - The frontend tracks the two recording-level comparison targets locally so the A/B workflow is visible before a persisted comparison object exists.
