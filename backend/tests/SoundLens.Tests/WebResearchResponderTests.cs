@@ -35,6 +35,21 @@ public sealed class WebResearchResponderTests
     }
 
     [Fact]
+    public async Task IncompleteSdkResponseRetriesOnceAndCanRecover()
+    {
+        var client = new SequenceWebResearchClient(
+            new IncompleteWebResearchResponseException(new ArgumentOutOfRangeException()),
+            ValidResult());
+        var responder = CreateResponder(client);
+
+        var response = await responder.BuildAsync("Current guidance?", CancellationToken.None);
+
+        Assert.Equal(2, client.CallCount);
+        Assert.Single(response.ExternalCitations);
+        Assert.Equal(["web_search"], response.ToolsUsed);
+    }
+
+    [Fact]
     public async Task RepeatedTransientFailureReturnsSafeUnavailableResponse()
     {
         var client = new SequenceWebResearchClient(

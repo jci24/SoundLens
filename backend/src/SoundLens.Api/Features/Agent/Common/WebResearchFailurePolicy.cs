@@ -13,12 +13,14 @@ public static class WebResearchFailurePolicy
     public const string InvalidRequest = "invalid_request";
     public const string Network = "network";
     public const string Provider = "provider";
+    public const string ResponseIncomplete = "response_incomplete";
     public const string Throttled = "throttled";
     public const string Timeout = "timeout";
 
     public static WebResearchFailureDecision Classify(Exception exception) => exception switch
     {
         TimeoutException or TaskCanceledException => new(Timeout, true),
+        IncompleteWebResearchResponseException => new(ResponseIncomplete, true),
         HttpRequestException httpException => ClassifyStatus(
             httpException.StatusCode is null ? 0 : (int)httpException.StatusCode.Value),
         ClientResultException clientException => ClassifyStatus(clientException.Status),

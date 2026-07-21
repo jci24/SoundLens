@@ -1,4 +1,5 @@
 using OpenAI.Responses;
+using System.ClientModel;
 using SoundLens.Api.Configuration;
 
 namespace SoundLens.Api.Features.Agent.Common;
@@ -25,14 +26,27 @@ public sealed class OpenAiWebResearchClient(IResponsesClientProvider clientProvi
         {
             Model = clientProvider.Model,
             Instructions = Instructions,
-            MaxOutputTokenCount = 1200,
+            MaxOutputTokenCount = 3000,
             MaxToolCallCount = 2,
+            ReasoningOptions = new ResponseReasoningOptions
+            {
+                ReasoningEffortLevel = ResponseReasoningEffortLevel.Low
+            },
             StoredOutputEnabled = false
         };
         options.Tools.Add(ResponseTool.CreateWebSearchTool());
         options.InputItems.Add(ResponseItem.CreateUserMessageItem(question));
 
-        var response = await clientProvider.GetRequiredClient().CreateResponseAsync(options, ct);
+        ClientResult<ResponseResult> response;
+        try
+        {
+            response = await clientProvider.GetRequiredClient().CreateResponseAsync(options, ct);
+        }
+        catch (ArgumentOutOfRangeException exception) when (IsIncompleteWebSearchStatus(exception))
+        {
+            // OpenAI .NET 2.12.0 cannot deserialize the transient web-search status "incomplete".
+            throw new IncompleteWebResearchResponseException(exception);
+        }
         var citations = response.Value.OutputItems
             .OfType<MessageResponseItem>()
             .SelectMany(item => item.Content)
@@ -47,5 +61,10 @@ public sealed class OpenAiWebResearchClient(IResponsesClientProvider clientProvi
 
         return new WebResearchResult(response.Value.GetOutputText(), citations);
     }
+
+    private static bool IsIncompleteWebSearchStatus(ArgumentOutOfRangeException exception) =>
+        string.Equals(exception.ParamName, "value", StringComparison.Ordinal) &&
+        string.Equals(exception.ActualValue?.ToString(), "incomplete", StringComparison.Ordinal) &&
+        exception.Message.Contains("WebSearchCallStatus", StringComparison.Ordinal);
 }
 #pragma warning restore OPENAI001

@@ -20,7 +20,11 @@ public sealed class WebResearchResponder(
             {
                 var result = await webResearchClient.SearchAsync(question, ct);
                 var elapsed = Stopwatch.GetElapsedTime(startedAt);
-                if (WebResearchResponseParser.TryParse(result, out var answer, out var citations))
+                if (WebResearchResponseParser.TryParse(
+                        result,
+                        out var answer,
+                        out var citations,
+                        out var failureCategory))
                 {
                     logger.LogInformation(
                         "Web research succeeded on attempt {Attempt} in {ElapsedMilliseconds} ms.",
@@ -39,8 +43,9 @@ public sealed class WebResearchResponder(
                 }
 
                 logger.LogWarning(
-                    "Web research attempt {Attempt} produced invalid_response after {ElapsedMilliseconds} ms; no retry will be attempted.",
+                    "Web research attempt {Attempt} produced {FailureCategory} after {ElapsedMilliseconds} ms; no retry will be attempted.",
                     attempt,
+                    failureCategory,
                     elapsed.TotalMilliseconds);
                 break;
             }
@@ -74,6 +79,7 @@ public sealed class WebResearchResponder(
     }
 
     private static bool IsHandledFailure(Exception exception, CancellationToken ct) =>
-        exception is ClientResultException or HttpRequestException or TimeoutException ||
+        exception is ClientResultException or HttpRequestException or TimeoutException or
+            IncompleteWebResearchResponseException ||
         exception is TaskCanceledException && !ct.IsCancellationRequested;
 }

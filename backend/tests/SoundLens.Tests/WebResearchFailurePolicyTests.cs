@@ -46,4 +46,15 @@ public sealed class WebResearchFailurePolicyTests
         Assert.Equal(WebResearchFailurePolicy.Throttled, decision.Category);
         Assert.Equal(429, decision.StatusCode);
     }
+
+    [Fact]
+    public void IncompleteSdkResponseIsRetryable()
+    {
+        var decision = WebResearchFailurePolicy.Classify(
+            new IncompleteWebResearchResponseException(new ArgumentOutOfRangeException()));
+
+        Assert.True(decision.ShouldRetry);
+        Assert.Equal(WebResearchFailurePolicy.ResponseIncomplete, decision.Category);
+        Assert.Null(decision.StatusCode);
+    }
 }
