@@ -14,6 +14,27 @@ const analysisSpecification = {
   ],
 }
 
+const analysisProvenance = {
+  contractVersion: 'comparison-provenance-v1',
+  recordingA: { algorithm: 'sha256', value: `sha256:${'a'.repeat(64)}` },
+  recordingB: { algorithm: 'sha256', value: `sha256:${'b'.repeat(64)}` },
+  implementationId: 'soundlens_recording_comparison',
+  implementationVersion: '1',
+  applicationBuildVersion: '1.0.0-test',
+  decoderId: 'soundlens_wav_pcm_ieee_float',
+  decoderVersion: '1',
+  scope: 'roi',
+  regionOfInterest: { startTimeSeconds: 0.1, endTimeSeconds: 0.4, durationSeconds: 0.3 },
+  methods: analysisSpecification.metricMethods.map(({ methodId, methodVersion }) => ({ methodId, methodVersion })),
+  parameterFingerprint: `sha256:${'c'.repeat(64)}`,
+  evidenceFingerprint: `sha256:${'d'.repeat(64)}`,
+  limitations: [
+    { code: 'temporary_session', detail: 'Temporary session.' },
+    { code: 'incomplete_capture', detail: 'Capture metadata is incomplete.' },
+    { code: 'unsigned_manifest', detail: 'Manifest is unsigned.' },
+  ],
+}
+
 describe('getRecordingComparison', () => {
   afterEach(() => {
     vi.restoreAllMocks()
@@ -41,6 +62,7 @@ describe('getRecordingComparison', () => {
             ],
           },
           analysisSpecification,
+          analysisProvenance,
           regionOfInterest: { startTimeSeconds: 0.1, endTimeSeconds: 0.4, durationSeconds: 0.3 },
         }),
         {
@@ -162,6 +184,81 @@ describe('getRecordingComparison', () => {
     await expect(getRecordingComparison('recording-a', 'recording-b')).rejects.toThrow(
       'Comparison results returned an invalid analysis specification.'
     )
+  })
+
+  it('rejects malformed backend-owned analysis provenance', async () => {
+    vi.spyOn(globalThis, 'fetch').mockResolvedValue(
+      new Response(
+        JSON.stringify({
+          recordingA: {},
+          recordingB: {},
+          alignedSignals: [],
+          signalObservations: [],
+          aggregateMetrics: analysisSpecification.metricMethods.map(({ metricKey, unit }) => ({ metricKey, unit })),
+          limitations: [],
+          integrityAssessment: {
+            status: 'complete',
+            limitedCheckCount: 0,
+            unknownCheckCount: 1,
+            checks: [
+              { code: 'SampleRate', status: 'matched', label: 'Sample rate', detail: 'Matched.' },
+              { code: 'DurationScope', status: 'matched', label: 'Time scope', detail: 'Matched.' },
+              { code: 'SignalAlignment', status: 'matched', label: 'Signal alignment', detail: 'Matched.' },
+              { code: 'Calibration', status: 'unknown', label: 'Calibration', detail: 'Unknown.' },
+            ],
+          },
+          analysisSpecification,
+          analysisProvenance: {
+            ...analysisProvenance,
+            evidenceFingerprint: 'sha256:not-a-valid-fingerprint',
+          },
+          regionOfInterest: { startTimeSeconds: 0.1, endTimeSeconds: 0.4, durationSeconds: 0.3 },
+        }),
+        { status: 200, headers: { 'Content-Type': 'application/json' } }
+      )
+    )
+
+    await expect(getRecordingComparison('recording-a', 'recording-b')).rejects.toThrow(
+      'Comparison results returned invalid analysis provenance.'
+    )
+  })
+
+  it('rejects unknown, reordered, and scope-inconsistent provenance', async () => {
+    const invalidProvenance = [
+      { ...analysisProvenance, implementationId: 'invented_implementation' },
+      { ...analysisProvenance, methods: [...analysisProvenance.methods].reverse() },
+      { ...analysisProvenance, scope: 'full_duration', regionOfInterest: null },
+    ]
+    const fetchMock = vi.spyOn(globalThis, 'fetch')
+
+    for (const provenance of invalidProvenance) {
+      fetchMock.mockResolvedValueOnce(new Response(JSON.stringify({
+        recordingA: {},
+        recordingB: {},
+        alignedSignals: [],
+        signalObservations: [],
+        aggregateMetrics: analysisSpecification.metricMethods.map(({ metricKey, unit }) => ({ metricKey, unit })),
+        limitations: [],
+        integrityAssessment: {
+          status: 'complete',
+          limitedCheckCount: 0,
+          unknownCheckCount: 1,
+          checks: [
+            { code: 'SampleRate', status: 'matched', label: 'Sample rate', detail: 'Matched.' },
+            { code: 'DurationScope', status: 'matched', label: 'Time scope', detail: 'Matched.' },
+            { code: 'SignalAlignment', status: 'matched', label: 'Signal alignment', detail: 'Matched.' },
+            { code: 'Calibration', status: 'unknown', label: 'Calibration', detail: 'Unknown.' },
+          ],
+        },
+        analysisSpecification,
+        analysisProvenance: provenance,
+        regionOfInterest: { startTimeSeconds: 0.1, endTimeSeconds: 0.4, durationSeconds: 0.3 },
+      }), { status: 200, headers: { 'Content-Type': 'application/json' } }))
+
+      await expect(getRecordingComparison('recording-a', 'recording-b')).rejects.toThrow(
+        'Comparison results returned invalid analysis provenance.'
+      )
+    }
   })
 
   it('surfaces nested FastEndpoints comparison errors', async () => {

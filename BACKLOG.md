@@ -234,6 +234,7 @@ Recently completed:
 - standards research now rejects bundled or unmatched ISO/IEC references, requires an authority-matched standards-body citation when primary or official sources are explicitly requested, and permits one bounded correction attempt for alignment-only failures
 - pairwise comparison now exposes backend-owned sample-rate, time-scope, signal-alignment, and calibration context through one compact summary and the existing Evidence Inspector without changing DSP or report behavior
 - pairwise comparison now discloses one backend-owned versioned method specification in the Evidence Inspector and comparison reports without claiming complete reproducibility
+- pairwise comparison now emits a backend-owned `comparison-provenance-v1` manifest over the active A/B bytes, implementation/build, decoder, scope, methods, parameters, and evidence; the Evidence Inspector and Markdown/PDF reports expose the same current-session fingerprints and limitations
 
 High priority before hosted multi-user deployment:
 
@@ -243,6 +244,7 @@ Normal priority:
 
 - replace the reflection-based OpenAI SDK test stub if the SDK exposes a stable testing seam
 - add the production-host SPA fallback configuration when a deployment target is selected so `/import` and `/evidence` survive direct navigation and refresh
+- add retained source artifacts, durable lineage, calibration/equipment/environment provenance, signed manifests, reproduction jobs, and equivalence tolerances only when persisted investigations are validated
 
 ## Deferred Work
 

@@ -1,4 +1,5 @@
 using System.Text;
+using SoundLens.Api.Features.Comparisons.Common;
 
 namespace SoundLens.Api.Features.Reports.Common;
 
@@ -48,6 +49,8 @@ public static class ComparisonReportMarkdownWriter
                 $"| {Escape(method.Label)} | {Escape(method.Unit)} | `{Escape(method.MethodId)}@{Escape(method.MethodVersion)}` | {Escape(method.Definition)} |");
         }
         builder.AppendLine();
+
+        WriteAnalysisProvenance(builder, comparison.AnalysisProvenance);
 
         builder.AppendLine("## Comparison Metrics");
         builder.AppendLine();
@@ -116,6 +119,35 @@ public static class ComparisonReportMarkdownWriter
         builder.AppendLine($"- Selected B signal ID: `{context.SelectedObservation.SignalIdB}`");
 
         return builder.ToString();
+    }
+
+    private static void WriteAnalysisProvenance(
+        StringBuilder builder,
+        RecordingComparisonAnalysisProvenance provenance)
+    {
+        builder.AppendLine("## Analysis Provenance");
+        builder.AppendLine();
+        builder.AppendLine($"- Manifest: `{Escape(provenance.ContractVersion)}`");
+        builder.AppendLine($"- Compare A content: `{provenance.RecordingA.Value}`");
+        builder.AppendLine($"- Compare B content: `{provenance.RecordingB.Value}`");
+        builder.AppendLine($"- Implementation: `{Escape(provenance.ImplementationId)}@{Escape(provenance.ImplementationVersion)}`");
+        builder.AppendLine($"- Application build: `{Escape(provenance.ApplicationBuildVersion)}`");
+        builder.AppendLine($"- Decoder: `{Escape(provenance.DecoderId)}@{Escape(provenance.DecoderVersion)}`");
+        builder.AppendLine($"- Scope: {ComparisonReportFormatting.FormatAnalysisScope(provenance.Scope)}");
+        if (provenance.RegionOfInterest is not null)
+        {
+            builder.AppendLine($"- ROI: {ComparisonReportFormatting.FormatSeconds(provenance.RegionOfInterest.StartTimeSeconds)} to {ComparisonReportFormatting.FormatSeconds(provenance.RegionOfInterest.EndTimeSeconds)}");
+        }
+        builder.AppendLine($"- Methods: {string.Join(", ", provenance.Methods.Select(method => $"`{Escape(method.MethodId)}@{Escape(method.MethodVersion)}`"))}");
+        builder.AppendLine($"- Parameter fingerprint: `{provenance.ParameterFingerprint}`");
+        builder.AppendLine($"- Evidence fingerprint: `{provenance.EvidenceFingerprint}`");
+        builder.AppendLine();
+        builder.AppendLine("Provenance limitations:");
+        foreach (var limitation in provenance.Limitations)
+        {
+            builder.AppendLine($"- {Escape(limitation.Detail)}");
+        }
+        builder.AppendLine();
     }
 
     private static void WriteList(StringBuilder builder, string heading, IReadOnlyList<string> items)

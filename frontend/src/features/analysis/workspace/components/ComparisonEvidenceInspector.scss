@@ -218,11 +218,13 @@
     color: var(--muted-foreground);
   }
 
-  &__methods {
+  &__methods,
+  &__provenance {
     border-bottom: 1px solid color-mix(in srgb, var(--border) 82%, transparent);
   }
 
-  &__methods summary {
+  &__methods summary,
+  &__provenance summary {
     display: flex;
     align-items: baseline;
     justify-content: space-between;
@@ -234,7 +236,8 @@
     list-style-position: inside;
   }
 
-  &__methods summary small {
+  &__methods summary small,
+  &__provenance summary small {
     color: var(--muted-foreground);
     font-family: var(--font-mono);
     font-size: var(--font-xs);
@@ -311,6 +314,95 @@
     margin-top: 0.25rem;
     overflow-wrap: anywhere;
     font-family: var(--font-mono);
+  }
+
+  &__provenance-content {
+    padding: 0 0 1rem;
+  }
+
+  &__provenance-content dl,
+  &__provenance-content ul {
+    margin: 0;
+    padding: 0;
+  }
+
+  &__provenance-content dl div {
+    display: grid;
+    grid-template-columns: 5.4rem minmax(0, 1fr);
+    gap: 0.7rem;
+    padding: 0.55rem 0;
+    border-bottom: 1px solid color-mix(in srgb, var(--border) 72%, transparent);
+  }
+
+  &__provenance-content dt,
+  &__provenance-content dd,
+  &__provenance-content p,
+  &__provenance-content li,
+  &__provenance-content code,
+  &__provenance-content small {
+    font-size: var(--font-xs);
+  }
+
+  &__provenance-content dt,
+  &__provenance-content dd,
+  &__provenance-content p {
+    margin: 0;
+  }
+
+  &__provenance-content dt,
+  &__provenance-content p,
+  &__provenance-content li,
+  &__provenance-content small {
+    color: var(--muted-foreground);
+  }
+
+  &__provenance-content dd {
+    min-width: 0;
+    font-weight: 620;
+  }
+
+  &__provenance-content dd > code {
+    display: block;
+    overflow-wrap: anywhere;
+    font-family: var(--font-mono);
+  }
+
+  &__provenance-content p {
+    margin-top: 0.75rem;
+    font-weight: 650;
+  }
+
+  &__provenance-content ul {
+    margin-top: 0.35rem;
+    padding-left: 1rem;
+  }
+
+  &__provenance-content li {
+    padding: 0.15rem 0;
+    line-height: 1.45;
+  }
+
+  &__fingerprint {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.2rem;
+    min-width: 0;
+  }
+
+  &__fingerprint code {
+    overflow-wrap: anywhere;
+    font-family: var(--font-mono);
+  }
+
+  &__fingerprint button {
+    width: 1.6rem;
+    height: 1.6rem;
+  }
+
+  &__fingerprint svg {
+    width: 0.8rem;
+    height: 0.8rem;
   }
 }
 

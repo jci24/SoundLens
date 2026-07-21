@@ -62,6 +62,14 @@ public sealed class ExportComparisonReportTests : IClassFixture<WebApplicationFa
         Assert.Contains("- Difference convention: Compare A minus Compare B", payload.Markdown);
         Assert.Contains("`normalized_peak_amplitude@1`", payload.Markdown);
         AssertAnalysisMethodOrder(payload.Markdown);
+        Assert.Contains("## Analysis Provenance", payload.Markdown);
+        Assert.Contains("- Manifest: `comparison-provenance-v1`", payload.Markdown);
+        Assert.Contains("- Compare A content: `sha256:", payload.Markdown);
+        Assert.Contains("- Compare B content: `sha256:", payload.Markdown);
+        Assert.Contains("- Parameter fingerprint: `sha256:", payload.Markdown);
+        Assert.Contains("- Evidence fingerprint: `sha256:", payload.Markdown);
+        Assert.Contains("source retention and durable lineage are unavailable", payload.Markdown);
+        Assert.DoesNotContain(Path.GetTempPath(), payload.Markdown, StringComparison.OrdinalIgnoreCase);
         Assert.Contains("## Comparison Metrics", payload.Markdown);
         Assert.DoesNotContain("| Rank |", payload.Markdown);
         var peakIndex = payload.Markdown.IndexOf("| Peak amplitude |", StringComparison.Ordinal);
@@ -112,6 +120,11 @@ public sealed class ExportComparisonReportTests : IClassFixture<WebApplicationFa
         Assert.Contains("Compare A minus Compare B", text);
         Assert.Contains("normalized_peak_amplitude@1", text);
         AssertAnalysisMethodOrder(text);
+        Assert.Contains("Analysis Provenance", text);
+        Assert.Contains("comparison-provenance-v1", text);
+        Assert.Contains("sha256:", text);
+        Assert.Contains("source retention and durable lineage are unavailable", text);
+        Assert.DoesNotContain(Path.GetTempPath(), text, StringComparison.OrdinalIgnoreCase);
         Assert.Contains("Comparison Metrics", text);
         AssertMetricOrder(text);
         Assert.Contains("RMS amplitude", text);
@@ -479,6 +492,15 @@ public sealed class ExportComparisonReportTests : IClassFixture<WebApplicationFa
         var limitations = includeLimitation
             ? new[] { new RecordingComparisonLimitation("LowCoverage", "Only limited aligned evidence is available.") }
             : [];
+        var analysisSpecification = RecordingComparisonAnalysisSpecificationFactory.Create(null);
+        var analysisProvenance = RecordingComparisonProvenanceService.Create(
+            $"sha256:{new string('a', 64)}",
+            $"sha256:{new string('b', 64)}",
+            analysisSpecification,
+            [],
+            null,
+            "1.0.0-test",
+            RecordingComparisonProvenanceService.ImplementationVersion);
         var comparison = new RecordingComparisonResponse(
             new RecordingComparisonRecording("recording-a", fileNameA, 1, 2.5),
             new RecordingComparisonRecording("recording-b", fileNameB, 1, 2.5),
@@ -496,7 +518,8 @@ public sealed class ExportComparisonReportTests : IClassFixture<WebApplicationFa
                     new RecordingComparisonIntegrityCheck("SignalAlignment", "matched", "Signal alignment", "All signal pairs aligned."),
                     new RecordingComparisonIntegrityCheck("Calibration", "unknown", "Calibration", "No validated acoustic calibration is available.")
                 ]),
-            RecordingComparisonAnalysisSpecificationFactory.Create(null),
+            analysisSpecification,
+            analysisProvenance,
             null);
 
         var selectedMetric = aggregates.Single(metric => metric.MetricKey == selectedMetricKey);

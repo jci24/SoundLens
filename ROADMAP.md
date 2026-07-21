@@ -240,7 +240,8 @@ Current status:
 - Markdown and PDF share one backend preparation path, and both remain complete when AI is unavailable or malformed
 - PDF provides an A4 monochrome textual and tabular report with selectable text, bundled fonts, page metadata, and traceability
 - Markdown and PDF expose sample-rate, time-scope, signal-alignment, and calibration context in the same backend order; structural context limitations add a deterministic caution without replacing metric limitations
-- Markdown and PDF expose the same versioned comparison-method specification as the Evidence Inspector; durable input hashes, implementation versions, and persisted lineage remain future reproducibility work
+- Markdown and PDF expose the same versioned comparison-method specification and current-session provenance manifest as the Evidence Inspector, including active-file content hashes, implementation/build and decoder versions, scope, methods, and parameter/evidence fingerprints
+- current-session fingerprints do not provide retained source artifacts, durable lineage, calibration/equipment/environment provenance, signatures, reproduction jobs, equivalence tolerances, or audit certification
 
 Dependencies:
 - Milestone 4
@@ -430,7 +431,7 @@ SoundLens is approximately a **Level 2 tool-using Copilot with early Level 3 fou
 | Source-backed web answers | Partially implemented | Validated canonical HTTP(S) citations, conservative publisher classes, explicit unverified access/unassessed applicability, and ISO/IEC identifier-to-official-source alignment exist; substantive applicability, access verification, broader source quality, staleness, and literature disagreement do not. |
 | Investigation guidance | Partially implemented | Produces bounded advice and optional typed preview plans validated against the available capability catalog; plans are not executable or persisted. |
 | Investigation trace | Partially implemented | Observable per-turn activity is ephemeral and is not a complete persisted audit. |
-| Stable evidence identity and provenance | Partially implemented | Session identifiers and evidence citations exist; algorithm, parameter, content-hash, and persisted lineage do not. |
+| Stable evidence identity and provenance | Partially implemented | Pairwise comparisons expose current-session active-file, method, implementation/build, decoder, parameter, and evidence fingerprints; retained sources, durable lineage, calibration provenance, signatures, and reproduction jobs do not. |
 | Calibration compatibility | Partially implemented | Uncalibrated limitations and refusals exist; multiple real calibration states do not. |
 | Evidence sufficiency and structured claims | Partially implemented | Selected-comparison Copilot responses carry deterministic sufficiency and current-session metric/finding observations; durable provenance, hypotheses, and conclusions remain absent. |
 | Persistent investigations and jobs | Missing | The workspace is temporary and has no resumable execution model. |
@@ -470,7 +471,7 @@ Cross-unit metric ranking by raw magnitude is **no longer appropriate**. Compari
 | Track | Near-term responsibility | Later responsibility |
 | --- | --- | --- |
 | Product and comparison | Preserve explicit A/B scope, strict alignment, ROI, fixed-order metrics, drill-down, reports, and customer validation. | Add decision-specific prioritization and batch comparison only after validated demand. |
-| Deterministic evidence and provenance | Define sufficiency for existing metrics and strengthen evidence identity. | Add calibration compatibility, algorithm and parameter versions, hashes, lineage, and reproducible reuse. |
+| Deterministic evidence and provenance | Preserve current-session manifests and validate whether engineers use them in review. | Add retained sources, calibration compatibility, durable lineage, signed manifests, reproduction jobs, and equivalence tolerances. |
 | Investigation intelligence | Harden routing evals and define typed observations and plans. | Add evidence-driven plan revision, structured hypotheses, conclusions, and reviewable workspace actions. |
 | External scientific research | Keep current bounded cited search isolated from measurements. | Add source quality, applicability, conflicting-source handling, literature briefs, and measured-plus-research synthesis. |
 | Persistence and long-running execution | Validate need before building. | Add investigation state, resumable jobs, report lifecycle, cache invalidation, and historical retrieval. |

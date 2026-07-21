@@ -255,6 +255,31 @@ const comparisonResponse: IRecordingComparisonResponse = {
       { metricKey: 'clippingSampleCountDelta', label: 'Clipping samples', unit: 'samples', methodId: 'decoded_full_scale_sample_count', methodVersion: '1', definition: 'Clipping definition.' },
     ],
   },
+  analysisProvenance: {
+    contractVersion: 'comparison-provenance-v1',
+    recordingA: { algorithm: 'sha256', value: `sha256:${'a'.repeat(64)}` },
+    recordingB: { algorithm: 'sha256', value: `sha256:${'b'.repeat(64)}` },
+    implementationId: 'soundlens_recording_comparison',
+    implementationVersion: '1',
+    applicationBuildVersion: '1.0.0-test',
+    decoderId: 'soundlens_wav_pcm_ieee_float',
+    decoderVersion: '1',
+    scope: 'full_duration',
+    regionOfInterest: null,
+    methods: [
+      { methodId: 'normalized_peak_amplitude', methodVersion: '1' },
+      { methodId: 'normalized_rms_amplitude', methodVersion: '1' },
+      { methodId: 'peak_to_rms_ratio', methodVersion: '1' },
+      { methodId: 'decoded_full_scale_sample_count', methodVersion: '1' },
+    ],
+    parameterFingerprint: `sha256:${'c'.repeat(64)}`,
+    evidenceFingerprint: `sha256:${'d'.repeat(64)}`,
+    limitations: [
+      { code: 'temporary_session', detail: 'Temporary session.' },
+      { code: 'incomplete_capture', detail: 'Capture metadata is incomplete.' },
+      { code: 'unsigned_manifest', detail: 'Manifest is unsigned.' },
+    ],
+  },
   regionOfInterest: null,
 }
 

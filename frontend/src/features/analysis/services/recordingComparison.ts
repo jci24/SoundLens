@@ -1,7 +1,9 @@
 import { API_BASE_URL } from '../../../common/api/config'
 import type { IRequestedRegionOfInterest } from '../utils/analysisWorkspaceState'
 import type {
+  IAnalysisRegionOfInterest,
   IRecordingComparisonAnalysisSpecification,
+  IRecordingComparisonAnalysisProvenance,
   IRecordingComparisonIntegrityAssessment,
   IRecordingComparisonIntegrityCheck,
   IRecordingComparisonMetricMethod,
@@ -25,6 +27,12 @@ const expectedMetricMethods: ReadonlyArray<Pick<IRecordingComparisonMetricMethod
   { metricKey: 'crestFactorDelta', unit: 'ratio', methodId: 'peak_to_rms_ratio' },
   { metricKey: 'clippingSampleCountDelta', unit: 'samples', methodId: 'decoded_full_scale_sample_count' },
 ]
+const expectedProvenanceLimitationCodes = [
+  'temporary_session',
+  'incomplete_capture',
+  'unsigned_manifest',
+] as const
+const sha256Pattern = /^sha256:[0-9a-f]{64}$/
 
 export const getRecordingComparison = async (
   recordingIdA: string,
@@ -60,6 +68,10 @@ const parseRecordingComparisonResponse = (value: unknown): IRecordingComparisonR
       !hasMatchingAnalysisScope(value.analysisSpecification, value.regionOfInterest) ||
       !hasMatchingAggregateMetrics(value.analysisSpecification, value.aggregateMetrics)) {
     throw new Error('Comparison results returned an invalid analysis specification.')
+  }
+
+  if (!isAnalysisProvenance(value.analysisProvenance, value.analysisSpecification, value.regionOfInterest)) {
+    throw new Error('Comparison results returned invalid analysis provenance.')
   }
 
   return value as unknown as IRecordingComparisonResponse
@@ -137,7 +149,7 @@ const hasMatchingAnalysisScope = (
   ? specification.scope === 'full_duration'
   : specification.scope === 'roi' && isRegionOfInterest(regionOfInterest)
 
-const isRegionOfInterest = (value: unknown) =>
+const isRegionOfInterest = (value: unknown): value is IAnalysisRegionOfInterest =>
   isRecord(value) &&
   typeof value.startTimeSeconds === 'number' &&
   Number.isFinite(value.startTimeSeconds) &&
@@ -145,6 +157,71 @@ const isRegionOfInterest = (value: unknown) =>
   Number.isFinite(value.endTimeSeconds) &&
   value.startTimeSeconds >= 0 &&
   value.endTimeSeconds > value.startTimeSeconds
+
+const isAnalysisProvenance = (
+  value: unknown,
+  specification: IRecordingComparisonAnalysisSpecification,
+  responseRegionOfInterest: unknown
+): value is IRecordingComparisonAnalysisProvenance => {
+  if (
+    !isRecord(value) ||
+    value.contractVersion !== 'comparison-provenance-v1' ||
+    !isInputFingerprint(value.recordingA) ||
+    !isInputFingerprint(value.recordingB) ||
+    value.implementationId !== 'soundlens_recording_comparison' ||
+    value.implementationVersion !== '1' ||
+    typeof value.applicationBuildVersion !== 'string' ||
+    value.applicationBuildVersion.trim().length === 0 ||
+    value.applicationBuildVersion.length > 200 ||
+    value.decoderId !== 'soundlens_wav_pcm_ieee_float' ||
+    value.decoderVersion !== '1' ||
+    (value.scope !== 'full_duration' && value.scope !== 'roi') ||
+    !hasMatchingProvenanceScope(value.scope, value.regionOfInterest, responseRegionOfInterest) ||
+    !Array.isArray(value.methods) ||
+    value.methods.length !== specification.metricMethods.length ||
+    typeof value.parameterFingerprint !== 'string' ||
+    !sha256Pattern.test(value.parameterFingerprint) ||
+    typeof value.evidenceFingerprint !== 'string' ||
+    !sha256Pattern.test(value.evidenceFingerprint) ||
+    !hasValidProvenanceLimitations(value.limitations)
+  ) {
+    return false
+  }
+
+  return value.methods.every((method, index) =>
+    isRecord(method) &&
+    method.methodId === specification.metricMethods[index].methodId &&
+    method.methodVersion === specification.metricMethods[index].methodVersion)
+}
+
+const isInputFingerprint = (value: unknown) =>
+  isRecord(value) && value.algorithm === 'sha256' &&
+  typeof value.value === 'string' && sha256Pattern.test(value.value)
+
+const hasMatchingProvenanceScope = (
+  scope: unknown,
+  provenanceRegionOfInterest: unknown,
+  responseRegionOfInterest: unknown
+) => {
+  if (scope === 'full_duration') {
+    return provenanceRegionOfInterest === null && responseRegionOfInterest === null
+  }
+
+  return isRegionOfInterest(provenanceRegionOfInterest) &&
+    isRegionOfInterest(responseRegionOfInterest) &&
+    provenanceRegionOfInterest.startTimeSeconds === responseRegionOfInterest.startTimeSeconds &&
+    provenanceRegionOfInterest.endTimeSeconds === responseRegionOfInterest.endTimeSeconds &&
+    provenanceRegionOfInterest.durationSeconds === responseRegionOfInterest.durationSeconds
+}
+
+const hasValidProvenanceLimitations = (value: unknown) =>
+  Array.isArray(value) &&
+  value.length === expectedProvenanceLimitationCodes.length &&
+  value.every((limitation, index) =>
+    isRecord(limitation) &&
+    limitation.code === expectedProvenanceLimitationCodes[index] &&
+    typeof limitation.detail === 'string' &&
+    limitation.detail.trim().length > 0)
 
 const hasMatchingAggregateMetrics = (
   specification: IRecordingComparisonAnalysisSpecification,
