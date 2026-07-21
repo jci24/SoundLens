@@ -230,7 +230,7 @@ Reason for deferral:
 Recently completed:
 
 - bounded web-research resilience now classifies failures without message inspection, retries one transient transport, timeout, throttling, or provider failure, preserves cancellation, and never retries invalid or unsafe citation output
-- standards research now rejects bundled or unmatched ISO/IEC references and requires a recognized standards-body citation when primary or official sources are explicitly requested
+- standards research now rejects bundled or unmatched ISO/IEC references, requires an authority-matched standards-body citation when primary or official sources are explicitly requested, and permits one bounded correction attempt for alignment-only failures
 
 High priority before hosted multi-user deployment:
 

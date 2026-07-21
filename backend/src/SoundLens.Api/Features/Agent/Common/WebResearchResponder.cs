@@ -30,10 +30,17 @@ public sealed class WebResearchResponder(
                     if (!alignment.IsValid)
                     {
                         logger.LogWarning(
-                            "Web research attempt {Attempt} produced {FailureCategory} after {ElapsedMilliseconds} ms; no retry will be attempted.",
+                            "Web research attempt {Attempt} produced {FailureCategory} after {ElapsedMilliseconds} ms.",
                             attempt,
                             alignment.FailureCategory,
                             elapsed.TotalMilliseconds);
+
+                        if (attempt < MaxAttempts)
+                        {
+                            await Task.Delay(RetryDelay, ct);
+                            continue;
+                        }
+
                         break;
                     }
 
