@@ -26,6 +26,24 @@ public sealed class WebResearchResponder(
                         out var citations,
                         out var failureCategory))
                 {
+                    var alignment = StandardsResearchAlignmentPolicy.Validate(question, answer, citations);
+                    if (!alignment.IsValid)
+                    {
+                        logger.LogWarning(
+                            "Web research attempt {Attempt} produced {FailureCategory} after {ElapsedMilliseconds} ms.",
+                            attempt,
+                            alignment.FailureCategory,
+                            elapsed.TotalMilliseconds);
+
+                        if (attempt < MaxAttempts)
+                        {
+                            await Task.Delay(RetryDelay, ct);
+                            continue;
+                        }
+
+                        break;
+                    }
+
                     logger.LogInformation(
                         "Web research succeeded on attempt {Attempt} in {ElapsedMilliseconds} ms.",
                         attempt,

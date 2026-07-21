@@ -81,6 +81,59 @@ public sealed class WebResearchResponderTests
     }
 
     [Fact]
+    public async Task BundledStandardsClaimsRetryOnceThenFailClosed()
+    {
+        const string answer = "ISO 11689:1996 and ISO 12001:1996 define machinery noise procedures.";
+        var client = new SequenceWebResearchClient(new WebResearchResult(
+            answer,
+            [new WebResearchCitation(
+                "ISO 11689:1996",
+                new Uri("https://www.iso.org/standard/19516.html"),
+                0,
+                answer.Length)]));
+        var responder = CreateResponder(client);
+
+        var response = await responder.BuildAsync(
+            "Which ISO standards apply? Cite primary sources.",
+            CancellationToken.None);
+
+        Assert.Equal(2, client.CallCount);
+        Assert.Empty(response.ExternalCitations);
+        Assert.Contains("temporarily unavailable", response.Answer, StringComparison.OrdinalIgnoreCase);
+    }
+
+    [Fact]
+    public async Task StandardsAlignmentFailureRetriesOnceAndCanRecover()
+    {
+        const string invalidAnswer = "ISO 11689:1996 and ISO 12001:1996 define machinery noise procedures.";
+        const string validAnswer = "ISO 11689:1996 defines a machinery comparison procedure.";
+        var client = new SequenceWebResearchClient(
+            new WebResearchResult(
+                invalidAnswer,
+                [new WebResearchCitation(
+                    "ISO 11689:1996",
+                    new Uri("https://www.iso.org/standard/19516.html"),
+                    0,
+                    invalidAnswer.Length)]),
+            new WebResearchResult(
+                validAnswer,
+                [new WebResearchCitation(
+                    "ISO 11689:1996",
+                    new Uri("https://www.iso.org/standard/19516.html"),
+                    0,
+                    validAnswer.Length)]));
+        var responder = CreateResponder(client);
+
+        var response = await responder.BuildAsync(
+            "Which ISO standards apply? Cite primary sources.",
+            CancellationToken.None);
+
+        Assert.Equal(2, client.CallCount);
+        Assert.Single(response.ExternalCitations);
+        Assert.Equal(["web_search"], response.ToolsUsed);
+    }
+
+    [Fact]
     public async Task InvalidRequestDoesNotRetry()
     {
         var client = new SequenceWebResearchClient(new HttpRequestException(
