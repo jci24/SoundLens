@@ -230,6 +230,7 @@ Reason for deferral:
 
 Recently completed:
 
+- OpenAI chat endpoint tests now construct SDK output models through `OpenAIChatModelFactory` instead of reflecting over private constructors and internal response types
 - waveform and spectrum caches now use one backend-owned recording-plus-content evidence identity; changed verified content invalidates decoded and FFT evidence while unchanged content and independent FFT configurations retain bounded cache reuse
 - import inventory, waveform, and spectrum now use one shared WAV PCM/IEEE-float decoder boundary, with normalization, interleaving, metadata-only reads, limits, malformed input, and cancellation covered directly without changing DSP contracts
 - bounded web-research resilience now classifies failures without message inspection, retries one transient transport, timeout, throttling, or provider failure, preserves cancellation, and never retries invalid or unsafe citation output
@@ -244,7 +245,6 @@ High priority before hosted multi-user deployment:
 
 Normal priority:
 
-- replace the reflection-based OpenAI SDK test stub if the SDK exposes a stable testing seam
 - add the production-host SPA fallback configuration when a deployment target is selected so `/import` and `/evidence` survive direct navigation and refresh
 - add retained source artifacts, durable lineage, calibration/equipment/environment provenance, signed manifests, reproduction jobs, and equivalence tolerances only when persisted investigations are validated
 

@@ -1,6 +1,5 @@
 using System.Net;
 using System.Net.Http.Json;
-using System.Reflection;
 using System.Text.Json;
 using System.ClientModel;
 using System.ClientModel.Primitives;
@@ -1519,41 +1518,20 @@ public sealed class AgentQueryEndpointTests : IClassFixture<WebApplicationFactor
         }
 
         private static ChatCompletion CreateChatCompletion(string responseJson)
-        {
-            var assembly = typeof(ChatCompletion).Assembly;
-            var messageType = assembly.GetType("OpenAI.Chat.InternalChatCompletionResponseMessage")!;
-            var choiceType = assembly.GetType("OpenAI.Chat.InternalCreateChatCompletionResponseChoice")!;
-            var choices = Array.CreateInstance(choiceType, 1);
-
-            var message = Activator.CreateInstance(
-                messageType,
-                BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Public,
-                binder: null,
-                args: new object?[] { new ChatMessageContent(responseJson), null },
-                culture: null)!;
-
-            var choice = Activator.CreateInstance(
-                choiceType,
-                BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Public,
-                binder: null,
-                args: new object[] { ChatFinishReason.Stop, 0, message, null! },
-                culture: null)!;
-
-            choices.SetValue(choice, 0);
-
-            return (ChatCompletion)Activator.CreateInstance(
-                typeof(ChatCompletion),
-                BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Public,
-                binder: null,
-                args: new object[]
-                {
-                    "chatcmpl-test",
-                    choices,
-                    DateTimeOffset.UtcNow,
-                    "gpt-5"
-                },
-                culture: null)!;
-        }
+            => OpenAIChatModelFactory.ChatCompletion(
+                "chatcmpl-test",
+                ChatFinishReason.Stop,
+                new ChatMessageContent(responseJson),
+                null,
+                [],
+                ChatMessageRole.Assistant,
+                null,
+                [],
+                [],
+                DateTimeOffset.UtcNow,
+                "gpt-5",
+                null,
+                null);
     }
 
     #pragma warning disable CS8765
