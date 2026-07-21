@@ -156,7 +156,7 @@ public sealed class SpectrumService : ISpectrumService
         AnalysisState analysisState,
         CancellationToken cancellationToken)
     {
-        var cacheKey = $"{channel.SignalId}|spectrum|fft:{analysisState.FftLength}";
+        var cacheKey = $"{channel.Recording.EvidenceCacheIdentity}|{channel.SignalId}|spectrum|fft:{analysisState.FftLength}";
         if (_signalSpectrumCache.TryGetValue(cacheKey, out var cachedPoints))
         {
             return cachedPoints;
@@ -580,6 +580,7 @@ public sealed class SpectrumService : ISpectrumService
 
         return new DecodedSpectrumRecording(
             BuildRecordingId(file),
+            ImportedFileEvidenceCacheIdentity.Build(file),
             file.FileName,
             file.FilePath,
             file.SizeBytes,
@@ -593,7 +594,7 @@ public sealed class SpectrumService : ISpectrumService
     private static string BuildRecordingId(ImportedFileSummary file) => ImportedFileIdentity.BuildRecordingId(file);
 
     private static string BuildSpectrumRecordingCacheKey(ImportedFileSummary file) =>
-        $"{BuildRecordingId(file)}|spectrum";
+        $"{ImportedFileEvidenceCacheIdentity.Build(file)}|spectrum";
 
     private static string BuildSignalId(string recordingId, int channelIndex) => $"{recordingId}:ch:{channelIndex}";
 
@@ -603,6 +604,7 @@ public sealed class SpectrumService : ISpectrumService
 
     private sealed record DecodedSpectrumRecording(
         string RecordingId,
+        string EvidenceCacheIdentity,
         string FileName,
         string FilePath,
         long SizeBytes,
