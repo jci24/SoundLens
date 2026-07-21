@@ -158,10 +158,10 @@ This classification is about product responsibility, not model intelligence. The
 - `POST /api/report/export` creates a normalized deterministic workspace snapshot.
 - `POST /api/report/export/markdown` turns that snapshot into a markdown artifact.
 - Focused-mode export keeps the existing immediate workspace markdown behavior.
-- Compare-mode export opens a preview for the active A/B pair, ROI or full-duration scope, editable title, and explicitly excluded recordings.
+- Compare-mode export opens a preview for the active A/B pair, ROI or full-duration scope, compact backend-owned comparison-context summary, editable title, and explicitly excluded recordings.
 - `POST /api/report/export/comparison/markdown` accepts identifiers and UI-owned assignment labels only. The backend re-runs the deterministic comparison and validates the selected metric and aligned pair before writing evidence.
 - `POST /api/report/export/comparison/pdf` accepts the same identifier-only request and renders the same prepared evidence as a selectable-text A4 PDF.
-- The comparison report includes comparison metrics in the fixed Peak, RMS, crest-factor, and clipping order, selected evidence, AI interpretation, exclusions, limitations, and traceability.
+- The comparison report includes a separate sample-rate, time-scope, signal-alignment, and calibration context section before comparison metrics, followed by selected evidence, AI interpretation, exclusions, metric limitations, and traceability.
 - Comparison export still succeeds without a usable AI response by including deterministic evidence plus a clear fallback notice; malformed model output is not exposed.
 - Comparison-report AI may validate only the backend-generated fact for the user-selected metric. All narrative prose is rendered from deterministic backend templates, so selected aggregate evidence, aligned-pair direction, limitations, and fallback wording remain backend-owned and cannot be invented by the model.
 - Markdown and PDF share one backend preparation path, including comparison reconstruction and one automatic narrative-or-fallback decision per export. PDF uses bundled Noto Sans fonts rather than host font discovery.

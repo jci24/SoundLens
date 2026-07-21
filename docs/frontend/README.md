@@ -192,7 +192,7 @@ Current report-export guidance:
 - Focused-mode export remains an immediate workspace Markdown download.
 - Compare-mode export requires a valid backend comparison result and opens an accessible Radix preview with Markdown selected by default and PDF as a second format.
 - Report side effects and request construction belong in the report feature hook and service; workspace components should only provide current identifiers and render the preview.
-- The preview may show UI-owned assignments and filenames, but must never manufacture or submit DSP measurements, metric order, units, findings, coverage, or limitations.
+- The preview may show UI-owned assignments and filenames plus a compact summary of the backend response's integrity assessment, but must never manufacture or submit DSP measurements, context checks, metric order, units, findings, coverage, or limitations.
 - Markdown uses the existing text response and download path. PDF uses a binary `Blob`, reads the CORS-exposed `Content-Disposition` filename defensively, falls back to `soundlens-comparison.pdf`, and always releases the temporary object URL after triggering download.
 - Opening a new comparison preview resets the format to Markdown. Export failure keeps the dialog open so the user can retry or choose another format.
 - Comparison metric cards preserve backend response order and never sort heterogeneous units by frontend-computed magnitude. Selection changes evidence focus without moving cards.

@@ -47,6 +47,7 @@ Turn the current analysis workspace into a focused comparison workflow for repea
 - backend-owned resolution of comparison evidence before Copilot explanation
 - comparison-specific Markdown preview and export over backend-reconstructed evidence
 - explicit excluded-recording, limitation, AI fallback, and traceability sections in comparison reports
+- backend-owned comparison context in report preview, Markdown, PDF, and deterministic report cautions
 - direct metric-card evidence drill-down with explicit evidence and limitation controls
 - non-modal comparison evidence inspector that preserves chart position and closes Copilot before opening
 - explicit Compare A and Compare B recording slots with accessible pickers, replace, clear, duplicate prevention, and atomic swap

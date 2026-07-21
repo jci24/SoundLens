@@ -31,4 +31,12 @@ public static class ComparisonReportFormatting
 
     public static string FormatSeconds(double value) =>
         $"{value.ToString("0.###", CultureInfo.InvariantCulture)} s";
+
+    public static string FormatIntegrityStatus(string status) => status switch
+    {
+        "matched" => "Matched",
+        "limited" => "Review",
+        "unknown" => "Unknown",
+        _ => throw new ArgumentOutOfRangeException(nameof(status), status, "Unsupported comparison integrity status.")
+    };
 }

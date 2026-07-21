@@ -234,10 +234,11 @@ Major capabilities:
 - grounded AI narrative over comparison evidence
 
 Current status:
-- compare mode previews the active pair, scope, exclusions, title, and Markdown or PDF format before export
+- compare mode previews the active pair, scope, backend-owned comparison context, exclusions, title, and Markdown or PDF format before export
 - the backend reconstructs ordered comparison metrics and selected evidence from identifiers rather than accepting frontend measurements
 - Markdown and PDF share one backend preparation path, and both remain complete when AI is unavailable or malformed
 - PDF provides an A4 monochrome textual and tabular report with selectable text, bundled fonts, page metadata, and traceability
+- Markdown and PDF expose sample-rate, time-scope, signal-alignment, and calibration context in the same backend order; structural context limitations add a deterministic caution without replacing metric limitations
 
 Dependencies:
 - Milestone 4

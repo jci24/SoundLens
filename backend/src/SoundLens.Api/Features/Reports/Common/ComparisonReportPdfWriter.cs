@@ -43,6 +43,7 @@ public static class ComparisonReportPdfWriter
 
         AddTitle(section, context);
         AddScope(section, context, narrative);
+        AddIntegrityContext(section, context);
         AddMetrics(section, context);
         AddSelectedEvidence(section, context);
         AddNarrative(section, narrative);
@@ -51,6 +52,36 @@ public static class ComparisonReportPdfWriter
         AddTraceability(section, context);
 
         return document;
+    }
+
+    private static void AddIntegrityContext(Section section, ComparisonReportContext context)
+    {
+        section.AddParagraph("Comparison Context", StyleNames.Heading2);
+        var table = section.AddTable();
+        table.Format.Font.Name = FontFamily;
+        table.Format.Font.Size = Unit.FromPoint(8);
+        table.Borders.Color = Color.FromRgb(205, 205, 205);
+        table.Borders.Width = Unit.FromPoint(0.4);
+        table.Rows.LeftIndent = Unit.Zero;
+        table.AddColumn(Unit.FromCentimeter(3.3));
+        table.AddColumn(Unit.FromCentimeter(2.1));
+        table.AddColumn(Unit.FromCentimeter(10.4));
+
+        var header = table.AddRow();
+        header.HeadingFormat = true;
+        header.Format.Font.Bold = true;
+        header.Shading.Color = Color.FromRgb(239, 239, 239);
+        AddCells(header, "Check", "Status", "Detail");
+
+        foreach (var check in context.Comparison.IntegrityAssessment.Checks)
+        {
+            var row = table.AddRow();
+            AddCells(
+                row,
+                check.Label,
+                ComparisonReportFormatting.FormatIntegrityStatus(check.Status),
+                check.Detail);
+        }
     }
 
     private static void ConfigureStyles(Document document)
