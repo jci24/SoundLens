@@ -115,7 +115,7 @@ public sealed class AgentQueryValidatorTests
             null,
             RouteContext: new AgentRouteContext("reports")));
 
-        Assert.Contains(result.Errors, error => error.PropertyName == nameof(AgentQueryCommand.RouteContext));
+        Assert.Contains(result.Errors, error => error.ErrorMessage == "RouteContext.Route is not supported.");
     }
 
     [Fact]
