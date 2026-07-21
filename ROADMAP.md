@@ -2,23 +2,39 @@
 
 Last updated: 2026-07-21
 
+## Dual-Track Operating Model
+
+SoundLens advances through two parallel tracks:
+
+- **Product discovery and business case:** interviews, recent-work walkthroughs, prototype feedback, buyer research, deployment constraints, and opportunity synthesis continue as participants become available.
+- **Product and engineering delivery:** segment-neutral improvements to the shipped workflow, evidence integrity, reliability, tests, architecture, accessibility, and reusable foundations continue without waiting for the interview program to finish.
+
+Discovery is continuous rather than a one-time prerequisite. Synthesize it after every three meaningful interviews or every four weeks, whichever comes first. Each checkpoint may confirm the current direction, change priorities, require more discovery, or reject a hypothesis.
+
+Discovery gates market-specific or expensive commitments; it does not pause routine product development. Specialized domain analyses, segment positioning, persistence scope, campaign-scale architecture, hosted deployment, and increased Sona autonomy require the relevant evidence and gates below.
+
 ## Delivery Horizon
 
 The detailed milestones below describe shipped foundations and possible expansion paths. They do not make every listed capability an active commitment.
 
-### Now — committed validation work
+### Now — parallel commitments
 
+Product discovery:
 - validate the current reference-versus-candidate workflow with at least three relevant automotive NVH or adjacent engineering users
 - observe at least one recent real comparison and reporting workflow, including typical and worst-case recording, channel, operating-condition, and result volumes
 - test whether the current Evidence workflow, reports, and approval-gated Sona navigation reduce effort or improve decision confidence
-- maintain the shipped comparison, evidence, playback, reporting, and Copilot trust boundaries while discovery runs
 
-Exit decision:
-- choose one next product wedge, continue discovery, or reject/reframe the current segment hypothesis using recorded supporting and disconfirming evidence
+Product and engineering:
+- maintain the shipped comparison, evidence, playback, reporting, and Copilot trust boundaries while discovery runs
+- continue bounded UX, reliability, test, architecture, accessibility, and evidence-integrity slices that do not presume a customer segment or unvalidated analysis method
+- address confirmed regressions, security issues, privacy leaks, and maintainability risks without waiting for a discovery checkpoint
+
+Rolling discovery decision:
+- at each checkpoint, choose or revise one evidence-backed product wedge, continue discovery, or reject/reframe the segment hypothesis using recorded supporting and disconfirming evidence
 
 ### Next — decision-gated product work
 
-Only one of these becomes the next implementation program after the Now gate:
+One of these may become the next substantial product program when its evidence threshold is met; routine engineering does not stop in the meantime:
 
 - **investigation integrity:** real calibration state, compatibility, provenance, and reproducibility when trustworthy physical or repeatable evidence is the dominant blocker
 - **analysis expansion:** one validated analysis primitive or recipe when interviews identify a recurring decision not served by current waveform, spectrum, level, and dynamics evidence

@@ -238,9 +238,11 @@ The repo is still intentionally simple: no extra backend projects, no persistenc
 - A true calibrated-versus-uncalibrated comparison eval remains deferred because imported evidence currently has no real calibrated state
 - The current routing corpus is intentionally small and uses a strict all-runs-pass merge gate. A proposed 95% overall threshold applies only to a future larger representative corpus; critical trust-boundary routes remain 100%.
 
-## Immediate Next Product Slice
+## Immediate Parallel Priorities
 
-The next product action is direct automotive NVH and adjacent-workflow validation using recent-work walkthroughs, prototype feedback, scale discovery, and buyer discovery. This is a decision gate rather than an automatic implementation branch.
+Product discovery continues through automotive NVH and adjacent-workflow interviews, recent-work walkthroughs, prototype feedback, scale discovery, and buyer discovery. Findings are synthesized after every three meaningful interviews or every four weeks, whichever comes first; participant availability does not pause engineering.
+
+In parallel, engineering may continue bounded improvements to the shipped workflow, evidence integrity, reliability, tests, architecture, accessibility, and reusable segment-neutral foundations.
 
 The next engineering wedge will be selected from observed evidence:
 
@@ -248,6 +250,6 @@ The next engineering wedge will be selected from observed evidence:
 - one validated analysis primitive or recipe when a recurring decision is unsupported
 - persisted projects, sessions, and investigations when temporary-session loss blocks real work
 
-Campaign-scale workflows, hosted multi-user deployment, and further Sona autonomy remain conditional programs with separate scale, production-readiness, and reversible-action gates. Specialized analysis implementation and public repositioning remain gated on direct evidence.
+Campaign-scale workflows, hosted multi-user deployment, and further Sona autonomy remain conditional programs with separate scale, production-readiness, and reversible-action gates. Specialized analysis implementation, persistence scope, major scale investment, and public repositioning remain gated on direct evidence.
 
 A real calibration-state model and calibrated-versus-uncalibrated eval remain later trust work because the current import contract cannot represent a genuine calibrated comparison safely.
